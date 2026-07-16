@@ -114,6 +114,7 @@
         "settings_description": "Обновете настройките за изглед на вашия акаунт"
     },
     "roles": {
+        "user": "Потребител",
         "administrator": "Администратор",
         "organization_owner": "Собственик на организация",
         "product_owner": "Продуктов собственик",

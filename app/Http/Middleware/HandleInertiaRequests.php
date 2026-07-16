@@ -48,9 +48,12 @@ class HandleInertiaRequests extends Middleware
                 : Organization::query()->select(['id', 'name', 'slug'])->first();
         }
 
+        $role = $organization ? $user?->roleIn($organization) : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'version' => (string) config('app.version'),
             'locale' => app()->getLocale(),
             'locales' => [
                 ['code' => 'en', 'label' => 'English'],
@@ -64,7 +67,10 @@ class HandleInertiaRequests extends Middleware
                     'is_system_admin' => $user->isSystemAdmin(),
                     'must_change_password' => (bool) $user->must_change_password,
                     'permissions' => $user->resolvedPermissions($organization),
-                    'role' => $organization ? $user->roleIn($organization)?->slug : null,
+                    'role' => $role?->slug,
+                    'role_label' => $user->isSystemAdmin()
+                        ? null
+                        : $role?->name,
                 ] : null,
             ],
             'organization' => $organization?->only(['id', 'name', 'slug']),

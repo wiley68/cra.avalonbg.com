@@ -9,6 +9,7 @@ export type User = {
     must_change_password?: boolean;
     permissions?: string[];
     role?: string | null;
+    role_label?: string | null;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;

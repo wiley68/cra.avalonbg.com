@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { HardDriveDownload, LayoutGrid, Mail, User } from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -14,29 +15,69 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useTranslations } from '@/composables/useTranslations';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
+const page = usePage();
+const { t } = useTranslations();
+
+const mainNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Dashboard',
+        title: t('common.dashboard'),
         href: dashboard(),
         icon: LayoutGrid,
     },
-];
+]);
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+function resolveRoleLabel(
+    user: NonNullable<typeof page.props.auth.user>,
+): string {
+    if (user.is_system_admin) {
+        return t('admin.users.system_admin');
+    }
+
+    if (user.role) {
+        const key = `roles.${user.role}`;
+        const translated = t(key);
+
+        if (translated !== key) {
+            return translated;
+        }
+    }
+
+    if (typeof user.role_label === 'string' && user.role_label.trim() !== '') {
+        return user.role_label;
+    }
+
+    return t('roles.user');
+}
+
+const footerNavItems = computed<NavItem[]>(() => {
+    const user = page.props.auth.user;
+
+    if (!user) {
+        return [];
+    }
+
+    return [
+        {
+            title: resolveRoleLabel(user),
+            href: '',
+            icon: User,
+        },
+        {
+            title: user.email,
+            href: '',
+            icon: Mail,
+        },
+        {
+            title: String(page.props.version ?? '1.0.0'),
+            href: '',
+            icon: HardDriveDownload,
+        },
+    ];
+});
 </script>
 
 <template>

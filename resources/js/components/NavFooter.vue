@@ -3,10 +3,8 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarMenu,
-    SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { toUrl } from '@/lib/utils';
 import type { NavItem } from '@/types';
 
 type Props = {
@@ -24,19 +22,12 @@ defineProps<Props>();
         <SidebarGroupContent>
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in items" :key="item.title">
-                    <SidebarMenuButton
-                        class="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                        as-child
+                    <div
+                        class="flex items-center gap-2 text-sm text-neutral-600 select-none dark:text-neutral-300"
                     >
-                        <a
-                            :href="toUrl(item.href)"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <component :is="item.icon" />
-                            <span>{{ item.title }}</span>
-                        </a>
-                    </SidebarMenuButton>
+                        <component :is="item.icon" class="size-4 shrink-0" />
+                        <span class="truncate">{{ item.title }}</span>
+                    </div>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroupContent>

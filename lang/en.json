@@ -114,6 +114,7 @@
         "settings_description": "Update the appearance settings for your account"
     },
     "roles": {
+        "user": "User",
         "administrator": "Administrator",
         "organization_owner": "Organization Owner",
         "product_owner": "Product Owner",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -14,12 +15,33 @@ defineProps<{
     items: NavItem[];
 }>();
 
+const page = usePage();
 const { isCurrentUrl } = useCurrentUrl();
+
+const organizationLabel = computed(() => {
+    const organization = page.props.organization;
+
+    if (
+        organization &&
+        typeof organization === 'object' &&
+        'name' in organization &&
+        typeof organization.name === 'string' &&
+        organization.name.trim() !== ''
+    ) {
+        return organization.name;
+    }
+
+    const appName = page.props.name;
+
+    return typeof appName === 'string' && appName.trim() !== ''
+        ? appName
+        : 'CRA Compliance Workspace';
+});
 </script>
 
 <template>
     <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel>Platform</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ organizationLabel }}</SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
