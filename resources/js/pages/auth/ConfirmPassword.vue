@@ -7,6 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 
+defineProps<{
+    redirect?: string | null;
+}>();
+
 defineOptions({
     layout: {
         title: 'Confirm password',
@@ -24,6 +28,13 @@ defineOptions({
         reset-on-success
         v-slot="{ errors, processing }"
     >
+        <input
+            v-if="redirect"
+            type="hidden"
+            name="redirect"
+            :value="redirect"
+        />
+
         <div class="space-y-6">
             <div class="grid gap-2">
                 <Label htmlFor="password">Password</Label>
