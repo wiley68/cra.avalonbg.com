@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, ShieldAlert } from '@lucide/vue';
 import AppearanceSwitcher from '@/components/AppearanceSwitcher.vue';
 import LocaleSwitcher from '@/components/LocaleSwitcher.vue';
 import { Button } from '@/components/ui/button';
+import { Panel, PanelDescription, PanelTitle } from '@/components/ui/panel';
 import { useTranslations } from '@/composables/useTranslations';
 import { login } from '@/routes';
 
@@ -52,21 +53,21 @@ const { t } = useTranslations();
             </section>
 
             <section class="grid gap-4 md:grid-cols-5">
-                <div class="rounded-lg border p-4 text-sm">
+                <Panel variant="success">
                     {{ t('welcome.chain.requirement') }}
-                </div>
-                <div class="rounded-lg border p-4 text-sm">
+                </Panel>
+                <Panel variant="success">
                     {{ t('welcome.chain.risk') }}
-                </div>
-                <div class="rounded-lg border p-4 text-sm">
+                </Panel>
+                <Panel variant="success">
                     {{ t('welcome.chain.control') }}
-                </div>
-                <div class="rounded-lg border p-4 text-sm">
+                </Panel>
+                <Panel variant="success">
                     {{ t('welcome.chain.evidence') }}
-                </div>
-                <div class="rounded-lg border p-4 text-sm">
+                </Panel>
+                <Panel variant="success">
                     {{ t('welcome.chain.release') }}
-                </div>
+                </Panel>
             </section>
 
             <section>
@@ -74,68 +75,66 @@ const { t } = useTranslations();
                     {{ t('welcome.modules_title') }}
                 </h2>
                 <div class="grid gap-4 md:grid-cols-2">
-                    <div class="rounded-lg border p-5">
-                        <p class="font-medium">
+                    <Panel size="lg">
+                        <PanelTitle>
                             {{ t('welcome.modules.organization_title') }}
-                        </p>
-                        <p class="mt-2 text-sm text-muted-foreground">
+                        </PanelTitle>
+                        <PanelDescription>
                             {{ t('welcome.modules.organization_description') }}
-                        </p>
-                    </div>
-                    <div class="rounded-lg border p-5">
-                        <p class="font-medium">
+                        </PanelDescription>
+                    </Panel>
+                    <Panel size="lg">
+                        <PanelTitle>
                             {{ t('welcome.modules.products_title') }}
-                        </p>
-                        <p class="mt-2 text-sm text-muted-foreground">
+                        </PanelTitle>
+                        <PanelDescription>
                             {{ t('welcome.modules.products_description') }}
-                        </p>
-                    </div>
-                    <div class="rounded-lg border p-5">
-                        <p class="font-medium">
+                        </PanelDescription>
+                    </Panel>
+                    <Panel size="lg">
+                        <PanelTitle>
                             {{ t('welcome.modules.risk_title') }}
-                        </p>
-                        <p class="mt-2 text-sm text-muted-foreground">
+                        </PanelTitle>
+                        <PanelDescription>
                             {{ t('welcome.modules.risk_description') }}
-                        </p>
-                    </div>
-                    <div class="rounded-lg border p-5">
-                        <p class="font-medium">
+                        </PanelDescription>
+                    </Panel>
+                    <Panel size="lg">
+                        <PanelTitle>
                             {{ t('welcome.modules.vulnerabilities_title') }}
-                        </p>
-                        <p class="mt-2 text-sm text-muted-foreground">
+                        </PanelTitle>
+                        <PanelDescription>
                             {{
                                 t('welcome.modules.vulnerabilities_description')
                             }}
-                        </p>
-                    </div>
+                        </PanelDescription>
+                    </Panel>
                 </div>
             </section>
 
             <section class="grid gap-4 md:grid-cols-2">
-                <div class="rounded-lg border p-5">
-                    <p class="mb-3 text-sm font-semibold">
-                        {{ t('welcome.dates_title') }}
-                    </p>
-                    <ul class="space-y-2 text-sm text-muted-foreground">
-                        <li class="flex items-start gap-2">
-                            <CheckCircle2 class="mt-0.5 size-4" />
-                            {{ t('welcome.date_reporting') }}
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <CheckCircle2 class="mt-0.5 size-4" />
-                            {{ t('welcome.date_requirements') }}
-                        </li>
-                    </ul>
-                </div>
-                <div class="rounded-lg border p-5">
-                    <p class="mb-3 text-sm font-semibold">
-                        {{ t('welcome.important_title') }}
-                    </p>
-                    <p class="flex gap-2 text-sm text-muted-foreground">
+                <Panel variant="info" size="lg">
+                    <PanelTitle>{{ t('welcome.dates_title') }}</PanelTitle>
+                    <PanelDescription>
+                        <ul class="space-y-2">
+                            <li class="flex items-start gap-2">
+                                <CheckCircle2 class="mt-0.5 size-4 shrink-0" />
+                                {{ t('welcome.date_reporting') }}
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <CheckCircle2 class="mt-0.5 size-4 shrink-0" />
+                                {{ t('welcome.date_requirements') }}
+                            </li>
+                        </ul>
+                    </PanelDescription>
+                </Panel>
+                <Panel variant="important" size="lg">
+                    <PanelTitle>{{ t('welcome.important_title') }}</PanelTitle>
+                    <PanelDescription class="flex gap-2">
                         <ShieldAlert class="mt-0.5 size-4 shrink-0" />
-                        {{ t('welcome.disclaimer') }}
-                    </p>
-                </div>
+                        <span>{{ t('welcome.disclaimer') }}</span>
+                    </PanelDescription>
+                </Panel>
             </section>
         </main>
     </div>

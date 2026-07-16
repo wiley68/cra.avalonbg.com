@@ -59,6 +59,22 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    --color-panel-info: var(--panel-info);
+    --color-panel-info-foreground: var(--panel-info-foreground);
+    --color-panel-info-border: var(--panel-info-border);
+
+    --color-panel-important: var(--panel-important);
+    --color-panel-important-foreground: var(--panel-important-foreground);
+    --color-panel-important-border: var(--panel-important-border);
+
+    --color-panel-success: var(--panel-success);
+    --color-panel-success-foreground: var(--panel-success-foreground);
+    --color-panel-success-border: var(--panel-success-border);
+
+    --color-panel-error: var(--panel-error);
+    --color-panel-error-foreground: var(--panel-error-foreground);
+    --color-panel-error-border: var(--panel-error-border);
 }
 
 /*
@@ -123,6 +139,22 @@
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(0 0% 98%);
+
+    --panel-info: hsl(199 95% 95%);
+    --panel-info-foreground: hsl(201 80% 22%);
+    --panel-info-border: hsl(199 85% 78%);
+
+    --panel-important: hsl(40 96% 93%);
+    --panel-important-foreground: hsl(28 75% 24%);
+    --panel-important-border: hsl(40 90% 72%);
+
+    --panel-success: hsl(152 60% 94%);
+    --panel-success-foreground: hsl(160 70% 18%);
+    --panel-success-border: hsl(152 45% 72%);
+
+    --panel-error: hsl(0 86% 96%);
+    --panel-error-foreground: hsl(0 70% 30%);
+    --panel-error-border: hsl(0 80% 80%);
 }
 
 .dark {
@@ -159,6 +191,22 @@
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(240 5.9% 10%);
+
+    --panel-info: hsl(201 50% 14%);
+    --panel-info-foreground: hsl(199 90% 88%);
+    --panel-info-border: hsl(201 45% 28%);
+
+    --panel-important: hsl(30 45% 14%);
+    --panel-important-foreground: hsl(40 95% 80%);
+    --panel-important-border: hsl(35 40% 28%);
+
+    --panel-success: hsl(160 40% 12%);
+    --panel-success-foreground: hsl(152 55% 78%);
+    --panel-success-border: hsl(160 35% 26%);
+
+    --panel-error: hsl(0 40% 14%);
+    --panel-error-foreground: hsl(0 90% 85%);
+    --panel-error-border: hsl(0 40% 28%);
 }
 
 @layer base {
