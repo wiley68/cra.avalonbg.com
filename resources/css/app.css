@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
+@import './exo-2.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -9,9 +10,8 @@
 
 @theme inline {
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        'Exo 2', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -83,9 +83,8 @@
     body,
     html {
         --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+            'Exo 2', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     }
 }
 
