@@ -2,7 +2,10 @@
 import { Head } from '@inertiajs/vue3';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import Heading from '@/components/Heading.vue';
+import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/appearance';
+
+const { t } = useTranslations();
 
 defineOptions({
     layout: {
@@ -17,15 +20,15 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Appearance settings" />
+    <Head :title="t('appearance.settings_title')" />
 
-    <h1 class="sr-only">Appearance settings</h1>
+    <h1 class="sr-only">{{ t('appearance.settings_title') }}</h1>
 
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Appearance settings"
-            description="Update the appearance settings for your account"
+            :title="t('appearance.settings_title')"
+            :description="t('appearance.settings_description')"
         />
         <AppearanceTabs />
     </div>

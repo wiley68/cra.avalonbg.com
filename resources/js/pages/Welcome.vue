@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowRight, CheckCircle2, ShieldAlert } from '@lucide/vue';
+import AppearanceSwitcher from '@/components/AppearanceSwitcher.vue';
 import LocaleSwitcher from '@/components/LocaleSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
@@ -20,6 +21,7 @@ const { t } = useTranslations();
                 <p class="text-sm font-semibold">{{ t('welcome.brand') }}</p>
                 <div class="flex items-center gap-3">
                     <LocaleSwitcher />
+                    <AppearanceSwitcher />
                     <Button as-child>
                         <Link :href="login()">{{ t('welcome.sign_in') }}</Link>
                     </Button>

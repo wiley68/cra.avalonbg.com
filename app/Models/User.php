@@ -12,8 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Laravel\Fortify\Contracts\PasskeyUser;
-use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
@@ -28,6 +26,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property bool $must_change_password
  * @property Carbon|null $password_changed_at
  * @property bool $is_system_admin
+ * @property string $appearance
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -39,12 +38,13 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'must_change_password',
     'password_changed_at',
     'is_system_admin',
+    'appearance',
 ])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -90,7 +90,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             return true;
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return false;
         }
 
@@ -106,7 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             return Permission::query()->pluck('slug')->all();
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return [];
         }
 
@@ -114,7 +114,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             ->where('organizations.id', $organization->id)
             ->first()?->pivot?->role_id;
 
-        if (! $roleId) {
+        if (!$roleId) {
             return [];
         }
 

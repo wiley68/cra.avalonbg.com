@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
-import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -38,13 +36,15 @@ const { t } = useTranslations();
         {{ status }}
     </div>
 
-    <PasskeyVerify />
-
     <Form
         v-bind="store.form()"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
+        autocomplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        data-form-type="other"
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
@@ -56,7 +56,10 @@ const { t } = useTranslations();
                     required
                     autofocus
                     :tabindex="1"
-                    autocomplete="email"
+                    autocomplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
                     placeholder="email@example.com"
                 />
                 <InputError :message="errors.email" />
@@ -69,7 +72,7 @@ const { t } = useTranslations();
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm"
-                        :tabindex="5"
+                        :tabindex="4"
                     >
                         {{ t('auth.login.forgot') }}
                     </TextLink>
@@ -79,23 +82,19 @@ const { t } = useTranslations();
                     name="password"
                     required
                     :tabindex="2"
-                    autocomplete="current-password"
+                    autocomplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
                     :placeholder="t('auth.login.password')"
                 />
                 <InputError :message="errors.password" />
             </div>
 
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>{{ t('auth.login.remember') }}</span>
-                </Label>
-            </div>
-
             <Button
                 type="submit"
                 class="mt-4 w-full"
-                :tabindex="4"
+                :tabindex="3"
                 :disabled="processing"
                 data-test="login-button"
             >

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Appearance;
 use App\Models\Organization;
 use App\Support\Translations;
 use Illuminate\Http\Request;
@@ -56,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 ['code' => 'bg', 'label' => 'Български'],
             ],
             'translations' => Translations::forLocale(),
+            'appearance' => $this->resolveAppearance($request),
             'auth' => [
                 'user' => $user ? [
                     ...$user->only(['id', 'name', 'email', 'email_verified_at', 'created_at', 'updated_at']),
@@ -68,5 +70,20 @@ class HandleInertiaRequests extends Middleware
             'organization' => $organization?->only(['id', 'name', 'slug']),
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    private function resolveAppearance(Request $request): string
+    {
+        $user = $request->user();
+
+        if ($user !== null) {
+            return $user->appearance ?? Appearance::System->value;
+        }
+
+        $cookieAppearance = $request->cookie('appearance');
+
+        return Appearance::tryFrom((string) $cookieAppearance) !== null
+            ? (string) $cookieAppearance
+            : Appearance::System->value;
     }
 }

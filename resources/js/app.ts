@@ -1,5 +1,8 @@
-import { createInertiaApp } from '@inertiajs/vue3';
-import { initializeTheme } from '@/composables/useAppearance';
+import { createInertiaApp, router } from '@inertiajs/vue3';
+import {
+    initializeTheme,
+    syncThemeFromPageProps,
+} from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -21,13 +24,17 @@ createInertiaApp({
                 return AppLayout;
         }
     },
+    withApp(_app, { page }) {
+        syncThemeFromPageProps(page.props);
+    },
     progress: {
         color: '#4B5563',
     },
 });
 
-// This will set light / dark mode on page load...
-initializeTheme();
+router.on('success', (event) => {
+    syncThemeFromPageProps(event.detail.page.props);
+});
 
-// This will listen for flash toast data from the server...
+initializeTheme();
 initializeFlashToast();

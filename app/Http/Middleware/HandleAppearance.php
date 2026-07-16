@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Appearance;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
@@ -16,7 +17,18 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        $user = $request->user();
+
+        if ($user !== null) {
+            $appearance = $user->appearance ?? Appearance::System->value;
+        } else {
+            $cookieAppearance = $request->cookie('appearance');
+            $appearance = Appearance::tryFrom((string) $cookieAppearance) !== null
+                ? (string) $cookieAppearance
+                : Appearance::System->value;
+        }
+
+        View::share('appearance', $appearance);
 
         return $next($request);
     }

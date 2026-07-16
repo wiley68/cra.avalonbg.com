@@ -14,28 +14,33 @@ test('security page is displayed', function () {
         'confirm' => true,
         'confirmPassword' => true,
     ]);
-    Features::passkeys([
-        'confirmPassword' => true,
-    ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->withTwoFactor()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+    ]);
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
-            ->where('canManagePasskeys', true)
-            ->where('passkeys', [])
-            ->where('canManageTwoFactor', true)
-            ->where('twoFactorEnabled', false),
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('settings/Security')
+                ->where('canManageTwoFactor', true)
+                ->where('twoFactorEnabled', true)
+                ->missing('canManagePasskeys')
+                ->missing('passkeys'),
         );
 });
 
 test('security page requires password confirmation when enabled', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
 
     Features::twoFactorAuthentication([
         'confirm' => true,
@@ -53,24 +58,32 @@ test('security page renders without two factor when feature is disabled', functi
 
     config(['fortify.features' => []]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+    ]);
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
-            ->where('canManagePasskeys', false)
-            ->where('passkeys', [])
-            ->where('canManageTwoFactor', false)
-            ->missing('twoFactorEnabled')
-            ->missing('requiresConfirmation'),
+        ->assertInertia(
+            fn(Assert $page) => $page
+                ->component('settings/Security')
+                ->where('canManageTwoFactor', false)
+                ->missing('twoFactorEnabled')
+                ->missing('requiresConfirmation')
+                ->missing('canManagePasskeys')
+                ->missing('passkeys'),
         );
 });
 
 test('password can be updated', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
 
     $response = $this
         ->actingAs($user)
@@ -89,7 +102,11 @@ test('password can be updated', function () {
 });
 
 test('correct password must be provided to update password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
 
     $response = $this
         ->actingAs($user)

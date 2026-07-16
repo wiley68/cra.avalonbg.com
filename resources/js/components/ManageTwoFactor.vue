@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { Form, router } from '@inertiajs/vue3';
 import { ShieldCheck } from '@lucide/vue';
-import { onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
 import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import { disable, enable } from '@/routes/two-factor';
@@ -15,18 +16,47 @@ export type Props = {
     requiresConfirmation?: boolean;
     twoFactorEnabled?: boolean;
     hideHeading?: boolean;
+    autoStart?: boolean;
 };
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     canManageTwoFactor: false,
     requiresConfirmation: false,
     twoFactorEnabled: false,
     hideHeading: false,
+    autoStart: false,
 });
 
 const { t } = useTranslations();
 const { hasSetupData, clearTwoFactorAuthData } = useTwoFactorAuth();
 const showSetupModal = ref<boolean>(false);
+const autoStarting = ref(false);
+
+onMounted(() => {
+    if (
+        !props.autoStart ||
+        !props.canManageTwoFactor ||
+        props.twoFactorEnabled
+    ) {
+        return;
+    }
+
+    autoStarting.value = true;
+
+    router.post(
+        enable.url(),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSetupModal.value = true;
+            },
+            onFinish: () => {
+                autoStarting.value = false;
+            },
+        },
+    );
+});
 
 onUnmounted(() => clearTwoFactorAuthData());
 </script>
@@ -48,7 +78,22 @@ onUnmounted(() => clearTwoFactorAuthData());
                 {{ t('two_factor.enable_help') }}
             </p>
 
-            <div>
+            <div v-if="autoStart">
+                <div
+                    v-if="autoStarting"
+                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                >
+                    <Spinner />
+                    {{ t('two_factor.preparing') }}
+                </div>
+                <Button
+                    v-else-if="hasSetupData && !showSetupModal"
+                    @click="showSetupModal = true"
+                >
+                    <ShieldCheck />{{ t('two_factor.continue_setup') }}
+                </Button>
+            </div>
+            <div v-else>
                 <Button v-if="hasSetupData" @click="showSetupModal = true">
                     <ShieldCheck />{{ t('two_factor.continue_setup') }}
                 </Button>

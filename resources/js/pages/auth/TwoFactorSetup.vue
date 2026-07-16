@@ -31,6 +31,7 @@ defineOptions({
             :requires-confirmation="requiresConfirmation"
             :two-factor-enabled="twoFactorEnabled"
             hide-heading
+            auto-start
         />
 
         <div class="flex justify-end">

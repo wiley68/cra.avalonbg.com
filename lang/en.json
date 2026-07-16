@@ -52,7 +52,6 @@
             "email": "Email address",
             "password": "Password",
             "forgot": "Forgot your password?",
-            "remember": "Remember me",
             "submit": "Log in"
         },
         "force_password": {
@@ -78,6 +77,7 @@
         "enable_help": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
         "enabled_help": "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
         "continue_setup": "Continue setup",
+        "preparing": "Preparing two-factor setup…",
         "enable": "Enable 2FA",
         "disable": "Disable 2FA"
     },
@@ -104,6 +104,14 @@
     "settings": {
         "password_updated": "Password updated.",
         "profile_updated": "Profile updated."
+    },
+    "appearance": {
+        "label": "Appearance",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "settings_title": "Appearance settings",
+        "settings_description": "Update the appearance settings for your account"
     },
     "roles": {
         "administrator": "Administrator",

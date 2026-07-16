@@ -1,5 +1,7 @@
+import { router, usePage } from '@inertiajs/vue3';
 import type { ComputedRef, Ref } from 'vue';
 import { computed, onMounted, ref } from 'vue';
+import { update as updateAppearanceRoute } from '@/routes/appearance';
 import type { Appearance, ResolvedAppearance } from '@/types';
 
 export type { Appearance, ResolvedAppearance };
@@ -8,6 +10,14 @@ export type UseAppearanceReturn = {
     appearance: Ref<Appearance>;
     resolvedAppearance: ComputedRef<ResolvedAppearance>;
     updateAppearance: (value: Appearance) => void;
+    updateProfileAppearance: (value: Appearance) => void;
+};
+
+type ThemePageProps = {
+    appearance?: Appearance | null;
+    auth?: {
+        user?: unknown | null;
+    };
 };
 
 export function updateTheme(value: Appearance): void {
@@ -65,35 +75,53 @@ const prefersDark = (): boolean => {
 };
 
 const handleSystemThemeChange = () => {
-    const currentAppearance = getStoredAppearance();
-
-    updateTheme(currentAppearance || 'system');
+    updateTheme(appearance.value);
 };
+
+export function resolveAppearanceFromPageProps(
+    pageProps: ThemePageProps,
+): Appearance {
+    const serverAppearance = pageProps.appearance ?? 'system';
+    const isAuthenticated = pageProps.auth?.user != null;
+
+    if (isAuthenticated) {
+        return serverAppearance;
+    }
+
+    return getStoredAppearance() ?? serverAppearance;
+}
+
+export function syncThemeFromPageProps(pageProps: ThemePageProps): void {
+    const resolvedAppearance = resolveAppearanceFromPageProps(pageProps);
+
+    appearance.value = resolvedAppearance;
+    localStorage.setItem('appearance', resolvedAppearance);
+    setCookie('appearance', resolvedAppearance);
+    updateTheme(resolvedAppearance);
+}
 
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {
         return;
     }
 
-    // Initialize theme from saved preference or default to system...
-    const savedAppearance = getStoredAppearance();
-    updateTheme(savedAppearance || 'system');
-
-    // Set up system theme change listener...
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
 const appearance = ref<Appearance>('system');
 
-export function useAppearance(): UseAppearanceReturn {
-    onMounted(() => {
-        const savedAppearance = localStorage.getItem(
-            'appearance',
-        ) as Appearance | null;
+function applyAppearance(value: Appearance): void {
+    appearance.value = value;
+    localStorage.setItem('appearance', value);
+    setCookie('appearance', value);
+    updateTheme(value);
+}
 
-        if (savedAppearance) {
-            appearance.value = savedAppearance;
-        }
+export function useAppearance(): UseAppearanceReturn {
+    const page = usePage();
+
+    onMounted(() => {
+        syncThemeFromPageProps(page.props as ThemePageProps);
     });
 
     const resolvedAppearance = computed<ResolvedAppearance>(() => {
@@ -104,21 +132,31 @@ export function useAppearance(): UseAppearanceReturn {
         return appearance.value;
     });
 
-    function updateAppearance(value: Appearance) {
-        appearance.value = value;
+    function updateAppearance(value: Appearance): void {
+        applyAppearance(value);
+    }
 
-        // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', value);
+    function updateProfileAppearance(value: Appearance): void {
+        applyAppearance(value);
 
-        // Store in cookie for SSR...
-        setCookie('appearance', value);
+        if (page.props.auth.user === null) {
+            return;
+        }
 
-        updateTheme(value);
+        router.patch(
+            updateAppearanceRoute.url(),
+            { appearance: value },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     }
 
     return {
         appearance,
         resolvedAppearance,
         updateAppearance,
+        updateProfileAppearance,
     };
 }
