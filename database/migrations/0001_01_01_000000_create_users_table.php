@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('password');
             $table->boolean('must_change_password')->default(false);
             $table->timestamp('password_changed_at')->nullable();
-            $table->boolean('is_system_admin')->default(false);
+            $table->boolean('is_platform_admin')->default(false);
             $table->string('appearance', 16)->default('system');
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();

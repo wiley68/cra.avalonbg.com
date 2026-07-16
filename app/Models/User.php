@@ -26,7 +26,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $two_factor_confirmed_at
  * @property bool $must_change_password
  * @property Carbon|null $password_changed_at
- * @property bool $is_system_admin
+ * @property bool $is_platform_admin
  * @property string $appearance
  * @property string|null $remember_token
  * @property Carbon|null $created_at
@@ -38,7 +38,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'password',
     'must_change_password',
     'password_changed_at',
-    'is_system_admin',
+    'is_platform_admin',
     'appearance',
 ])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -60,7 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_confirmed_at' => 'datetime',
             'must_change_password' => 'boolean',
             'password_changed_at' => 'datetime',
-            'is_system_admin' => 'boolean',
+            'is_platform_admin' => 'boolean',
         ];
     }
 
@@ -95,28 +95,27 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        return $this->isSystemAdmin()
-            || $this->hasPermission(PermissionSlug::UsersView->value, $organization);
+        return $this->hasPermission(PermissionSlug::UsersView->value, $organization);
     }
 
     public function canManageOrganizations(): bool
     {
-        return $this->isSystemAdmin()
+        return $this->isPlatformAdmin()
             || $this->hasPermission(PermissionSlug::PlatformAdmin->value);
     }
 
-    public function isSystemAdmin(): bool
+    public function isPlatformAdmin(): bool
     {
-        return (bool) $this->is_system_admin;
+        return (bool) $this->is_platform_admin;
     }
 
     public function hasRole(RoleSlug $role, ?Organization $organization = null): bool
     {
-        if ($this->isSystemAdmin() && $role === RoleSlug::Administrator) {
+        if ($this->isPlatformAdmin() && $role === RoleSlug::PlatformAdmin) {
             return true;
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return false;
         }
 
@@ -128,11 +127,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function resolvedPermissions(?Organization $organization = null): array
     {
-        if ($this->isSystemAdmin()) {
-            return Permission::query()->pluck('slug')->all();
+        if ($this->isPlatformAdmin()) {
+            return $this->platformAdminPermissions();
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return [];
         }
 
@@ -140,7 +139,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('organizations.id', $organization->id)
             ->first()?->pivot?->role_id;
 
-        if (! $roleId) {
+        if (!$roleId) {
             return [];
         }
 
@@ -155,5 +154,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasPermission(string $permission, ?Organization $organization = null): bool
     {
         return in_array($permission, $this->resolvedPermissions($organization), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function platformAdminPermissions(): array
+    {
+        $role = Role::query()
+            ->where('slug', RoleSlug::PlatformAdmin->value)
+            ->with('permissions:id,slug')
+            ->first();
+
+        if ($role === null) {
+            return config('cra.roles.' . RoleSlug::PlatformAdmin->value . '.permissions', []);
+        }
+
+        return $role->permissions->pluck('slug')->all();
     }
 }

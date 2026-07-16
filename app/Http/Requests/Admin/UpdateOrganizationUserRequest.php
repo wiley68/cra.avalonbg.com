@@ -32,7 +32,6 @@ class UpdateOrganizationUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'role_id' => ['required', 'exists:roles,id'],
             'must_change_password' => ['nullable', 'boolean'],
-            'is_system_admin' => ['nullable', 'boolean'],
         ];
     }
 }

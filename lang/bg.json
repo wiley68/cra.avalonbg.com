@@ -91,8 +91,6 @@
             "edit_title": "Редакция на потребител",
             "temporary_password": "Временна парола",
             "force_password": "Задължителна смяна на паролата при първи вход",
-            "system_admin": "Системен администратор",
-            "flag_system_admin": "Системен админ",
             "flag_force_password": "Задължителна парола",
             "created": "Потребителят е създаден.",
             "updated": "Потребителят е обновен.",
@@ -160,6 +158,7 @@
     },
     "roles": {
         "user": "Потребител",
+        "platform_admin": "Platform Admin",
         "administrator": "Администратор",
         "organization_owner": "Собственик на организация",
         "product_owner": "Продуктов собственик",

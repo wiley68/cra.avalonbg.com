@@ -6,11 +6,21 @@ use App\Enums\RoleSlug;
 
 return [
     'roles' => [
-        RoleSlug::Administrator->value => [
-            'name' => 'Administrator',
+        RoleSlug::PlatformAdmin->value => [
+            'name' => 'Platform Admin',
             'scope' => RoleScope::System->value,
-            'description' => 'Full access to the entire platform.',
-            'permissions' => array_map(fn (PermissionSlug $permission) => $permission->value, PermissionSlug::cases()),
+            'description' => 'Creates organizations and their users. No tenant membership.',
+            'permissions' => [
+                PermissionSlug::PlatformAdmin->value,
+                PermissionSlug::UsersView->value,
+                PermissionSlug::UsersCreate->value,
+                PermissionSlug::UsersUpdate->value,
+                PermissionSlug::UsersDelete->value,
+                PermissionSlug::UsersAssignRoles->value,
+                PermissionSlug::OrganizationsView->value,
+                PermissionSlug::OrganizationsManage->value,
+                PermissionSlug::AuditView->value,
+            ],
         ],
         RoleSlug::OrganizationOwner->value => [
             'name' => 'Organization Owner',
@@ -110,7 +120,7 @@ return [
                 PermissionSlug::EvidenceView->value,
             ],
         ],
-        RoleSlug::ReadOnly->value => [
+        RoleSlug::ReadOnly ->value => [
             'name' => 'Read-only User',
             'scope' => RoleScope::Organization->value,
             'description' => 'View-only access.',
@@ -142,4 +152,3 @@ return [
         PermissionSlug::AuditView->value => ['name' => 'View audit logs', 'group' => 'audit'],
     ],
 ];
-

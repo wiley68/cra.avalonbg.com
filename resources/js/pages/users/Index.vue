@@ -16,7 +16,6 @@ type UserRow = {
     email: string;
     role_slug: string;
     must_change_password: boolean;
-    is_system_admin: boolean;
 };
 
 defineProps<{

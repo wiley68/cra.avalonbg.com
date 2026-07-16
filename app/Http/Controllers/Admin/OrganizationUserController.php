@@ -80,7 +80,6 @@ class OrganizationUserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
-                'is_system_admin' => (bool) $user->is_system_admin,
                 'role_id' => (int) $pivot->role_id,
             ],
             'roles' => $this->memberships->organizationRoles(),
@@ -99,7 +98,6 @@ class OrganizationUserController extends Controller
                 'name' => $request->string('name'),
                 'email' => $request->string('email'),
                 'must_change_password' => $request->boolean('must_change_password'),
-                'is_system_admin' => $request->boolean('is_system_admin'),
             ]);
 
             $this->memberships->updateRole(

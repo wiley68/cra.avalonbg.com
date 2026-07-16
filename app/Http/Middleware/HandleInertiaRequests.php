@@ -65,11 +65,13 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user ? [
                     ...$user->only(['id', 'name', 'email', 'email_verified_at', 'created_at', 'updated_at']),
-                    'is_system_admin' => $user->isSystemAdmin(),
+                    'is_platform_admin' => $user->isPlatformAdmin(),
                     'must_change_password' => (bool) $user->must_change_password,
                     'permissions' => $user->resolvedPermissions($organization),
-                    'role' => $role?->slug,
-                    'role_label' => $user->isSystemAdmin()
+                    'role' => $user->isPlatformAdmin()
+                        ? 'platform_admin'
+                        : $role?->slug,
+                    'role_label' => $user->isPlatformAdmin()
                         ? null
                         : $role?->name,
                     'can_manage_users' => $canManageUsers,
@@ -77,7 +79,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'organization' => $organization?->only(['id', 'name', 'slug']),
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 

@@ -20,7 +20,6 @@ type UserRow = {
     email: string;
     role_slug: string;
     must_change_password: boolean;
-    is_system_admin: boolean;
 };
 
 const props = defineProps<{
@@ -91,16 +90,9 @@ const roleLabel = (slug: string): string => {
                             {{ roleLabel(user.role_slug) }}
                         </td>
                         <td class="px-4 py-3">
-                            <span v-if="user.is_system_admin">{{
-                                t('admin.users.flag_system_admin')
+                            <span v-if="user.must_change_password">{{
+                                t('admin.users.flag_force_password')
                             }}</span>
-                            <span
-                                v-if="user.must_change_password"
-                                class="ml-2"
-                                >{{
-                                    t('admin.users.flag_force_password')
-                                }}</span
-                            >
                         </td>
                         <td class="px-4 py-3 text-right">
                             <Button as-child variant="ghost" size="sm">

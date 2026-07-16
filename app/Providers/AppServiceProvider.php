@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn (): Password => Password::min(9)
+            fn(): Password => Password::min(9)
                 ->mixedCase()
                 ->numbers()
                 ->symbols(),
@@ -60,10 +60,9 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureAuthorization(): void
     {
-        Gate::before(fn (User $user) => $user->isSystemAdmin() ? true : null);
         Gate::define(
             'platform.admin',
-            fn (User $user) => $user->isSystemAdmin()
+            fn(User $user) => $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::PlatformAdmin->value),
         );
         Gate::policy(User::class, UserPolicy::class);
@@ -104,12 +103,12 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $forceHttps = filter_var(env('APP_FORCE_HTTPS', false), FILTER_VALIDATE_BOOLEAN);
-        if (! $forceHttps) {
+        if (!$forceHttps) {
             return;
         }
 
         $kernel = $this->app->make(Kernel::class);
-        if (! $kernel instanceof HttpKernel) {
+        if (!$kernel instanceof HttpKernel) {
             return;
         }
 

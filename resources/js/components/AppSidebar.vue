@@ -24,9 +24,9 @@ import {
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
 import { dashboard } from '@/routes';
+import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
-import { index as organizationsIndex } from '@/routes/admin/organizations';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -45,7 +45,7 @@ const mainNavItems = computed<NavItem[]>(() => {
         return items;
     }
 
-    if (user.can_manage_organizations || user.is_system_admin) {
+    if (user.can_manage_organizations) {
         items.push({
             title: t('nav.organizations'),
             href: organizationsIndex(),
@@ -67,8 +67,8 @@ const mainNavItems = computed<NavItem[]>(() => {
 function resolveRoleLabel(
     user: NonNullable<typeof page.props.auth.user>,
 ): string {
-    if (user.is_system_admin) {
-        return t('admin.users.system_admin');
+    if (user.is_platform_admin) {
+        return t('roles.platform_admin');
     }
 
     if (user.role) {

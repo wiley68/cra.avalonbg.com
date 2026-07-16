@@ -10,25 +10,25 @@ class OrganizationPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isSystemAdmin()
+        return $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::PlatformAdmin->value);
     }
 
     public function create(User $user): bool
     {
-        return $user->isSystemAdmin()
+        return $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::PlatformAdmin->value);
     }
 
     public function view(User $user, Organization $organization): bool
     {
-        return $user->isSystemAdmin()
+        return $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::OrganizationsView->value, $organization);
     }
 
     public function update(User $user, Organization $organization): bool
     {
-        return $user->isSystemAdmin()
+        return $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::OrganizationsManage->value, $organization);
     }
 

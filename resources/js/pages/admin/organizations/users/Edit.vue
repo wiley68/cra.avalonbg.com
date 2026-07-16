@@ -30,7 +30,6 @@ type EditableUser = {
     email: string;
     role_id: number;
     must_change_password: boolean;
-    is_system_admin: boolean;
 };
 
 const props = defineProps<{
@@ -46,7 +45,6 @@ const form = useForm({
     email: props.user.email,
     role_id: props.user.role_id,
     must_change_password: props.user.must_change_password,
-    is_system_admin: props.user.is_system_admin,
 });
 
 const submit = () => {
@@ -138,14 +136,6 @@ const roleLabel = (slug: string): string => {
                     "
                 />
                 {{ t('admin.users.force_password') }}
-            </label>
-
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.is_system_admin"
-                    @update:checked="form.is_system_admin = Boolean($event)"
-                />
-                {{ t('admin.users.system_admin') }}
             </label>
 
             <div class="flex items-center justify-between gap-3">

@@ -91,8 +91,6 @@
             "edit_title": "Edit user",
             "temporary_password": "Temporary password",
             "force_password": "Force password change on first login",
-            "system_admin": "System administrator",
-            "flag_system_admin": "System admin",
             "flag_force_password": "Force password",
             "created": "User created.",
             "updated": "User updated.",
@@ -160,6 +158,7 @@
     },
     "roles": {
         "user": "User",
+        "platform_admin": "Platform Admin",
         "administrator": "Administrator",
         "organization_owner": "Organization Owner",
         "product_owner": "Product Owner",

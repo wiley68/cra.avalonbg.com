@@ -26,22 +26,21 @@ class OrganizationMembershipService
     }
 
     /**
-     * @return list<array{id: int, name: string, email: string, must_change_password: bool, is_system_admin: bool, role_id: int, role_slug: string}>
+     * @return list<array{id: int, name: string, email: string, must_change_password: bool, role_id: int, role_slug: string}>
      */
     public function listMembers(Organization $organization): array
     {
         $roleMap = Role::query()->pluck('slug', 'id');
 
         return $organization->users()
-            ->select('users.id', 'users.name', 'users.email', 'users.must_change_password', 'users.is_system_admin')
+            ->select('users.id', 'users.name', 'users.email', 'users.must_change_password')
             ->orderBy('users.name')
             ->get()
-            ->map(fn (User $user) => [
+            ->map(fn(User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
-                'is_system_admin' => (bool) $user->is_system_admin,
                 'role_id' => (int) $user->pivot->role_id,
                 'role_slug' => $roleMap[$user->pivot->role_id] ?? 'unknown',
             ])
@@ -56,7 +55,7 @@ class OrganizationMembershipService
             ->where('scope', RoleScope::Organization->value)
             ->exists();
 
-        if (! $exists) {
+        if (!$exists) {
             throw ValidationException::withMessages([
                 'role_id' => __('validation.exists', ['attribute' => 'role_id']),
             ]);
@@ -76,7 +75,7 @@ class OrganizationMembershipService
             'email' => $attributes['email'],
             'password' => $attributes['password'],
             'must_change_password' => $attributes['must_change_password'] ?? true,
-            'is_system_admin' => $attributes['is_system_admin'] ?? false,
+            'is_platform_admin' => false,
             'email_verified_at' => now(),
         ]);
 
@@ -149,7 +148,7 @@ class OrganizationMembershipService
             ->where('users.id', $user->id)
             ->exists();
 
-        if (! $isMember) {
+        if (!$isMember) {
             abort(404);
         }
     }
