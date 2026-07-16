@@ -32,7 +32,7 @@ class PasswordConfirmedResponse implements PasswordConfirmedResponseContract
                 continue;
             }
 
-            $path = $this->toInternalPath($candidate);
+            $path = $this->toInternalPath($candidate, $request);
 
             if ($path !== null) {
                 return $path;
@@ -42,21 +42,31 @@ class PasswordConfirmedResponse implements PasswordConfirmedResponseContract
         return $fallback;
     }
 
-    private function toInternalPath(string $url): ?string
+    private function toInternalPath(string $url, Request $request): ?string
     {
         if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
             return $url;
         }
 
-        $appUrl = rtrim((string) config('app.url'), '/');
+        $parts = parse_url($url);
 
-        if ($appUrl === '' || !str_starts_with($url, $appUrl . '/')) {
+        if ($parts === false || !isset($parts['host'], $parts['path'])) {
             return null;
         }
 
-        $path = parse_url($url, PHP_URL_PATH) ?: '/';
-        $query = parse_url($url, PHP_URL_QUERY);
+        $allowedHosts = array_values(array_unique(array_filter([
+            parse_url((string) config('app.url'), PHP_URL_HOST),
+            $request->getHost(),
+            'localhost',
+            'cra.avalonbg.com',
+        ])));
 
-        return $query ? $path . '?' . $query : $path;
+        if (!in_array($parts['host'], $allowedHosts, true)) {
+            return null;
+        }
+
+        $path = $parts['path'] !== '' ? $parts['path'] : '/';
+
+        return isset($parts['query']) ? $path . '?' . $parts['query'] : $path;
     }
 }

@@ -5,7 +5,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-test('password confirmation redirects back to the intended security settings page', function () {
+test('password confirmation stores a relative intended path via middleware', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
         'must_change_password' => false,
@@ -17,7 +17,7 @@ test('password confirmation redirects back to the intended security settings pag
         ->get(route('security.edit'))
         ->assertRedirect(route('password.confirm'));
 
-    expect(session('url.intended'))->toEndWith('/settings/security');
+    expect(session('url.intended'))->toBe('/settings/security');
 
     $this->actingAs($user)
         ->post(route('password.confirm.store'), [
@@ -58,6 +58,23 @@ test('password confirmation rejects external redirect targets', function () {
         ->assertRedirect('/dashboard');
 });
 
+test('password confirmation accepts absolute intended urls with mismatched app url host', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+        'password' => 'password',
+    ]);
+
+    $this->actingAs($user)
+        ->withServerVariables(['HTTP_HOST' => 'cra.avalonbg.com'])
+        ->withSession(['url.intended' => 'https://cra.avalonbg.com/settings/security'])
+        ->post(route('password.confirm.store'), [
+            'password' => 'password',
+        ])
+        ->assertRedirect('/settings/security');
+});
+
 test('confirm password page includes the intended redirect prop', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
@@ -66,12 +83,12 @@ test('confirm password page includes the intended redirect prop', function () {
     ]);
 
     $this->actingAs($user)
-        ->withSession(['url.intended' => url('/settings/security')])
+        ->withSession(['url.intended' => '/settings/security'])
         ->get(route('password.confirm'))
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
             ->component('auth/ConfirmPassword')
-            ->where('redirect', url('/settings/security')));
+            ->where('redirect', '/settings/security'));
 });
 
 test('security settings is available after password confirmation', function () {
@@ -83,7 +100,7 @@ test('security settings is available after password confirmation', function () {
     ]);
 
     $this->actingAs($user)
-        ->withSession(['url.intended' => route('security.edit')])
+        ->withSession(['url.intended' => '/settings/security'])
         ->post(route('password.confirm.store'), [
             'password' => 'password',
         ])

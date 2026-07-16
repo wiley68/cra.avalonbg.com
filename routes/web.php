@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
-use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -15,7 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('auth/force-password-change', [ForcePasswordChangeController::class, 'edit'])->name('auth.force-password.edit');
     Route::put('auth/force-password-change', [ForcePasswordChangeController::class, 'update'])->name('auth.force-password.update');
     Route::get('auth/two-factor-setup', TwoFactorSetupController::class)
-        ->middleware(RequirePassword::class)
+        ->middleware('password.confirm')
         ->name('auth.two-factor.setup');
 });
 
