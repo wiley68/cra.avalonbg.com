@@ -14,7 +14,7 @@ class PlatformAdminSeeder extends Seeder
     public function run(): void
     {
         User::query()->updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'home@avalonbg.com')],
+            ['email' => env('ADMIN_EMAIL', 'ilko@avalonbg.com')],
             [
                 'name' => env('ADMIN_NAME', 'Илко Администратор'),
                 'password' => env('ADMIN_PASSWORD', '1Nikola@Stefanov9'),
