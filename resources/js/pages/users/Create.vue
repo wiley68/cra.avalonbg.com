@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import { index as usersIndex, store } from '@/routes/users';
 
 type Role = {
     id: number;
@@ -14,7 +15,14 @@ type Role = {
     slug: string;
 };
 
+type OrganizationSummary = {
+    id: number;
+    name: string;
+    slug: string;
+};
+
 const props = defineProps<{
+    organization: OrganizationSummary;
     roles: Role[];
 }>();
 
@@ -24,12 +32,13 @@ const form = useForm({
     name: '',
     email: '',
     password: '',
+    password_confirmation: '',
     role_id: props.roles[0]?.id ?? 0,
     must_change_password: true,
 });
 
 const submit = () => {
-    form.post('/admin/users');
+    form.post(store().url);
 };
 
 const roleLabel = (slug: string): string => {
@@ -41,15 +50,20 @@ const roleLabel = (slug: string): string => {
 </script>
 
 <template>
-    <Head :title="t('admin.users.create_title')" />
+    <Head :title="t('users.create_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-xl font-semibold">
-                {{ t('admin.users.create_title') }}
-            </h1>
+            <div>
+                <p class="text-sm text-muted-foreground">
+                    {{ props.organization.name }}
+                </p>
+                <h1 class="text-xl font-semibold">
+                    {{ t('users.create_title') }}
+                </h1>
+            </div>
             <Button as-child variant="outline">
-                <Link href="/admin/users">{{ t('common.back') }}</Link>
+                <Link :href="usersIndex()">{{ t('common.back') }}</Link>
             </Button>
         </div>
 
@@ -75,11 +89,22 @@ const roleLabel = (slug: string): string => {
             </div>
 
             <div class="grid gap-2">
+                <Label for="password_confirmation">{{
+                    t('auth.force_password.confirm_password')
+                }}</Label>
+                <PasswordInput
+                    id="password_confirmation"
+                    v-model="form.password_confirmation"
+                    required
+                />
+            </div>
+
+            <div class="grid gap-2">
                 <Label for="role_id">{{ t('common.role') }}</Label>
                 <select
                     id="role_id"
                     v-model="form.role_id"
-                    class="h-9 rounded-md border px-3"
+                    class="h-9 rounded-md border bg-background px-3"
                 >
                     <option
                         v-for="role in roles"

@@ -95,8 +95,53 @@
             "flag_system_admin": "System admin",
             "flag_force_password": "Force password",
             "created": "User created.",
-            "updated": "User updated."
+            "updated": "User updated.",
+            "removed": "User removed from organization.",
+            "remove": "Remove from organization",
+            "confirm_remove": "Remove this user from the organization?"
+        },
+        "organizations": {
+            "index_title": "Organizations",
+            "title": "Organizations",
+            "subtitle": "Manage tenant organizations.",
+            "create": "Create organization",
+            "create_title": "Create organization",
+            "edit_title": "Edit organization",
+            "slug": "Slug",
+            "slug_help": "Leave empty to generate from the name.",
+            "billing_email": "Billing email",
+            "subscription_plan": "Subscription plan",
+            "status": "Status",
+            "active": "Active",
+            "inactive": "Inactive",
+            "users_count": "Users",
+            "create_owner": "Create organization owner",
+            "owner_name": "Owner name",
+            "owner_email": "Owner email",
+            "created": "Organization created.",
+            "updated": "Organization updated."
         }
+    },
+    "users": {
+        "index_title": "Users",
+        "title": "Users",
+        "subtitle": "Manage users in your organization",
+        "create": "Create user",
+        "create_title": "Create user",
+        "edit_title": "Edit user",
+        "created": "User created.",
+        "updated": "User updated.",
+        "removed": "User removed from organization.",
+        "remove": "Remove from organization",
+        "confirm_remove": "Remove this user from the organization?",
+        "errors": {
+            "last_owner_role": "Cannot change the role of the last organization owner.",
+            "last_owner_remove": "Cannot remove the last organization owner."
+        }
+    },
+    "nav": {
+        "organizations": "Organizations",
+        "users": "Users"
     },
     "dashboard": {
         "title": "Dashboard"

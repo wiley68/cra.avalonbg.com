@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Enums\Appearance;
-use App\Models\Organization;
 use App\Support\Translations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -42,13 +41,15 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $organization = null;
 
-        if (Schema::hasTable('organizations')) {
-            $organization = $user
-                ? $user->organizations()->select('organizations.id', 'organizations.name', 'organizations.slug')->first()
-                : Organization::query()->select(['id', 'name', 'slug'])->first();
+        if (Schema::hasTable('organizations') && $user) {
+            $organization = $user->currentOrganization();
         }
 
         $role = $organization ? $user?->roleIn($organization) : null;
+        $canManageUsers = $user !== null && $organization !== null
+            ? $user->canManageUsers($organization)
+            : false;
+        $canManageOrganizations = $user?->canManageOrganizations() ?? false;
 
         return [
             ...parent::share($request),
@@ -71,10 +72,12 @@ class HandleInertiaRequests extends Middleware
                     'role_label' => $user->isSystemAdmin()
                         ? null
                         : $role?->name,
+                    'can_manage_users' => $canManageUsers,
+                    'can_manage_organizations' => $canManageOrganizations,
                 ] : null,
             ],
             'organization' => $organization?->only(['id', 'name', 'slug']),
-            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 

@@ -16,6 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 ])]
 class Organization extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'trial_ends_at' => 'datetime',
+        ];
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
@@ -23,4 +31,3 @@ class Organization extends Model
             ->withTimestamps();
     }
 }
-

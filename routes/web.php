@@ -1,9 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
+use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -22,10 +24,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['password.changed', 'two-factor.enabled'])->group(function () {
         Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 
+        Route::resource('users', UserController::class)->except(['show']);
+
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
-            Route::resource('users', AdminUserController::class)->except(['show', 'destroy']);
+            Route::resource('organizations', AdminOrganizationController::class)
+                ->except(['show', 'destroy']);
+
+            Route::resource('organizations.users', AdminOrganizationUserController::class)
+                ->except(['show'])
+                ->scoped();
         });
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

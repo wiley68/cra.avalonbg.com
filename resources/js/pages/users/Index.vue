@@ -2,6 +2,13 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { create, edit } from '@/routes/users';
+
+type OrganizationSummary = {
+    id: number;
+    name: string;
+    slug: string;
+};
 
 type UserRow = {
     id: number;
@@ -13,6 +20,7 @@ type UserRow = {
 };
 
 defineProps<{
+    organization: OrganizationSummary;
     users: UserRow[];
 }>();
 
@@ -27,23 +35,19 @@ const roleLabel = (slug: string): string => {
 </script>
 
 <template>
-    <Head :title="t('admin.users.index_title')" />
+    <Head :title="t('users.index_title')" />
 
     <div class="space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold">
-                    {{ t('admin.users.title') }}
-                </h1>
+                <h1 class="text-xl font-semibold">{{ t('users.title') }}</h1>
                 <p class="text-sm text-muted-foreground">
-                    {{ t('admin.users.subtitle') }}
+                    {{ t('users.subtitle') }} — {{ organization.name }}
                 </p>
             </div>
 
             <Button as-child>
-                <Link href="/admin/users/create">{{
-                    t('admin.users.create')
-                }}</Link>
+                <Link :href="create()">{{ t('users.create') }}</Link>
             </Button>
         </div>
 
@@ -66,20 +70,13 @@ const roleLabel = (slug: string): string => {
                             {{ roleLabel(user.role_slug) }}
                         </td>
                         <td class="px-4 py-3">
-                            <span v-if="user.is_system_admin">{{
-                                t('admin.users.flag_system_admin')
+                            <span v-if="user.must_change_password">{{
+                                t('admin.users.flag_force_password')
                             }}</span>
-                            <span
-                                v-if="user.must_change_password"
-                                class="ml-2"
-                                >{{
-                                    t('admin.users.flag_force_password')
-                                }}</span
-                            >
                         </td>
                         <td class="px-4 py-3 text-right">
                             <Button as-child variant="ghost" size="sm">
-                                <Link :href="`/admin/users/${user.id}/edit`">{{
+                                <Link :href="edit(user.id)">{{
                                     t('common.edit')
                                 }}</Link>
                             </Button>

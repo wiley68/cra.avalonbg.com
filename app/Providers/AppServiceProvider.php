@@ -2,20 +2,21 @@
 
 namespace App\Providers;
 
+use App\Enums\PermissionSlug;
+use App\Http\Middleware\ForceHttps;
 use App\Models\Organization;
 use App\Models\User;
 use App\Policies\OrganizationPolicy;
 use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use App\Http\Middleware\ForceHttps;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -50,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn(): Password => Password::min(9)
+            fn (): Password => Password::min(9)
                 ->mixedCase()
                 ->numbers()
                 ->symbols(),
@@ -59,7 +60,12 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureAuthorization(): void
     {
-        Gate::before(fn(User $user) => $user->isSystemAdmin() ? true : null);
+        Gate::before(fn (User $user) => $user->isSystemAdmin() ? true : null);
+        Gate::define(
+            'platform.admin',
+            fn (User $user) => $user->isSystemAdmin()
+            || $user->hasPermission(PermissionSlug::PlatformAdmin->value),
+        );
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
     }
@@ -98,12 +104,12 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $forceHttps = filter_var(env('APP_FORCE_HTTPS', false), FILTER_VALIDATE_BOOLEAN);
-        if (!$forceHttps) {
+        if (! $forceHttps) {
             return;
         }
 
         $kernel = $this->app->make(Kernel::class);
-        if (!$kernel instanceof HttpKernel) {
+        if (! $kernel instanceof HttpKernel) {
             return;
         }
 

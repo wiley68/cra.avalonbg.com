@@ -2,19 +2,23 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PermissionSlug;
+use App\Concerns\PasswordValidationRules;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateUserRequest extends FormRequest
+class StoreOrganizationUserRequest extends FormRequest
 {
+    use PasswordValidationRules;
+
     public function authorize(): bool
     {
-        $organization = Organization::query()->first();
+        /** @var Organization $organization */
+        $organization = $this->route('organization');
 
-        return (bool) $organization && $this->user()->hasPermission(PermissionSlug::UsersUpdate->value, $organization);
+        return $this->user()?->can('create', [User::class, $organization]) ?? false;
     }
 
     /**
@@ -22,15 +26,12 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = (int) $this->route('user')->id;
-
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password' => $this->passwordRules(),
             'role_id' => ['required', 'exists:roles,id'],
             'must_change_password' => ['nullable', 'boolean'],
-            'is_system_admin' => ['nullable', 'boolean'],
         ];
     }
 }
-

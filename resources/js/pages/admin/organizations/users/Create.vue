@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
+import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import { index as usersIndex, store } from '@/routes/admin/organizations/users';
 
 type Role = {
     id: number;
@@ -13,32 +15,30 @@ type Role = {
     slug: string;
 };
 
-type EditableUser = {
+type OrganizationSummary = {
     id: number;
     name: string;
-    email: string;
-    role_id: number;
-    must_change_password: boolean;
-    is_system_admin: boolean;
+    slug: string;
 };
 
 const props = defineProps<{
-    user: EditableUser;
+    organization: OrganizationSummary;
     roles: Role[];
 }>();
 
 const { t } = useTranslations();
 
 const form = useForm({
-    name: props.user.name,
-    email: props.user.email,
-    role_id: props.user.role_id,
-    must_change_password: props.user.must_change_password,
-    is_system_admin: props.user.is_system_admin,
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    role_id: props.roles[0]?.id ?? 0,
+    must_change_password: true,
 });
 
 const submit = () => {
-    form.put(`/admin/users/${props.user.id}`);
+    form.post(store(props.organization.id).url);
 };
 
 const roleLabel = (slug: string): string => {
@@ -50,15 +50,22 @@ const roleLabel = (slug: string): string => {
 </script>
 
 <template>
-    <Head :title="t('admin.users.edit_title')" />
+    <Head :title="t('admin.users.create_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-xl font-semibold">
-                {{ t('admin.users.edit_title') }}
-            </h1>
+            <div>
+                <p class="text-sm text-muted-foreground">
+                    {{ props.organization.name }}
+                </p>
+                <h1 class="text-xl font-semibold">
+                    {{ t('admin.users.create_title') }}
+                </h1>
+            </div>
             <Button as-child variant="outline">
-                <Link href="/admin/users">{{ t('common.back') }}</Link>
+                <Link :href="usersIndex(props.organization.id)">{{
+                    t('common.back')
+                }}</Link>
             </Button>
         </div>
 
@@ -76,11 +83,30 @@ const roleLabel = (slug: string): string => {
             </div>
 
             <div class="grid gap-2">
+                <Label for="password">{{
+                    t('admin.users.temporary_password')
+                }}</Label>
+                <PasswordInput id="password" v-model="form.password" required />
+                <InputError :message="form.errors.password" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="password_confirmation">{{
+                    t('auth.force_password.confirm_password')
+                }}</Label>
+                <PasswordInput
+                    id="password_confirmation"
+                    v-model="form.password_confirmation"
+                    required
+                />
+            </div>
+
+            <div class="grid gap-2">
                 <Label for="role_id">{{ t('common.role') }}</Label>
                 <select
                     id="role_id"
                     v-model="form.role_id"
-                    class="h-9 rounded-md border px-3"
+                    class="h-9 rounded-md border bg-background px-3"
                 >
                     <option
                         v-for="role in roles"
@@ -103,16 +129,8 @@ const roleLabel = (slug: string): string => {
                 {{ t('admin.users.force_password') }}
             </label>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.is_system_admin"
-                    @update:checked="form.is_system_admin = Boolean($event)"
-                />
-                {{ t('admin.users.system_admin') }}
-            </label>
-
             <Button type="submit" :disabled="form.processing">
-                {{ t('common.save') }}
+                {{ t('common.create') }}
             </Button>
         </form>
     </div>

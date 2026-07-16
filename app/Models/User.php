@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PermissionSlug;
 use App\Enums\RoleSlug;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -70,6 +71,13 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
+    public function currentOrganization(): ?Organization
+    {
+        return $this->organizations()
+            ->select('organizations.id', 'organizations.name', 'organizations.slug', 'organizations.is_active')
+            ->first();
+    }
+
     public function roleIn(Organization $organization): ?Role
     {
         $pivot = $this->organizations()
@@ -77,6 +85,24 @@ class User extends Authenticatable implements MustVerifyEmail
             ->first()?->pivot;
 
         return $pivot?->role_id ? Role::query()->find($pivot->role_id) : null;
+    }
+
+    public function canManageUsers(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->isSystemAdmin()
+            || $this->hasPermission(PermissionSlug::UsersView->value, $organization);
+    }
+
+    public function canManageOrganizations(): bool
+    {
+        return $this->isSystemAdmin()
+            || $this->hasPermission(PermissionSlug::PlatformAdmin->value);
     }
 
     public function isSystemAdmin(): bool
@@ -90,7 +116,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return true;
         }
 
-        if (!$organization) {
+        if (! $organization) {
             return false;
         }
 
@@ -106,7 +132,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return Permission::query()->pluck('slug')->all();
         }
 
-        if (!$organization) {
+        if (! $organization) {
             return [];
         }
 
@@ -114,7 +140,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('organizations.id', $organization->id)
             ->first()?->pivot?->role_id;
 
-        if (!$roleId) {
+        if (! $roleId) {
             return [];
         }
 
