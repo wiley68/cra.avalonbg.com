@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, ref, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import type { TwoFactorConfigContent } from '@/types';
 
 const showRecoveryInput = ref<boolean>(false);
 const code = ref<string>('');
+const otpRootRef = ref<HTMLElement | null>(null);
 
 const authConfigContent = computed<TwoFactorConfigContent>(() => {
     if (showRecoveryInput.value) {
@@ -40,10 +41,41 @@ watchEffect(() => {
     });
 });
 
+const focusOtpInput = (): void => {
+    nextTick(() => {
+        otpRootRef.value
+            ?.querySelector<HTMLInputElement>('input[data-input-otp]')
+            ?.focus();
+    });
+};
+
+onMounted(() => {
+    if (!showRecoveryInput.value) {
+        focusOtpInput();
+    }
+});
+
+watch(showRecoveryInput, (isRecovery) => {
+    if (!isRecovery) {
+        focusOtpInput();
+    }
+});
+
 const toggleRecoveryMode = (clearErrors: () => void): void => {
     showRecoveryInput.value = !showRecoveryInput.value;
     clearErrors();
     code.value = '';
+};
+
+const handleOtpError = (): void => {
+    code.value = '';
+    focusOtpInput();
+};
+
+const submitWhenComplete = (processing: boolean, submit: () => void): void => {
+    if (!processing) {
+        submit();
+    }
 };
 </script>
 
@@ -56,20 +88,23 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                 v-bind="store.form()"
                 class="space-y-4"
                 reset-on-error
-                @error="code = ''"
-                #default="{ errors, processing, clearErrors }"
+                @error="handleOtpError"
+                #default="{ errors, processing, clearErrors, submit }"
             >
                 <input type="hidden" name="code" :value="code" />
                 <div
                     class="flex flex-col items-center justify-center space-y-3 text-center"
                 >
-                    <div class="flex w-full items-center justify-center">
+                    <div
+                        ref="otpRootRef"
+                        class="flex w-full items-center justify-center"
+                    >
                         <InputOTP
                             id="otp"
                             v-model="code"
                             :maxlength="6"
                             :disabled="processing"
-                            autofocus
+                            @complete="submitWhenComplete(processing, submit)"
                         >
                             <InputOTPGroup>
                                 <InputOTPSlot
