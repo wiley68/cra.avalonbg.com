@@ -13,17 +13,19 @@ test('password confirmation stores a relative intended path via middleware', fun
         'password' => 'password',
     ]);
 
+    $securityPath = route('security.edit', absolute: false);
+
     $this->actingAs($user)
         ->get(route('security.edit'))
         ->assertRedirect(route('password.confirm'));
 
-    expect(session('url.intended'))->toBe('/settings/security');
+    expect(session('url.intended'))->toBe($securityPath);
 
     $this->actingAs($user)
         ->post(route('password.confirm.store'), [
             'password' => 'password',
         ])
-        ->assertRedirect('/settings/security');
+        ->assertRedirect($securityPath);
 });
 
 test('password confirmation uses redirect form field when session intended is missing', function () {
@@ -34,12 +36,14 @@ test('password confirmation uses redirect form field when session intended is mi
         'password' => 'password',
     ]);
 
+    $securityPath = route('security.edit', absolute: false);
+
     $this->actingAs($user)
         ->post(route('password.confirm.store'), [
             'password' => 'password',
-            'redirect' => '/settings/security',
+            'redirect' => $securityPath,
         ])
-        ->assertRedirect('/settings/security');
+        ->assertRedirect($securityPath);
 });
 
 test('password confirmation rejects external redirect targets', function () {
@@ -55,7 +59,7 @@ test('password confirmation rejects external redirect targets', function () {
             'password' => 'password',
             'redirect' => 'https://evil.example/phish',
         ])
-        ->assertRedirect('/dashboard');
+        ->assertRedirect(route('dashboard', absolute: false));
 });
 
 test('password confirmation accepts absolute intended urls with mismatched app url host', function () {
@@ -66,13 +70,15 @@ test('password confirmation accepts absolute intended urls with mismatched app u
         'password' => 'password',
     ]);
 
+    $securityPath = route('security.edit', absolute: false);
+
     $this->actingAs($user)
         ->withServerVariables(['HTTP_HOST' => 'cra.avalonbg.com'])
-        ->withSession(['url.intended' => 'https://cra.avalonbg.com/settings/security'])
+        ->withSession(['url.intended' => 'https://cra.avalonbg.com' . $securityPath])
         ->post(route('password.confirm.store'), [
             'password' => 'password',
         ])
-        ->assertRedirect('/settings/security');
+        ->assertRedirect($securityPath);
 });
 
 test('confirm password page includes the intended redirect prop', function () {
@@ -82,13 +88,15 @@ test('confirm password page includes the intended redirect prop', function () {
         'two_factor_confirmed_at' => now(),
     ]);
 
+    $securityPath = route('security.edit', absolute: false);
+
     $this->actingAs($user)
-        ->withSession(['url.intended' => '/settings/security'])
+        ->withSession(['url.intended' => $securityPath])
         ->get(route('password.confirm'))
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
             ->component('auth/ConfirmPassword')
-            ->where('redirect', '/settings/security'));
+            ->where('redirect', $securityPath));
 });
 
 test('security settings is available after password confirmation', function () {
@@ -99,12 +107,14 @@ test('security settings is available after password confirmation', function () {
         'password' => 'password',
     ]);
 
+    $securityPath = route('security.edit', absolute: false);
+
     $this->actingAs($user)
-        ->withSession(['url.intended' => '/settings/security'])
+        ->withSession(['url.intended' => $securityPath])
         ->post(route('password.confirm.store'), [
             'password' => 'password',
         ])
-        ->assertRedirect('/settings/security');
+        ->assertRedirect($securityPath);
 
     $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
