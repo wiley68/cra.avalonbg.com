@@ -1,0 +1,145 @@
+<?php
+
+use App\Enums\PermissionSlug;
+use App\Enums\RoleScope;
+use App\Enums\RoleSlug;
+
+return [
+    'roles' => [
+        RoleSlug::Administrator->value => [
+            'name' => 'Administrator',
+            'scope' => RoleScope::System->value,
+            'description' => 'Full access to the entire platform.',
+            'permissions' => array_map(fn (PermissionSlug $permission) => $permission->value, PermissionSlug::cases()),
+        ],
+        RoleSlug::OrganizationOwner->value => [
+            'name' => 'Organization Owner',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Full organization ownership and management rights.',
+            'permissions' => [
+                PermissionSlug::UsersView->value,
+                PermissionSlug::UsersCreate->value,
+                PermissionSlug::UsersUpdate->value,
+                PermissionSlug::UsersDelete->value,
+                PermissionSlug::UsersAssignRoles->value,
+                PermissionSlug::OrganizationsView->value,
+                PermissionSlug::OrganizationsManage->value,
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::ProductsManage->value,
+                PermissionSlug::ReleasesView->value,
+                PermissionSlug::ReleasesApprove->value,
+                PermissionSlug::VulnerabilitiesView->value,
+                PermissionSlug::VulnerabilitiesManage->value,
+                PermissionSlug::EvidenceView->value,
+                PermissionSlug::EvidenceManage->value,
+                PermissionSlug::AuditView->value,
+            ],
+        ],
+        RoleSlug::ProductOwner->value => [
+            'name' => 'Product Owner',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Owns product lifecycle and roadmap decisions.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::ProductsManage->value,
+                PermissionSlug::ReleasesView->value,
+                PermissionSlug::EvidenceView->value,
+            ],
+        ],
+        RoleSlug::SecurityOwner->value => [
+            'name' => 'Security Owner',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Drives security controls and vulnerability workflows.',
+            'permissions' => [
+                PermissionSlug::VulnerabilitiesView->value,
+                PermissionSlug::VulnerabilitiesManage->value,
+                PermissionSlug::EvidenceView->value,
+                PermissionSlug::EvidenceManage->value,
+                PermissionSlug::AuditView->value,
+            ],
+        ],
+        RoleSlug::Developer->value => [
+            'name' => 'Developer',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Builds features and maintains releases.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::ReleasesView->value,
+                PermissionSlug::EvidenceView->value,
+            ],
+        ],
+        RoleSlug::ComplianceReviewer->value => [
+            'name' => 'Compliance Reviewer',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Reviews controls and evidence completeness.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::EvidenceView->value,
+                PermissionSlug::EvidenceManage->value,
+                PermissionSlug::AuditView->value,
+            ],
+        ],
+        RoleSlug::ReleaseApprover->value => [
+            'name' => 'Release Approver',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Approves release readiness decisions.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::ReleasesView->value,
+                PermissionSlug::ReleasesApprove->value,
+                PermissionSlug::EvidenceView->value,
+            ],
+        ],
+        RoleSlug::Auditor->value => [
+            'name' => 'Auditor',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Read-only visibility into records and audit trail.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::VulnerabilitiesView->value,
+                PermissionSlug::EvidenceView->value,
+                PermissionSlug::AuditView->value,
+            ],
+        ],
+        RoleSlug::ExternalConsultant->value => [
+            'name' => 'External Consultant',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'Limited read access for guided consulting.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::EvidenceView->value,
+            ],
+        ],
+        RoleSlug::ReadOnly->value => [
+            'name' => 'Read-only User',
+            'scope' => RoleScope::Organization->value,
+            'description' => 'View-only access.',
+            'permissions' => [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::VulnerabilitiesView->value,
+                PermissionSlug::EvidenceView->value,
+            ],
+        ],
+    ],
+
+    'permissions' => [
+        PermissionSlug::PlatformAdmin->value => ['name' => 'Platform administration', 'group' => 'platform'],
+        PermissionSlug::UsersView->value => ['name' => 'View users', 'group' => 'users'],
+        PermissionSlug::UsersCreate->value => ['name' => 'Create users', 'group' => 'users'],
+        PermissionSlug::UsersUpdate->value => ['name' => 'Update users', 'group' => 'users'],
+        PermissionSlug::UsersDelete->value => ['name' => 'Delete users', 'group' => 'users'],
+        PermissionSlug::UsersAssignRoles->value => ['name' => 'Assign user roles', 'group' => 'users'],
+        PermissionSlug::OrganizationsView->value => ['name' => 'View organization', 'group' => 'organizations'],
+        PermissionSlug::OrganizationsManage->value => ['name' => 'Manage organization', 'group' => 'organizations'],
+        PermissionSlug::ProductsView->value => ['name' => 'View products', 'group' => 'products'],
+        PermissionSlug::ProductsManage->value => ['name' => 'Manage products', 'group' => 'products'],
+        PermissionSlug::ReleasesView->value => ['name' => 'View releases', 'group' => 'releases'],
+        PermissionSlug::ReleasesApprove->value => ['name' => 'Approve releases', 'group' => 'releases'],
+        PermissionSlug::VulnerabilitiesView->value => ['name' => 'View vulnerabilities', 'group' => 'vulnerabilities'],
+        PermissionSlug::VulnerabilitiesManage->value => ['name' => 'Manage vulnerabilities', 'group' => 'vulnerabilities'],
+        PermissionSlug::EvidenceView->value => ['name' => 'View evidence', 'group' => 'evidence'],
+        PermissionSlug::EvidenceManage->value => ['name' => 'Manage evidence', 'group' => 'evidence'],
+        PermissionSlug::AuditView->value => ['name' => 'View audit logs', 'group' => 'audit'],
+    ],
+];
+

@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Organization;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,12 +37,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $organization = null;
+
+        if (Schema::hasTable('organizations')) {
+            $organization = $user
+                ? $user->organizations()->select('organizations.id', 'organizations.name', 'organizations.slug')->first()
+                : Organization::query()->select(['id', 'name', 'slug'])->first();
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    ...$user->only(['id', 'name', 'email', 'email_verified_at', 'created_at', 'updated_at']),
+                    'is_system_admin' => $user->isSystemAdmin(),
+                    'must_change_password' => (bool) $user->must_change_password,
+                    'permissions' => $user->resolvedPermissions($organization),
+                    'role' => $organization ? $user->roleIn($organization)?->slug : null,
+                ] : null,
             ],
+            'organization' => $organization?->only(['id', 'name', 'slug']),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

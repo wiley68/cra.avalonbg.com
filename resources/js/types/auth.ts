@@ -5,13 +5,17 @@ export type User = {
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
+    is_system_admin?: boolean;
+    must_change_password?: boolean;
+    permissions?: string[];
+    role?: string | null;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
 };
 
 export type Auth = {
-    user: User;
+    user: User | null;
 };
 
 /* @chisel-passkeys */
