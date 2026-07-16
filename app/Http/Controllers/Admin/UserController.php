@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -18,20 +19,20 @@ class UserController extends Controller
     public function index(): Response
     {
         $organization = Organization::query()->firstOrFail();
-        $roleMap = Role::query()->pluck('name', 'id');
+        $roleMap = Role::query()->pluck('slug', 'id');
 
         $users = $organization->users()
             ->select('users.id', 'users.name', 'users.email', 'users.must_change_password', 'users.is_system_admin')
             ->orderBy('users.name')
             ->get()
-            ->map(fn ($user) => [
+            ->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
                 'is_system_admin' => (bool) $user->is_system_admin,
                 'role_id' => $user->pivot->role_id,
-                'role_name' => $roleMap[$user->pivot->role_id] ?? 'Unknown',
+                'role_slug' => $roleMap[$user->pivot->role_id] ?? 'unknown',
             ])
             ->values();
 
@@ -46,7 +47,7 @@ class UserController extends Controller
             'roles' => Role::query()
                 ->where('scope', 'organization')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'slug']),
         ]);
     }
 
@@ -70,7 +71,7 @@ class UserController extends Controller
             'updated_at' => Carbon::now(),
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('User created.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => Translations::get('admin.users.created')]);
 
         return redirect()->route('admin.users.index');
     }
@@ -95,7 +96,7 @@ class UserController extends Controller
             'roles' => Role::query()
                 ->where('scope', 'organization')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'slug']),
         ]);
     }
 
@@ -115,7 +116,7 @@ class UserController extends Controller
             'updated_at' => Carbon::now(),
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('User updated.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => Translations::get('admin.users.updated')]);
 
         return redirect()->route('admin.users.index');
     }

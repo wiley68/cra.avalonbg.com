@@ -6,15 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/composables/useTranslations';
 
 type Role = {
     id: number;
     name: string;
+    slug: string;
 };
 
 const props = defineProps<{
     roles: Role[];
 }>();
+
+const { t } = useTranslations();
 
 const form = useForm({
     name: '',
@@ -27,51 +31,80 @@ const form = useForm({
 const submit = () => {
     form.post('/admin/users');
 };
+
+const roleLabel = (slug: string): string => {
+    const key = `roles.${slug}`;
+    const translated = t(key);
+
+    return translated === key ? slug : translated;
+};
 </script>
 
 <template>
-    <Head title="Create user" />
+    <Head :title="t('admin.users.create_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
         <div class="flex items-center justify-between">
-            <h1 class="text-xl font-semibold">Create user</h1>
-            <Button as-child variant="outline"><Link href="/admin/users">Back</Link></Button>
+            <h1 class="text-xl font-semibold">
+                {{ t('admin.users.create_title') }}
+            </h1>
+            <Button as-child variant="outline">
+                <Link href="/admin/users">{{ t('common.back') }}</Link>
+            </Button>
         </div>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">{{ t('common.name') }}</Label>
                 <Input id="name" v-model="form.name" required />
                 <InputError :message="form.errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email</Label>
+                <Label for="email">{{ t('common.email') }}</Label>
                 <Input id="email" type="email" v-model="form.email" required />
                 <InputError :message="form.errors.email" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Temporary password</Label>
+                <Label for="password">{{
+                    t('admin.users.temporary_password')
+                }}</Label>
                 <PasswordInput id="password" v-model="form.password" required />
                 <InputError :message="form.errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="role_id">Role</Label>
-                <select id="role_id" v-model="form.role_id" class="h-9 rounded-md border px-3">
-                    <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                <Label for="role_id">{{ t('common.role') }}</Label>
+                <select
+                    id="role_id"
+                    v-model="form.role_id"
+                    class="h-9 rounded-md border px-3"
+                >
+                    <option
+                        v-for="role in roles"
+                        :key="role.id"
+                        :value="role.id"
+                    >
+                        {{ roleLabel(role.slug) }}
+                    </option>
                 </select>
                 <InputError :message="form.errors.role_id" />
             </div>
 
             <label class="flex items-center gap-2 text-sm">
-                <Checkbox :checked="form.must_change_password" @update:checked="form.must_change_password = Boolean($event)" />
-                Force password change on first login
+                <Checkbox
+                    :checked="form.must_change_password"
+                    @update:checked="
+                        form.must_change_password = Boolean($event)
+                    "
+                />
+                {{ t('admin.users.force_password') }}
             </label>
 
-            <Button type="submit" :disabled="form.processing">Create</Button>
+            <Button type="submit" :disabled="form.processing">
+                {{ t('common.create') }}
+            </Button>
         </form>
     </div>
 </template>
-

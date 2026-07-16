@@ -1,0 +1,120 @@
+{
+    "common": {
+        "language": "Language",
+        "dashboard": "Dashboard",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "flags": "Flags",
+        "edit": "Edit",
+        "back": "Back",
+        "create": "Create",
+        "save": "Save changes",
+        "continue": "Continue",
+        "unknown": "Unknown"
+    },
+    "welcome": {
+        "brand": "Avalon CRA Compliance Workspace",
+        "head_title": "CRA Compliance Workspace",
+        "sign_in": "Sign in",
+        "eyebrow": "Product security lifecycle for CRA readiness",
+        "title": "CRA Compliance Workspace for small and mid-size software manufacturers",
+        "description": "Organizes product portfolios, risks, controls, evidence, and release approvals into one traceable structure for daily work and audit readiness.",
+        "cta": "Sign in to Workspace",
+        "chain": {
+            "requirement": "Regulatory requirement",
+            "risk": "Risk assessment",
+            "control": "Control mapping",
+            "evidence": "Evidence package",
+            "release": "Release decision"
+        },
+        "modules_title": "Key modules",
+        "modules": {
+            "organization_title": "Organization and Users",
+            "organization_description": "Roles, permissions, approvals, and accountable ownership.",
+            "products_title": "Product Register and Versions",
+            "products_description": "Portfolio, versions, support periods, and release history.",
+            "risk_title": "Risk, Controls, and Evidence",
+            "risk_description": "Links requirements, risks, controls, and evidence.",
+            "vulnerabilities_title": "Vulnerabilities and Reporting readiness",
+            "vulnerabilities_description": "Tracks deadlines, corrective actions, and reporting preparation."
+        },
+        "dates_title": "CRA key dates",
+        "date_reporting": "11 September 2026 — reporting obligations",
+        "date_requirements": "11 December 2027 — core CRA requirements",
+        "important_title": "Important",
+        "disclaimer": "The platform does not promise automatic legal conformity. It supports processes, decisions, and evidence management for CRA readiness."
+    },
+    "auth": {
+        "login": {
+            "title": "Log in to your account",
+            "description": "Enter your email and password below to log in",
+            "email": "Email address",
+            "password": "Password",
+            "forgot": "Forgot your password?",
+            "remember": "Remember me",
+            "submit": "Log in"
+        },
+        "force_password": {
+            "title": "Change your password",
+            "description": "Your account requires a password change before continuing.",
+            "head_title": "Change password",
+            "new_password": "New password",
+            "confirm_password": "Confirm password",
+            "placeholder_new": "New password",
+            "placeholder_confirm": "Confirm password",
+            "submit": "Update password",
+            "updated": "Password updated."
+        },
+        "two_factor_setup": {
+            "title": "Enable two-factor authentication",
+            "description": "Two-factor authentication is required before you can use the workspace.",
+            "head_title": "Set up 2FA"
+        }
+    },
+    "two_factor": {
+        "title": "Two-factor authentication",
+        "description": "Manage your two-factor authentication settings",
+        "enable_help": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+        "enabled_help": "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+        "continue_setup": "Continue setup",
+        "enable": "Enable 2FA",
+        "disable": "Disable 2FA"
+    },
+    "admin": {
+        "users": {
+            "index_title": "Admin users",
+            "title": "Users",
+            "subtitle": "Manage users and role assignments.",
+            "create": "Create user",
+            "create_title": "Create user",
+            "edit_title": "Edit user",
+            "temporary_password": "Temporary password",
+            "force_password": "Force password change on first login",
+            "system_admin": "System administrator",
+            "flag_system_admin": "System admin",
+            "flag_force_password": "Force password",
+            "created": "User created.",
+            "updated": "User updated."
+        }
+    },
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "settings": {
+        "password_updated": "Password updated.",
+        "profile_updated": "Profile updated."
+    },
+    "roles": {
+        "administrator": "Administrator",
+        "organization_owner": "Organization Owner",
+        "product_owner": "Product Owner",
+        "security_owner": "Security Owner",
+        "developer": "Developer",
+        "compliance_reviewer": "Compliance Reviewer",
+        "release_approver": "Release Approver",
+        "auditor": "Auditor",
+        "external_consultant": "External Consultant",
+        "read_only": "Read-only User"
+    }
+}

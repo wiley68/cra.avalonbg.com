@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/composables/useTranslations';
 
 type UserRow = {
     id: number;
     name: string;
     email: string;
-    role_name: string;
+    role_slug: string;
     must_change_password: boolean;
     is_system_admin: boolean;
 };
@@ -14,20 +15,35 @@ type UserRow = {
 defineProps<{
     users: UserRow[];
 }>();
+
+const { t } = useTranslations();
+
+const roleLabel = (slug: string): string => {
+    const key = `roles.${slug}`;
+    const translated = t(key);
+
+    return translated === key ? t('common.unknown') : translated;
+};
 </script>
 
 <template>
-    <Head title="Admin users" />
+    <Head :title="t('admin.users.index_title')" />
 
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-xl font-semibold">Users</h1>
-                <p class="text-sm text-muted-foreground">Manage users and role assignments.</p>
+                <h1 class="text-xl font-semibold">
+                    {{ t('admin.users.title') }}
+                </h1>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('admin.users.subtitle') }}
+                </p>
             </div>
 
             <Button as-child>
-                <Link href="/admin/users/create">Create user</Link>
+                <Link href="/admin/users/create">{{
+                    t('admin.users.create')
+                }}</Link>
             </Button>
         </div>
 
@@ -35,10 +51,10 @@ defineProps<{
             <table class="w-full text-sm">
                 <thead class="bg-muted/50 text-left">
                     <tr>
-                        <th class="px-4 py-3">Name</th>
-                        <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">Role</th>
-                        <th class="px-4 py-3">Flags</th>
+                        <th class="px-4 py-3">{{ t('common.name') }}</th>
+                        <th class="px-4 py-3">{{ t('common.email') }}</th>
+                        <th class="px-4 py-3">{{ t('common.role') }}</th>
+                        <th class="px-4 py-3">{{ t('common.flags') }}</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
@@ -46,14 +62,26 @@ defineProps<{
                     <tr v-for="user in users" :key="user.id" class="border-t">
                         <td class="px-4 py-3">{{ user.name }}</td>
                         <td class="px-4 py-3">{{ user.email }}</td>
-                        <td class="px-4 py-3">{{ user.role_name }}</td>
                         <td class="px-4 py-3">
-                            <span v-if="user.is_system_admin">System admin</span>
-                            <span v-if="user.must_change_password" class="ml-2">Force password</span>
+                            {{ roleLabel(user.role_slug) }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span v-if="user.is_system_admin">{{
+                                t('admin.users.flag_system_admin')
+                            }}</span>
+                            <span
+                                v-if="user.must_change_password"
+                                class="ml-2"
+                                >{{
+                                    t('admin.users.flag_force_password')
+                                }}</span
+                            >
                         </td>
                         <td class="px-4 py-3 text-right">
                             <Button as-child variant="ghost" size="sm">
-                                <Link :href="`/admin/users/${user.id}/edit`">Edit</Link>
+                                <Link :href="`/admin/users/${user.id}/edit`">{{
+                                    t('common.edit')
+                                }}</Link>
                             </Button>
                         </td>
                     </tr>
@@ -62,4 +90,3 @@ defineProps<{
         </div>
     </div>
 </template>
-

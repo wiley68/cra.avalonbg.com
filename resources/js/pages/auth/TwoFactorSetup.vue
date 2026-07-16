@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/composables/useTranslations';
 
 type Props = {
     canManageTwoFactor: boolean;
@@ -11,17 +12,18 @@ type Props = {
 
 defineProps<Props>();
 
+const { t } = useTranslations();
+
 defineOptions({
     layout: {
-        title: 'Enable two-factor authentication',
-        description:
-            'Two-factor authentication is required before you can use the workspace.',
+        titleKey: 'auth.two_factor_setup.title',
+        descriptionKey: 'auth.two_factor_setup.description',
     },
 });
 </script>
 
 <template>
-    <Head title="Set up 2FA" />
+    <Head :title="t('auth.two_factor_setup.head_title')" />
 
     <div class="space-y-6">
         <ManageTwoFactor
@@ -33,7 +35,7 @@ defineOptions({
 
         <div class="flex justify-end">
             <Button as-child variant="outline">
-                <Link href="/dashboard">Continue</Link>
+                <Link href="/dashboard">{{ t('common.continue') }}</Link>
             </Button>
         </div>
     </div>

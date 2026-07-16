@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Organization;
+use App\Support\Translations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
@@ -49,6 +50,12 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'locale' => app()->getLocale(),
+            'locales' => [
+                ['code' => 'en', 'label' => 'English'],
+                ['code' => 'bg', 'label' => 'Български'],
+            ],
+            'translations' => Translations::forLocale(),
             'auth' => [
                 'user' => $user ? [
                     ...$user->only(['id', 'name', 'email', 'email_verified_at', 'created_at', 'updated_at']),
@@ -59,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'organization' => $organization?->only(['id', 'name', 'slug']),
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 }
