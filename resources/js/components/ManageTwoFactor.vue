@@ -13,12 +13,14 @@ export type Props = {
     canManageTwoFactor?: boolean;
     requiresConfirmation?: boolean;
     twoFactorEnabled?: boolean;
+    hideHeading?: boolean;
 };
 
 withDefaults(defineProps<Props>(), {
     canManageTwoFactor: false,
     requiresConfirmation: false,
     twoFactorEnabled: false,
+    hideHeading: false,
 });
 
 const { hasSetupData, clearTwoFactorAuthData } = useTwoFactorAuth();
@@ -30,6 +32,7 @@ onUnmounted(() => clearTwoFactorAuthData());
 <template>
     <div v-if="canManageTwoFactor" class="space-y-6">
         <Heading
+            v-if="!hideHeading"
             variant="small"
             title="Two-factor authentication"
             description="Manage your two-factor authentication settings"

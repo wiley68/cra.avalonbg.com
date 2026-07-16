@@ -10,32 +10,31 @@ type Props = {
 };
 
 defineProps<Props>();
+
+defineOptions({
+    layout: {
+        title: 'Enable two-factor authentication',
+        description:
+            'Two-factor authentication is required before you can use the workspace.',
+    },
+});
 </script>
 
 <template>
     <Head title="Set up 2FA" />
 
-    <div class="mx-auto flex min-h-screen w-full max-w-2xl items-center px-6">
-        <div class="w-full space-y-6 rounded-lg border bg-card p-6">
-            <div class="space-y-2">
-                <h1 class="text-xl font-semibold">Enable two-factor authentication</h1>
-                <p class="text-sm text-muted-foreground">
-                    Two-factor authentication is required before you can use the workspace.
-                </p>
-            </div>
+    <div class="space-y-6">
+        <ManageTwoFactor
+            :can-manage-two-factor="canManageTwoFactor"
+            :requires-confirmation="requiresConfirmation"
+            :two-factor-enabled="twoFactorEnabled"
+            hide-heading
+        />
 
-            <ManageTwoFactor
-                :can-manage-two-factor="canManageTwoFactor"
-                :requires-confirmation="requiresConfirmation"
-                :two-factor-enabled="twoFactorEnabled"
-            />
-
-            <div class="flex justify-end">
-                <Button as-child variant="outline">
-                    <Link href="/dashboard">Continue</Link>
-                </Button>
-            </div>
+        <div class="flex justify-end">
+            <Button as-child variant="outline">
+                <Link href="/dashboard">Continue</Link>
+            </Button>
         </div>
     </div>
 </template>
-
