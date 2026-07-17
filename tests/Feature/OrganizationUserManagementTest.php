@@ -107,6 +107,7 @@ test('platform admin can create organization with owner', function () {
     $response->assertRedirect(route('admin.organizations.edit', $organization));
     $this->assertDatabaseHas('users', ['email' => 'owner@tenant.test', 'is_platform_admin' => false]);
     expect($organization->users()->where('email', 'owner@tenant.test')->exists())->toBeTrue();
+    expect(User::query()->where('email', 'owner@tenant.test')->first()?->email_verified_at)->not->toBeNull();
     expect($admin->organizations()->count())->toBe(0);
 });
 

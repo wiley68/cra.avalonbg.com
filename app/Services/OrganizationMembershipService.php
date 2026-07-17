@@ -114,8 +114,10 @@ class OrganizationMembershipService
             'password' => $attributes['password'],
             'must_change_password' => $attributes['must_change_password'] ?? true,
             'is_platform_admin' => false,
-            'email_verified_at' => now(),
         ]);
+
+        // email_verified_at is not mass-assignable; mark invited users as verified.
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         $this->attach($organization, $user, $roleId, $invitedBy);
 

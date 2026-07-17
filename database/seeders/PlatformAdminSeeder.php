@@ -13,7 +13,7 @@ class PlatformAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::query()->updateOrCreate(
+        $admin = User::query()->updateOrCreate(
             ['email' => 'ilko@avalonbg.com'],
             [
                 'name' => 'Илко Администратор',
@@ -21,8 +21,10 @@ class PlatformAdminSeeder extends Seeder
                 'is_platform_admin' => true,
                 'must_change_password' => false,
                 'password_changed_at' => Carbon::now(),
-                'email_verified_at' => Carbon::now(),
             ],
         );
+
+        // email_verified_at is not mass-assignable.
+        $admin->forceFill(['email_verified_at' => Carbon::now()])->save();
     }
 }
