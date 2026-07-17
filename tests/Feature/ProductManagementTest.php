@@ -163,7 +163,7 @@ test('platform admin cannot access products', function () {
 });
 
 test('organization owner can update and delete products', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
     $product = Product::query()->firstOrFail();
@@ -187,7 +187,7 @@ test('organization owner can update and delete products', function () {
 });
 
 test('organization owner can manage product versions', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
     $product = Product::query()->firstOrFail();
@@ -212,7 +212,7 @@ test('organization owner can manage product versions', function () {
 });
 
 test('version numbers must be unique per product', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
     $product = Product::query()->firstOrFail();
@@ -229,7 +229,7 @@ test('version numbers must be unique per product', function () {
 });
 
 test('deleting a product cascades versions', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
     $product = Product::query()->firstOrFail();
@@ -263,7 +263,7 @@ test('developer cannot create versions', function () {
 });
 
 test('products internal api returns paginated results', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
 
@@ -281,7 +281,7 @@ test('products internal api returns paginated results', function () {
 });
 
 test('product versions internal api returns paginated results', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)->post(route('products.store'), productPayload());
     $product = Product::query()->firstOrFail();
@@ -297,7 +297,7 @@ test('product versions internal api returns paginated results', function () {
 });
 
 test('invalid scope status is rejected', function () {
-    [, $owner] = makeOrgWithOwner();
+    [$organization, $owner] = makeOrgWithOwner();
 
     $this->actingAs($owner)
         ->from(route('products.create'))
