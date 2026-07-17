@@ -4,7 +4,7 @@ import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
-import { destroy, edit } from '@/routes/users';
+import { edit } from '@/routes/users';
 
 export type UserListItem = {
     id: number;
@@ -54,9 +54,13 @@ const roleLabel = (t: TranslateFn, slug: string): string => {
     return translated === key ? t('common.unknown') : translated;
 };
 
-export const createUserColumns = (
-    t: TranslateFn,
-): ColumnDef<UserListItem>[] => [
+export const createUserColumns = ({
+    t,
+    onDelete,
+}: {
+    t: TranslateFn;
+    onDelete: (userId: number) => void;
+}): ColumnDef<UserListItem>[] => [
     {
         accessorKey: 'id',
         header: ({ column }) => sortableHeader(t('users.columns.id'), column),
@@ -114,13 +118,7 @@ export const createUserColumns = (
                         label: t('common.delete'),
                         icon: Trash2,
                         variant: 'destructive',
-                        onSelect: () => {
-                            if (!confirm(t('users.confirm_delete'))) {
-                                return;
-                            }
-
-                            router.delete(destroy(row.original.id).url);
-                        },
+                        onSelect: () => onDelete(row.original.id),
                     },
                 ],
             }),

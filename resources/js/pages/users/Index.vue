@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as usersApiIndex } from '@/routes/internal/users';
-import { create } from '@/routes/users';
+import { create, destroy } from '@/routes/users';
 import { createUserColumnTitleMap, createUserColumns } from './columns';
 import type { UserListItem } from './columns';
 
@@ -24,6 +25,9 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const showDeleteDialog = ref(false);
+const userToDelete = ref<number | null>(null);
 
 const { rows, pagination, loading, search, fetch } = useApiTable<UserListItem>({
     endpoint: usersApiIndex().url,
@@ -49,7 +53,49 @@ const totalPages = computed(() =>
 );
 
 const columnTitleMap = computed(() => createUserColumnTitleMap(t));
-const columns = computed(() => createUserColumns(t));
+
+const requestDeleteUser = (userId: number): void => {
+    userToDelete.value = userId;
+    showDeleteDialog.value = true;
+};
+
+const columns = computed(() =>
+    createUserColumns({
+        t,
+        onDelete: requestDeleteUser,
+    }),
+);
+
+const cancelDelete = (): void => {
+    userToDelete.value = null;
+    showDeleteDialog.value = false;
+};
+
+const confirmDelete = (): void => {
+    if (userToDelete.value === null) {
+        return;
+    }
+
+    const userId = userToDelete.value;
+    userToDelete.value = null;
+    showDeleteDialog.value = false;
+
+    router.delete(destroy(userId).url, {
+        preserveScroll: true,
+        onSuccess: async () => {
+            rows.value = rows.value.filter((row) => row.id !== userId);
+            pagination.value.rowsNumber = Math.max(
+                0,
+                pagination.value.rowsNumber - 1,
+            );
+
+            if (rows.value.length === 0 && pagination.value.page > 1) {
+                pagination.value.page--;
+                await fetch();
+            }
+        },
+    });
+};
 
 const handlePaginationChange = (page: number, pageSize: number) => {
     pagination.value.page = page;
@@ -111,6 +157,14 @@ onMounted(() => {
             @search-change="updateSearch"
             @pagination-change="handlePaginationChange"
             @sorting-change="handleSortingChange"
+        />
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('users.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="cancelDelete"
         />
     </div>
 </template>

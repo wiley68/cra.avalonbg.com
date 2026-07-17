@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +43,8 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 
+const showDeleteDialog = ref(false);
+
 const form = useForm({
     name: props.user.name,
     email: props.user.email,
@@ -57,11 +61,8 @@ const submit = () => {
     );
 };
 
-const deleteUser = () => {
-    if (!confirm(t('admin.users.confirm_delete'))) {
-        return;
-    }
-
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
     router.delete(
         destroy({
             organization: props.organization.id,
@@ -146,11 +147,22 @@ const roleLabel = (slug: string): string => {
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
-                <Button type="button" variant="destructive" @click="deleteUser">
+                <Button
+                    type="button"
+                    variant="destructive"
+                    @click="showDeleteDialog = true"
+                >
                     <Trash2 class="h-4 w-4" />
                     {{ t('common.delete') }}
                 </Button>
             </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('admin.users.confirm_delete')"
+            @confirm="confirmDelete"
+        />
     </div>
 </template>
