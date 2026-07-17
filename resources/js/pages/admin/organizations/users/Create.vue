@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Plus } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as usersIndex, store } from '@/routes/admin/organizations/users';
 
@@ -63,9 +64,10 @@ const roleLabel = (slug: string): string => {
                 </h1>
             </div>
             <Button as-child variant="outline">
-                <Link :href="usersIndex(props.organization.id)">{{
-                    t('common.back')
-                }}</Link>
+                <Link :href="usersIndex(props.organization.id)">
+                    <ArrowLeft class="h-4 w-4" />
+                    {{ t('common.back') }}
+                </Link>
             </Button>
         </div>
 
@@ -119,17 +121,19 @@ const roleLabel = (slug: string): string => {
                 <InputError :message="form.errors.role_id" />
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.must_change_password"
-                    @update:checked="
-                        form.must_change_password = Boolean($event)
-                    "
+            <div class="flex items-center gap-3">
+                <Switch
+                    id="must_change_password"
+                    v-model="form.must_change_password"
+                    class="cursor-pointer"
                 />
-                {{ t('admin.users.force_password') }}
-            </label>
+                <Label for="must_change_password" class="cursor-pointer">
+                    {{ t('admin.users.force_password') }}
+                </Label>
+            </div>
 
             <Button type="submit" :disabled="form.processing">
+                <Plus class="h-4 w-4" />
                 {{ t('common.create') }}
             </Button>
         </form>

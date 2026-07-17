@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Plus } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     index as organizationsIndex,
@@ -41,7 +42,13 @@ const submit = () => {
                 {{ t('admin.organizations.create_title') }}
             </h1>
             <Button as-child variant="outline">
-                <Link :href="organizationsIndex()">{{ t('common.back') }}</Link>
+                <Link
+                    :href="organizationsIndex()"
+                    class="inline-flex items-center gap-2"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                    {{ t('common.back') }}
+                </Link>
             </Button>
         </div>
 
@@ -84,22 +91,35 @@ const submit = () => {
                 <InputError :message="form.errors.subscription_plan" />
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.is_active"
-                    @update:checked="form.is_active = Boolean($event)"
+            <div class="flex items-center gap-3">
+                <Switch
+                    id="is_active"
+                    v-model="form.is_active"
+                    class="cursor-pointer"
                 />
-                {{ t('admin.organizations.active') }}
-            </label>
+                <Label for="is_active" class="cursor-pointer">
+                    {{
+                        form.is_active
+                            ? t('admin.organizations.active')
+                            : t('admin.organizations.inactive')
+                    }}
+                </Label>
+            </div>
 
             <div class="space-y-4 border-t pt-4">
-                <label class="flex items-center gap-2 text-sm font-medium">
-                    <Checkbox
-                        :checked="form.create_owner"
-                        @update:checked="form.create_owner = Boolean($event)"
+                <div class="flex items-center gap-3">
+                    <Switch
+                        id="create_owner"
+                        v-model="form.create_owner"
+                        class="cursor-pointer"
                     />
-                    {{ t('admin.organizations.create_owner') }}
-                </label>
+                    <Label
+                        for="create_owner"
+                        class="cursor-pointer font-medium"
+                    >
+                        {{ t('admin.organizations.create_owner') }}
+                    </Label>
+                </div>
 
                 <template v-if="form.create_owner">
                     <div class="grid gap-2">
@@ -146,6 +166,7 @@ const submit = () => {
             </div>
 
             <Button type="submit" :disabled="form.processing">
+                <Plus class="h-4 w-4" />
                 {{ t('common.create') }}
             </Button>
         </form>

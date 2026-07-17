@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     destroy,
@@ -44,7 +45,7 @@ const form = useForm({
     name: props.user.name,
     email: props.user.email,
     role_id: props.user.role_id,
-    must_change_password: props.user.must_change_password,
+    must_change_password: Boolean(props.user.must_change_password),
 });
 
 const submit = () => {
@@ -91,9 +92,10 @@ const roleLabel = (slug: string): string => {
                 </h1>
             </div>
             <Button as-child variant="outline">
-                <Link :href="usersIndex(props.organization.id)">{{
-                    t('common.back')
-                }}</Link>
+                <Link :href="usersIndex(props.organization.id)">
+                    <ArrowLeft class="h-4 w-4" />
+                    {{ t('common.back') }}
+                </Link>
             </Button>
         </div>
 
@@ -128,21 +130,24 @@ const roleLabel = (slug: string): string => {
                 <InputError :message="form.errors.role_id" />
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.must_change_password"
-                    @update:checked="
-                        form.must_change_password = Boolean($event)
-                    "
+            <div class="flex items-center gap-3">
+                <Switch
+                    id="must_change_password"
+                    v-model="form.must_change_password"
+                    class="cursor-pointer"
                 />
-                {{ t('admin.users.force_password') }}
-            </label>
+                <Label for="must_change_password" class="cursor-pointer">
+                    {{ t('admin.users.force_password') }}
+                </Label>
+            </div>
 
             <div class="flex items-center justify-between gap-3">
                 <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
                 <Button type="button" variant="destructive" @click="remove">
+                    <Trash2 class="h-4 w-4" />
                     {{ t('admin.users.remove') }}
                 </Button>
             </div>

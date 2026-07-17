@@ -1,0 +1,28 @@
+---
+description: Standardized Lucide icons for common button actions
+alwaysApply: true
+---
+
+# Standard button icons
+
+Use Lucide (`@lucide/vue`) icons consistently for the same actions across the app. Place the icon before the label; Button already provides `gap-2` and default SVG sizing.
+
+| Action                   | Icon        | Notes                            |
+| ------------------------ | ----------- | -------------------------------- |
+| Back / cancel navigation | `ArrowLeft` | Outline back links               |
+| Create / add             | `Plus`      | Create submit + index “new” CTAs |
+| Save / update            | `Save`      | Edit form submit                 |
+| Edit                     | `Pencil`    | Row/menu edit actions            |
+| Users / members          | `Users`     | Navigate to users                |
+| Delete / remove          | `Trash2`    | Destructive remove actions       |
+
+## Example
+
+```vue
+<Button type="submit">
+  <Save class="h-4 w-4" />
+  {{ t('common.save') }}
+</Button>
+```
+
+Do not mix synonyms (e.g. `ChevronLeft` for back, `Check` for save) unless the existing design system already requires it for that surface.

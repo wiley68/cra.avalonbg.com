@@ -1,0 +1,24 @@
+---
+description: Prefer shadcn-vue UI components for consistent CRA UI
+alwaysApply: true
+---
+
+# Prefer shadcn-vue components
+
+When building or changing UI in this project, prefer existing components under `resources/js/components/ui/` (shadcn-vue / reka-ui) over native HTML controls or one-off markup.
+
+## Defaults
+
+- Boolean on/off fields (status, flags, enable/disable): use **`Switch`** with `v-model`, not `Checkbox` or native checkbox.
+- Text inputs, labels, buttons, selects, dialogs, tables, etc.: use the matching `ui/*` component when one exists.
+- If a needed shadcn component is missing, add it under `resources/js/components/ui/` (mirror office.avalonbg.com when applicable) before inventing custom UI.
+
+## Do not
+
+- Do not introduce raw `<input type="checkbox">` / ad-hoc toggles for form booleans when `Switch` fits.
+- Do not invent parallel visual styles for controls that already exist in `ui/`.
+
+## Reference
+
+- `resources/js/components/ui/switch/`
+- `resources/js/pages/admin/organizations/Edit.vue`

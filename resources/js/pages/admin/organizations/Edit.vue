@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Users } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     index as organizationsIndex,
@@ -33,7 +34,7 @@ const form = useForm({
     slug: props.organization.slug,
     billing_email: props.organization.billing_email ?? '',
     subscription_plan: props.organization.subscription_plan ?? '',
-    is_active: props.organization.is_active,
+    is_active: Boolean(props.organization.is_active),
 });
 
 const submit = () => {
@@ -53,13 +54,20 @@ const submit = () => {
                 <Button as-child variant="outline">
                     <Link
                         :href="organizationUsersIndex(props.organization.id)"
-                        >{{ t('nav.users') }}</Link
+                        class="inline-flex items-center gap-2"
                     >
+                        <Users class="h-4 w-4" />
+                        {{ t('nav.users') }}
+                    </Link>
                 </Button>
                 <Button as-child variant="outline">
-                    <Link :href="organizationsIndex()">{{
-                        t('common.back')
-                    }}</Link>
+                    <Link
+                        :href="organizationsIndex()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
                 </Button>
             </div>
         </div>
@@ -100,13 +108,21 @@ const submit = () => {
                 <InputError :message="form.errors.subscription_plan" />
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.is_active"
-                    @update:checked="form.is_active = Boolean($event)"
+            <div class="flex items-center gap-3">
+                <Switch
+                    id="is_active"
+                    v-model="form.is_active"
+                    class="cursor-pointer"
                 />
-                {{ t('admin.organizations.active') }}
-            </label>
+                <Label for="is_active" class="cursor-pointer">
+                    {{
+                        form.is_active
+                            ? t('admin.organizations.active')
+                            : t('admin.organizations.inactive')
+                    }}
+                </Label>
+            </div>
+            <InputError :message="form.errors.is_active" />
 
             <p class="text-sm text-muted-foreground">
                 {{ t('admin.organizations.users_count') }}:
@@ -114,6 +130,7 @@ const submit = () => {
             </p>
 
             <Button type="submit" :disabled="form.processing">
+                <Save class="h-4 w-4" />
                 {{ t('common.save') }}
             </Button>
         </form>
