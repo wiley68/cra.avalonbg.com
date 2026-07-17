@@ -169,6 +169,22 @@
         "organizations": "Organizations",
         "users": "Users"
     },
+    "audit_logs": {
+        "event_types": {
+            "login_success": "Successful login",
+            "login_failed": "Failed login",
+            "two_factor_challenge_success": "Successful 2FA challenge",
+            "two_factor_challenge_failed": "Failed 2FA challenge"
+        },
+        "event_sources": {
+            "workspace": "Workspace",
+            "api": "API"
+        },
+        "reasons": {
+            "invalid_credentials": "Invalid credentials",
+            "invalid_mfa_code": "Invalid MFA code"
+        }
+    },
     "dashboard": {
         "title": "Dashboard"
     },

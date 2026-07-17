@@ -169,6 +169,22 @@
         "organizations": "Организации",
         "users": "Потребители"
     },
+    "audit_logs": {
+        "event_types": {
+            "login_success": "Успешен вход",
+            "login_failed": "Неуспешен вход",
+            "two_factor_challenge_success": "Успешно 2FA предизвикателство",
+            "two_factor_challenge_failed": "Неуспешно 2FA предизвикателство"
+        },
+        "event_sources": {
+            "workspace": "Workspace",
+            "api": "API"
+        },
+        "reasons": {
+            "invalid_credentials": "Невалидни данни за вход",
+            "invalid_mfa_code": "Невалиден MFA код"
+        }
+    },
     "dashboard": {
         "title": "Табло"
     },

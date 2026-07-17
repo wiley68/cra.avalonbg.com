@@ -8,15 +8,22 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Policies\OrganizationPolicy;
 use App\Policies\UserPolicy;
+use App\Support\AuditLogger;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Fortify\Events\TwoFactorAuthenticationFailed;
+use Laravel\Fortify\Events\ValidTwoFactorAuthenticationCodeProvided;
+use Laravel\Fortify\Fortify;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureAuthorization();
         $this->configureUrlForReverseProxy();
         $this->configureHttpsOnly();
+        $this->configureAuditLogging();
     }
 
     /**
@@ -113,5 +121,39 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $kernel->pushMiddleware(ForceHttps::class);
+    }
+
+    protected function configureAuditLogging(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->guard !== 'web' || !$event->user instanceof User) {
+                return;
+            }
+
+            AuditLogger::logLoginSuccess($event->user);
+        });
+
+        Event::listen(Failed::class, function (Failed $event): void {
+            if ($event->guard !== 'web') {
+                return;
+            }
+
+            $email = (string) ($event->credentials[Fortify::username()] ?? $event->credentials['email'] ?? '—');
+            $user = $event->user instanceof User ? $event->user : null;
+
+            AuditLogger::logLoginFailed($email, 'invalid_credentials', $user);
+        });
+
+        Event::listen(ValidTwoFactorAuthenticationCodeProvided::class, function (ValidTwoFactorAuthenticationCodeProvided $event): void {
+            if ($event->user instanceof User) {
+                AuditLogger::logTwoFactorChallengeSuccess($event->user);
+            }
+        });
+
+        Event::listen(TwoFactorAuthenticationFailed::class, function (TwoFactorAuthenticationFailed $event): void {
+            if ($event->user instanceof User) {
+                AuditLogger::logTwoFactorChallengeFailed($event->user);
+            }
+        });
     }
 }
