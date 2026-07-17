@@ -1,10 +1,10 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil } from '@lucide/vue';
+import { ArrowUpDown, Pencil, Trash2 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
-import { edit } from '@/routes/admin/organizations/users';
+import { destroy, edit } from '@/routes/admin/organizations/users';
 
 export type OrganizationUserListItem = {
     id: number;
@@ -111,6 +111,23 @@ export const createOrganizationUserColumns = (
                         onSelect: () => {
                             router.visit(
                                 edit({
+                                    organization: organizationId,
+                                    user: row.original.id,
+                                }).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('common.delete'),
+                        icon: Trash2,
+                        variant: 'destructive',
+                        onSelect: () => {
+                            if (!confirm(t('admin.users.confirm_delete'))) {
+                                return;
+                            }
+
+                            router.delete(
+                                destroy({
                                     organization: organizationId,
                                     user: row.original.id,
                                 }).url,

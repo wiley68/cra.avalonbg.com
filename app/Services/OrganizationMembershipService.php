@@ -164,7 +164,7 @@ class OrganizationMembershipService
         ]);
     }
 
-    public function detach(Organization $organization, User $user): void
+    public function deleteMember(Organization $organization, User $user): void
     {
         $this->assertMembership($organization, $user);
 
@@ -175,11 +175,11 @@ class OrganizationMembershipService
             && $this->organizationOwnerCount($organization) <= 1
         ) {
             throw ValidationException::withMessages([
-                'user' => Translations::get('users.errors.last_owner_remove'),
+                'user' => Translations::get('users.errors.last_owner_delete'),
             ]);
         }
 
-        $organization->users()->detach($user->id);
+        $user->delete();
     }
 
     public function assertMembership(Organization $organization, User $user): void

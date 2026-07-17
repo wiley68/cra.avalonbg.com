@@ -174,7 +174,7 @@ test('developer cannot manage users', function () {
         ->assertForbidden();
 });
 
-test('platform admin cannot remove the last organization owner', function () {
+test('platform admin cannot delete the last organization owner', function () {
     $admin = makePlatformAdmin();
     [$organization, $owner] = makeOrganizationWithOwner();
 
@@ -185,9 +185,10 @@ test('platform admin cannot remove the last organization owner', function () {
         ->assertSessionHasErrors('user');
 
     expect($organization->users()->where('users.id', $owner->id)->exists())->toBeTrue();
+    $this->assertDatabaseHas('users', ['id' => $owner->id]);
 });
 
-test('can remove non-owner user from organization', function () {
+test('organization owner can delete a non-owner user', function () {
     [$organization, $owner] = makeOrganizationWithOwner();
     $member = makeDeveloperInOrganization($organization);
 
@@ -196,6 +197,20 @@ test('can remove non-owner user from organization', function () {
         ->assertRedirect(route('users.index'));
 
     expect($organization->users()->where('users.id', $member->id)->exists())->toBeFalse();
+    $this->assertDatabaseMissing('users', ['id' => $member->id]);
+});
+
+test('platform admin can delete a non-owner organization user', function () {
+    $admin = makePlatformAdmin();
+    [$organization] = makeOrganizationWithOwner();
+    $member = makeDeveloperInOrganization($organization);
+
+    $this->actingAs($admin)
+        ->delete(route('admin.organizations.users.destroy', [$organization, $member]))
+        ->assertRedirect(route('admin.organizations.users.index', $organization));
+
+    expect($organization->users()->where('users.id', $member->id)->exists())->toBeFalse();
+    $this->assertDatabaseMissing('users', ['id' => $member->id]);
 });
 
 test('platform admin does not receive product permissions', function () {
@@ -205,5 +220,6 @@ test('platform admin does not receive product permissions', function () {
     expect($admin->hasPermission('platform.admin'))->toBeTrue();
     expect($admin->hasPermission('organizations.manage'))->toBeTrue();
     expect($admin->hasPermission('users.create'))->toBeTrue();
+    expect($admin->hasPermission('users.delete'))->toBeTrue();
     expect($admin->hasPermission('audit.view'))->toBeTrue();
 });

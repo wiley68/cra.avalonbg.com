@@ -119,11 +119,11 @@ class OrganizationUserController extends Controller
         $this->memberships->assertMembership($organization, $user);
         $this->authorize('delete', [$user, $organization]);
 
-        $this->memberships->detach($organization, $user);
+        $this->memberships->deleteMember($organization, $user);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get('admin.users.removed'),
+            'message' => Translations::get('admin.users.deleted'),
         ]);
 
         return redirect()->route('admin.organizations.users.index', $organization);

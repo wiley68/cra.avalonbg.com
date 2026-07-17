@@ -10,6 +10,7 @@
         "back": "Back",
         "create": "Create",
         "save": "Save changes",
+        "delete": "Delete",
         "continue": "Continue",
         "unknown": "Unknown",
         "actions": "Actions",
@@ -113,9 +114,8 @@
             },
             "created": "User created.",
             "updated": "User updated.",
-            "removed": "User removed from organization.",
-            "remove": "Remove from organization",
-            "confirm_remove": "Remove this user from the organization?"
+            "deleted": "User deleted.",
+            "confirm_delete": "Delete this user permanently?"
         },
         "organizations": {
             "index_title": "Organizations",
@@ -153,16 +153,15 @@
         "edit_title": "Edit user",
         "created": "User created.",
         "updated": "User updated.",
-        "removed": "User removed from organization.",
-        "remove": "Remove from organization",
-        "confirm_remove": "Remove this user from the organization?",
+        "deleted": "User deleted.",
+        "confirm_delete": "Delete this user permanently?",
         "search_placeholder": "Search by name, email, role or ID...",
         "columns": {
             "id": "ID"
         },
         "errors": {
             "last_owner_role": "Cannot change the role of the last organization owner.",
-            "last_owner_remove": "Cannot remove the last organization owner."
+            "last_owner_delete": "Cannot delete the last organization owner."
         }
     },
     "nav": {

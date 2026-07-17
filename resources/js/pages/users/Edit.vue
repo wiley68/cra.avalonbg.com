@@ -48,8 +48,8 @@ const submit = () => {
     form.put(update(props.user.id).url);
 };
 
-const remove = () => {
-    if (!confirm(t('users.confirm_remove'))) {
+const deleteUser = () => {
+    if (!confirm(t('users.confirm_delete'))) {
         return;
     }
 
@@ -132,9 +132,9 @@ const roleLabel = (slug: string): string => {
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
-                <Button type="button" variant="destructive" @click="remove">
+                <Button type="button" variant="destructive" @click="deleteUser">
                     <Trash2 class="h-4 w-4" />
-                    {{ t('users.remove') }}
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </form>
