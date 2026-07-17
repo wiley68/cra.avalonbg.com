@@ -16,7 +16,7 @@ defineProps<{
 }>();
 
 const page = usePage();
-const { isCurrentUrl } = useCurrentUrl();
+const { isCurrentOrParentUrl } = useCurrentUrl();
 
 const organizationLabel = computed(() => {
     const organization = page.props.organization;
@@ -46,7 +46,7 @@ const organizationLabel = computed(() => {
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
                     as-child
-                    :is-active="isCurrentUrl(item.href)"
+                    :is-active="isCurrentOrParentUrl(item.href)"
                     :tooltip="item.title"
                 >
                     <Link :href="item.href">

@@ -9,7 +9,6 @@ export type UseCurrentUrlReturn = {
     isCurrentUrl: (
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
         currentUrl?: string,
-        startsWith?: boolean,
     ) => boolean;
     isCurrentOrParentUrl: (
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
@@ -20,7 +19,36 @@ export type UseCurrentUrlReturn = {
         ifTrue: T,
         ifFalse?: F,
     ) => T | F;
+    whenCurrentOrParentUrl: <T, F = null>(
+        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        ifTrue: T,
+        ifFalse?: F,
+    ) => T | F;
 };
+
+function resolvePathname(urlString: string): string {
+    if (!urlString || urlString === '' || urlString === '#') {
+        return '';
+    }
+
+    let pathname: string;
+
+    if (urlString.startsWith('http')) {
+        try {
+            pathname = new URL(urlString).pathname;
+        } catch {
+            return '';
+        }
+    } else {
+        pathname = urlString.split('?')[0] ?? urlString;
+    }
+
+    if (pathname === '/') {
+        return '/';
+    }
+
+    return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+}
 
 const page = usePage();
 const currentUrlReactive = computed(
@@ -34,35 +62,44 @@ const currentUrlReactive = computed(
 );
 
 export function useCurrentUrl(): UseCurrentUrlReturn {
+    function normalizedCurrentPath(currentUrl?: string): string {
+        return resolvePathname(currentUrl ?? currentUrlReactive.value);
+    }
+
     function isCurrentUrl(
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
         currentUrl?: string,
-        startsWith: boolean = false,
     ) {
-        const urlToCompare = currentUrl ?? currentUrlReactive.value;
-        const urlString = toUrl(urlToCheck);
+        const comparePath = resolvePathname(toUrl(urlToCheck));
 
-        const comparePath = (path: string): boolean =>
-            startsWith ? urlToCompare.startsWith(path) : path === urlToCompare;
-
-        if (!urlString.startsWith('http')) {
-            return comparePath(urlString);
-        }
-
-        try {
-            const absoluteUrl = new URL(urlString);
-
-            return comparePath(absoluteUrl.pathname);
-        } catch {
+        if (!comparePath) {
             return false;
         }
+
+        return comparePath === normalizedCurrentPath(currentUrl);
     }
 
     function isCurrentOrParentUrl(
         urlToCheck: NonNullable<InertiaLinkProps['href']>,
         currentUrl?: string,
     ) {
-        return isCurrentUrl(urlToCheck, currentUrl, true);
+        const comparePath = resolvePathname(toUrl(urlToCheck));
+
+        if (!comparePath) {
+            return false;
+        }
+
+        const current = normalizedCurrentPath(currentUrl);
+
+        if (comparePath === current) {
+            return true;
+        }
+
+        if (comparePath === '/') {
+            return current === '/';
+        }
+
+        return current.startsWith(`${comparePath}/`);
     }
 
     function whenCurrentUrl(
@@ -73,10 +110,19 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
         return isCurrentUrl(urlToCheck) ? ifTrue : ifFalse;
     }
 
+    function whenCurrentOrParentUrl(
+        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        ifTrue: any,
+        ifFalse: any = null,
+    ) {
+        return isCurrentOrParentUrl(urlToCheck) ? ifTrue : ifFalse;
+    }
+
     return {
         currentUrl: readonly(currentUrlReactive),
         isCurrentUrl,
         isCurrentOrParentUrl,
         whenCurrentUrl,
+        whenCurrentOrParentUrl,
     };
 }
