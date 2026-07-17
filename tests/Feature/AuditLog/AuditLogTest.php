@@ -87,3 +87,65 @@ test('prune command deletes audit logs older than configured retention', functio
     assertDatabaseMissing('audit_logs', ['id' => $old->id]);
     expect(AuditLog::query()->whereKey($recent->id)->exists())->toBeTrue();
 });
+
+test('platform admin can view audit logs index shell', function () {
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+        'is_platform_admin' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.audit-logs.index'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('admin/audit-logs/Index'));
+});
+
+test('platform admin can fetch audit logs from internal api', function () {
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+        'is_platform_admin' => true,
+    ]);
+
+    createAuditLog([
+        'user_email' => 'searchable@example.com',
+        'user_name' => 'Searchable User',
+        'description' => json_encode([
+            ['field' => 'email', 'value' => 'searchable@example.com'],
+        ], JSON_UNESCAPED_UNICODE),
+    ]);
+
+    $this->actingAs($admin)
+        ->getJson(route('admin.internal.audit-logs.index', [
+            'page' => 1,
+            'per_page' => 10,
+            'sort_by' => 'occurred_at',
+            'sort_desc' => '1',
+            'search' => 'searchable@',
+        ]))
+        ->assertOk()
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('data.0.user_email', 'searchable@example.com')
+        ->assertJsonPath('data.0.event_type', 'login_success');
+});
+
+test('organization owner cannot access audit logs', function () {
+    $owner = User::factory()->create([
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+        'is_platform_admin' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('admin.audit-logs.index'))
+        ->assertForbidden();
+
+    $this->actingAs($owner)
+        ->getJson(route('admin.internal.audit-logs.index'))
+        ->assertForbidden();
+});

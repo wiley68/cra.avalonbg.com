@@ -3,8 +3,10 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     Building2,
     HardDriveDownload,
+    History,
     LayoutGrid,
     Mail,
+    ScrollText,
     User,
     Users,
 } from '@lucide/vue';
@@ -27,6 +29,7 @@ import { dashboard } from '@/routes';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
+import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -58,6 +61,21 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.users'),
             href: usersIndex(),
             icon: Users,
+        });
+    }
+
+    if (user.is_platform_admin) {
+        items.push({
+            title: t('nav.logs'),
+            href: '',
+            icon: ScrollText,
+            children: [
+                {
+                    title: t('nav.audit'),
+                    href: auditLogsIndex(),
+                    icon: History,
+                },
+            ],
         });
     }
 

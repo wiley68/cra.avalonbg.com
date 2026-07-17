@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Enums\PermissionSlug;
 use App\Http\Middleware\ForceHttps;
+use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\User;
+use App\Policies\AuditLogPolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\UserPolicy;
 use App\Support\AuditLogger;
@@ -75,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         );
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 
     /**

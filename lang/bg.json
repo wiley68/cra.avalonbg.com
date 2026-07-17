@@ -167,9 +167,40 @@
     },
     "nav": {
         "organizations": "Организации",
-        "users": "Потребители"
+        "users": "Потребители",
+        "logs": "Журнали",
+        "audit": "Одит"
     },
     "audit_logs": {
+        "title": "Одит",
+        "subtitle": "Преглед на събития за автентикация и сигурност.",
+        "search_placeholder": "Търсене по потребител, имейл, събитие...",
+        "empty": "Няма съвпадащи записи",
+        "loading": "Зареждане на данни...",
+        "details_title": "Детайли за събитието",
+        "result": "Резултат",
+        "success": "Успех",
+        "failure": "Неуспех",
+        "field": "Поле",
+        "initial_value": "Начална стойност",
+        "final_value": "Крайна стойност",
+        "value": "Стойност",
+        "view": "Преглед",
+        "columns": {
+            "id": "ID",
+            "occurred_at": "Дата",
+            "event_type": "Събитие",
+            "event_source": "Източник",
+            "is_success": "Резултат",
+            "user_name": "Потребител",
+            "user_email": "Имейл",
+            "details_count": "Детайли",
+            "actions": "Действия"
+        },
+        "fields": {
+            "email": "Имейл",
+            "reason": "Причина"
+        },
         "event_types": {
             "login_success": "Успешен вход",
             "login_failed": "Неуспешен вход",

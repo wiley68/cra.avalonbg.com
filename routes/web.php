@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
+use App\Http\Controllers\Api\Admin\AuditLogApiController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\UserApiController;
@@ -42,12 +44,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->except(['show'])
                 ->scoped();
 
+            Route::get('audit-logs', [AdminAuditLogController::class, 'index'])
+                ->name('audit-logs.index');
+
             Route::prefix('internal-api')->name('internal.')->group(function () {
                 Route::get('organizations', [OrganizationApiController::class, 'index'])
                     ->name('organizations.index');
 
                 Route::get('organizations/{organization}/users', [OrganizationUserApiController::class, 'index'])
                     ->name('organizations.users.index');
+
+                Route::get('audit-logs', [AuditLogApiController::class, 'index'])
+                    ->name('audit-logs.index');
             });
         });
     });

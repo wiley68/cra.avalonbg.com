@@ -167,9 +167,40 @@
     },
     "nav": {
         "organizations": "Organizations",
-        "users": "Users"
+        "users": "Users",
+        "logs": "Journals",
+        "audit": "Audit"
     },
     "audit_logs": {
+        "title": "Audit",
+        "subtitle": "Review authentication and security events.",
+        "search_placeholder": "Search by user, email, event...",
+        "empty": "No matching records",
+        "loading": "Loading data...",
+        "details_title": "Event details",
+        "result": "Result",
+        "success": "Success",
+        "failure": "Failure",
+        "field": "Field",
+        "initial_value": "Initial value",
+        "final_value": "Final value",
+        "value": "Value",
+        "view": "View",
+        "columns": {
+            "id": "ID",
+            "occurred_at": "Date",
+            "event_type": "Event",
+            "event_source": "Source",
+            "is_success": "Result",
+            "user_name": "User",
+            "user_email": "Email",
+            "details_count": "Details",
+            "actions": "Actions"
+        },
+        "fields": {
+            "email": "Email",
+            "reason": "Reason"
+        },
         "event_types": {
             "login_success": "Successful login",
             "login_failed": "Failed login",
