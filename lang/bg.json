@@ -11,7 +11,22 @@
         "create": "Създай",
         "save": "Запази промените",
         "continue": "Продължи",
-        "unknown": "Неизвестно"
+        "unknown": "Неизвестно",
+        "actions": "Действия",
+        "manage": "Управление",
+        "table": {
+            "search_placeholder": "Търсене...",
+            "empty": "Няма съвпадащи записи",
+            "loading": "Зареждане на данни...",
+            "columns": "Колони",
+            "show_columns": "Показване на колони",
+            "rows_per_page": "Редове на страница",
+            "page_of": "Страница :current от :total",
+            "first_page": "Към първа страница",
+            "previous_page": "Към предишна страница",
+            "next_page": "Към следваща страница",
+            "last_page": "Към последна страница"
+        }
     },
     "welcome": {
         "brand": "Avalon CRA Compliance Workspace",
@@ -113,6 +128,11 @@
             "active": "Активна",
             "inactive": "Неактивна",
             "users_count": "Потребители",
+            "search_placeholder": "Търсене по име, slug, имейл или ID...",
+            "columns": {
+                "id": "ID",
+                "created_at": "Създадена"
+            },
             "create_owner": "Създай собственик на организацията",
             "owner_name": "Име на собственика",
             "owner_email": "Имейл на собственика",

@@ -26,24 +26,7 @@ class OrganizationController extends Controller
     {
         $this->authorize('viewAny', Organization::class);
 
-        $organizations = Organization::query()
-            ->withCount('users')
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'is_active', 'billing_email', 'subscription_plan', 'created_at'])
-            ->map(fn(Organization $organization) => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-                'slug' => $organization->slug,
-                'is_active' => (bool) $organization->is_active,
-                'billing_email' => $organization->billing_email,
-                'subscription_plan' => $organization->subscription_plan,
-                'users_count' => $organization->users_count,
-                'created_at' => $organization->created_at?->toIso8601String(),
-            ]);
-
-        return Inertia::render('admin/organizations/Index', [
-            'organizations' => $organizations,
-        ]);
+        return Inertia::render('admin/organizations/Index');
     }
 
     public function create(): Response

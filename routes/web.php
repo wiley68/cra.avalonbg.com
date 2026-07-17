@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
+use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
@@ -33,8 +34,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('organizations.users', AdminOrganizationUserController::class)
                 ->except(['show'])
                 ->scoped();
+
+            Route::prefix('internal-api')->name('internal.')->group(function () {
+                Route::get('organizations', [OrganizationApiController::class, 'index'])
+                    ->name('organizations.index');
+            });
         });
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

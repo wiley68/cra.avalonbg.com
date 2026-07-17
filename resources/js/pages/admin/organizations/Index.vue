@@ -1,25 +1,71 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Plus } from '@lucide/vue';
+import type { SortingState } from '@tanstack/vue-table';
+import { computed, onMounted } from 'vue';
+import { toast } from 'vue-sonner';
+import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
+import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
-import { create, edit } from '@/routes/admin/organizations';
-import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
-
-type OrganizationRow = {
-    id: number;
-    name: string;
-    slug: string;
-    is_active: boolean;
-    billing_email: string | null;
-    subscription_plan: string | null;
-    users_count: number;
-};
-
-defineProps<{
-    organizations: OrganizationRow[];
-}>();
+import { create } from '@/routes/admin/organizations';
+import {
+    createOrganizationColumnTitleMap,
+    createOrganizationColumns,
+} from './columns';
+import type { OrganizationListItem } from './columns';
+import { index as organizationsApiIndex } from '@/routes/admin/internal/organizations';
 
 const { t } = useTranslations();
+
+const { rows, pagination, loading, search, fetch } =
+    useApiTable<OrganizationListItem>({
+        endpoint: organizationsApiIndex().url,
+        initial: {
+            page: 1,
+            rowsPerPage: 10,
+            sortBy: 'name',
+            descending: false,
+            search: '',
+        },
+        onError: (message) => {
+            toast.error(message);
+        },
+        autoload: false,
+        searchDebounceMs: 400,
+    });
+
+const totalPages = computed(() =>
+    Math.max(
+        1,
+        Math.ceil(pagination.value.rowsNumber / pagination.value.rowsPerPage),
+    ),
+);
+
+const columnTitleMap = computed(() => createOrganizationColumnTitleMap(t));
+const columns = computed(() => createOrganizationColumns(t));
+
+const handlePaginationChange = (page: number, pageSize: number) => {
+    pagination.value.page = page;
+    pagination.value.rowsPerPage = pageSize;
+    void fetch();
+};
+
+const handleSortingChange = (sorting: SortingState) => {
+    const primary = sorting[0];
+
+    pagination.value.sortBy = primary?.id ?? 'name';
+    pagination.value.descending = primary?.desc ?? false;
+    void fetch();
+};
+
+const updateSearch = (value: string) => {
+    search.value = value;
+};
+
+onMounted(() => {
+    void fetch();
+});
 </script>
 
 <template>
@@ -37,65 +83,30 @@ const { t } = useTranslations();
             </div>
 
             <Button as-child>
-                <Link :href="create()">{{
-                    t('admin.organizations.create')
-                }}</Link>
+                <Link :href="create()" class="inline-flex items-center gap-2">
+                    <Plus class="h-4 w-4" />
+                    {{ t('admin.organizations.create') }}
+                </Link>
             </Button>
         </div>
 
-        <div class="overflow-hidden rounded-lg border">
-            <table class="w-full text-sm">
-                <thead class="bg-muted/50 text-left">
-                    <tr>
-                        <th class="px-4 py-3">{{ t('common.name') }}</th>
-                        <th class="px-4 py-3">
-                            {{ t('admin.organizations.slug') }}
-                        </th>
-                        <th class="px-4 py-3">
-                            {{ t('admin.organizations.status') }}
-                        </th>
-                        <th class="px-4 py-3">
-                            {{ t('admin.organizations.users_count') }}
-                        </th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="organization in organizations"
-                        :key="organization.id"
-                        class="border-t"
-                    >
-                        <td class="px-4 py-3">{{ organization.name }}</td>
-                        <td class="px-4 py-3">{{ organization.slug }}</td>
-                        <td class="px-4 py-3">
-                            {{
-                                organization.is_active
-                                    ? t('admin.organizations.active')
-                                    : t('admin.organizations.inactive')
-                            }}
-                        </td>
-                        <td class="px-4 py-3">
-                            {{ organization.users_count }}
-                        </td>
-                        <td class="space-x-2 px-4 py-3 text-right">
-                            <Button as-child variant="ghost" size="sm">
-                                <Link
-                                    :href="
-                                        organizationUsersIndex(organization.id)
-                                    "
-                                    >{{ t('nav.users') }}</Link
-                                >
-                            </Button>
-                            <Button as-child variant="ghost" size="sm">
-                                <Link :href="edit(organization.id)">{{
-                                    t('common.edit')
-                                }}</Link>
-                            </Button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <DataTable
+            :columns="columns"
+            :data="rows"
+            :loading="loading"
+            :search="search"
+            :column-title-map="columnTitleMap"
+            :search-placeholder="t('admin.organizations.search_placeholder')"
+            server-side
+            :show-pagination="true"
+            :show-column-toggle="true"
+            :page-size="pagination.rowsPerPage"
+            :current-page="pagination.page"
+            :total-pages="totalPages"
+            :total-items="pagination.rowsNumber"
+            @search-change="updateSearch"
+            @pagination-change="handlePaginationChange"
+            @sorting-change="handleSortingChange"
+        />
     </div>
 </template>

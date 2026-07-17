@@ -1,0 +1,33 @@
+---
+description: Server-side DataTable pattern for index pages (office-style)
+alwaysApply: true
+---
+
+# Index tables (server-side DataTable)
+
+For every index page that lists records in a table, match the office.avalonbg.com users pattern already used by `admin/organizations`.
+
+## Architecture
+
+1. **Inertia page = shell only** — no paginated list props. Render title, primary action, and `<DataTable>`.
+2. **Data from internal API** — `GET .../internal-api/{resource}` returns Laravel paginator JSON (`data`, `current_page`, `per_page`, `total`).
+3. **Client** — `useApiTable` + shared `DataTable.vue` (`server-side`, search, column toggle, pagination, sorting).
+4. **Columns** — colocated `columns.ts` with TanStack `ColumnDef`, sortable headers, and `TableRowActionsMenu` for row actions.
+
+## Query params (API)
+
+Support: `page`, `per_page`, `sort_by`, `sort_desc` (`0`|`1`), `search`. Validate `sort_by` against the same columns the UI can sort.
+
+## Do not
+
+- Do not load full table datasets via Inertia props for index lists.
+- Do not invent a different pagination/search/column UI for new index pages.
+- Do not use client-only filtering/sorting for large server-backed lists.
+
+## Reference
+
+- `resources/js/pages/admin/organizations/Index.vue`
+- `resources/js/pages/admin/organizations/columns.ts`
+- `app/Http/Controllers/Api/Admin/OrganizationApiController.php`
+- `resources/js/components/DataTable.vue`
+- `resources/js/composables/useApiTable.ts`
