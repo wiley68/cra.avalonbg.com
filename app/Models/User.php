@@ -98,6 +98,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasPermission(PermissionSlug::UsersView->value, $organization);
     }
 
+    public function canViewProducts(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::ProductsView->value, $organization);
+    }
+
+    public function canManageProducts(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+    }
+
     public function canManageOrganizations(): bool
     {
         return $this->isPlatformAdmin()
@@ -115,7 +137,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return true;
         }
 
-        if (!$organization) {
+        if (! $organization) {
             return false;
         }
 
@@ -131,7 +153,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->platformAdminPermissions();
         }
 
-        if (!$organization) {
+        if (! $organization) {
             return [];
         }
 
@@ -139,7 +161,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('organizations.id', $organization->id)
             ->first()?->pivot?->role_id;
 
-        if (!$roleId) {
+        if (! $roleId) {
             return [];
         }
 
@@ -167,7 +189,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->first();
 
         if ($role === null) {
-            return config('cra.roles.' . RoleSlug::PlatformAdmin->value . '.permissions', []);
+            return config('cra.roles.'.RoleSlug::PlatformAdmin->value.'.permissions', []);
         }
 
         return $role->permissions->pluck('slug')->all();

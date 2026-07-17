@@ -6,6 +6,7 @@ import {
     History,
     LayoutGrid,
     Mail,
+    Package,
     ScrollText,
     User,
     Users,
@@ -26,10 +27,11 @@ import {
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
 import { dashboard } from '@/routes';
+import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
+import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
-import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -61,6 +63,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.users'),
             href: usersIndex(),
             icon: Users,
+        });
+    }
+
+    if (user.can_view_products) {
+        items.push({
+            title: t('nav.products'),
+            href: productsIndex(),
+            icon: Package,
         });
     }
 

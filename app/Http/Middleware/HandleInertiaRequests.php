@@ -49,6 +49,12 @@ class HandleInertiaRequests extends Middleware
         $canManageUsers = $user !== null && $organization !== null
             ? $user->canManageUsers($organization)
             : false;
+        $canViewProducts = $user !== null && $organization !== null
+            ? $user->canViewProducts($organization)
+            : false;
+        $canManageProducts = $user !== null && $organization !== null
+            ? $user->canManageProducts($organization)
+            : false;
         $canManageOrganizations = $user?->canManageOrganizations() ?? false;
 
         return [
@@ -75,11 +81,13 @@ class HandleInertiaRequests extends Middleware
                         ? null
                         : $role?->name,
                     'can_manage_users' => $canManageUsers,
+                    'can_view_products' => $canViewProducts,
+                    'can_manage_products' => $canManageProducts,
                     'can_manage_organizations' => $canManageOrganizations,
                 ] : null,
             ],
             'organization' => $organization?->only(['id', 'name', 'slug']),
-            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 

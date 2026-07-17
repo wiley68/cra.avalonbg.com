@@ -6,10 +6,14 @@ use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUs
 use App\Http\Controllers\Api\Admin\AuditLogApiController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
+use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +35,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::resource('users', UserController::class)->except(['show']);
 
+        Route::resource('products', ProductController::class)->except(['show']);
+        Route::resource('products.versions', ProductVersionController::class)
+            ->except(['show'])
+            ->parameters(['versions' => 'version'])
+            ->scoped();
+
         Route::prefix('internal-api')->name('internal.')->group(function () {
             Route::get('users', [UserApiController::class, 'index'])
                 ->name('users.index');
+            Route::get('products', [ProductApiController::class, 'index'])
+                ->name('products.index');
+            Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])
+                ->name('products.versions.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
@@ -61,4 +75,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

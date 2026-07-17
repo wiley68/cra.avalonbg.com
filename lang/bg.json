@@ -172,8 +172,140 @@
     "nav": {
         "organizations": "Организации",
         "users": "Потребители",
+        "products": "Продукти",
         "logs": "Журнали",
         "audit": "Одит"
+    },
+    "products": {
+        "index_title": "Продукти",
+        "title": "Продукти",
+        "subtitle": "Управление на продукти в организацията",
+        "create": "Създай продукт",
+        "create_title": "Създай продукт",
+        "edit_title": "Редакция на продукт",
+        "created": "Продуктът е създаден.",
+        "updated": "Продуктът е обновен.",
+        "deleted": "Продуктът е изтрит.",
+        "confirm_delete": "Да се изтрие ли този продукт и всичките му версии завинаги?",
+        "search_placeholder": "Търсене по име, slug, тип или статус...",
+        "versions_link": "Версии",
+        "sections": {
+            "identity": "Идентификация",
+            "technical": "Технически данни",
+            "support": "Поддръжка",
+            "scope": "CRA scope оценка",
+            "classification": "Класификация",
+            "contacts": "Контакти"
+        },
+        "fields": {
+            "product_line": "Продуктова линия",
+            "description": "Описание",
+            "intended_purpose": "Предназначение",
+            "product_type": "Тип продукт",
+            "manufacturer": "Производител",
+            "trademark": "Търговска марка",
+            "licensing_model": "Модел на лицензиране",
+            "remote_processing": "Remote data processing",
+            "network_connectivity": "Мрежова свързаност",
+            "deployment_model": "Модел на внедряване",
+            "support_period_notes": "Бележки за периода на поддръжка",
+            "end_of_support_policy": "Политика за край на поддръжката",
+            "product_owner": "Product owner",
+            "security_contact": "Security контакт",
+            "scope_status": "Scope статус",
+            "scope_rationale": "Обосновка на scope",
+            "classification_status": "Класификация",
+            "classification_rationale": "Обосновка на класификацията",
+            "next_review": "Следващ преглед на класификацията",
+            "slug": "Slug"
+        },
+        "types": {
+            "software": "Софтуер",
+            "hardware": "Хардуер",
+            "other": "Друго"
+        },
+        "licensing": {
+            "paid": "Платен",
+            "free": "Безплатен",
+            "monetised_indirectly": "Непряко монетизиран",
+            "unknown": "Неизвестно"
+        },
+        "scope": {
+            "likely_in_scope": "Вероятно в обхват",
+            "potentially_excluded": "Потенциално изключен",
+            "further_legal_review": "Необходим допълнителен правен преглед",
+            "insufficient_information": "Недостатъчна информация",
+            "out_of_scope": "Извън обхват според текущите данни"
+        },
+        "classification": {
+            "general": "Общ продукт",
+            "important_class_i": "Важен продукт, клас I",
+            "important_class_ii": "Важен продукт, клас II",
+            "critical": "Критичен продукт",
+            "unclassified": "Некласифициран",
+            "under_review": "Класификация в преглед",
+            "excluded": "Изключен",
+            "sector_specific": "Подлежи на секторна регулация"
+        },
+        "none": "— Няма —",
+        "columns": {
+            "id": "ID",
+            "slug": "Slug",
+            "product_line": "Линия",
+            "product_type": "Тип",
+            "scope_status": "Scope",
+            "classification_status": "Класификация"
+        },
+        "versions": {
+            "index_title": "Версии",
+            "title": "Версии",
+            "subtitle": "Управление на версии и release състояния",
+            "create": "Създай версия",
+            "create_title": "Създай версия",
+            "edit_title": "Редакция на версия",
+            "created": "Версията е създадена.",
+            "updated": "Версията е обновена.",
+            "deleted": "Версията е изтрита.",
+            "confirm_delete": "Да се изтрие ли тази версия завинаги?",
+            "search_placeholder": "Търсене по версия, състояние или git ref...",
+            "fields": {
+                "version_number": "Номер на версия",
+                "release_date": "Дата на release",
+                "state": "Release състояние",
+                "support_status": "Статус на поддръжка",
+                "security_support_deadline": "Край на security поддръжка",
+                "git_ref": "Git commit или tag",
+                "build_identifier": "Build идентификатор",
+                "artifact_hash": "Hash на артефакта",
+                "changelog": "Changelog",
+                "previous_version": "Предишна версия"
+            },
+            "states": {
+                "draft": "Чернова",
+                "development": "Разработка",
+                "security_review": "Security преглед",
+                "release_candidate": "Release candidate",
+                "approved": "Одобрена",
+                "released": "Released",
+                "deprecated": "Deprecated",
+                "end_of_support": "Край на поддръжка",
+                "withdrawn": "Оттеглена"
+            },
+            "support": {
+                "supported": "Поддържана",
+                "security_only": "Само security поддръжка",
+                "unsupported": "Без поддръжка",
+                "unknown": "Неизвестно"
+            },
+            "columns": {
+                "id": "ID",
+                "version_number": "Версия",
+                "state": "Състояние",
+                "support_status": "Поддръжка",
+                "release_date": "Released",
+                "security_support_deadline": "Security до"
+            }
+        }
     },
     "audit_logs": {
         "title": "Одит",

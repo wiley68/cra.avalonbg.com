@@ -172,8 +172,140 @@
     "nav": {
         "organizations": "Organizations",
         "users": "Users",
+        "products": "Products",
         "logs": "Journals",
         "audit": "Audit"
+    },
+    "products": {
+        "index_title": "Products",
+        "title": "Products",
+        "subtitle": "Manage products in your organization",
+        "create": "Create product",
+        "create_title": "Create product",
+        "edit_title": "Edit product",
+        "created": "Product created.",
+        "updated": "Product updated.",
+        "deleted": "Product deleted.",
+        "confirm_delete": "Delete this product and all its versions permanently?",
+        "search_placeholder": "Search by name, slug, type or status...",
+        "versions_link": "Versions",
+        "sections": {
+            "identity": "Identity",
+            "technical": "Technical",
+            "support": "Support",
+            "scope": "CRA scope assessment",
+            "classification": "Classification",
+            "contacts": "Contacts"
+        },
+        "fields": {
+            "product_line": "Product line",
+            "description": "Description",
+            "intended_purpose": "Intended purpose",
+            "product_type": "Product type",
+            "manufacturer": "Manufacturer",
+            "trademark": "Trademark",
+            "licensing_model": "Licensing model",
+            "remote_processing": "Remote data processing",
+            "network_connectivity": "Network connectivity",
+            "deployment_model": "Deployment model",
+            "support_period_notes": "Support period notes",
+            "end_of_support_policy": "End-of-support policy",
+            "product_owner": "Product owner",
+            "security_contact": "Security contact",
+            "scope_status": "Scope status",
+            "scope_rationale": "Scope rationale",
+            "classification_status": "Classification",
+            "classification_rationale": "Classification rationale",
+            "next_review": "Next classification review",
+            "slug": "Slug"
+        },
+        "types": {
+            "software": "Software",
+            "hardware": "Hardware",
+            "other": "Other"
+        },
+        "licensing": {
+            "paid": "Paid",
+            "free": "Free",
+            "monetised_indirectly": "Monetised indirectly",
+            "unknown": "Unknown"
+        },
+        "scope": {
+            "likely_in_scope": "Likely in scope",
+            "potentially_excluded": "Potentially excluded",
+            "further_legal_review": "Further legal review required",
+            "insufficient_information": "Insufficient information",
+            "out_of_scope": "Out of scope based on current data"
+        },
+        "classification": {
+            "general": "General product",
+            "important_class_i": "Important product, Class I",
+            "important_class_ii": "Important product, Class II",
+            "critical": "Critical product",
+            "unclassified": "Unclassified",
+            "under_review": "Classification under review",
+            "excluded": "Excluded",
+            "sector_specific": "Subject to sector-specific legislation"
+        },
+        "none": "— None —",
+        "columns": {
+            "id": "ID",
+            "slug": "Slug",
+            "product_line": "Line",
+            "product_type": "Type",
+            "scope_status": "Scope",
+            "classification_status": "Classification"
+        },
+        "versions": {
+            "index_title": "Versions",
+            "title": "Versions",
+            "subtitle": "Manage product versions and release states",
+            "create": "Create version",
+            "create_title": "Create version",
+            "edit_title": "Edit version",
+            "created": "Version created.",
+            "updated": "Version updated.",
+            "deleted": "Version deleted.",
+            "confirm_delete": "Delete this version permanently?",
+            "search_placeholder": "Search by version, state or git ref...",
+            "fields": {
+                "version_number": "Version number",
+                "release_date": "Release date",
+                "state": "Release state",
+                "support_status": "Support status",
+                "security_support_deadline": "Security support deadline",
+                "git_ref": "Git commit or tag",
+                "build_identifier": "Build identifier",
+                "artifact_hash": "Artifact hash",
+                "changelog": "Changelog",
+                "previous_version": "Previous version"
+            },
+            "states": {
+                "draft": "Draft",
+                "development": "Development",
+                "security_review": "Security review",
+                "release_candidate": "Release candidate",
+                "approved": "Approved",
+                "released": "Released",
+                "deprecated": "Deprecated",
+                "end_of_support": "End of support",
+                "withdrawn": "Withdrawn"
+            },
+            "support": {
+                "supported": "Supported",
+                "security_only": "Security support only",
+                "unsupported": "Unsupported",
+                "unknown": "Unknown"
+            },
+            "columns": {
+                "id": "ID",
+                "version_number": "Version",
+                "state": "State",
+                "support_status": "Support",
+                "release_date": "Released",
+                "security_support_deadline": "Security until"
+            }
+        }
     },
     "audit_logs": {
         "title": "Audit",
