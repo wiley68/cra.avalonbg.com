@@ -185,7 +185,7 @@ class ScopeAssessmentService
             return ScopeStatus::LikelyInScope;
         }
 
-        if (! $hasConnectivity && $kind === ProductType::Other->value) {
+        if (!$hasConnectivity && $kind === ProductType::Other->value) {
             return ScopeStatus::PotentiallyExcluded;
         }
 
@@ -199,7 +199,7 @@ class ScopeAssessmentService
     {
         $parts = [
             Translations::get('products.scope_wizard.rationale_prefix', [
-                'status' => Translations::get('products.scope.'.$status->value),
+                'status' => Translations::get('products.scope.' . $status->value),
             ]),
         ];
 
@@ -209,7 +209,7 @@ class ScopeAssessmentService
                 continue;
             }
 
-            $label = Translations::get('products.scope_wizard.questions.'.$question->value.'.label');
+            $label = Translations::get('products.scope_wizard.questions.' . $question->value . '.label');
             $answerLabel = $this->answerLabel($question, $value);
             $parts[] = "{$label}: {$answerLabel}.";
         }
@@ -245,7 +245,7 @@ class ScopeAssessmentService
         $missing = [];
 
         foreach (ScopeQuestionKey::ordered() as $question) {
-            if (! array_key_exists($question->value, $answers) || $answers[$question->value] === '') {
+            if (!array_key_exists($question->value, $answers) || $answers[$question->value] === '') {
                 $missing[$question->value] = Translations::get('products.scope_wizard.errors.answer_required');
             }
         }
@@ -258,13 +258,13 @@ class ScopeAssessmentService
     private function answerLabel(ScopeQuestionKey $question, string $value): string
     {
         if ($question === ScopeQuestionKey::ProductKind) {
-            return Translations::get('products.types.'.$value);
+            return Translations::get('products.types.' . $value);
         }
 
         if ($question === ScopeQuestionKey::MarketRole) {
-            return Translations::get('products.scope_wizard.market_roles.'.$value);
+            return Translations::get('products.scope_wizard.market_roles.' . $value);
         }
 
-        return Translations::get('products.scope_wizard.tri_state.'.$value);
+        return Translations::get('products.scope_wizard.tri_state.' . $value);
     }
 }

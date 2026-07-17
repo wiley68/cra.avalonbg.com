@@ -17,7 +17,8 @@ class ProductScopeAssessmentController extends Controller
 {
     public function __construct(
         private readonly ScopeAssessmentService $assessments,
-    ) {}
+    ) {
+    }
 
     public function preview(PreviewProductScopeAssessmentRequest $request): JsonResponse
     {

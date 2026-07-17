@@ -68,7 +68,7 @@ class StoreProductRequest extends FormRequest
     protected function productRules(?Organization $organization, ?Product $product = null): array
     {
         $memberRule = Rule::exists('organization_user', 'user_id')
-            ->where(fn ($query) => $query->where('organization_id', $organization?->id));
+            ->where(fn($query) => $query->where('organization_id', $organization?->id));
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -78,7 +78,7 @@ class StoreProductRequest extends FormRequest
                 'max:255',
                 'alpha_dash',
                 Rule::unique('products', 'slug')
-                    ->where(fn ($query) => $query->where('organization_id', $organization?->id))
+                    ->where(fn($query) => $query->where('organization_id', $organization?->id))
                     ->ignore($product?->id),
             ],
             'product_line' => ['nullable', 'string', 'max:255'],

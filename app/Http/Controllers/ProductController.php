@@ -20,7 +20,8 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly ScopeAssessmentService $scopeAssessments,
-    ) {}
+    ) {
+    }
 
     public function index(): Response
     {
@@ -59,7 +60,7 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
-        $openWizard = ! $request->boolean('skip_scope_wizard');
+        $openWizard = !$request->boolean('skip_scope_wizard');
 
         if ($request->filled('scope_assessment.answers')) {
             $this->scopeAssessments->storeAndApply(
@@ -194,7 +195,7 @@ class ProductController extends Controller
         return $organization->users()
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn ($user) => [
+            ->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
