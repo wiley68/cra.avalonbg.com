@@ -131,7 +131,9 @@ test('organization owner can create and list products', function () {
         ->get(route('products.index'))
         ->assertOk();
 
-    $response = $this->actingAs($owner)->post(route('products.store'), productPayload());
+    $response = $this->actingAs($owner)->post(route('products.store'), productPayload([
+        'skip_scope_wizard' => true,
+    ]));
 
     $product = Product::query()->where('slug', 'payment-module')->first();
 

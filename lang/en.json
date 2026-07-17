@@ -34,7 +34,8 @@
             "previous_page": "Go to previous page",
             "next_page": "Go to next page",
             "last_page": "Go to last page"
-        }
+        },
+        "select": "Select…"
     },
     "welcome": {
         "brand": "Avalon CRA Compliance Workspace",
@@ -341,6 +342,92 @@
                 "support_status": "Support",
                 "release_date": "Released",
                 "security_support_deadline": "Security until"
+            }
+        },
+        "scope_wizard": {
+            "title": "CRA scope assessment",
+            "subtitle": "Answer 12 questions for a preliminary CRA scope suggestion. This is not a final legal determination.",
+            "start": "Assess CRA scope",
+            "rerun": "Re-run assessment",
+            "next": "Next",
+            "back": "Back",
+            "confirm": "Confirm assessment",
+            "cancel": "Cancel",
+            "step_of": "Step :current of :total",
+            "review_title": "Suggested result",
+            "suggested_status": "Suggested status",
+            "final_status": "Final status",
+            "override_hint": "You can override the suggestion before saving.",
+            "rationale": "Rationale",
+            "saved": "Scope assessment saved.",
+            "last_assessment": "Last wizard assessment",
+            "reviewed_at": "Reviewed at",
+            "no_assessment": "No wizard assessment has been recorded yet.",
+            "preview_error": "Could not evaluate answers. Check that all questions are answered.",
+            "rationale_prefix": "Preliminary CRA scope suggestion: :status.",
+            "tri_state": {
+                "yes": "Yes",
+                "no": "No",
+                "unsure": "Unsure"
+            },
+            "market_roles": {
+                "manufacturer": "Manufacturer",
+                "importer": "Importer",
+                "distributor": "Distributor",
+                "unsure": "Unsure"
+            },
+            "errors": {
+                "answer_required": "This answer is required."
+            },
+            "questions": {
+                "product_kind": {
+                    "label": "Is this a software or hardware product?",
+                    "help": "Select the primary product kind for CRA context."
+                },
+                "commercial_activity": {
+                    "label": "Is it made available in the course of a commercial activity?",
+                    "help": "Commercial activity includes paid offerings and many free products with a commercial intent."
+                },
+                "network_or_device_link": {
+                    "label": "Does it have a logical or physical connection to a device or network?",
+                    "help": "Includes network interfaces, device linking, or remote connectivity."
+                },
+                "offered_standalone": {
+                    "label": "Is it offered as a standalone product?",
+                    "help": "Whether customers can obtain it on its own, not only as an inseparable part of something else."
+                },
+                "sold_under_own_brand": {
+                    "label": "Is it sold under your organisation's name or brand?",
+                    "help": "Relevant for manufacturer / own-brand placing on the market."
+                },
+                "remote_processing_required": {
+                    "label": "Is remote data processing required for the product to function?",
+                    "help": "Remote processing without which the product cannot operate as intended."
+                },
+                "other_sector_regulation": {
+                    "label": "Is it subject to other sector-specific regulation?",
+                    "help": "For example medical devices, aviation, automotive, or other specialised regimes."
+                },
+                "component_of_other_product": {
+                    "label": "Is it a component of another product?",
+                    "help": "Embedded, OEM, or otherwise integrated into a larger finished product."
+                },
+                "free_open_source": {
+                    "label": "Is it free and open-source software?",
+                    "help": "FOSS distribution may affect exclusions depending on commercial activity."
+                },
+                "substantial_modification": {
+                    "label": "Does it involve a substantial modification of another party's product?",
+                    "help": "Substantial modification can change the economic operator role under CRA."
+                },
+                "market_role": {
+                    "label": "Who carries the role of manufacturer, importer, or distributor?",
+                    "help": "Select the organisation's primary economic operator role for this product."
+                },
+                "offered_in_eu": {
+                    "label": "Is it offered on the European Union market?",
+                    "help": "Placing or making available on the EU market is a core CRA trigger."
+                }
             }
         }
     },

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Plus } from '@lucide/vue';
+import { ArrowLeft, ClipboardList, Plus } from '@lucide/vue';
+import { ref } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import ScopeWizard from '@/components/products/ScopeWizard.vue';
+import type { ScopeAssessmentResult } from '@/components/products/ScopeWizard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -35,6 +38,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const showScopeWizard = ref(false);
 
 const form = useForm({
     name: '',
@@ -63,7 +67,29 @@ const form = useForm({
         'unclassified',
     classification_rationale: '',
     classification_next_review_at: '',
+    skip_scope_wizard: false,
+    scope_assessment: null as null | {
+        answers: Record<string, string>;
+        final_status: string;
+        rationale: string;
+    },
 });
+
+const applyScopeAssessment = (result: ScopeAssessmentResult) => {
+    form.product_type = result.answers.product_kind || form.product_type;
+    form.has_network_connectivity =
+        result.answers.network_or_device_link === 'yes';
+    form.has_remote_data_processing =
+        result.answers.remote_processing_required === 'yes';
+    form.scope_status = result.final_status;
+    form.scope_rationale = result.rationale;
+    form.skip_scope_wizard = true;
+    form.scope_assessment = {
+        answers: result.answers,
+        final_status: result.final_status,
+        rationale: result.rationale,
+    };
+};
 
 const submit = () => {
     form.transform((data) => ({
@@ -72,6 +98,8 @@ const submit = () => {
         security_contact_user_id: data.security_contact_user_id || null,
         classification_next_review_at:
             data.classification_next_review_at || null,
+        scope_assessment: data.scope_assessment,
+        skip_scope_wizard: data.skip_scope_wizard || !!data.scope_assessment,
     })).post(store().url);
 };
 
@@ -337,11 +365,21 @@ const labelFor = (group: string, value: string): string => {
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
-                    {{ t('products.sections.scope') }}
-                </h2>
+                <div class="flex items-center justify-between gap-3">
+                    <h2
+                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                    >
+                        {{ t('products.sections.scope') }}
+                    </h2>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showScopeWizard = true"
+                    >
+                        <ClipboardList class="h-4 w-4" />
+                        {{ t('products.scope_wizard.start') }}
+                    </Button>
+                </div>
                 <div class="grid gap-4">
                     <div class="grid gap-2">
                         <FieldLabel
@@ -520,5 +558,13 @@ const labelFor = (group: string, value: string): string => {
                 {{ t('common.create') }}
             </Button>
         </form>
+
+        <ScopeWizard
+            v-model:open="showScopeWizard"
+            :product-types="options.product_types"
+            :scope-statuses="options.scope_statuses"
+            :initial-answers="form.scope_assessment?.answers ?? null"
+            @confirmed="applyScopeAssessment"
+        />
     </div>
 </template>

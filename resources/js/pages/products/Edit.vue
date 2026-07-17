@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, GitBranch, Save, Trash2 } from '@lucide/vue';
+import { ArrowLeft, ClipboardList, GitBranch, Save, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import ScopeWizard from '@/components/products/ScopeWizard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -56,15 +57,28 @@ type EditableProduct = {
     classification_next_review_at: string | null;
 };
 
+type LatestScopeAssessment = {
+    id: number;
+    answers: Record<string, string>;
+    suggested_status: string;
+    final_status: string;
+    rationale: string | null;
+    reviewed_at: string | null;
+    reviewed_by: number | null;
+} | null;
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: EditableProduct;
     members: Member[];
     options: Options;
+    latestScopeAssessment?: LatestScopeAssessment;
+    openScopeWizard?: boolean;
 }>();
 
 const { t } = useTranslations();
 const showDeleteDialog = ref(false);
+const showScopeWizard = ref(props.openScopeWizard ?? false);
 
 const form = useForm({
     name: props.product.name,
@@ -108,11 +122,27 @@ const confirmDelete = () => {
     router.delete(destroy(props.product.id).url);
 };
 
+const onScopeConfirmed = () => {
+    showScopeWizard.value = false;
+};
+
 const labelFor = (group: string, value: string): string => {
     const key = `products.${group}.${value}`;
     const translated = t(key);
 
     return translated === key ? value : translated;
+};
+
+const formatReviewedAt = (value: string | null | undefined): string => {
+    if (!value) {
+        return '—';
+    }
+
+    try {
+        return new Date(value).toLocaleString();
+    } catch {
+        return value;
+    }
 };
 
 const textareaClass =
@@ -157,28 +187,39 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="name" required :help="t('products.help.name')">{{ t('common.name') }}</FieldLabel>
+                        <FieldLabel
+                            html-for="name"
+                            required
+                            :help="t('products.help.name')"
+                            >{{ t('common.name') }}</FieldLabel
+                        >
                         <Input id="name" v-model="form.name" required />
                         <InputError :message="form.errors.name" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="slug" :help="t('products.help.slug')">{{
-                            t('products.fields.slug')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="slug"
+                            :help="t('products.help.slug')"
+                            >{{ t('products.fields.slug') }}</FieldLabel
+                        >
                         <Input id="slug" v-model="form.slug" />
                         <InputError :message="form.errors.slug" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="product_line" :help="t('products.help.product_line')">{{
-                            t('products.fields.product_line')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="product_line"
+                            :help="t('products.help.product_line')"
+                            >{{ t('products.fields.product_line') }}</FieldLabel
+                        >
                         <Input id="product_line" v-model="form.product_line" />
                         <InputError :message="form.errors.product_line" />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="description" :help="t('products.help.description')">{{
-                            t('products.fields.description')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="description"
+                            :help="t('products.help.description')"
+                            >{{ t('products.fields.description') }}</FieldLabel
+                        >
                         <textarea
                             id="description"
                             v-model="form.description"
@@ -188,9 +229,13 @@ const textareaClass =
                         <InputError :message="form.errors.description" />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="intended_purpose" :help="t('products.help.intended_purpose')">{{
-                            t('products.fields.intended_purpose')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="intended_purpose"
+                            :help="t('products.help.intended_purpose')"
+                            >{{
+                                t('products.fields.intended_purpose')
+                            }}</FieldLabel
+                        >
                         <textarea
                             id="intended_purpose"
                             v-model="form.intended_purpose"
@@ -200,9 +245,12 @@ const textareaClass =
                         <InputError :message="form.errors.intended_purpose" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="product_type" required :help="t('products.help.product_type')">{{
-                            t('products.fields.product_type')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="product_type"
+                            required
+                            :help="t('products.help.product_type')"
+                            >{{ t('products.fields.product_type') }}</FieldLabel
+                        >
                         <select
                             id="product_type"
                             v-model="form.product_type"
@@ -219,9 +267,14 @@ const textareaClass =
                         <InputError :message="form.errors.product_type" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="licensing_model" required :help="t('products.help.licensing_model')">{{
-                            t('products.fields.licensing_model')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="licensing_model"
+                            required
+                            :help="t('products.help.licensing_model')"
+                            >{{
+                                t('products.fields.licensing_model')
+                            }}</FieldLabel
+                        >
                         <select
                             id="licensing_model"
                             v-model="form.licensing_model"
@@ -238,16 +291,20 @@ const textareaClass =
                         <InputError :message="form.errors.licensing_model" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="manufacturer" :help="t('products.help.manufacturer')">{{
-                            t('products.fields.manufacturer')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="manufacturer"
+                            :help="t('products.help.manufacturer')"
+                            >{{ t('products.fields.manufacturer') }}</FieldLabel
+                        >
                         <Input id="manufacturer" v-model="form.manufacturer" />
                         <InputError :message="form.errors.manufacturer" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="trademark" :help="t('products.help.trademark')">{{
-                            t('products.fields.trademark')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="trademark"
+                            :help="t('products.help.trademark')"
+                            >{{ t('products.fields.trademark') }}</FieldLabel
+                        >
                         <Input id="trademark" v-model="form.trademark" />
                         <InputError :message="form.errors.trademark" />
                     </div>
@@ -288,9 +345,13 @@ const textareaClass =
                         </FieldLabel>
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="deployment_model" :help="t('products.help.deployment_model')">{{
-                            t('products.fields.deployment_model')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="deployment_model"
+                            :help="t('products.help.deployment_model')"
+                            >{{
+                                t('products.fields.deployment_model')
+                            }}</FieldLabel
+                        >
                         <Input
                             id="deployment_model"
                             v-model="form.deployment_model"
@@ -308,9 +369,13 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4">
                     <div class="grid gap-2">
-                        <FieldLabel html-for="support_period_notes" :help="t('products.help.support_period_notes')">{{
-                            t('products.fields.support_period_notes')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="support_period_notes"
+                            :help="t('products.help.support_period_notes')"
+                            >{{
+                                t('products.fields.support_period_notes')
+                            }}</FieldLabel
+                        >
                         <textarea
                             id="support_period_notes"
                             v-model="form.support_period_notes"
@@ -322,9 +387,13 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="end_of_support_policy" :help="t('products.help.end_of_support_policy')">{{
-                            t('products.fields.end_of_support_policy')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="end_of_support_policy"
+                            :help="t('products.help.end_of_support_policy')"
+                            >{{
+                                t('products.fields.end_of_support_policy')
+                            }}</FieldLabel
+                        >
                         <textarea
                             id="end_of_support_policy"
                             v-model="form.end_of_support_policy"
@@ -339,16 +408,65 @@ const textareaClass =
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                <div class="flex items-center justify-between gap-3">
+                    <h2
+                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                    >
+                        {{ t('products.sections.scope') }}
+                    </h2>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showScopeWizard = true"
+                    >
+                        <ClipboardList class="h-4 w-4" />
+                        {{
+                            latestScopeAssessment
+                                ? t('products.scope_wizard.rerun')
+                                : t('products.scope_wizard.start')
+                        }}
+                    </Button>
+                </div>
+                <div
+                    v-if="latestScopeAssessment"
+                    class="rounded-md border bg-muted/30 p-3 text-sm"
                 >
-                    {{ t('products.sections.scope') }}
-                </h2>
+                    <p class="font-medium">
+                        {{ t('products.scope_wizard.last_assessment') }}
+                    </p>
+                    <p class="mt-1 text-muted-foreground">
+                        {{ t('products.scope_wizard.final_status') }}:
+                        {{
+                            labelFor(
+                                'scope',
+                                latestScopeAssessment.final_status,
+                            )
+                        }}
+                    </p>
+                    <p class="text-muted-foreground">
+                        {{ t('products.scope_wizard.reviewed_at') }}:
+                        {{
+                            formatReviewedAt(latestScopeAssessment.reviewed_at)
+                        }}
+                    </p>
+                    <p
+                        v-if="latestScopeAssessment.rationale"
+                        class="mt-2 whitespace-pre-wrap"
+                    >
+                        {{ latestScopeAssessment.rationale }}
+                    </p>
+                </div>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('products.scope_wizard.no_assessment') }}
+                </p>
                 <div class="grid gap-4">
                     <div class="grid gap-2">
-                        <FieldLabel html-for="scope_status" required :help="t('products.help.scope_status')">{{
-                            t('products.fields.scope_status')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="scope_status"
+                            required
+                            :help="t('products.help.scope_status')"
+                            >{{ t('products.fields.scope_status') }}</FieldLabel
+                        >
                         <select
                             id="scope_status"
                             v-model="form.scope_status"
@@ -365,9 +483,13 @@ const textareaClass =
                         <InputError :message="form.errors.scope_status" />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="scope_rationale" :help="t('products.help.scope_rationale')">{{
-                            t('products.fields.scope_rationale')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="scope_rationale"
+                            :help="t('products.help.scope_rationale')"
+                            >{{
+                                t('products.fields.scope_rationale')
+                            }}</FieldLabel
+                        >
                         <textarea
                             id="scope_rationale"
                             v-model="form.scope_rationale"
@@ -387,9 +509,14 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="classification_status" required :help="t('products.help.classification_status')">{{
-                            t('products.fields.classification_status')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="classification_status"
+                            required
+                            :help="t('products.help.classification_status')"
+                            >{{
+                                t('products.fields.classification_status')
+                            }}</FieldLabel
+                        >
                         <select
                             id="classification_status"
                             v-model="form.classification_status"
@@ -408,9 +535,13 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel html-for="classification_rationale" :help="t('products.help.classification_rationale')">{{
-                            t('products.fields.classification_rationale')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="classification_rationale"
+                            :help="t('products.help.classification_rationale')"
+                            >{{
+                                t('products.fields.classification_rationale')
+                            }}</FieldLabel
+                        >
                         <textarea
                             id="classification_rationale"
                             v-model="form.classification_rationale"
@@ -422,9 +553,11 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2">
-                        <FieldLabel html-for="classification_next_review_at" :help="t('products.help.next_review')">{{
-                            t('products.fields.next_review')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="classification_next_review_at"
+                            :help="t('products.help.next_review')"
+                            >{{ t('products.fields.next_review') }}</FieldLabel
+                        >
                         <Input
                             id="classification_next_review_at"
                             v-model="form.classification_next_review_at"
@@ -445,9 +578,13 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid min-w-0 gap-2">
-                        <FieldLabel html-for="product_owner_user_id" :help="t('products.help.product_owner')">{{
-                            t('products.fields.product_owner')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="product_owner_user_id"
+                            :help="t('products.help.product_owner')"
+                            >{{
+                                t('products.fields.product_owner')
+                            }}</FieldLabel
+                        >
                         <select
                             id="product_owner_user_id"
                             v-model="form.product_owner_user_id"
@@ -467,9 +604,13 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid min-w-0 gap-2">
-                        <FieldLabel html-for="security_contact_user_id" :help="t('products.help.security_contact')">{{
-                            t('products.fields.security_contact')
-                        }}</FieldLabel>
+                        <FieldLabel
+                            html-for="security_contact_user_id"
+                            :help="t('products.help.security_contact')"
+                            >{{
+                                t('products.fields.security_contact')
+                            }}</FieldLabel
+                        >
                         <select
                             id="security_contact_user_id"
                             v-model="form.security_contact_user_id"
@@ -512,6 +653,15 @@ const textareaClass =
             :title="t('common.delete_confirm_title')"
             :description="t('products.confirm_delete')"
             @confirm="confirmDelete"
+        />
+
+        <ScopeWizard
+            v-model:open="showScopeWizard"
+            :product-id="product.id"
+            :product-types="options.product_types"
+            :scope-statuses="options.scope_statuses"
+            :initial-answers="latestScopeAssessment?.answers ?? null"
+            @confirmed="onScopeConfirmed"
         />
     </div>
 </template>

@@ -8,6 +8,7 @@ use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Support\ScopeAssessmentValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -48,7 +49,17 @@ class StoreProductRequest extends FormRequest
     {
         $organization = $this->user()?->currentOrganization();
 
-        return $this->productRules($organization);
+        return [
+            ...$this->productRules($organization),
+            'skip_scope_wizard' => ['sometimes', 'boolean'],
+            'scope_assessment' => ['nullable', 'array'],
+            'scope_assessment.final_status' => [
+                'required_with:scope_assessment.answers',
+                Rule::enum(ScopeStatus::class),
+            ],
+            'scope_assessment.rationale' => ['nullable', 'string'],
+            ...ScopeAssessmentValidation::answerRules('scope_assessment.answers', answersRequired: false),
+        ];
     }
 
     /**
@@ -57,7 +68,7 @@ class StoreProductRequest extends FormRequest
     protected function productRules(?Organization $organization, ?Product $product = null): array
     {
         $memberRule = Rule::exists('organization_user', 'user_id')
-            ->where(fn($query) => $query->where('organization_id', $organization?->id));
+            ->where(fn ($query) => $query->where('organization_id', $organization?->id));
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -67,7 +78,7 @@ class StoreProductRequest extends FormRequest
                 'max:255',
                 'alpha_dash',
                 Rule::unique('products', 'slug')
-                    ->where(fn($query) => $query->where('organization_id', $organization?->id))
+                    ->where(fn ($query) => $query->where('organization_id', $organization?->id))
                     ->ignore($product?->id),
             ],
             'product_line' => ['nullable', 'string', 'max:255'],

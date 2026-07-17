@@ -10,6 +10,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Services\ScopeAssessmentService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -17,6 +18,10 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly ScopeAssessmentService $scopeAssessments,
+    ) {}
+
     public function index(): Response
     {
         $organization = $this->currentOrganization();
@@ -54,10 +59,30 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
+        $openWizard = ! $request->boolean('skip_scope_wizard');
+
+        if ($request->filled('scope_assessment.answers')) {
+            $this->scopeAssessments->storeAndApply(
+                $product,
+                $request->input('scope_assessment.answers', []),
+                ScopeStatus::from($request->string('scope_assessment.final_status')->toString()),
+                $request->input('scope_assessment.rationale'),
+                $user,
+            );
+            $openWizard = false;
+        }
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.created'),
         ]);
+
+        if ($openWizard) {
+            return redirect()->route('products.edit', [
+                'product' => $product,
+                'scope_wizard' => 1,
+            ]);
+        }
 
         return redirect()->route('products.edit', $product);
     }
@@ -74,6 +99,10 @@ class ProductController extends Controller
             'members' => $this->memberOptions($organization),
             'options' => $this->enumOptions(),
             'canManage' => true,
+            'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
+                $product->latestScopeAssessment(),
+            ),
+            'openScopeWizard' => request()->boolean('scope_wizard'),
         ]);
     }
 

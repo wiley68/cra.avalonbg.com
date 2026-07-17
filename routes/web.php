@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
 
         Route::resource('products', ProductController::class)->except(['show']);
+        Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
+            ->name('products.scope-assessment.preview');
+        Route::get('products/{product}/scope-assessments/latest', [ProductScopeAssessmentController::class, 'show'])
+            ->name('products.scope-assessments.latest');
+        Route::post('products/{product}/scope-assessments', [ProductScopeAssessmentController::class, 'store'])
+            ->name('products.scope-assessments.store');
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
