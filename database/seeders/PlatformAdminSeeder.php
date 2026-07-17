@@ -14,10 +14,10 @@ class PlatformAdminSeeder extends Seeder
     public function run(): void
     {
         User::query()->updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'ilko@avalonbg.com')],
+            ['email' => 'ilko@avalonbg.com'],
             [
-                'name' => env('ADMIN_NAME', 'Илко Администратор'),
-                'password' => env('ADMIN_PASSWORD', '1Nikola@Stefanov9'),
+                'name' => 'Илко Администратор',
+                'password' => '1Nikola@Stefanov9',
                 'is_platform_admin' => true,
                 'must_change_password' => false,
                 'password_changed_at' => Carbon::now(),
