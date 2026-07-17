@@ -3,10 +3,10 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     destroy,
@@ -133,9 +133,9 @@ const textareaClass =
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">
-                <Label for="version_number">{{
+                <FieldLabel html-for="version_number" required :help="t('products.versions.help.version_number')">{{
                     t('products.versions.fields.version_number')
-                }}</Label>
+                }}</FieldLabel>
                 <Input
                     id="version_number"
                     v-model="form.version_number"
@@ -146,9 +146,9 @@ const textareaClass =
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <Label for="state">{{
+                    <FieldLabel html-for="state" required :help="t('products.versions.help.state')">{{
                         t('products.versions.fields.state')
-                    }}</Label>
+                    }}</FieldLabel>
                     <select
                         id="state"
                         v-model="form.state"
@@ -165,9 +165,9 @@ const textareaClass =
                     <InputError :message="form.errors.state" />
                 </div>
                 <div class="grid gap-2">
-                    <Label for="support_status">{{
+                    <FieldLabel html-for="support_status" required :help="t('products.versions.help.support_status')">{{
                         t('products.versions.fields.support_status')
-                    }}</Label>
+                    }}</FieldLabel>
                     <select
                         id="support_status"
                         v-model="form.support_status"
@@ -184,9 +184,9 @@ const textareaClass =
                     <InputError :message="form.errors.support_status" />
                 </div>
                 <div class="grid gap-2">
-                    <Label for="release_date">{{
+                    <FieldLabel html-for="release_date" :help="t('products.versions.help.release_date')">{{
                         t('products.versions.fields.release_date')
-                    }}</Label>
+                    }}</FieldLabel>
                     <Input
                         id="release_date"
                         v-model="form.release_date"
@@ -195,9 +195,9 @@ const textareaClass =
                     <InputError :message="form.errors.release_date" />
                 </div>
                 <div class="grid gap-2">
-                    <Label for="security_support_deadline">{{
+                    <FieldLabel html-for="security_support_deadline" :help="t('products.versions.help.security_support_deadline')">{{
                         t('products.versions.fields.security_support_deadline')
-                    }}</Label>
+                    }}</FieldLabel>
                     <Input
                         id="security_support_deadline"
                         v-model="form.security_support_deadline"
@@ -211,16 +211,16 @@ const textareaClass =
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <Label for="git_ref">{{
+                    <FieldLabel html-for="git_ref" :help="t('products.versions.help.git_ref')">{{
                         t('products.versions.fields.git_ref')
-                    }}</Label>
+                    }}</FieldLabel>
                     <Input id="git_ref" v-model="form.git_ref" />
                     <InputError :message="form.errors.git_ref" />
                 </div>
                 <div class="grid gap-2">
-                    <Label for="build_identifier">{{
+                    <FieldLabel html-for="build_identifier" :help="t('products.versions.help.build_identifier')">{{
                         t('products.versions.fields.build_identifier')
-                    }}</Label>
+                    }}</FieldLabel>
                     <Input
                         id="build_identifier"
                         v-model="form.build_identifier"
@@ -228,16 +228,16 @@ const textareaClass =
                     <InputError :message="form.errors.build_identifier" />
                 </div>
                 <div class="grid gap-2 sm:col-span-2">
-                    <Label for="artifact_hash">{{
+                    <FieldLabel html-for="artifact_hash" :help="t('products.versions.help.artifact_hash')">{{
                         t('products.versions.fields.artifact_hash')
-                    }}</Label>
+                    }}</FieldLabel>
                     <Input id="artifact_hash" v-model="form.artifact_hash" />
                     <InputError :message="form.errors.artifact_hash" />
                 </div>
                 <div class="grid gap-2 sm:col-span-2">
-                    <Label for="previous_version_id">{{
+                    <FieldLabel html-for="previous_version_id" :help="t('products.versions.help.previous_version')">{{
                         t('products.versions.fields.previous_version')
-                    }}</Label>
+                    }}</FieldLabel>
                     <select
                         id="previous_version_id"
                         v-model="form.previous_version_id"
@@ -257,9 +257,9 @@ const textareaClass =
             </div>
 
             <div class="grid gap-2">
-                <Label for="changelog">{{
+                <FieldLabel html-for="changelog" :help="t('products.versions.help.changelog')">{{
                     t('products.versions.fields.changelog')
-                }}</Label>
+                }}</FieldLabel>
                 <textarea
                     id="changelog"
                     v-model="form.changelog"

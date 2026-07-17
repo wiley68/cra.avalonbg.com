@@ -20,6 +20,8 @@
         "unknown": "Unknown",
         "actions": "Actions",
         "manage": "Manage",
+        "required": "Required",
+        "field_help": "Field help",
         "table": {
             "search_placeholder": "Search...",
             "empty": "No matching records",
@@ -219,6 +221,29 @@
             "next_review": "Next classification review",
             "slug": "Slug"
         },
+        "help": {
+            "name": "Official product name used in registers, reports and release documentation.",
+            "slug": "URL-safe identifier unique within the organization. Leave empty to generate from the name.",
+            "product_line": "Optional grouping for related products (e.g. a suite or family).",
+            "description": "Short overview of what the product does for stakeholders and auditors.",
+            "intended_purpose": "Intended use of the product as relevant for CRA scope and classification.",
+            "product_type": "Whether the product is software, hardware, or another type for regulatory context.",
+            "manufacturer": "Legal manufacturer name as placed on the market.",
+            "trademark": "Brand or trade name under which the product is offered. A registered trademark is not required.",
+            "licensing_model": "How the product is monetised: paid, free, or indirectly monetised.",
+            "remote_processing": "Whether remote data processing is required for the product to function.",
+            "network_connectivity": "Whether the product has logical or physical network connectivity.",
+            "deployment_model": "How customers deploy the product (e.g. SaaS, on-prem, plugin, appliance).",
+            "support_period_notes": "Free-text notes about how long and under what terms support is provided.",
+            "end_of_support_policy": "Policy describing what happens when support ends (security fixes, withdrawals, etc.).",
+            "product_owner": "Organization member accountable for the product lifecycle and roadmap.",
+            "security_contact": "Organization member to contact for security and vulnerability reports.",
+            "scope_status": "Current CRA scope assessment outcome for this product.",
+            "scope_rationale": "Explanation of why the selected scope status was chosen.",
+            "classification_status": "CRA product classification category (general, important, critical, etc.).",
+            "classification_rationale": "Explanation supporting the selected classification.",
+            "next_review": "Date when classification should be reviewed again."
+        },
         "types": {
             "software": "Software",
             "hardware": "Hardware",
@@ -279,6 +304,18 @@
                 "artifact_hash": "Artifact hash",
                 "changelog": "Changelog",
                 "previous_version": "Previous version"
+            },
+            "help": {
+                "version_number": "Semantic or internal version identifier unique for this product.",
+                "release_date": "Date when this version was or will be released to customers.",
+                "state": "Current lifecycle state of the version (draft, review, released, withdrawn, etc.).",
+                "support_status": "Whether this version is fully supported, security-only, or unsupported.",
+                "security_support_deadline": "Last date until which security fixes are planned for this version.",
+                "git_ref": "Git commit SHA or tag that produced this release.",
+                "build_identifier": "CI/build pipeline identifier for the release artifact.",
+                "artifact_hash": "Checksum/hash of the release package for integrity verification.",
+                "changelog": "Human-readable summary of changes included in this version.",
+                "previous_version": "Earlier version that this release supersedes, if applicable."
             },
             "states": {
                 "draft": "Draft",

@@ -3,10 +3,10 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, GitBranch, Save, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { destroy, index as productsIndex, update } from '@/routes/products';
@@ -157,28 +157,28 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="name">{{ t('common.name') }}</Label>
+                        <FieldLabel html-for="name" required :help="t('products.help.name')">{{ t('common.name') }}</FieldLabel>
                         <Input id="name" v-model="form.name" required />
                         <InputError :message="form.errors.name" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="slug">{{
+                        <FieldLabel html-for="slug" :help="t('products.help.slug')">{{
                             t('products.fields.slug')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input id="slug" v-model="form.slug" />
                         <InputError :message="form.errors.slug" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="product_line">{{
+                        <FieldLabel html-for="product_line" :help="t('products.help.product_line')">{{
                             t('products.fields.product_line')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input id="product_line" v-model="form.product_line" />
                         <InputError :message="form.errors.product_line" />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="description">{{
+                        <FieldLabel html-for="description" :help="t('products.help.description')">{{
                             t('products.fields.description')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="description"
                             v-model="form.description"
@@ -188,9 +188,9 @@ const textareaClass =
                         <InputError :message="form.errors.description" />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="intended_purpose">{{
+                        <FieldLabel html-for="intended_purpose" :help="t('products.help.intended_purpose')">{{
                             t('products.fields.intended_purpose')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="intended_purpose"
                             v-model="form.intended_purpose"
@@ -200,9 +200,9 @@ const textareaClass =
                         <InputError :message="form.errors.intended_purpose" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="product_type">{{
+                        <FieldLabel html-for="product_type" required :help="t('products.help.product_type')">{{
                             t('products.fields.product_type')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="product_type"
                             v-model="form.product_type"
@@ -219,9 +219,9 @@ const textareaClass =
                         <InputError :message="form.errors.product_type" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="licensing_model">{{
+                        <FieldLabel html-for="licensing_model" required :help="t('products.help.licensing_model')">{{
                             t('products.fields.licensing_model')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="licensing_model"
                             v-model="form.licensing_model"
@@ -238,16 +238,16 @@ const textareaClass =
                         <InputError :message="form.errors.licensing_model" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="manufacturer">{{
+                        <FieldLabel html-for="manufacturer" :help="t('products.help.manufacturer')">{{
                             t('products.fields.manufacturer')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input id="manufacturer" v-model="form.manufacturer" />
                         <InputError :message="form.errors.manufacturer" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="trademark">{{
+                        <FieldLabel html-for="trademark" :help="t('products.help.trademark')">{{
                             t('products.fields.trademark')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input id="trademark" v-model="form.trademark" />
                         <InputError :message="form.errors.trademark" />
                     </div>
@@ -267,12 +267,12 @@ const textareaClass =
                             v-model="form.has_remote_data_processing"
                             class="cursor-pointer"
                         />
-                        <Label
-                            for="has_remote_data_processing"
-                            class="cursor-pointer"
+                        <FieldLabel
+                            html-for="has_remote_data_processing"
+                            :help="t('products.help.remote_processing')"
                         >
                             {{ t('products.fields.remote_processing') }}
-                        </Label>
+                        </FieldLabel>
                     </div>
                     <div class="flex items-center gap-3">
                         <Switch
@@ -280,17 +280,17 @@ const textareaClass =
                             v-model="form.has_network_connectivity"
                             class="cursor-pointer"
                         />
-                        <Label
-                            for="has_network_connectivity"
-                            class="cursor-pointer"
+                        <FieldLabel
+                            html-for="has_network_connectivity"
+                            :help="t('products.help.network_connectivity')"
                         >
                             {{ t('products.fields.network_connectivity') }}
-                        </Label>
+                        </FieldLabel>
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="deployment_model">{{
+                        <FieldLabel html-for="deployment_model" :help="t('products.help.deployment_model')">{{
                             t('products.fields.deployment_model')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input
                             id="deployment_model"
                             v-model="form.deployment_model"
@@ -308,9 +308,9 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4">
                     <div class="grid gap-2">
-                        <Label for="support_period_notes">{{
+                        <FieldLabel html-for="support_period_notes" :help="t('products.help.support_period_notes')">{{
                             t('products.fields.support_period_notes')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="support_period_notes"
                             v-model="form.support_period_notes"
@@ -322,9 +322,9 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="end_of_support_policy">{{
+                        <FieldLabel html-for="end_of_support_policy" :help="t('products.help.end_of_support_policy')">{{
                             t('products.fields.end_of_support_policy')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="end_of_support_policy"
                             v-model="form.end_of_support_policy"
@@ -346,9 +346,9 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4">
                     <div class="grid gap-2">
-                        <Label for="scope_status">{{
+                        <FieldLabel html-for="scope_status" required :help="t('products.help.scope_status')">{{
                             t('products.fields.scope_status')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="scope_status"
                             v-model="form.scope_status"
@@ -365,9 +365,9 @@ const textareaClass =
                         <InputError :message="form.errors.scope_status" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="scope_rationale">{{
+                        <FieldLabel html-for="scope_rationale" :help="t('products.help.scope_rationale')">{{
                             t('products.fields.scope_rationale')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="scope_rationale"
                             v-model="form.scope_rationale"
@@ -387,9 +387,9 @@ const textareaClass =
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="classification_status">{{
+                        <FieldLabel html-for="classification_status" required :help="t('products.help.classification_status')">{{
                             t('products.fields.classification_status')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="classification_status"
                             v-model="form.classification_status"
@@ -408,9 +408,9 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2 sm:col-span-2">
-                        <Label for="classification_rationale">{{
+                        <FieldLabel html-for="classification_rationale" :help="t('products.help.classification_rationale')">{{
                             t('products.fields.classification_rationale')
-                        }}</Label>
+                        }}</FieldLabel>
                         <textarea
                             id="classification_rationale"
                             v-model="form.classification_rationale"
@@ -422,9 +422,9 @@ const textareaClass =
                         />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="classification_next_review_at">{{
+                        <FieldLabel html-for="classification_next_review_at" :help="t('products.help.next_review')">{{
                             t('products.fields.next_review')
-                        }}</Label>
+                        }}</FieldLabel>
                         <Input
                             id="classification_next_review_at"
                             v-model="form.classification_next_review_at"
@@ -444,14 +444,14 @@ const textareaClass =
                     {{ t('products.sections.contacts') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="grid gap-2">
-                        <Label for="product_owner_user_id">{{
+                    <div class="grid min-w-0 gap-2">
+                        <FieldLabel html-for="product_owner_user_id" :help="t('products.help.product_owner')">{{
                             t('products.fields.product_owner')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="product_owner_user_id"
                             v-model="form.product_owner_user_id"
-                            class="h-9 rounded-md border bg-background px-3"
+                            class="h-9 w-full max-w-full min-w-0 rounded-md border bg-background px-3"
                         >
                             <option value="">{{ t('products.none') }}</option>
                             <option
@@ -466,14 +466,14 @@ const textareaClass =
                             :message="form.errors.product_owner_user_id"
                         />
                     </div>
-                    <div class="grid gap-2">
-                        <Label for="security_contact_user_id">{{
+                    <div class="grid min-w-0 gap-2">
+                        <FieldLabel html-for="security_contact_user_id" :help="t('products.help.security_contact')">{{
                             t('products.fields.security_contact')
-                        }}</Label>
+                        }}</FieldLabel>
                         <select
                             id="security_contact_user_id"
                             v-model="form.security_contact_user_id"
-                            class="h-9 rounded-md border bg-background px-3"
+                            class="h-9 w-full max-w-full min-w-0 rounded-md border bg-background px-3"
                         >
                             <option value="">{{ t('products.none') }}</option>
                             <option
