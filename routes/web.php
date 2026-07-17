@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
+use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
+use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
@@ -27,6 +29,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::resource('users', UserController::class)->except(['show']);
 
+        Route::prefix('internal-api')->name('internal.')->group(function () {
+            Route::get('users', [UserApiController::class, 'index'])
+                ->name('users.index');
+        });
+
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
             Route::resource('organizations', AdminOrganizationController::class)
                 ->except(['show', 'destroy']);
@@ -38,6 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::prefix('internal-api')->name('internal.')->group(function () {
                 Route::get('organizations', [OrganizationApiController::class, 'index'])
                     ->name('organizations.index');
+
+                Route::get('organizations/{organization}/users', [OrganizationUserApiController::class, 'index'])
+                    ->name('organizations.users.index');
             });
         });
     });

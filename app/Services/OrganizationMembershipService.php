@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Translations;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -26,26 +27,63 @@ class OrganizationMembershipService
     }
 
     /**
-     * @return list<array{id: int, name: string, email: string, must_change_password: bool, role_id: int, role_slug: string}>
+     * @return LengthAwarePaginator<int, array{id: int, name: string, email: string, must_change_password: bool, role_id: int, role_slug: string}>
      */
-    public function listMembers(Organization $organization): array
-    {
-        $roleMap = Role::query()->pluck('slug', 'id');
+    public function paginateMembers(
+        Organization $organization,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'name',
+        string $sortOrder = 'asc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = User::query()
+            ->select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.must_change_password',
+                'organization_user.role_id',
+                'roles.slug as role_slug',
+            ])
+            ->join('organization_user', 'organization_user.user_id', '=', 'users.id')
+            ->join('roles', 'roles.id', '=', 'organization_user.role_id')
+            ->where('organization_user.organization_id', $organization->id);
 
-        return $organization->users()
-            ->select('users.id', 'users.name', 'users.email', 'users.must_change_password')
-            ->orderBy('users.name')
-            ->get()
-            ->map(fn(User $user) => [
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.email', 'like', "%{$search}%")
+                    ->orWhere('roles.slug', 'like', "%{$search}%")
+                    ->orWhere('roles.name', 'like', "%{$search}%");
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('users.id', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'id' => 'users.id',
+            'email' => 'users.email',
+            'must_change_password' => 'users.must_change_password',
+            'role_slug' => 'roles.slug',
+            default => 'users.name',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
-                'role_id' => (int) $user->pivot->role_id,
-                'role_slug' => $roleMap[$user->pivot->role_id] ?? 'unknown',
-            ])
-            ->values()
-            ->all();
+                'role_id' => (int) $user->role_id,
+                'role_slug' => (string) $user->role_slug,
+            ]);
     }
 
     public function assertOrganizationRole(int $roleId): void

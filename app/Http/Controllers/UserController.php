@@ -27,7 +27,6 @@ class UserController extends Controller
 
         return Inertia::render('users/Index', [
             'organization' => $this->organizationPayload($organization),
-            'users' => $this->memberships->listMembers($organization),
         ]);
     }
 

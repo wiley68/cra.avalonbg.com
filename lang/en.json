@@ -107,6 +107,10 @@
             "temporary_password": "Temporary password",
             "force_password": "Force password change on first login",
             "flag_force_password": "Force password",
+            "search_placeholder": "Search by name, email, role or ID...",
+            "columns": {
+                "id": "ID"
+            },
             "created": "User created.",
             "updated": "User updated.",
             "removed": "User removed from organization.",
@@ -152,6 +156,10 @@
         "removed": "User removed from organization.",
         "remove": "Remove from organization",
         "confirm_remove": "Remove this user from the organization?",
+        "search_placeholder": "Search by name, email, role or ID...",
+        "columns": {
+            "id": "ID"
+        },
         "errors": {
             "last_owner_role": "Cannot change the role of the last organization owner.",
             "last_owner_remove": "Cannot remove the last organization owner."
