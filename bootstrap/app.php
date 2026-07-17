@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureTwoFactorIsEnabled;
+use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequirePasswordConfirmation;
 use App\Http\Middleware\SetLocale;
@@ -11,6 +11,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +21,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(
+            at: '*',
+            headers: SymfonyRequest::HEADER_X_FORWARDED_FOR
+            | SymfonyRequest::HEADER_X_FORWARDED_HOST
+            | SymfonyRequest::HEADER_X_FORWARDED_PORT
+            | SymfonyRequest::HEADER_X_FORWARDED_PROTO
+            | SymfonyRequest::HEADER_X_FORWARDED_PREFIX
+            | SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB
+        );
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
         $middleware->alias([
             'password.changed' => EnsurePasswordIsChanged::class,

@@ -36,7 +36,7 @@ test('email can be verified', function () {
     Event::assertDispatched(Verified::class);
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+    $response->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
 });
 
 test('email is not verified with invalid hash', function () {
@@ -96,8 +96,37 @@ test('already verified user visiting verification link is redirected without fir
     );
 
     $this->actingAs($user)->get($verificationUrl)
-        ->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        ->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
 
     Event::assertNotDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+});
+
+test('signed verification url is accepted behind https reverse proxy', function () {
+    config(['app.url' => 'https://cra.avalonbg.com']);
+    URL::forceRootUrl('https://cra.avalonbg.com');
+    URL::forceScheme('https');
+
+    $user = User::factory()->unverified()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $path = parse_url($verificationUrl, PHP_URL_PATH) . '?' . parse_url($verificationUrl, PHP_URL_QUERY);
+
+    $this->actingAs($user)
+        ->withServerVariables([
+            'HTTPS' => 'off',
+            'SERVER_PORT' => '80',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_PORT' => '443',
+            'HTTP_X_FORWARDED_HOST' => 'cra.avalonbg.com',
+        ])
+        ->get($path)
+        ->assertRedirect();
+
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
 });
