@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as versionsApiIndex } from '@/routes/internal/products/versions';
-import { edit as editProduct } from '@/routes/products';
+import { index as productsIndex } from '@/routes/products';
 import { create, destroy } from '@/routes/products/versions';
 import {
     createProductVersionColumnTitleMap,
@@ -148,12 +148,7 @@ onMounted(() => {
         <div class="flex items-center justify-between gap-4">
             <div>
                 <p class="text-sm text-muted-foreground">
-                    <Link
-                        :href="editProduct(props.product.id)"
-                        class="hover:underline"
-                    >
-                        {{ props.product.name }}
-                    </Link>
+                    {{ props.product.name }}
                 </p>
                 <h1 class="text-xl font-semibold">
                     {{ t('products.versions.title') }}
@@ -165,7 +160,7 @@ onMounted(() => {
 
             <div class="flex flex-wrap items-center gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="editProduct(props.product.id)">
+                    <Link :href="productsIndex()">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
