@@ -405,7 +405,7 @@ const labelFor = (group: string, value: string): string => {
                     </h2>
                     <Button
                         type="button"
-                        variant="secondary"
+                        variant="outline"
                         @click="showScopeWizard = true"
                     >
                         <ClipboardList class="h-4 w-4" />
@@ -463,7 +463,7 @@ const labelFor = (group: string, value: string): string => {
                     </h2>
                     <Button
                         type="button"
-                        variant="secondary"
+                        variant="outline"
                         @click="showClassificationWizard = true"
                     >
                         <Tags class="h-4 w-4" />
