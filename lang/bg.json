@@ -150,6 +150,56 @@
             "owner_email": "Имейл на собственика",
             "created": "Организацията е създадена.",
             "updated": "Организацията е обновена."
+        },
+        "requirements": {
+            "index_title": "Каталог изисквания",
+            "title": "Каталог изисквания",
+            "subtitle": "Версионирани CRA регулаторни изисквания",
+            "create": "Създай изискване",
+            "create_title": "Създай изискване",
+            "edit_title": "Редакция на изискване",
+            "created": "Изискването е създадено.",
+            "updated": "Изискването е обновено.",
+            "search_placeholder": "Търсене по код, член или текст...",
+            "active": "Активно",
+            "inactive": "Неактивно",
+            "current": "текуща",
+            "versions_title": "Публикувани версии",
+            "columns": {
+                "id": "ID",
+                "code": "Код",
+                "article_ref": "Член",
+                "regulation": "Регулация",
+                "plain_language": "Резюме",
+                "version": "Версия",
+                "status": "Статус"
+            },
+            "fields": {
+                "regulation": "Регулация",
+                "code": "Код",
+                "article_ref": "Член / annex референция",
+                "sort_order": "Ред на сортиране",
+                "is_active": "Активно",
+                "create_new_version": "Публикувай като нова версия",
+                "requirement_text": "Текст на изискването",
+                "plain_language": "Обяснение на достъпен език",
+                "applicability_notes": "Бележки за приложимост",
+                "suggested_controls_text": "Предложени controls",
+                "required_evidence_text": "Необходими evidence"
+            },
+            "help": {
+                "regulation": "Регулаторен източник на изискването.",
+                "code": "Стабилен вътрешен код, уникален в рамките на регулацията.",
+                "article_ref": "Референция към член или annex от CRA текста.",
+                "sort_order": "Ред на показване в каталози и матрици.",
+                "is_active": "Неактивните изисквания не се добавят към нови продуктови матрици.",
+                "create_new_version": "При включване съдържанието се записва като нова текуща версия вместо редакция на текущата.",
+                "requirement_text": "Формален текст на изискването за оценки.",
+                "plain_language": "Кратко обяснение за продуктовите екипи.",
+                "applicability_notes": "Кога обикновено се прилага това изискване.",
+                "suggested_controls_text": "Stub насоки докато няма Controls library.",
+                "required_evidence_text": "Stub очаквания за evidence докато няма Evidence repository."
+            }
         }
     },
     "users": {
@@ -177,7 +227,8 @@
         "users": "Потребители",
         "products": "Продукти",
         "logs": "Журнали",
-        "audit": "Одит"
+        "audit": "Одит",
+        "requirements_catalogue": "Каталог изисквания"
     },
     "products": {
         "index_title": "Продукти",
@@ -504,6 +555,51 @@
                     "label": "Ясно изключен ли е продуктът от CRA product classification?",
                     "help": "Използвайте само при установено изключение; иначе предпочетете under review."
                 }
+            }
+        },
+        "requirements_link": "Изисквания",
+        "requirements": {
+            "index_title": "Матрица на изискванията",
+            "title": "Матрица на изискванията",
+            "subtitle": "Оценка на приложимостта на CRA изисквания за този продукт",
+            "edit_title": "Редакция на приложимост",
+            "updated": "Приложимостта на изискването е обновена.",
+            "search_placeholder": "Търсене по код, член или статус...",
+            "history_title": "История на промените",
+            "no_history": "Все още няма записани промени на статуса.",
+            "columns": {
+                "id": "ID",
+                "code": "Код",
+                "article_ref": "Член",
+                "status": "Статус",
+                "owner": "Отговорник",
+                "reviewed_at": "Преглед"
+            },
+            "fields": {
+                "status": "Статус на приложимост",
+                "owner": "Отговорник",
+                "rationale": "Обосновка",
+                "article_ref": "Член / annex",
+                "version": "Версия в каталога",
+                "requirement_text": "Текст на изискването",
+                "plain_language": "Обяснение на достъпен език",
+                "suggested_controls": "Предложени controls",
+                "required_evidence": "Необходими evidence"
+            },
+            "help": {
+                "status": "Текуща приложимост и статус на изпълнение за този продукт.",
+                "owner": "Член на организацията, отговорен за това изискване за продукта.",
+                "rationale": "Обяснете защо е избран статусът и какво остава отворено."
+            },
+            "statuses": {
+                "not_assessed": "Неоценено",
+                "applicable": "Приложимо",
+                "not_applicable": "Неприложимо",
+                "partially_implemented": "Частично изпълнено",
+                "implemented": "Изпълнено",
+                "verified": "Верифицирано",
+                "non_conformity": "Несъответствие",
+                "exception_approved": "Одобрено изключение"
             }
         }
     },

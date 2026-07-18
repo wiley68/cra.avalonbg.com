@@ -36,6 +36,8 @@ return [
                 PermissionSlug::OrganizationsManage->value,
                 PermissionSlug::ProductsView->value,
                 PermissionSlug::ProductsManage->value,
+                PermissionSlug::RequirementsView->value,
+                PermissionSlug::RequirementsManage->value,
                 PermissionSlug::ReleasesView->value,
                 PermissionSlug::ReleasesApprove->value,
                 PermissionSlug::VulnerabilitiesView->value,
@@ -52,6 +54,8 @@ return [
             'permissions' => [
                 PermissionSlug::ProductsView->value,
                 PermissionSlug::ProductsManage->value,
+                PermissionSlug::RequirementsView->value,
+                PermissionSlug::RequirementsManage->value,
                 PermissionSlug::ReleasesView->value,
                 PermissionSlug::EvidenceView->value,
             ],
@@ -63,6 +67,8 @@ return [
             'permissions' => [
                 PermissionSlug::VulnerabilitiesView->value,
                 PermissionSlug::VulnerabilitiesManage->value,
+                PermissionSlug::RequirementsView->value,
+                PermissionSlug::RequirementsManage->value,
                 PermissionSlug::EvidenceView->value,
                 PermissionSlug::EvidenceManage->value,
                 PermissionSlug::AuditView->value,
@@ -74,6 +80,7 @@ return [
             'description' => 'Builds features and maintains releases.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
                 PermissionSlug::ReleasesView->value,
                 PermissionSlug::EvidenceView->value,
             ],
@@ -84,6 +91,8 @@ return [
             'description' => 'Reviews controls and evidence completeness.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
+                PermissionSlug::RequirementsManage->value,
                 PermissionSlug::EvidenceView->value,
                 PermissionSlug::EvidenceManage->value,
                 PermissionSlug::AuditView->value,
@@ -95,6 +104,7 @@ return [
             'description' => 'Approves release readiness decisions.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
                 PermissionSlug::ReleasesView->value,
                 PermissionSlug::ReleasesApprove->value,
                 PermissionSlug::EvidenceView->value,
@@ -106,6 +116,7 @@ return [
             'description' => 'Read-only visibility into records and audit trail.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
                 PermissionSlug::VulnerabilitiesView->value,
                 PermissionSlug::EvidenceView->value,
                 PermissionSlug::AuditView->value,
@@ -117,15 +128,17 @@ return [
             'description' => 'Limited read access for guided consulting.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
                 PermissionSlug::EvidenceView->value,
             ],
         ],
-        RoleSlug::ReadOnly ->value => [
+        RoleSlug::ReadOnly->value => [
             'name' => 'Read-only User',
             'scope' => RoleScope::Organization->value,
             'description' => 'View-only access.',
             'permissions' => [
                 PermissionSlug::ProductsView->value,
+                PermissionSlug::RequirementsView->value,
                 PermissionSlug::VulnerabilitiesView->value,
                 PermissionSlug::EvidenceView->value,
             ],
@@ -143,6 +156,8 @@ return [
         PermissionSlug::OrganizationsManage->value => ['name' => 'Manage organization', 'group' => 'organizations'],
         PermissionSlug::ProductsView->value => ['name' => 'View products', 'group' => 'products'],
         PermissionSlug::ProductsManage->value => ['name' => 'Manage products', 'group' => 'products'],
+        PermissionSlug::RequirementsView->value => ['name' => 'View requirements', 'group' => 'requirements'],
+        PermissionSlug::RequirementsManage->value => ['name' => 'Manage requirements', 'group' => 'requirements'],
         PermissionSlug::ReleasesView->value => ['name' => 'View releases', 'group' => 'releases'],
         PermissionSlug::ReleasesApprove->value => ['name' => 'Approve releases', 'group' => 'releases'],
         PermissionSlug::VulnerabilitiesView->value => ['name' => 'View vulnerabilities', 'group' => 'vulnerabilities'],

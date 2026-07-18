@@ -150,6 +150,56 @@
             "owner_email": "Owner email",
             "created": "Organization created.",
             "updated": "Organization updated."
+        },
+        "requirements": {
+            "index_title": "Requirements catalogue",
+            "title": "Requirements catalogue",
+            "subtitle": "Versioned CRA regulatory requirements",
+            "create": "Create requirement",
+            "create_title": "Create requirement",
+            "edit_title": "Edit requirement",
+            "created": "Requirement created.",
+            "updated": "Requirement updated.",
+            "search_placeholder": "Search by code, article or text...",
+            "active": "Active",
+            "inactive": "Inactive",
+            "current": "current",
+            "versions_title": "Published versions",
+            "columns": {
+                "id": "ID",
+                "code": "Code",
+                "article_ref": "Article",
+                "regulation": "Regulation",
+                "plain_language": "Summary",
+                "version": "Version",
+                "status": "Status"
+            },
+            "fields": {
+                "regulation": "Regulation",
+                "code": "Code",
+                "article_ref": "Article / annex reference",
+                "sort_order": "Sort order",
+                "is_active": "Active",
+                "create_new_version": "Publish as new version",
+                "requirement_text": "Requirement text",
+                "plain_language": "Plain-language explanation",
+                "applicability_notes": "Applicability notes",
+                "suggested_controls_text": "Suggested controls",
+                "required_evidence_text": "Required evidence"
+            },
+            "help": {
+                "regulation": "Regulatory source for this requirement.",
+                "code": "Stable internal code unique within the regulation.",
+                "article_ref": "Article or annex reference from the CRA text.",
+                "sort_order": "Display order in catalogues and matrices.",
+                "is_active": "Inactive requirements are not added to new product matrices.",
+                "create_new_version": "When enabled, saves content as a new current version instead of editing the current one.",
+                "requirement_text": "Formal requirement wording used for assessments.",
+                "plain_language": "Short explanation for product teams.",
+                "applicability_notes": "When this requirement typically applies.",
+                "suggested_controls_text": "Stub guidance until the Controls library exists.",
+                "required_evidence_text": "Stub evidence expectations until the Evidence repository exists."
+            }
         }
     },
     "users": {
@@ -177,7 +227,8 @@
         "users": "Users",
         "products": "Products",
         "logs": "Journals",
-        "audit": "Audit"
+        "audit": "Audit",
+        "requirements_catalogue": "Requirements catalogue"
     },
     "products": {
         "index_title": "Products",
@@ -504,6 +555,51 @@
                     "label": "Is the product clearly excluded from CRA product classification?",
                     "help": "Use only when exclusion is already established; otherwise prefer under review."
                 }
+            }
+        },
+        "requirements_link": "Requirements",
+        "requirements": {
+            "index_title": "Requirements matrix",
+            "title": "Requirements matrix",
+            "subtitle": "Assess CRA requirement applicability for this product",
+            "edit_title": "Edit applicability",
+            "updated": "Requirement applicability updated.",
+            "search_placeholder": "Search by code, article or status...",
+            "history_title": "Change history",
+            "no_history": "No status changes recorded yet.",
+            "columns": {
+                "id": "ID",
+                "code": "Code",
+                "article_ref": "Article",
+                "status": "Status",
+                "owner": "Owner",
+                "reviewed_at": "Reviewed"
+            },
+            "fields": {
+                "status": "Applicability status",
+                "owner": "Owner",
+                "rationale": "Rationale",
+                "article_ref": "Article / annex",
+                "version": "Catalogue version",
+                "requirement_text": "Requirement text",
+                "plain_language": "Plain-language explanation",
+                "suggested_controls": "Suggested controls",
+                "required_evidence": "Required evidence"
+            },
+            "help": {
+                "status": "Current applicability and implementation status for this product.",
+                "owner": "Organization member accountable for this requirement on the product.",
+                "rationale": "Explain why the status was chosen and what remains open."
+            },
+            "statuses": {
+                "not_assessed": "Not assessed",
+                "applicable": "Applicable",
+                "not_applicable": "Not applicable",
+                "partially_implemented": "Partially implemented",
+                "implemented": "Implemented",
+                "verified": "Verified",
+                "non_conformity": "Non-conformity",
+                "exception_approved": "Exception approved"
             }
         }
     },

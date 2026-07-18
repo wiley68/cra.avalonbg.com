@@ -55,6 +55,12 @@ class HandleInertiaRequests extends Middleware
         $canManageProducts = $user !== null && $organization !== null
             ? $user->canManageProducts($organization)
             : false;
+        $canViewRequirements = $user !== null && $organization !== null
+            ? $user->canViewRequirements($organization)
+            : false;
+        $canManageRequirements = $user !== null && $organization !== null
+            ? $user->canManageRequirements($organization)
+            : false;
         $canManageOrganizations = $user?->canManageOrganizations() ?? false;
 
         return [
@@ -83,6 +89,8 @@ class HandleInertiaRequests extends Middleware
                     'can_manage_users' => $canManageUsers,
                     'can_view_products' => $canViewProducts,
                     'can_manage_products' => $canManageProducts,
+                    'can_view_requirements' => $canViewRequirements,
+                    'can_manage_requirements' => $canManageRequirements,
                     'can_manage_organizations' => $canManageOrganizations,
                 ] : null,
             ],

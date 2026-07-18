@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     ClipboardList,
     GitBranch,
+    ListChecks,
     Save,
     Tags,
     Trash2,
@@ -19,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { destroy, index as productsIndex, update } from '@/routes/products';
+import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
 
 type Member = {
@@ -197,6 +199,12 @@ const textareaClass =
                     <Link :href="versionsIndex(props.product.id)">
                         <GitBranch class="h-4 w-4" />
                         {{ t('products.versions_link') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="requirementsIndex(props.product.id)">
+                        <ListChecks class="h-4 w-4" />
+                        {{ t('products.requirements_link') }}
                     </Link>
                 </Button>
                 <Button as-child variant="outline">

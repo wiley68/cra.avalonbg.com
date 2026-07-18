@@ -7,10 +7,14 @@ use App\Http\Middleware\ForceHttps;
 use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductRequirement;
+use App\Models\Requirement;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\ProductPolicy;
+use App\Policies\ProductRequirementPolicy;
+use App\Policies\RequirementPolicy;
 use App\Policies\UserPolicy;
 use App\Support\AuditLogger;
 use Carbon\CarbonImmutable;
@@ -80,6 +84,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Requirement::class, RequirementPolicy::class);
+        Gate::policy(ProductRequirement::class, ProductRequirementPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 

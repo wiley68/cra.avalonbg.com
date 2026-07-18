@@ -1,10 +1,17 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, GitBranch, Pencil, Trash2 } from '@lucide/vue';
+import {
+    ArrowUpDown,
+    GitBranch,
+    ListChecks,
+    Pencil,
+    Trash2,
+} from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { edit as editProduct } from '@/routes/products';
+import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
 
 export type ProductListItem = {
@@ -149,6 +156,15 @@ export const createProductColumns = ({
                         icon: GitBranch,
                         onSelect: () => {
                             router.visit(versionsIndex(row.original.id).url);
+                        },
+                    },
+                    {
+                        label: t('products.requirements_link'),
+                        icon: ListChecks,
+                        onSelect: () => {
+                            router.visit(
+                                requirementsIndex(row.original.id).url,
+                            );
                         },
                     },
                 ];

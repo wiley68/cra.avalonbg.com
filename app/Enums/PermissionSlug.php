@@ -14,6 +14,8 @@ enum PermissionSlug: string
     case OrganizationsManage = 'organizations.manage';
     case ProductsView = 'products.view';
     case ProductsManage = 'products.manage';
+    case RequirementsView = 'requirements.view';
+    case RequirementsManage = 'requirements.manage';
     case ReleasesView = 'releases.view';
     case ReleasesApprove = 'releases.approve';
     case VulnerabilitiesView = 'vulnerabilities.view';
@@ -22,4 +24,3 @@ enum PermissionSlug: string
     case EvidenceManage = 'evidence.manage';
     case AuditView = 'audit.view';
 }
-

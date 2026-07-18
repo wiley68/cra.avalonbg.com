@@ -3,10 +3,13 @@
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
+use App\Http\Controllers\Admin\RequirementController as AdminRequirementController;
 use App\Http\Controllers\Api\Admin\AuditLogApiController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
+use App\Http\Controllers\Api\Admin\RequirementApiController;
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
@@ -14,6 +17,7 @@ use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProductClassificationController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\UserController;
@@ -50,6 +54,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.classifications.latest');
         Route::post('products/{product}/classifications', [ProductClassificationController::class, 'store'])
             ->name('products.classifications.store');
+        Route::get('products/{product}/requirements', [ProductRequirementController::class, 'index'])
+            ->name('products.requirements.index');
+        Route::get('products/{product}/requirements/{requirement}/edit', [ProductRequirementController::class, 'edit'])
+            ->name('products.requirements.edit');
+        Route::put('products/{product}/requirements/{requirement}', [ProductRequirementController::class, 'update'])
+            ->name('products.requirements.update');
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
@@ -62,6 +72,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])
                 ->name('products.versions.index');
+            Route::get('products/{product}/requirements', [ProductRequirementApiController::class, 'index'])
+                ->name('products.requirements.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
@@ -72,6 +84,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->except(['show'])
                 ->scoped();
 
+            Route::resource('requirements', AdminRequirementController::class)
+                ->except(['show', 'destroy']);
+
             Route::get('audit-logs', [AdminAuditLogController::class, 'index'])
                 ->name('audit-logs.index');
 
@@ -81,6 +96,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
                 Route::get('organizations/{organization}/users', [OrganizationUserApiController::class, 'index'])
                     ->name('organizations.users.index');
+
+                Route::get('requirements', [RequirementApiController::class, 'index'])
+                    ->name('requirements.index');
 
                 Route::get('audit-logs', [AuditLogApiController::class, 'index'])
                     ->name('audit-logs.index');

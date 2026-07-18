@@ -5,6 +5,7 @@ import {
     HardDriveDownload,
     History,
     LayoutGrid,
+    ListChecks,
     Mail,
     Package,
     ScrollText,
@@ -29,6 +30,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { dashboard } from '@/routes';
 import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
+import { index as adminRequirementsIndex } from '@/routes/admin/requirements';
 import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -75,6 +77,11 @@ const mainNavItems = computed<NavItem[]>(() => {
     }
 
     if (user.is_platform_admin) {
+        items.push({
+            title: t('nav.requirements_catalogue'),
+            href: adminRequirementsIndex(),
+            icon: ListChecks,
+        });
         items.push({
             title: t('nav.logs'),
             href: '',

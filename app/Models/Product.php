@@ -118,6 +118,11 @@ class Product extends Model
         return $this->classifications()->latest('id')->first();
     }
 
+    public function productRequirements(): HasMany
+    {
+        return $this->hasMany(ProductRequirement::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');
