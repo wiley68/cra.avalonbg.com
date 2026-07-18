@@ -108,6 +108,16 @@ class Product extends Model
         return $this->scopeAssessments()->latest('id')->first();
     }
 
+    public function classifications(): HasMany
+    {
+        return $this->hasMany(ProductClassification::class);
+    }
+
+    public function latestClassification(): ?ProductClassification
+    {
+        return $this->classifications()->latest('id')->first();
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

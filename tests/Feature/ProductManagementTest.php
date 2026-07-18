@@ -105,6 +105,8 @@ function productPayload(array $overrides = []): array
         'classification_status' => ClassificationStatus::Unclassified->value,
         'classification_rationale' => 'Initial assessment pending',
         'classification_next_review_at' => now()->addYear()->toDateString(),
+        'skip_scope_wizard' => true,
+        'skip_classification_wizard' => true,
     ], $overrides);
 }
 
@@ -133,6 +135,7 @@ test('organization owner can create and list products', function () {
 
     $response = $this->actingAs($owner)->post(route('products.store'), productPayload([
         'skip_scope_wizard' => true,
+        'skip_classification_wizard' => true,
     ]));
 
     $product = Product::query()->where('slug', 'payment-module')->first();

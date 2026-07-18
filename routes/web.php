@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\ProductClassificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
@@ -43,6 +44,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.scope-assessments.latest');
         Route::post('products/{product}/scope-assessments', [ProductScopeAssessmentController::class, 'store'])
             ->name('products.scope-assessments.store');
+        Route::post('products/classification/preview', [ProductClassificationController::class, 'preview'])
+            ->name('products.classification.preview');
+        Route::get('products/{product}/classifications/latest', [ProductClassificationController::class, 'show'])
+            ->name('products.classifications.latest');
+        Route::post('products/{product}/classifications', [ProductClassificationController::class, 'store'])
+            ->name('products.classifications.store');
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
@@ -82,4 +89,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

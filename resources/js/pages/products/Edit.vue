@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, GitBranch, Save, Trash2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    ClipboardList,
+    GitBranch,
+    Save,
+    Tags,
+    Trash2,
+} from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,18 +75,36 @@ type LatestScopeAssessment = {
     reviewed_by: number | null;
 } | null;
 
+type LatestClassification = {
+    id: number;
+    answers: Record<string, string>;
+    suggested_status: string;
+    final_status: string;
+    rationale: string | null;
+    regulatory_content_version: string;
+    evidence_notes: string | null;
+    reviewed_at: string | null;
+    reviewed_by: number | null;
+    approved_at: string | null;
+    approved_by: number | null;
+    next_review_at: string | null;
+} | null;
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: EditableProduct;
     members: Member[];
     options: Options;
     latestScopeAssessment?: LatestScopeAssessment;
+    latestClassification?: LatestClassification;
     openScopeWizard?: boolean;
+    openClassificationWizard?: boolean;
 }>();
 
 const { t } = useTranslations();
 const showDeleteDialog = ref(false);
 const showScopeWizard = ref(props.openScopeWizard ?? false);
+const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 
 const form = useForm({
     name: props.product.name,
@@ -124,6 +150,10 @@ const confirmDelete = () => {
 
 const onScopeConfirmed = () => {
     showScopeWizard.value = false;
+};
+
+const onClassificationConfirmed = () => {
+    showClassificationWizard.value = false;
 };
 
 const labelFor = (group: string, value: string): string => {
@@ -502,11 +532,72 @@ const textareaClass =
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                <div class="flex items-center justify-between gap-3">
+                    <h2
+                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                    >
+                        {{ t('products.sections.classification') }}
+                    </h2>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showClassificationWizard = true"
+                    >
+                        <Tags class="h-4 w-4" />
+                        {{
+                            latestClassification
+                                ? t('products.classification_wizard.rerun')
+                                : t('products.classification_wizard.start')
+                        }}
+                    </Button>
+                </div>
+                <div
+                    v-if="latestClassification"
+                    class="rounded-md border bg-muted/30 p-3 text-sm"
                 >
-                    {{ t('products.sections.classification') }}
-                </h2>
+                    <p class="font-medium">
+                        {{
+                            t('products.classification_wizard.last_assessment')
+                        }}
+                    </p>
+                    <p class="mt-1 text-muted-foreground">
+                        {{ t('products.classification_wizard.final_status') }}:
+                        {{
+                            labelFor(
+                                'classification',
+                                latestClassification.final_status,
+                            )
+                        }}
+                    </p>
+                    <p class="text-muted-foreground">
+                        {{
+                            t(
+                                'products.classification_wizard.regulatory_content_version',
+                            )
+                        }}:
+                        {{ latestClassification.regulatory_content_version }}
+                    </p>
+                    <p class="text-muted-foreground">
+                        {{ t('products.classification_wizard.reviewed_at') }}:
+                        {{ formatReviewedAt(latestClassification.reviewed_at) }}
+                    </p>
+                    <p
+                        v-if="latestClassification.approved_at"
+                        class="text-muted-foreground"
+                    >
+                        {{ t('products.classification_wizard.approved_at') }}:
+                        {{ formatReviewedAt(latestClassification.approved_at) }}
+                    </p>
+                    <p
+                        v-if="latestClassification.rationale"
+                        class="mt-2 whitespace-pre-wrap"
+                    >
+                        {{ latestClassification.rationale }}
+                    </p>
+                </div>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('products.classification_wizard.no_assessment') }}
+                </p>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
                         <FieldLabel
@@ -662,6 +753,25 @@ const textareaClass =
             :scope-statuses="options.scope_statuses"
             :initial-answers="latestScopeAssessment?.answers ?? null"
             @confirmed="onScopeConfirmed"
+        />
+
+        <ClassificationWizard
+            v-model:open="showClassificationWizard"
+            :product-id="product.id"
+            :classification-statuses="options.classification_statuses"
+            :initial-answers="latestClassification?.answers ?? null"
+            :initial-regulatory-content-version="
+                latestClassification?.regulatory_content_version ?? null
+            "
+            :initial-evidence-notes="
+                latestClassification?.evidence_notes ?? null
+            "
+            :initial-next-review-at="
+                latestClassification?.next_review_at ??
+                product.classification_next_review_at ??
+                null
+            "
+            @confirmed="onClassificationConfirmed"
         />
     </div>
 </template>

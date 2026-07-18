@@ -8,6 +8,7 @@ use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Support\ClassificationAssessmentValidation;
 use App\Support\ScopeAssessmentValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -52,6 +53,7 @@ class StoreProductRequest extends FormRequest
         return [
             ...$this->productRules($organization),
             'skip_scope_wizard' => ['sometimes', 'boolean'],
+            'skip_classification_wizard' => ['sometimes', 'boolean'],
             'scope_assessment' => ['nullable', 'array'],
             'scope_assessment.final_status' => [
                 'required_with:scope_assessment.answers',
@@ -59,6 +61,23 @@ class StoreProductRequest extends FormRequest
             ],
             'scope_assessment.rationale' => ['nullable', 'string'],
             ...ScopeAssessmentValidation::answerRules('scope_assessment.answers', answersRequired: false),
+            'classification_assessment' => ['nullable', 'array'],
+            'classification_assessment.final_status' => [
+                'required_with:classification_assessment.answers',
+                Rule::enum(ClassificationStatus::class),
+            ],
+            'classification_assessment.rationale' => ['nullable', 'string'],
+            'classification_assessment.regulatory_content_version' => [
+                'required_with:classification_assessment.answers',
+                'string',
+                'max:255',
+            ],
+            'classification_assessment.evidence_notes' => ['nullable', 'string'],
+            'classification_assessment.next_review_at' => ['nullable', 'date'],
+            ...ClassificationAssessmentValidation::answerRules(
+                'classification_assessment.answers',
+                answersRequired: false,
+            ),
         ];
     }
 
@@ -68,7 +87,7 @@ class StoreProductRequest extends FormRequest
     protected function productRules(?Organization $organization, ?Product $product = null): array
     {
         $memberRule = Rule::exists('organization_user', 'user_id')
-            ->where(fn($query) => $query->where('organization_id', $organization?->id));
+            ->where(fn ($query) => $query->where('organization_id', $organization?->id));
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -78,7 +97,7 @@ class StoreProductRequest extends FormRequest
                 'max:255',
                 'alpha_dash',
                 Rule::unique('products', 'slug')
-                    ->where(fn($query) => $query->where('organization_id', $organization?->id))
+                    ->where(fn ($query) => $query->where('organization_id', $organization?->id))
                     ->ignore($product?->id),
             ],
             'product_line' => ['nullable', 'string', 'max:255'],

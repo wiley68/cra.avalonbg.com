@@ -205,6 +205,7 @@ test('owner can create product with nested scope assessment', function () {
         'scope_status' => ScopeStatus::InsufficientInformation->value,
         'classification_status' => ClassificationStatus::Unclassified->value,
         'skip_scope_wizard' => true,
+        'skip_classification_wizard' => true,
         'scope_assessment' => [
             'answers' => scopeAnswers(),
             'final_status' => ScopeStatus::LikelyInScope->value,

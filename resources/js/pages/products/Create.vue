@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, Plus } from '@lucide/vue';
+import { ArrowLeft, ClipboardList, Plus, Tags } from '@lucide/vue';
 import { ref } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
+import type { ClassificationAssessmentResult } from '@/components/products/ClassificationWizard.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
 import type { ScopeAssessmentResult } from '@/components/products/ScopeWizard.vue';
 import { Button } from '@/components/ui/button';
@@ -39,6 +41,7 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 const showScopeWizard = ref(false);
+const showClassificationWizard = ref(false);
 
 const form = useForm({
     name: '',
@@ -68,10 +71,19 @@ const form = useForm({
     classification_rationale: '',
     classification_next_review_at: '',
     skip_scope_wizard: false,
+    skip_classification_wizard: false,
     scope_assessment: null as null | {
         answers: Record<string, string>;
         final_status: string;
         rationale: string;
+    },
+    classification_assessment: null as null | {
+        answers: Record<string, string>;
+        final_status: string;
+        rationale: string;
+        regulatory_content_version: string;
+        evidence_notes: string;
+        next_review_at: string;
     },
 });
 
@@ -91,6 +103,23 @@ const applyScopeAssessment = (result: ScopeAssessmentResult) => {
     };
 };
 
+const applyClassificationAssessment = (
+    result: ClassificationAssessmentResult,
+) => {
+    form.classification_status = result.final_status;
+    form.classification_rationale = result.rationale;
+    form.classification_next_review_at = result.next_review_at;
+    form.skip_classification_wizard = true;
+    form.classification_assessment = {
+        answers: result.answers,
+        final_status: result.final_status,
+        rationale: result.rationale,
+        regulatory_content_version: result.regulatory_content_version,
+        evidence_notes: result.evidence_notes,
+        next_review_at: result.next_review_at,
+    };
+};
+
 const submit = () => {
     form.transform((data) => ({
         ...data,
@@ -99,7 +128,10 @@ const submit = () => {
         classification_next_review_at:
             data.classification_next_review_at || null,
         scope_assessment: data.scope_assessment,
+        classification_assessment: data.classification_assessment,
         skip_scope_wizard: data.skip_scope_wizard || !!data.scope_assessment,
+        skip_classification_wizard:
+            data.skip_classification_wizard || !!data.classification_assessment,
     })).post(store().url);
 };
 
@@ -423,11 +455,21 @@ const labelFor = (group: string, value: string): string => {
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
-                    {{ t('products.sections.classification') }}
-                </h2>
+                <div class="flex items-center justify-between gap-3">
+                    <h2
+                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                    >
+                        {{ t('products.sections.classification') }}
+                    </h2>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showClassificationWizard = true"
+                    >
+                        <Tags class="h-4 w-4" />
+                        {{ t('products.classification_wizard.start') }}
+                    </Button>
+                </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
                         <FieldLabel
@@ -565,6 +607,25 @@ const labelFor = (group: string, value: string): string => {
             :scope-statuses="options.scope_statuses"
             :initial-answers="form.scope_assessment?.answers ?? null"
             @confirmed="applyScopeAssessment"
+        />
+
+        <ClassificationWizard
+            v-model:open="showClassificationWizard"
+            :classification-statuses="options.classification_statuses"
+            :initial-answers="form.classification_assessment?.answers ?? null"
+            :initial-regulatory-content-version="
+                form.classification_assessment?.regulatory_content_version ??
+                null
+            "
+            :initial-evidence-notes="
+                form.classification_assessment?.evidence_notes ?? null
+            "
+            :initial-next-review-at="
+                form.classification_assessment?.next_review_at ||
+                form.classification_next_review_at ||
+                null
+            "
+            @confirmed="applyClassificationAssessment"
         />
     </div>
 </template>

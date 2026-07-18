@@ -10,6 +10,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Services\ClassificationAssessmentService;
 use App\Services\ScopeAssessmentService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -20,8 +21,8 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly ScopeAssessmentService $scopeAssessments,
-    ) {
-    }
+        private readonly ClassificationAssessmentService $classificationAssessments,
+    ) {}
 
     public function index(): Response
     {
@@ -60,7 +61,8 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
-        $openWizard = !$request->boolean('skip_scope_wizard');
+        $openScopeWizard = ! $request->boolean('skip_scope_wizard');
+        $openClassificationWizard = ! $request->boolean('skip_classification_wizard');
 
         if ($request->filled('scope_assessment.answers')) {
             $this->scopeAssessments->storeAndApply(
@@ -70,7 +72,21 @@ class ProductController extends Controller
                 $request->input('scope_assessment.rationale'),
                 $user,
             );
-            $openWizard = false;
+            $openScopeWizard = false;
+        }
+
+        if ($request->filled('classification_assessment.answers')) {
+            $this->classificationAssessments->storeAndApply(
+                $product,
+                $request->input('classification_assessment.answers', []),
+                ClassificationStatus::from($request->string('classification_assessment.final_status')->toString()),
+                $request->input('classification_assessment.rationale'),
+                $request->string('classification_assessment.regulatory_content_version')->toString(),
+                $request->input('classification_assessment.evidence_notes'),
+                $request->input('classification_assessment.next_review_at'),
+                $user,
+            );
+            $openClassificationWizard = false;
         }
 
         Inertia::flash('toast', [
@@ -78,10 +94,17 @@ class ProductController extends Controller
             'message' => Translations::get('products.created'),
         ]);
 
-        if ($openWizard) {
+        if ($openScopeWizard) {
             return redirect()->route('products.edit', [
                 'product' => $product,
                 'scope_wizard' => 1,
+            ]);
+        }
+
+        if ($openClassificationWizard) {
+            return redirect()->route('products.edit', [
+                'product' => $product,
+                'classification_wizard' => 1,
             ]);
         }
 
@@ -103,7 +126,11 @@ class ProductController extends Controller
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),
             ),
+            'latestClassification' => $this->classificationAssessments->latestPayload(
+                $product->latestClassification(),
+            ),
             'openScopeWizard' => request()->boolean('scope_wizard'),
+            'openClassificationWizard' => request()->boolean('classification_wizard'),
         ]);
     }
 
@@ -195,7 +222,7 @@ class ProductController extends Controller
         return $organization->users()
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

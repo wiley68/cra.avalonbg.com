@@ -429,6 +429,82 @@
                     "help": "Placing or making available on the EU market is a core CRA trigger."
                 }
             }
+        },
+        "classification_wizard": {
+            "title": "CRA product classification",
+            "subtitle": "Answer Annex III/IV oriented questions for a preliminary classification. This is not a final legal determination.",
+            "start": "Classify product",
+            "rerun": "Re-run classification",
+            "next": "Next",
+            "back": "Back",
+            "confirm": "Confirm classification",
+            "cancel": "Cancel",
+            "step_of": "Step :current of :total",
+            "review_title": "Suggested classification",
+            "suggested_status": "Suggested status",
+            "final_status": "Final status",
+            "override_hint": "You can override the suggestion before saving.",
+            "rationale": "Rationale",
+            "regulatory_content_version": "Regulatory content version",
+            "evidence_notes": "Supporting evidence notes",
+            "saved": "Classification assessment saved.",
+            "last_assessment": "Last classification assessment",
+            "reviewed_at": "Reviewed at",
+            "approved_at": "Approved at",
+            "no_assessment": "No classification assessment has been recorded yet.",
+            "preview_error": "Could not evaluate answers. Check that all questions are answered.",
+            "rationale_prefix": "Preliminary CRA classification suggestion: :status.",
+            "default_regulatory_version": "CRA Annex III/IV — 2024",
+            "help": {
+                "regulatory_content_version": "Label for the CRA annex / guidance version used for this assessment (stub until the requirements library exists).",
+                "evidence_notes": "Optional notes or references supporting the classification (stub until the evidence repository exists)."
+            },
+            "errors": {
+                "answer_required": "This answer is required.",
+                "regulatory_required": "Regulatory content version is required."
+            },
+            "questions": {
+                "identity_access_security": {
+                    "label": "Does the product provide identity, access control, password management or MFA functions?",
+                    "help": "Annex III Class I signals: identity management systems, password managers, access control."
+                },
+                "network_security": {
+                    "label": "Does it provide firewall, VPN, IDS/IPS or network management security functions?",
+                    "help": "Annex III Class I network security category products."
+                },
+                "endpoint_security": {
+                    "label": "Does it provide antivirus, EDR, boot management or similar endpoint security?",
+                    "help": "Annex III Class I endpoint / boot security products."
+                },
+                "browser_or_runtime": {
+                    "label": "Is it a standalone or embedded browser (or comparable runtime for web content)?",
+                    "help": "Annex III Class I browsers."
+                },
+                "operating_system": {
+                    "label": "Is it an operating system for desktops, servers or mobile devices?",
+                    "help": "Annex III Class II operating systems."
+                },
+                "hypervisor_containers": {
+                    "label": "Is it a hypervisor or container runtime?",
+                    "help": "Annex III Class II virtualisation / container runtimes."
+                },
+                "pki_crypto": {
+                    "label": "Does it provide PKI, HSM, secure element or smartcard-like cryptographic trust services?",
+                    "help": "May indicate Important Class I PKI products or Critical Annex IV secure elements — escalate carefully."
+                },
+                "critical_infrastructure": {
+                    "label": "Is it intended for critical / essential entities, smart metering or industrial control?",
+                    "help": "Annex IV critical product signals and high-impact deployments."
+                },
+                "sector_specific_regime": {
+                    "label": "Is the product primarily subject to other sector-specific legislation instead?",
+                    "help": "Medical, aviation, automotive and similar regimes may lead to sector-specific classification."
+                },
+                "explicitly_excluded": {
+                    "label": "Is the product clearly excluded from CRA product classification?",
+                    "help": "Use only when exclusion is already established; otherwise prefer under review."
+                }
+            }
         }
     },
     "audit_logs": {

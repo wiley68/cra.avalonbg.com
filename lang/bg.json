@@ -429,6 +429,82 @@
                     "help": "Пускането или предоставянето на пазара в ЕС е ключов CRA тригер."
                 }
             }
+        },
+        "classification_wizard": {
+            "title": "CRA класификация на продукт",
+            "subtitle": "Отговорете на въпроси по Annex III/IV за предварителна класификация. Това не е окончателно правно становище.",
+            "start": "Класифицирай продукт",
+            "rerun": "Повтори класификация",
+            "next": "Напред",
+            "back": "Назад",
+            "confirm": "Потвърди класификацията",
+            "cancel": "Отказ",
+            "step_of": "Стъпка :current от :total",
+            "review_title": "Предложена класификация",
+            "suggested_status": "Предложен статус",
+            "final_status": "Финален статус",
+            "override_hint": "Можете да промените предложението преди запис.",
+            "rationale": "Обосновка",
+            "regulatory_content_version": "Версия на regulatory content",
+            "evidence_notes": "Бележки за supporting evidence",
+            "saved": "Класификационната оценка е записана.",
+            "last_assessment": "Последна класификационна оценка",
+            "reviewed_at": "Прегледана на",
+            "approved_at": "Одобрена на",
+            "no_assessment": "Все още няма записана класификационна оценка.",
+            "preview_error": "Неуспешна оценка. Проверете дали всички въпроси са отговорени.",
+            "rationale_prefix": "Предварително предложение за CRA класификация: :status.",
+            "default_regulatory_version": "CRA Annex III/IV — 2024",
+            "help": {
+                "regulatory_content_version": "Етикет на версията на CRA annex / guidance, използвана при оценката (stub до requirements library).",
+                "evidence_notes": "Опционални бележки или референции в подкрепа на класификацията (stub до evidence repository)."
+            },
+            "errors": {
+                "answer_required": "Този отговор е задължителен.",
+                "regulatory_required": "Версията на regulatory content е задължителна."
+            },
+            "questions": {
+                "identity_access_security": {
+                    "label": "Предоставя ли продуктът функции за identity, access control, password management или MFA?",
+                    "help": "Annex III Class I: identity management, password managers, access control."
+                },
+                "network_security": {
+                    "label": "Предоставя ли firewall, VPN, IDS/IPS или network management security функции?",
+                    "help": "Annex III Class I продукти за мрежова сигурност."
+                },
+                "endpoint_security": {
+                    "label": "Предоставя ли antivirus, EDR, boot management или подобна endpoint сигурност?",
+                    "help": "Annex III Class I endpoint / boot security продукти."
+                },
+                "browser_or_runtime": {
+                    "label": "Standalone или embedded browser ли е (или сравним runtime за уеб съдържание)?",
+                    "help": "Annex III Class I браузъри."
+                },
+                "operating_system": {
+                    "label": "Операционна система ли е за desktop, server или mobile устройства?",
+                    "help": "Annex III Class II операционни системи."
+                },
+                "hypervisor_containers": {
+                    "label": "Hypervisor или container runtime ли е?",
+                    "help": "Annex III Class II виртуализация / container runtimes."
+                },
+                "pki_crypto": {
+                    "label": "Предоставя ли PKI, HSM, secure element или smartcard-подобни cryptographic trust услуги?",
+                    "help": "Може да сочи към Important Class I PKI или Critical Annex IV — преценете внимателно."
+                },
+                "critical_infrastructure": {
+                    "label": "Предназначен ли е за critical / essential entities, smart metering или industrial control?",
+                    "help": "Annex IV critical product сигнали и високо-импактни внедрения."
+                },
+                "sector_specific_regime": {
+                    "label": "Попада ли основно под друга секторна регулация вместо CRA classification path?",
+                    "help": "Медицински, авиационни, автомобилни и подобни режими могат да водят до sector-specific."
+                },
+                "explicitly_excluded": {
+                    "label": "Ясно изключен ли е продуктът от CRA product classification?",
+                    "help": "Използвайте само при установено изключение; иначе предпочетете under review."
+                }
+            }
         }
     },
     "audit_logs": {
