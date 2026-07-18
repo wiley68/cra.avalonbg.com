@@ -28,6 +28,7 @@ export type User = {
     can_view_tasks?: boolean;
     can_manage_tasks?: boolean;
     can_approve_tasks?: boolean;
+    can_view_audit?: boolean;
     can_manage_organizations?: boolean;
     created_at: string;
     updated_at: string;

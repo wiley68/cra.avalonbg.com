@@ -299,6 +299,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasPermission(PermissionSlug::TasksApprove->value, $organization);
     }
 
+    public function canViewAudit(?Organization $organization = null): bool
+    {
+        if ($this->isPlatformAdmin()) {
+            return true;
+        }
+
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::AuditView->value, $organization);
+    }
+
     public function canManageOrganizations(): bool
     {
         return $this->isPlatformAdmin()

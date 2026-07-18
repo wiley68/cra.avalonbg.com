@@ -12,6 +12,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Support\AuditLogger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -97,7 +98,7 @@ class TaskService
      */
     public function create(Product $product, array $attributes, User $creator): Task
     {
-        return DB::transaction(function () use ($product, $attributes, $creator) {
+        $task = DB::transaction(function () use ($product, $attributes, $creator) {
             $subject = $this->resolveSubject(
                 $product,
                 $attributes['subject_type'] ?? null,
@@ -129,6 +130,10 @@ class TaskService
 
             return $task->load(['assignee', 'creator', 'approver', 'subject']);
         });
+
+        AuditLogger::logTaskCreated($task, $creator);
+
+        return $task;
     }
 
     /**
@@ -136,7 +141,7 @@ class TaskService
      */
     public function update(Task $task, array $attributes): Task
     {
-        return DB::transaction(function () use ($task, $attributes) {
+        $task = DB::transaction(function () use ($task, $attributes) {
             $subject = $this->resolveSubject(
                 $task->product,
                 $attributes['subject_type'] ?? null,
@@ -162,10 +167,22 @@ class TaskService
 
             return $task->fresh(['assignee', 'creator', 'approver', 'subject']);
         });
+
+        $actor = Auth::user();
+        if ($actor instanceof User) {
+            AuditLogger::logTaskUpdated($task, $actor);
+        }
+
+        return $task;
     }
 
     public function delete(Task $task): void
     {
+        $actor = Auth::user();
+        if ($actor instanceof User) {
+            AuditLogger::logTaskDeleted($task, $actor);
+        }
+
         $task->delete();
     }
 

@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Http\Controllers\Api;
 
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Organization;
 use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,8 @@ class AuditLogApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        Gate::authorize('viewAny', AuditLog::class);
+        $organization = $this->currentOrganization();
+        Gate::authorize('viewAny', [AuditLog::class, $organization]);
 
         $validated = $request->validate([
             'per_page' => 'integer|min:1|max:100',
@@ -43,9 +45,20 @@ class AuditLogApiController extends Controller
             $validated['event_type'] ?? null,
             $validated['event_source'] ?? null,
             $validated['is_success'] ?? null,
-            null,
+            $organization,
         );
 
         return response()->json($paginator);
+    }
+
+    private function currentOrganization(): Organization
+    {
+        $organization = request()->user()?->currentOrganization();
+
+        if ($organization === null) {
+            abort(403, 'No organization membership.');
+        }
+
+        return $organization;
     }
 }

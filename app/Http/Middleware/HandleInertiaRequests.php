@@ -100,6 +100,9 @@ class HandleInertiaRequests extends Middleware
         $canApproveTasks = $user !== null && $organization !== null
             ? $user->canApproveTasks($organization)
             : false;
+        $canViewAudit = $user !== null
+            ? $user->canViewAudit($organization)
+            : false;
         $canManageOrganizations = $user?->canManageOrganizations() ?? false;
 
         return [
@@ -143,6 +146,7 @@ class HandleInertiaRequests extends Middleware
                     'can_view_tasks' => $canViewTasks,
                     'can_manage_tasks' => $canManageTasks,
                     'can_approve_tasks' => $canApproveTasks,
+                    'can_view_audit' => $canViewAudit,
                     'can_manage_organizations' => $canManageOrganizations,
                 ] : null,
             ],

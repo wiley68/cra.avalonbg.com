@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Services\ClassificationAssessmentService;
 use App\Services\ScopeAssessmentService;
+use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -22,7 +23,8 @@ class ProductController extends Controller
     public function __construct(
         private readonly ScopeAssessmentService $scopeAssessments,
         private readonly ClassificationAssessmentService $classificationAssessments,
-    ) {}
+    ) {
+    }
 
     public function index(): Response
     {
@@ -61,8 +63,8 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
-        $openScopeWizard = ! $request->boolean('skip_scope_wizard');
-        $openClassificationWizard = ! $request->boolean('skip_classification_wizard');
+        $openScopeWizard = !$request->boolean('skip_scope_wizard');
+        $openClassificationWizard = !$request->boolean('skip_classification_wizard');
 
         if ($request->filled('scope_assessment.answers')) {
             $this->scopeAssessments->storeAndApply(
@@ -88,6 +90,8 @@ class ProductController extends Controller
             );
             $openClassificationWizard = false;
         }
+
+        AuditLogger::logProductCreated($product, $user);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -160,6 +164,8 @@ class ProductController extends Controller
 
         $product->update($attributes);
 
+        AuditLogger::logProductUpdated($product->fresh(), $user);
+
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.updated'),
@@ -173,6 +179,9 @@ class ProductController extends Controller
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('delete', [$product, $organization]);
+
+        $actor = request()->user();
+        AuditLogger::logProductDeleted($product, $actor);
 
         $product->delete();
 
@@ -222,7 +231,7 @@ class ProductController extends Controller
         return $organization->users()
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn ($user) => [
+            ->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

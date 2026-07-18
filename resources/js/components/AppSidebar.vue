@@ -29,9 +29,10 @@ import {
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
 import { dashboard } from '@/routes';
-import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
+import { index as adminAuditLogsIndex } from '@/routes/admin/audit-logs';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as adminRequirementsIndex } from '@/routes/admin/requirements';
+import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -86,6 +87,14 @@ const mainNavItems = computed<NavItem[]>(() => {
         });
     }
 
+    if (user.can_view_audit && !user.is_platform_admin) {
+        items.push({
+            title: t('nav.audit'),
+            href: auditLogsIndex(),
+            icon: History,
+        });
+    }
+
     if (user.is_platform_admin) {
         items.push({
             title: t('nav.requirements_catalogue'),
@@ -99,7 +108,7 @@ const mainNavItems = computed<NavItem[]>(() => {
             children: [
                 {
                     title: t('nav.audit'),
-                    href: auditLogsIndex(),
+                    href: adminAuditLogsIndex(),
                     icon: History,
                 },
             ],

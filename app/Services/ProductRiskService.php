@@ -7,7 +7,9 @@ use App\Models\Control;
 use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\User;
+use App\Support\AuditLogger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -97,7 +99,7 @@ class ProductRiskService
         array $requirementIds,
         User $reviewer,
     ): ProductRisk {
-        return DB::transaction(function () use ($product, $attributes, $controlIds, $requirementIds, $reviewer) {
+        $risk = DB::transaction(function () use ($product, $attributes, $controlIds, $requirementIds, $reviewer) {
             $this->assertControlsBelongToProductOrganization($product, $controlIds);
 
             /** @var ProductRisk $risk */
@@ -111,8 +113,12 @@ class ProductRiskService
             $risk->controls()->sync($this->uniqueIds($controlIds));
             $risk->requirements()->sync($this->uniqueIds($requirementIds));
 
-            return $risk->load(['owner', 'controls', 'requirements', 'productVersion']);
+            return $risk->load(['owner', 'controls', 'requirements', 'productVersion', 'product']);
         });
+
+        AuditLogger::logRiskCreated($risk, $reviewer);
+
+        return $risk;
     }
 
     /**
@@ -127,7 +133,7 @@ class ProductRiskService
         array $requirementIds,
         User $reviewer,
     ): ProductRisk {
-        return DB::transaction(function () use ($risk, $attributes, $controlIds, $requirementIds, $reviewer) {
+        $risk = DB::transaction(function () use ($risk, $attributes, $controlIds, $requirementIds, $reviewer) {
             $this->assertControlsBelongToProductOrganization($risk->product, $controlIds);
 
             $risk->update([
@@ -139,12 +145,23 @@ class ProductRiskService
             $risk->controls()->sync($this->uniqueIds($controlIds));
             $risk->requirements()->sync($this->uniqueIds($requirementIds));
 
-            return $risk->fresh(['owner', 'controls', 'requirements', 'productVersion']);
+            return $risk->fresh(['owner', 'controls', 'requirements', 'productVersion', 'product']);
         });
+
+        AuditLogger::logRiskUpdated($risk, $reviewer);
+
+        return $risk;
     }
 
     public function delete(ProductRisk $risk): void
     {
+        $risk->loadMissing('product');
+        $actor = Auth::user();
+
+        if ($actor instanceof User) {
+            AuditLogger::logRiskDeleted($risk, $actor);
+        }
+
         $risk->delete();
     }
 

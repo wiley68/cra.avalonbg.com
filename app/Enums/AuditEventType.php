@@ -12,6 +12,18 @@ enum AuditEventType: string
     case TwoFactorChallengeFailed = 'two_factor_challenge_failed';
     case TaskApproved = 'task_approved';
     case TaskRejected = 'task_rejected';
+    case ProductCreated = 'product_created';
+    case ProductUpdated = 'product_updated';
+    case ProductDeleted = 'product_deleted';
+    case RiskCreated = 'risk_created';
+    case RiskUpdated = 'risk_updated';
+    case RiskDeleted = 'risk_deleted';
+    case EvidenceCreated = 'evidence_created';
+    case EvidenceUpdated = 'evidence_updated';
+    case EvidenceDeleted = 'evidence_deleted';
+    case TaskCreated = 'task_created';
+    case TaskUpdated = 'task_updated';
+    case TaskDeleted = 'task_deleted';
 
     public function label(): string
     {

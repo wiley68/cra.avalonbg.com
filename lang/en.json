@@ -1180,7 +1180,7 @@
     },
     "audit_logs": {
         "title": "Audit",
-        "subtitle": "Review authentication and security events.",
+        "subtitle": "Review authentication, approval, and compliance activity.",
         "search_placeholder": "Search by user, email, event...",
         "empty": "No matching records",
         "loading": "Loading data...",
@@ -1206,7 +1206,17 @@
         },
         "fields": {
             "email": "Email",
-            "reason": "Reason"
+            "reason": "Reason",
+            "product_id": "Product ID",
+            "name": "Name",
+            "slug": "Slug",
+            "risk_id": "Risk ID",
+            "title": "Title",
+            "status": "Status",
+            "evidence_id": "Evidence ID",
+            "type": "Type",
+            "task_id": "Task ID",
+            "comment": "Comment"
         },
         "event_types": {
             "login_success": "Successful login",
@@ -1214,7 +1224,19 @@
             "two_factor_challenge_success": "Successful 2FA challenge",
             "two_factor_challenge_failed": "Failed 2FA challenge",
             "task_approved": "Task approved",
-            "task_rejected": "Task rejected"
+            "task_rejected": "Task rejected",
+            "product_created": "Product created",
+            "product_updated": "Product updated",
+            "product_deleted": "Product deleted",
+            "risk_created": "Risk created",
+            "risk_updated": "Risk updated",
+            "risk_deleted": "Risk deleted",
+            "evidence_created": "Evidence created",
+            "evidence_updated": "Evidence updated",
+            "evidence_deleted": "Evidence deleted",
+            "task_created": "Task created",
+            "task_updated": "Task updated",
+            "task_deleted": "Task deleted"
         },
         "event_sources": {
             "workspace": "Workspace",

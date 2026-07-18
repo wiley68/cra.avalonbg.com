@@ -1180,7 +1180,7 @@
     },
     "audit_logs": {
         "title": "Одит",
-        "subtitle": "Преглед на събития за автентикация и сигурност.",
+        "subtitle": "Преглед на автентикация, одобрения и compliance активност.",
         "search_placeholder": "Търсене по потребител, имейл, събитие...",
         "empty": "Няма съвпадащи записи",
         "loading": "Зареждане на данни...",
@@ -1206,7 +1206,17 @@
         },
         "fields": {
             "email": "Имейл",
-            "reason": "Причина"
+            "reason": "Причина",
+            "product_id": "Продукт ID",
+            "name": "Име",
+            "slug": "Slug",
+            "risk_id": "Риск ID",
+            "title": "Заглавие",
+            "status": "Статус",
+            "evidence_id": "Доказателство ID",
+            "type": "Тип",
+            "task_id": "Задача ID",
+            "comment": "Коментар"
         },
         "event_types": {
             "login_success": "Успешен вход",
@@ -1214,7 +1224,19 @@
             "two_factor_challenge_success": "Успешно 2FA предизвикателство",
             "two_factor_challenge_failed": "Неуспешно 2FA предизвикателство",
             "task_approved": "Одобрена задача",
-            "task_rejected": "Отхвърлена задача"
+            "task_rejected": "Отхвърлена задача",
+            "product_created": "Създаден продукт",
+            "product_updated": "Обновен продукт",
+            "product_deleted": "Изтрит продукт",
+            "risk_created": "Създаден риск",
+            "risk_updated": "Обновен риск",
+            "risk_deleted": "Изтрит риск",
+            "evidence_created": "Създадено доказателство",
+            "evidence_updated": "Обновено доказателство",
+            "evidence_deleted": "Изтрито доказателство",
+            "task_created": "Създадена задача",
+            "task_updated": "Обновена задача",
+            "task_deleted": "Изтрита задача"
         },
         "event_sources": {
             "workspace": "Workspace",

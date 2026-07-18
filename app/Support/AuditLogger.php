@@ -5,6 +5,9 @@ namespace App\Support;
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
+use App\Models\Evidence;
+use App\Models\Product;
+use App\Models\ProductRisk;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -99,6 +102,208 @@ class AuditLogger
         );
     }
 
+    public static function logProductCreated(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::ProductCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+                ['field' => 'slug', 'value' => $product->slug],
+            ],
+        );
+    }
+
+    public static function logProductUpdated(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::ProductUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+                ['field' => 'slug', 'value' => $product->slug],
+            ],
+        );
+    }
+
+    public static function logProductDeleted(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::ProductDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+                ['field' => 'slug', 'value' => $product->slug],
+            ],
+        );
+    }
+
+    public static function logRiskCreated(ProductRisk $risk, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::RiskCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $risk->product->organization_id,
+            productId: $risk->product_id,
+            details: [
+                ['field' => 'risk_id', 'value' => (string) $risk->id],
+                ['field' => 'title', 'value' => $risk->title],
+            ],
+        );
+    }
+
+    public static function logRiskUpdated(ProductRisk $risk, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::RiskUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $risk->product->organization_id,
+            productId: $risk->product_id,
+            details: [
+                ['field' => 'risk_id', 'value' => (string) $risk->id],
+                ['field' => 'title', 'value' => $risk->title],
+                ['field' => 'status', 'value' => $risk->status->value],
+            ],
+        );
+    }
+
+    public static function logRiskDeleted(ProductRisk $risk, User $actor): void
+    {
+        $organizationId = $risk->product?->organization_id
+            ?? Product::query()->whereKey($risk->product_id)->value('organization_id');
+
+        self::persist(
+            type: AuditEventType::RiskDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organizationId !== null ? (int) $organizationId : null,
+            productId: $risk->product_id,
+            details: [
+                ['field' => 'risk_id', 'value' => (string) $risk->id],
+                ['field' => 'title', 'value' => $risk->title],
+            ],
+        );
+    }
+
+    public static function logEvidenceCreated(Evidence $evidence, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::EvidenceCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $evidence->organization_id,
+            productId: $evidence->product_id,
+            details: [
+                ['field' => 'evidence_id', 'value' => (string) $evidence->id],
+                ['field' => 'title', 'value' => $evidence->title],
+                ['field' => 'type', 'value' => $evidence->type->value],
+            ],
+        );
+    }
+
+    public static function logEvidenceUpdated(Evidence $evidence, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::EvidenceUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $evidence->organization_id,
+            productId: $evidence->product_id,
+            details: [
+                ['field' => 'evidence_id', 'value' => (string) $evidence->id],
+                ['field' => 'title', 'value' => $evidence->title],
+                ['field' => 'type', 'value' => $evidence->type->value],
+            ],
+        );
+    }
+
+    public static function logEvidenceDeleted(Evidence $evidence, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::EvidenceDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $evidence->organization_id,
+            productId: $evidence->product_id,
+            details: [
+                ['field' => 'evidence_id', 'value' => (string) $evidence->id],
+                ['field' => 'title', 'value' => $evidence->title],
+            ],
+        );
+    }
+
+    public static function logTaskCreated(Task $task, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::TaskCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $task->organization_id,
+            productId: $task->product_id,
+            details: [
+                ['field' => 'task_id', 'value' => (string) $task->id],
+                ['field' => 'title', 'value' => $task->title],
+            ],
+        );
+    }
+
+    public static function logTaskUpdated(Task $task, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::TaskUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $task->organization_id,
+            productId: $task->product_id,
+            details: [
+                ['field' => 'task_id', 'value' => (string) $task->id],
+                ['field' => 'title', 'value' => $task->title],
+                ['field' => 'status', 'value' => $task->status->value],
+            ],
+        );
+    }
+
+    public static function logTaskDeleted(Task $task, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::TaskDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $task->organization_id,
+            productId: $task->product_id,
+            details: [
+                ['field' => 'task_id', 'value' => (string) $task->id],
+                ['field' => 'title', 'value' => $task->title],
+            ],
+        );
+    }
+
     public static function logTaskApproved(Task $task, User $actor, ?string $comment = null): void
     {
         self::persist(
@@ -106,6 +311,8 @@ class AuditLogger
             success: true,
             source: self::resolveSource(),
             actor: $actor,
+            organizationId: $task->organization_id,
+            productId: $task->product_id,
             details: [
                 ['field' => 'task_id', 'value' => (string) $task->id],
                 ['field' => 'product_id', 'value' => (string) $task->product_id],
@@ -122,6 +329,8 @@ class AuditLogger
             success: true,
             source: self::resolveSource(),
             actor: $actor,
+            organizationId: $task->organization_id,
+            productId: $task->product_id,
             details: [
                 ['field' => 'task_id', 'value' => (string) $task->id],
                 ['field' => 'product_id', 'value' => (string) $task->product_id],
@@ -141,6 +350,8 @@ class AuditLogger
         ?User $actor = null,
         ?string $email = null,
         ?string $name = null,
+        ?int $organizationId = null,
+        ?int $productId = null,
         array $details = [],
     ): void {
         $resolvedActor = $actor ?? (Auth::user() instanceof User ? Auth::user() : null);
@@ -150,6 +361,8 @@ class AuditLogger
             'event_type' => $type,
             'event_source' => $source,
             'is_success' => $success,
+            'organization_id' => $organizationId,
+            'product_id' => $productId,
             'user_id' => $resolvedActor?->id,
             'user_email' => $email ?? $resolvedActor?->email ?? '—',
             'user_name' => $name ?? $resolvedActor?->name ?? '—',

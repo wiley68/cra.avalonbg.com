@@ -11,11 +11,13 @@ use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\User;
+use App\Support\AuditLogger;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -128,7 +130,7 @@ class EvidenceService
         array $riskIds,
         array $vulnerabilityIds,
     ): Evidence {
-        return DB::transaction(function () use ($product, $attributes, $file, $uploader, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
+        $evidence = DB::transaction(function () use ($product, $attributes, $file, $uploader, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
             $this->assertLinksBelongToProduct($product, $controlIds, $riskIds, $vulnerabilityIds);
             $this->assertSupersedesBelongsToProduct($product, $attributes['supersedes_evidence_id'] ?? null);
 
@@ -160,6 +162,10 @@ class EvidenceService
 
             return $evidence->load(['owner', 'productVersion', 'requirements', 'controls', 'risks', 'vulnerabilities']);
         });
+
+        AuditLogger::logEvidenceCreated($evidence, $uploader);
+
+        return $evidence;
     }
 
     /**
@@ -178,7 +184,7 @@ class EvidenceService
         array $riskIds,
         array $vulnerabilityIds,
     ): Evidence {
-        return DB::transaction(function () use ($evidence, $attributes, $file, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
+        $evidence = DB::transaction(function () use ($evidence, $attributes, $file, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
             $this->assertLinksBelongToProduct(
                 $evidence->product,
                 $controlIds,
@@ -219,10 +225,22 @@ class EvidenceService
 
             return $evidence->fresh(['owner', 'productVersion', 'requirements', 'controls', 'risks', 'vulnerabilities']);
         });
+
+        $actor = Auth::user();
+        if ($actor instanceof User) {
+            AuditLogger::logEvidenceUpdated($evidence, $actor);
+        }
+
+        return $evidence;
     }
 
     public function delete(Evidence $evidence): void
     {
+        $actor = Auth::user();
+        if ($actor instanceof User) {
+            AuditLogger::logEvidenceDeleted($evidence, $actor);
+        }
+
         if ($evidence->storage_path) {
             Storage::disk('local')->delete($evidence->storage_path);
         }

@@ -4,7 +4,7 @@ use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
 use App\Http\Controllers\Admin\RequirementController as AdminRequirementController;
-use App\Http\Controllers\Api\Admin\AuditLogApiController;
+use App\Http\Controllers\Api\Admin\AuditLogApiController as AdminAuditLogApiController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\Admin\RequirementApiController;
@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\EvidenceApiController;
+use App\Http\Controllers\Api\AuditLogApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\EvidenceController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +58,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
 
         Route::resource('controls', ControlController::class)->except(['show']);
+
+        Route::get('audit-logs', [AuditLogController::class, 'index'])
+            ->name('audit-logs.index');
 
         Route::resource('products', ProductController::class)->except(['show']);
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
@@ -138,6 +143,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.evidence.index');
             Route::get('products/{product}/tasks', [TaskApiController::class, 'index'])
                 ->name('products.tasks.index');
+            Route::get('audit-logs', [AuditLogApiController::class, 'index'])
+                ->name('audit-logs.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
@@ -164,7 +171,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('requirements', [RequirementApiController::class, 'index'])
                     ->name('requirements.index');
 
-                Route::get('audit-logs', [AuditLogApiController::class, 'index'])
+                Route::get('audit-logs', [AdminAuditLogApiController::class, 'index'])
                     ->name('audit-logs.index');
             });
         });
