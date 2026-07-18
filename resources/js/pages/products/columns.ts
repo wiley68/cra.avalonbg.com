@@ -7,6 +7,7 @@ import {
     ClipboardCheck,
     FileCheck,
     GitBranch,
+    IdCard,
     ListChecks,
     Pencil,
     Shield,
@@ -18,15 +19,16 @@ import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { edit as editProduct } from '@/routes/products';
-import { show as productReadinessShow } from '@/routes/products/readiness';
-import { index as requirementsIndex } from '@/routes/products/requirements';
-import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
+import { show as productReadinessShow } from '@/routes/products/readiness';
+import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as productTasksIndex } from '@/routes/products/tasks';
+import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
+import { show as productPassportShow } from '@/routes/products/passport';
 
 export type ProductListItem = {
     id: number;
@@ -233,6 +235,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productTasksIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.passport_link'),
+                        icon: IdCard,
+                        onSelect: () => {
+                            router.visit(
+                                productPassportShow(row.original.id).url,
                             );
                         },
                     },

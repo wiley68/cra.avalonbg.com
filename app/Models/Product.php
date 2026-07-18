@@ -98,6 +98,11 @@ class Product extends Model
         return $this->hasMany(ProductVersion::class);
     }
 
+    public function supportPeriods(): HasMany
+    {
+        return $this->hasMany(ProductSupportPeriod::class);
+    }
+
     public function scopeAssessments(): HasMany
     {
         return $this->hasMany(ProductScopeAssessment::class);

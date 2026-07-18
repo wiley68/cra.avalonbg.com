@@ -26,6 +26,7 @@ enum AuditEventType: string
     case TaskDeleted = 'task_deleted';
     case ReadinessReportViewed = 'readiness_report_viewed';
     case ReadinessReportExported = 'readiness_report_exported';
+    case CompliancePassportViewed = 'compliance_passport_viewed';
     case ReportingDraftUpdated = 'reporting_draft_updated';
     case ReportingSubmittedForApproval = 'reporting_submitted_for_approval';
     case ReportingApproved = 'reporting_approved';

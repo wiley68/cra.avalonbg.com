@@ -1,8 +1,30 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { AlertTriangle, CheckCircle2, Info, Package } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { dashboard } from '@/routes';
+import { dashboard as dashboardRoute } from '@/routes';
+import { index as organizationsIndex } from '@/routes/admin/organizations';
+import { index as productsIndex } from '@/routes/products';
+
+type DashboardAction = {
+    key: string;
+    severity: 'info' | 'warn' | 'fail';
+    title_key: string;
+    count: number;
+    href: string | null;
+};
+
+type DashboardPayload = {
+    mode: 'platform' | 'organization' | 'empty';
+    organization: { id: number; name: string; slug: string } | null;
+    counts: Record<string, number>;
+    actions: DashboardAction[];
+};
+
+defineProps<{
+    dashboard: DashboardPayload;
+}>();
 
 const { t } = useTranslations();
 
@@ -11,38 +33,160 @@ defineOptions({
         breadcrumbs: [
             {
                 title: 'Dashboard',
-                href: dashboard(),
+                href: dashboardRoute(),
             },
         ],
     },
 });
+
+const severityClass = (severity: string): string => {
+    if (severity === 'fail') {
+        return 'border-red-200 bg-red-50 text-red-900 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100';
+    }
+
+    if (severity === 'warn') {
+        return 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100';
+    }
+
+    return 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-100';
+};
 </script>
 
 <template>
     <Head :title="t('dashboard.title')" />
 
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+    <div class="space-y-6">
+        <div>
+            <h1 class="text-xl font-semibold">{{ t('dashboard.title') }}</h1>
+            <p class="text-sm text-muted-foreground">
+                <template v-if="dashboard.mode === 'organization'">
+                    {{ dashboard.organization?.name }} —
+                    {{ t('dashboard.subtitle_org') }}
+                </template>
+                <template v-else-if="dashboard.mode === 'platform'">
+                    {{ t('dashboard.subtitle_platform') }}
+                </template>
+                <template v-else>
+                    {{ t('dashboard.subtitle_empty') }}
+                </template>
+            </p>
+        </div>
+
+        <div
+            v-if="dashboard.mode === 'organization'"
+            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.products') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.products ?? 0 }}
+                </p>
             </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.critical_vulnerabilities') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.critical_vulnerabilities ?? 0 }}
+                </p>
             </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.expired_evidence') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.expired_evidence ?? 0 }}
+                </p>
+            </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.open_tasks') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.open_tasks ?? 0 }}
+                </p>
             </div>
         </div>
-        <div
-            class="relative min-h-screen flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
+
+        <div class="space-y-3">
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="text-lg font-medium">
+                    {{ t('dashboard.actions_title') }}
+                </h2>
+                <Button
+                    v-if="dashboard.mode === 'organization'"
+                    as-child
+                    variant="outline"
+                >
+                    <Link :href="productsIndex()">
+                        <Package class="h-4 w-4" />
+                        {{ t('nav.products') }}
+                    </Link>
+                </Button>
+                <Button
+                    v-else-if="dashboard.mode === 'platform'"
+                    as-child
+                    variant="outline"
+                >
+                    <Link :href="organizationsIndex()">
+                        {{ t('nav.organizations') }}
+                    </Link>
+                </Button>
+            </div>
+
+            <div
+                v-if="dashboard.actions.length === 0"
+                class="flex items-start gap-3 rounded-lg border p-4 text-sm"
+            >
+                <CheckCircle2
+                    class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
+                />
+                <div>
+                    <p class="font-medium">
+                        {{ t('dashboard.all_clear_title') }}
+                    </p>
+                    <p class="text-muted-foreground">
+                        {{ t('dashboard.all_clear_body') }}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                v-for="action in dashboard.actions"
+                :key="action.key"
+                class="flex items-center justify-between gap-4 rounded-lg border p-4"
+                :class="severityClass(action.severity)"
+            >
+                <div class="flex items-start gap-3">
+                    <AlertTriangle
+                        v-if="action.severity !== 'info'"
+                        class="mt-0.5 h-5 w-5 shrink-0"
+                    />
+                    <Info v-else class="mt-0.5 h-5 w-5 shrink-0" />
+                    <div>
+                        <p class="font-medium">
+                            {{ t(action.title_key) }}
+                        </p>
+                        <p class="text-sm opacity-80">
+                            {{
+                                t('dashboard.count_label', {
+                                    count: String(action.count),
+                                })
+                            }}
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    v-if="action.href"
+                    as-child
+                    size="sm"
+                    variant="secondary"
+                >
+                    <Link :href="action.href">{{ t('dashboard.open') }}</Link>
+                </Button>
+            </div>
         </div>
     </div>
 </template>

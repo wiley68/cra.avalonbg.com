@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, FileDown } from '@lucide/vue';
+import { ArrowLeft, FileDown, IdCard } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
-import { exportMethod as readinessExport } from '@/routes/products/readiness';
-import { index as requirementsIndex } from '@/routes/products/requirements';
-import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
+import { exportMethod as readinessExport } from '@/routes/products/readiness';
+import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as productTasksIndex } from '@/routes/products/tasks';
+import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
+import { show as passportShow } from '@/routes/products/passport';
+import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -99,6 +101,8 @@ const resolveLink = (link: string | null): string | null => {
             return editProduct(id).url;
         case 'versions':
             return versionsIndex(id).url;
+        case 'support-periods':
+            return supportPeriodsIndex(id).url;
         case 'requirements':
             return requirementsIndex(id).url;
         case 'controls':
@@ -150,6 +154,12 @@ const exportUrl = computed(() => readinessExport(props.product.id).url);
                     <Link :href="productsIndex()">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="passportShow(props.product.id)">
+                        <IdCard class="h-4 w-4" />
+                        {{ t('products.passport_link') }}
                     </Link>
                 </Button>
                 <Button as-child variant="outline">

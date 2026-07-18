@@ -8,7 +8,9 @@ use App\Http\Controllers\Api\Admin\AuditLogApiController as AdminAuditLogApiCont
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\Admin\RequirementApiController;
+use App\Http\Controllers\Api\AuditLogApiController;
 use App\Http\Controllers\Api\ControlApiController;
+use App\Http\Controllers\Api\EvidenceApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductComponentApiController;
 use App\Http\Controllers\Api\ProductControlApiController;
@@ -16,29 +18,30 @@ use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
-use App\Http\Controllers\Api\EvidenceApiController;
-use App\Http\Controllers\Api\AuditLogApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProductClassificationController;
+use App\Http\Controllers\ProductCompliancePassportController;
 use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductReadinessController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
+use App\Http\Controllers\ProductSupportPeriodController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVulnerabilityController;
-use App\Http\Controllers\VulnerabilityReportingController;
-use App\Http\Controllers\EvidenceController;
-use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\ProductReadinessController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VulnerabilityReportingController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -55,7 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['password.changed', 'two-factor.enabled'])->group(function () {
-        Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::resource('users', UserController::class)->except(['show']);
 
@@ -83,6 +86,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.requirements.edit');
         Route::put('products/{product}/requirements/{requirement}', [ProductRequirementController::class, 'update'])
             ->name('products.requirements.update');
+        Route::get('products/{product}/passport', [ProductCompliancePassportController::class, 'show'])
+            ->name('products.passport.show');
         Route::get('products/{product}/readiness', [ProductReadinessController::class, 'show'])
             ->name('products.readiness.show');
         Route::get('products/{product}/readiness/export', [ProductReadinessController::class, 'export'])
@@ -156,6 +161,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
+            ->scoped();
+        Route::resource('products.support-periods', ProductSupportPeriodController::class)
+            ->except(['show'])
+            ->parameters(['support-periods' => 'support_period'])
             ->scoped();
 
         Route::prefix('internal-api')->name('internal.')->group(function () {

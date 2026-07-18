@@ -15,7 +15,7 @@ test('platform admin seeder creates configured admin without organization', func
     ]);
 
     $admin = User::query()
-        ->where('email', 'ilko@avalonbg.com')
+        ->where('email', 'platform_admin@avalonbg.com')
         ->first();
 
     expect($admin)->not->toBeNull();

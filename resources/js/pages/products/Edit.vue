@@ -2,8 +2,10 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    CalendarRange,
     ClipboardList,
     GitBranch,
+    IdCard,
     ListChecks,
     Save,
     Tags,
@@ -22,6 +24,8 @@ import { useTranslations } from '@/composables/useTranslations';
 import { destroy, index as productsIndex, update } from '@/routes/products';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
+import { show as passportShow } from '@/routes/products/passport';
+import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 
 type Member = {
     id: number;
@@ -199,6 +203,18 @@ const textareaClass =
                     <Link :href="versionsIndex(props.product.id)">
                         <GitBranch class="h-4 w-4" />
                         {{ t('products.versions_link') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="supportPeriodsIndex(props.product.id)">
+                        <CalendarRange class="h-4 w-4" />
+                        {{ t('products.support_periods_link') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="passportShow(props.product.id)">
+                        <IdCard class="h-4 w-4" />
+                        {{ t('products.passport_link') }}
                     </Link>
                 </Button>
                 <Button as-child variant="outline">

@@ -373,6 +373,22 @@ class AuditLogger
         );
     }
 
+    public static function logCompliancePassportViewed(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::CompliancePassportViewed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+            ],
+        );
+    }
+
     public static function logReportingDraftUpdated(
         ProductVulnerability $vulnerability,
         User $actor,

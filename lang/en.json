@@ -300,6 +300,7 @@
         "confirm_delete": "Delete this product and all its versions permanently?",
         "search_placeholder": "Search by name, slug, type or status...",
         "versions_link": "Versions",
+        "support_periods_link": "Support periods",
         "requirements_link": "Requirements",
         "controls_link": "Controls",
         "risks_link": "Risks",
@@ -308,6 +309,20 @@
         "evidence_link": "Evidence",
         "tasks_link": "Tasks",
         "readiness_link": "Readiness",
+        "passport_link": "Compliance passport",
+        "passport": {
+            "title": "Product Compliance Passport",
+            "subtitle": "Single-page CRA readiness overview for this product",
+            "disclaimer": "This passport summarises process status and evidence. It does not constitute automatic or legally guaranteed CRA conformity.",
+            "identity_title": "Identification",
+            "versions_title": "Versions",
+            "support_title": "Support periods",
+            "people_title": "Responsible persons",
+            "sections_title": "Passport coverage",
+            "scope": "CRA applicability",
+            "classification": "Classification",
+            "empty": "Not set"
+        },
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -458,6 +473,46 @@
                 "support_status": "Support",
                 "release_date": "Released",
                 "security_support_deadline": "Security until"
+            }
+        },
+        "support_periods": {
+            "index_title": "Support periods",
+            "title": "Support periods",
+            "subtitle": "Commercial and security support windows for this product",
+            "create": "Add period",
+            "create_title": "Create support period",
+            "edit_title": "Edit support period",
+            "created": "Support period created.",
+            "updated": "Support period updated.",
+            "deleted": "Support period deleted.",
+            "confirm_delete": "Delete this support period?",
+            "empty": "No structured support periods yet.",
+            "no_versions": "Create product versions first to link them here.",
+            "active": "Active",
+            "inactive": "Inactive",
+            "extended": "Extended",
+            "ending_soon": ":days days left",
+            "types": {
+                "commercial": "Commercial support",
+                "security": "Security support"
+            },
+            "fields": {
+                "type": "Type",
+                "starts_at": "Start date",
+                "ends_at": "End date",
+                "basis": "Basis for determination",
+                "is_extended": "Extended support",
+                "exceptions_notes": "Customer exceptions",
+                "versions": "Supported versions",
+                "status": "Status"
+            },
+            "help": {
+                "type": "Commercial vs security support window for CRA planning.",
+                "starts_at": "First day this support commitment applies.",
+                "ends_at": "Last day of this support commitment.",
+                "basis": "How the support end date was determined (contract, policy, release plan).",
+                "exceptions_notes": "Optional notes about customer-specific exceptions.",
+                "versions": "Product versions covered by this support period."
             }
         },
         "scope_wizard": {
@@ -1227,7 +1282,7 @@
         },
         "readiness": {
             "title": "Readiness report",
-            "subtitle": "Product compliance passport and gap checklist",
+            "subtitle": "Gap checklist and detailed readiness sections",
             "export": "Export PDF",
             "pdf": {
                 "section": "Section",
@@ -1295,8 +1350,8 @@
                     "ok": "At least one non-draft version exists."
                 },
                 "support": {
-                    "documented": "Support period is documented.",
-                    "partial": "Support documented, but some unsupported versions lack deadlines.",
+                    "documented": "Structured support periods are in place.",
+                    "partial": "Support periods need attention (ending soon or incomplete).",
                     "missing": "Support period is not documented."
                 },
                 "requirements": {
@@ -1360,7 +1415,8 @@
                 "versions": "Add at least one product version.",
                 "versions_draft": "Move a version beyond draft state.",
                 "support": "Document the product support period.",
-                "support_partial": "Add deadlines for unsupported versions.",
+                "support_partial": "Review support periods ending soon or unsupported versions without deadlines.",
+                "support_periods_missing": "Add structured commercial and security support periods.",
                 "requirements": "Assess CRA requirements for this product.",
                 "requirements_partial": "Finish assessing remaining requirements.",
                 "controls": "Assign organization controls to this product.",
@@ -1486,7 +1542,8 @@
             "task_updated": "Task updated",
             "task_deleted": "Task deleted",
             "readiness_report_viewed": "Readiness report viewed",
-            "readiness_report_exported": "Readiness report exported"
+            "readiness_report_exported": "Readiness report exported",
+            "compliance_passport_viewed": "Compliance passport viewed"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -1498,7 +1555,32 @@
         }
     },
     "dashboard": {
-        "title": "Dashboard"
+        "title": "Dashboard",
+        "subtitle_org": "Action items for your organization",
+        "subtitle_platform": "Platform overview — create and manage organizations",
+        "subtitle_empty": "No organization membership yet",
+        "actions_title": "Actions needed",
+        "all_clear_title": "No urgent actions",
+        "all_clear_body": "Products look healthy based on current checks.",
+        "open": "Open",
+        "count_label": ":count items",
+        "counts": {
+            "products": "Products",
+            "critical_vulnerabilities": "Critical vulnerabilities",
+            "expired_evidence": "Expired evidence",
+            "open_tasks": "Open tasks"
+        },
+        "actions": {
+            "manage_organizations": "Manage organizations",
+            "unclassified_products": "Products without classification",
+            "products_without_support": "Products without support periods",
+            "products_without_risks": "Products without risk assessments",
+            "critical_vulnerabilities": "Open critical vulnerabilities",
+            "support_ending_soon": "Support periods ending within 90 days",
+            "expired_evidence": "Expired evidence records",
+            "open_tasks": "Open corrective tasks",
+            "overdue_reporting": "Overdue vulnerability reporting deadlines"
+        }
     },
     "settings": {
         "password_updated": "Password updated.",

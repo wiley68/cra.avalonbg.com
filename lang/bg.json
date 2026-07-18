@@ -308,6 +308,20 @@
         "evidence_link": "Доказателства",
         "tasks_link": "Задачи",
         "readiness_link": "Готовност",
+        "passport_link": "Compliance паспорт",
+        "passport": {
+            "title": "Product Compliance Passport",
+            "subtitle": "Една страница с преглед на CRA готовността за този продукт",
+            "disclaimer": "Този паспорт обобщава статус на процеси и доказателства. Не представлява автоматична или правно гарантирана CRA съответност.",
+            "identity_title": "Идентификация",
+            "versions_title": "Версии",
+            "support_title": "Периоди на поддръжка",
+            "people_title": "Отговорни лица",
+            "sections_title": "Покритие на паспорта",
+            "scope": "Приложимост на CRA",
+            "classification": "Класификация",
+            "empty": "Не е зададено"
+        },
         "sections": {
             "identity": "Идентификация",
             "technical": "Технически данни",
@@ -458,6 +472,46 @@
                 "support_status": "Поддръжка",
                 "release_date": "Released",
                 "security_support_deadline": "Security до"
+            }
+        },
+        "support_periods": {
+            "index_title": "Периоди на поддръжка",
+            "title": "Периоди на поддръжка",
+            "subtitle": "Търговски и security периоди на поддръжка за продукта",
+            "create": "Добави период",
+            "create_title": "Създай период на поддръжка",
+            "edit_title": "Редакция на период на поддръжка",
+            "created": "Периодът на поддръжка е създаден.",
+            "updated": "Периодът на поддръжка е обновен.",
+            "deleted": "Периодът на поддръжка е изтрит.",
+            "confirm_delete": "Да се изтрие ли този период на поддръжка?",
+            "empty": "Все още няма структурирани периоди на поддръжка.",
+            "no_versions": "Първо създайте версии, за да ги свържете тук.",
+            "active": "Активен",
+            "inactive": "Неактивен",
+            "extended": "Удължен",
+            "ending_soon": "Остават :days дни",
+            "types": {
+                "commercial": "Търговска поддръжка",
+                "security": "Security поддръжка"
+            },
+            "fields": {
+                "type": "Тип",
+                "starts_at": "Начална дата",
+                "ends_at": "Крайна дата",
+                "basis": "Основание",
+                "is_extended": "Удължена поддръжка",
+                "exceptions_notes": "Изключения за клиенти",
+                "versions": "Поддържани версии",
+                "status": "Статус"
+            },
+            "help": {
+                "type": "Търговски спрямо security период на поддръжка за CRA планиране.",
+                "starts_at": "Първият ден, в който важи този ангажимент за поддръжка.",
+                "ends_at": "Последният ден на този ангажимент за поддръжка.",
+                "basis": "Как е определена крайната дата (договор, политика, release план).",
+                "exceptions_notes": "Опционални бележки за клиентски изключения.",
+                "versions": "Версии на продукта, покрити от този период."
             }
         },
         "scope_wizard": {
@@ -1227,7 +1281,7 @@
         },
         "readiness": {
             "title": "Отчет за готовност",
-            "subtitle": "Product compliance passport и списък с пропуски",
+            "subtitle": "Списък с пропуски и детайлни секции за готовност",
             "export": "Експорт PDF",
             "pdf": {
                 "section": "Секция",
@@ -1295,8 +1349,8 @@
                     "ok": "Има поне една версия извън draft."
                 },
                 "support": {
-                    "documented": "Периодът на поддръжка е документиран.",
-                    "partial": "Поддръжката е документирана, но някои unsupported версии нямат срокове.",
+                    "documented": "Има структурирани периоди на поддръжка.",
+                    "partial": "Периодите на поддръжка изискват внимание.",
                     "missing": "Периодът на поддръжка не е документиран."
                 },
                 "requirements": {
@@ -1360,7 +1414,7 @@
                 "versions": "Добавете поне една версия на продукта.",
                 "versions_draft": "Преместете версия извън draft състояние.",
                 "support": "Документирайте периода на поддръжка.",
-                "support_partial": "Добавете срокове за unsupported версии.",
+                "support_partial": "Прегледайте периоди, които приключват скоро, или версии без срокове.",
                 "requirements": "Оценете CRA изискванията за продукта.",
                 "requirements_partial": "Довършете оценката на останалите изисквания.",
                 "controls": "Назначете организационни контроли към продукта.",
@@ -1375,7 +1429,8 @@
                 "evidence_review": "Прегледайте доказателствата с дължим преглед.",
                 "tasks_overdue": "Завършете просрочените коригиращи задачи.",
                 "responsible_persons": "Назначете продуктов собственик или security контакт.",
-                "reporting": "Прегледайте сроковете за докладване на уязвимости."
+                "reporting": "Прегледайте сроковете за докладване на уязвимости.",
+                "support_periods_missing": "Добавете структурирани търговски и security периоди на поддръжка."
             }
         },
         "requirements": {
@@ -1424,7 +1479,8 @@
                 "non_conformity": "Несъответствие",
                 "exception_approved": "Одобрено изключение"
             }
-        }
+        },
+        "support_periods_link": "Периоди на поддръжка"
     },
     "audit_logs": {
         "title": "Одит",
@@ -1487,6 +1543,7 @@
             "task_deleted": "Изтрита задача",
             "readiness_report_viewed": "Прегледан readiness отчет",
             "readiness_report_exported": "Експортиран readiness отчет",
+            "compliance_passport_viewed": "Прегледан compliance паспорт",
             "reporting_draft_updated": "Обновена reporting чернова",
             "reporting_submitted_for_approval": "Reporting изпратен за одобрение",
             "reporting_approved": "Reporting одобрен",
@@ -1505,7 +1562,32 @@
         }
     },
     "dashboard": {
-        "title": "Табло"
+        "title": "Табло",
+        "subtitle_org": "Действия за вашата организация",
+        "subtitle_platform": "Преглед на платформата — създавайте и управлявайте организации",
+        "subtitle_empty": "Все още нямате членство в организация",
+        "actions_title": "Необходими действия",
+        "all_clear_title": "Няма спешни действия",
+        "all_clear_body": "Продуктите изглеждат в добър ред според текущите проверки.",
+        "open": "Отвори",
+        "count_label": ":count елемента",
+        "counts": {
+            "products": "Продукти",
+            "critical_vulnerabilities": "Критични уязвимости",
+            "expired_evidence": "Изтекли доказателства",
+            "open_tasks": "Отворени задачи"
+        },
+        "actions": {
+            "manage_organizations": "Управление на организации",
+            "unclassified_products": "Продукти без класификация",
+            "products_without_support": "Продукти без периоди на поддръжка",
+            "products_without_risks": "Продукти без оценка на риска",
+            "critical_vulnerabilities": "Отворени критични уязвимости",
+            "support_ending_soon": "Периоди на поддръжка, приключващи до 90 дни",
+            "expired_evidence": "Изтекли доказателства",
+            "open_tasks": "Отворени коригиращи задачи",
+            "overdue_reporting": "Просрочени срокове за докладване на уязвимости"
+        }
     },
     "settings": {
         "password_updated": "Паролата е обновена.",
