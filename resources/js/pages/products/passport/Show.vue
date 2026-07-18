@@ -5,7 +5,8 @@ import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { edit as editProduct } from '@/routes/products';
 import {
     exportMethod as readinessExport,
     show as readinessShow,
@@ -67,6 +68,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useProductModuleBack(props.product.id);
 
 const statusVariant = (
     status: ReadinessSection['status'],
@@ -139,7 +141,7 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
 
             <div class="flex flex-wrap items-center gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="productsIndex()">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>

@@ -470,7 +470,7 @@ const confirm = () => {
                     <textarea
                         id="classification_wizard_rationale"
                         v-model="form.rationale"
-                        rows="5"
+                        rows="6"
                         class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     />
                     <InputError :message="form.errors.rationale" />

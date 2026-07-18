@@ -2,30 +2,46 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    Boxes,
+    Bug,
     CalendarRange,
+    CheckSquare,
+    ClipboardCheck,
     ClipboardList,
+    FileCheck,
     GitBranch,
     IdCard,
     ListChecks,
     Save,
+    Shield,
+    ShieldAlert,
     Tags,
     Trash2,
 } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
+import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import { destroy, index as productsIndex, update } from '@/routes/products';
+import { index as productComponentsIndex } from '@/routes/products/components';
+import { index as productControlsIndex } from '@/routes/products/controls';
+import { index as productEvidenceIndex } from '@/routes/products/evidence';
+import { show as productPassportShow } from '@/routes/products/passport';
+import { show as productReadinessShow } from '@/routes/products/readiness';
 import { index as requirementsIndex } from '@/routes/products/requirements';
-import { index as versionsIndex } from '@/routes/products/versions';
-import { show as passportShow } from '@/routes/products/passport';
+import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
+import { index as productTasksIndex } from '@/routes/products/tasks';
+import { index as versionsIndex } from '@/routes/products/versions';
+import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
 type Member = {
     id: number;
@@ -112,6 +128,72 @@ const showDeleteDialog = ref(false);
 const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 
+const moduleActions = computed(() => {
+    const productId = props.product.id;
+    const go = (url: string): void => {
+        setProductModuleOrigin(productId, 'edit');
+        router.visit(url);
+    };
+
+    return [
+        {
+            label: t('products.versions_link'),
+            icon: GitBranch,
+            onSelect: () => go(versionsIndex(productId).url),
+        },
+        {
+            label: t('products.support_periods_link'),
+            icon: CalendarRange,
+            onSelect: () => go(supportPeriodsIndex(productId).url),
+        },
+        {
+            label: t('products.requirements_link'),
+            icon: ListChecks,
+            onSelect: () => go(requirementsIndex(productId).url),
+        },
+        {
+            label: t('products.controls_link'),
+            icon: Shield,
+            onSelect: () => go(productControlsIndex(productId).url),
+        },
+        {
+            label: t('products.risks_link'),
+            icon: ShieldAlert,
+            onSelect: () => go(productRisksIndex(productId).url),
+        },
+        {
+            label: t('products.components_link'),
+            icon: Boxes,
+            onSelect: () => go(productComponentsIndex(productId).url),
+        },
+        {
+            label: t('products.vulnerabilities_link'),
+            icon: Bug,
+            onSelect: () => go(productVulnerabilitiesIndex(productId).url),
+        },
+        {
+            label: t('products.evidence_link'),
+            icon: FileCheck,
+            onSelect: () => go(productEvidenceIndex(productId).url),
+        },
+        {
+            label: t('products.tasks_link'),
+            icon: CheckSquare,
+            onSelect: () => go(productTasksIndex(productId).url),
+        },
+        {
+            label: t('products.passport_link'),
+            icon: IdCard,
+            onSelect: () => go(productPassportShow(productId).url),
+        },
+        {
+            label: t('products.readiness_link'),
+            icon: ClipboardCheck,
+            onSelect: () => go(productReadinessShow(productId).url),
+        },
+    ];
+});
+
 const form = useForm({
     name: props.product.name,
     slug: props.product.slug,
@@ -190,39 +272,21 @@ const textareaClass =
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
         <div class="flex items-center justify-between gap-3">
-            <div>
+            <div class="min-w-0">
                 <p class="text-sm text-muted-foreground">
                     {{ props.organization.name }}
                 </p>
-                <h1 class="text-xl font-semibold">
+                <h1 class="text-xl font-semibold whitespace-nowrap">
                     {{ t('products.edit_title') }}
                 </h1>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="versionsIndex(props.product.id)">
-                        <GitBranch class="h-4 w-4" />
-                        {{ t('products.versions_link') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="supportPeriodsIndex(props.product.id)">
-                        <CalendarRange class="h-4 w-4" />
-                        {{ t('products.support_periods_link') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="passportShow(props.product.id)">
-                        <IdCard class="h-4 w-4" />
-                        {{ t('products.passport_link') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="requirementsIndex(props.product.id)">
-                        <ListChecks class="h-4 w-4" />
-                        {{ t('products.requirements_link') }}
-                    </Link>
-                </Button>
+            <div class="flex items-center gap-2">
+                <TableRowActionsMenu
+                    :actions="moduleActions"
+                    :label="t('common.manage')"
+                    :trigger-text="t('common.manage')"
+                    trigger-variant="outline"
+                />
                 <Button as-child variant="outline">
                     <Link :href="productsIndex()">
                         <ArrowLeft class="h-4 w-4" />
@@ -293,7 +357,7 @@ const textareaClass =
                         <textarea
                             id="intended_purpose"
                             v-model="form.intended_purpose"
-                            rows="2"
+                            rows="6"
                             :class="textareaClass"
                         />
                         <InputError :message="form.errors.intended_purpose" />
@@ -547,7 +611,7 @@ const textareaClass =
                         <textarea
                             id="scope_rationale"
                             v-model="form.scope_rationale"
-                            rows="3"
+                            rows="6"
                             :class="textareaClass"
                         />
                         <InputError :message="form.errors.scope_rationale" />
@@ -660,7 +724,7 @@ const textareaClass =
                         <textarea
                             id="classification_rationale"
                             v-model="form.classification_rationale"
-                            rows="3"
+                            rows="6"
                             :class="textareaClass"
                         />
                         <InputError

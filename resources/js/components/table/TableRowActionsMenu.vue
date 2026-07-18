@@ -17,51 +17,75 @@ export type TableRowAction = {
     icon?: Component;
     onSelect: () => void;
     variant?: 'default' | 'destructive';
+    separatorAfter?: boolean;
 };
 
 const props = withDefaults(
     defineProps<{
         actions: TableRowAction[];
         label?: string;
+        triggerText?: string;
+        triggerVariant?:
+            | 'default'
+            | 'destructive'
+            | 'outline'
+            | 'secondary'
+            | 'ghost'
+            | 'link';
     }>(),
     {
         label: undefined,
+        triggerText: undefined,
+        triggerVariant: 'ghost',
     },
 );
 
 const { t } = useTranslations();
 
 const menuLabel = computed(() => props.label ?? t('common.manage'));
+const showTextTrigger = computed(() => Boolean(props.triggerText));
 </script>
 
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <Button
-                variant="ghost"
-                class="h-8 w-8 p-0 text-base leading-none"
+                :variant="
+                    showTextTrigger
+                        ? (props.triggerVariant ?? 'outline')
+                        : 'ghost'
+                "
+                :class="
+                    showTextTrigger
+                        ? 'inline-flex items-center gap-2'
+                        : 'h-8 w-8 p-0 text-base leading-none'
+                "
                 type="button"
                 :aria-label="menuLabel"
             >
-                ...
+                <template v-if="showTextTrigger">{{
+                    props.triggerText
+                }}</template>
+                <template v-else>...</template>
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             <DropdownMenuLabel>{{ menuLabel }}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-                v-for="action in actions"
-                :key="action.label"
-                :variant="action.variant"
-                @click="action.onSelect"
-            >
-                <component
-                    :is="action.icon"
-                    v-if="action.icon"
-                    class="mr-2 h-4 w-4"
-                />
-                {{ action.label }}
-            </DropdownMenuItem>
+            <template v-for="action in actions" :key="action.label">
+                <DropdownMenuItem
+                    :variant="action.variant"
+                    @click="action.onSelect"
+                >
+                    <component
+                        :is="action.icon"
+                        v-if="action.icon"
+                        class="mr-2 h-4 w-4"
+                    />
+                    {{ action.label }}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator v-if="action.separatorAfter" />
+            </template>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

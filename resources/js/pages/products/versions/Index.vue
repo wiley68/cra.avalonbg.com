@@ -9,8 +9,8 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { index as versionsApiIndex } from '@/routes/internal/products/versions';
-import { index as productsIndex } from '@/routes/products';
 import { create, destroy } from '@/routes/products/versions';
 import {
     createProductVersionColumnTitleMap,
@@ -37,6 +37,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);
 const versionToDelete = ref<number | null>(null);
@@ -160,7 +161,7 @@ onMounted(() => {
 
             <div class="flex flex-wrap items-center gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="productsIndex()">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>

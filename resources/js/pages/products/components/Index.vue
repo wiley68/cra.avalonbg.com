@@ -10,7 +10,7 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
-import { index as productsIndex } from '@/routes/products';
+import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import {
     createProductComponentColumnTitleMap,
     createProductComponentColumns,
@@ -48,6 +48,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);
 const componentToDelete = ref<number | null>(null);
@@ -193,7 +194,7 @@ onMounted(() => {
 
             <div class="flex items-center gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="productsIndex()">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>

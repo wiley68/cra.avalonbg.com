@@ -400,7 +400,7 @@
             "slug": "URL-safe identifier unique within the organization. Leave empty to generate from the name.",
             "product_line": "Optional grouping for related products (e.g. a suite or family).",
             "description": "Short overview of what the product does for stakeholders and auditors.",
-            "intended_purpose": "Intended use of the product as relevant for CRA scope and classification.",
+            "intended_purpose": "Describe what the product is designed for, who uses it, the environment it runs in, and which external systems it interacts with.",
             "product_type": "Whether the product is software, hardware, or another type for regulatory context.",
             "manufacturer": "Legal manufacturer name as placed on the market.",
             "trademark": "Brand or trade name under which the product is offered. A registered trademark is not required.",
@@ -413,9 +413,9 @@
             "product_owner": "Organization member accountable for the product lifecycle and roadmap.",
             "security_contact": "Organization member to contact for security and vulnerability reports.",
             "scope_status": "Current CRA scope assessment outcome for this product.",
-            "scope_rationale": "Explanation of why the selected scope status was chosen.",
+            "scope_rationale": "Describe the facts and assumptions behind the current scope status. Cover product type, how it is made available, network or system connections, commercial context, and any possible exclusions. For a preliminary assessment, note that it still requires confirmation.",
             "classification_status": "CRA product classification category (general, important, critical, etc.).",
-            "classification_rationale": "Explanation supporting the selected classification.",
+            "classification_rationale": "Explain why the product falls into the selected CRA category. Cover its main functions, whether it has a cybersecurity purpose, and whether it matches a category in Annex III or Annex IV.",
             "next_review": "Date when classification should be reviewed again."
         },
         "types": {

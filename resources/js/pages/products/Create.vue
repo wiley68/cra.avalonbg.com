@@ -228,7 +228,7 @@ const labelFor = (group: string, value: string): string => {
                         <textarea
                             id="intended_purpose"
                             v-model="form.intended_purpose"
-                            rows="2"
+                            rows="6"
                             class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                         />
                         <InputError :message="form.errors.intended_purpose" />
@@ -446,7 +446,7 @@ const labelFor = (group: string, value: string): string => {
                         <textarea
                             id="scope_rationale"
                             v-model="form.scope_rationale"
-                            rows="3"
+                            rows="6"
                             class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                         />
                         <InputError :message="form.errors.scope_rationale" />
@@ -508,7 +508,7 @@ const labelFor = (group: string, value: string): string => {
                         <textarea
                             id="classification_rationale"
                             v-model="form.classification_rationale"
-                            rows="3"
+                            rows="6"
                             class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                         />
                         <InputError

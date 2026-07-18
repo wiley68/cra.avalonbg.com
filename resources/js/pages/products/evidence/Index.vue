@@ -9,7 +9,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
-import { index as productsIndex } from '@/routes/products';
+import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { createEvidenceColumnTitleMap, createEvidenceColumns } from './columns';
 import type { EvidenceListItem } from './columns';
 import { index as evidenceApiIndex } from '@/routes/internal/products/evidence';
@@ -37,6 +37,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);
 const evidenceToDelete = ref<number | null>(null);
@@ -160,7 +161,7 @@ onMounted(() => {
 
             <div class="flex items-center gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="productsIndex()">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>

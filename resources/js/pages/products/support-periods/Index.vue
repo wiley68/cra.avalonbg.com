@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { edit as editProduct } from '@/routes/products';
 import { create, destroy, edit } from '@/routes/products/support-periods';
 
@@ -38,6 +39,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useProductModuleBack(props.product.id);
 
 const typeLabel = (type: string): string => {
     const key = `products.support_periods.types.${type}`;
@@ -83,7 +85,7 @@ const remove = (periodId: number): void => {
 
             <div class="flex gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="editProduct(props.product.id)">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
