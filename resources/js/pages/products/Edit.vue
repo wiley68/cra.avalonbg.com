@@ -446,7 +446,7 @@ const textareaClass =
                     </h2>
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         @click="showScopeWizard = true"
                     >
                         <ClipboardList class="h-4 w-4" />
@@ -540,7 +540,7 @@ const textareaClass =
                     </h2>
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         @click="showClassificationWizard = true"
                     >
                         <Tags class="h-4 w-4" />
