@@ -35,6 +35,7 @@ use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ProductReadinessController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -81,6 +82,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.requirements.edit');
         Route::put('products/{product}/requirements/{requirement}', [ProductRequirementController::class, 'update'])
             ->name('products.requirements.update');
+        Route::get('products/{product}/readiness', [ProductReadinessController::class, 'show'])
+            ->name('products.readiness.show');
+        Route::get('products/{product}/readiness/export', [ProductReadinessController::class, 'export'])
+            ->name('products.readiness.export');
         Route::resource('products.controls', ProductControlController::class)
             ->except(['show'])
             ->parameters(['controls' => 'product_control'])

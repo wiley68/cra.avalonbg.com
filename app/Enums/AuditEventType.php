@@ -24,6 +24,8 @@ enum AuditEventType: string
     case TaskCreated = 'task_created';
     case TaskUpdated = 'task_updated';
     case TaskDeleted = 'task_deleted';
+    case ReadinessReportViewed = 'readiness_report_viewed';
+    case ReadinessReportExported = 'readiness_report_exported';
 
     public function label(): string
     {

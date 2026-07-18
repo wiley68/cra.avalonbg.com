@@ -4,6 +4,7 @@ import {
     Boxes,
     Bug,
     CheckSquare,
+    ClipboardCheck,
     FileCheck,
     GitBranch,
     ListChecks,
@@ -17,6 +18,7 @@ import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { edit as editProduct } from '@/routes/products';
+import { show as productReadinessShow } from '@/routes/products/readiness';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productComponentsIndex } from '@/routes/products/components';
@@ -231,6 +233,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productTasksIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.readiness_link'),
+                        icon: ClipboardCheck,
+                        onSelect: () => {
+                            router.visit(
+                                productReadinessShow(row.original.id).url,
                             );
                         },
                     },

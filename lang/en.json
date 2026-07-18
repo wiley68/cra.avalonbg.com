@@ -307,6 +307,7 @@
         "vulnerabilities_link": "Vulnerabilities",
         "evidence_link": "Evidence",
         "tasks_link": "Tasks",
+        "readiness_link": "Readiness",
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -1130,6 +1131,157 @@
                 "evidence": "Evidence"
             }
         },
+        "readiness": {
+            "title": "Readiness report",
+            "subtitle": "Product compliance passport and gap checklist",
+            "export": "Export PDF",
+            "pdf": {
+                "section": "Section",
+                "status": "Status",
+                "summary": "Summary"
+            },
+            "disclaimer": "This report organizes readiness evidence and decisions. It does not constitute automatic or legally guaranteed CRA conformity.",
+            "generated_at": "Generated at",
+            "gaps_title": "Actionable gaps",
+            "sections_title": "Passport sections",
+            "open_module": "Open",
+            "metrics": {
+                "failures": "Failures",
+                "warnings": "Warnings",
+                "generated": "Generated"
+            },
+            "status": {
+                "pass": "Pass",
+                "warn": "Warning",
+                "fail": "Fail",
+                "na": "N/A"
+            },
+            "sections": {
+                "identification": "Identification",
+                "classification": "Classification",
+                "scope": "CRA applicability",
+                "versions": "Versions",
+                "support": "Support period",
+                "requirements": "Requirements coverage",
+                "controls": "Controls",
+                "risks": "Risk status",
+                "sbom": "SBOM / components",
+                "vulnerabilities": "Vulnerabilities",
+                "evidence": "Evidence completeness",
+                "tasks": "Tasks / corrective actions",
+                "responsible_persons": "Responsible persons",
+                "release": "Release status",
+                "reporting": "Reporting readiness"
+            },
+            "summaries": {
+                "identification": {
+                    "complete": "Name, type and manufacturer are set.",
+                    "incomplete": "Missing name, type or manufacturer."
+                },
+                "classification": {
+                    "unclassified": "Product is still unclassified.",
+                    "under_review": "Classification is under review.",
+                    "general": "Classified as general.",
+                    "important_class_i": "Classified as important class I.",
+                    "important_class_ii": "Classified as important class II.",
+                    "critical": "Classified as critical.",
+                    "excluded": "Marked as excluded.",
+                    "sector_specific": "Sector-specific classification."
+                },
+                "scope": {
+                    "likely_in_scope": "Likely in CRA scope.",
+                    "potentially_excluded": "Potentially excluded.",
+                    "further_legal_review": "Needs further legal review.",
+                    "insufficient_information": "Insufficient information for scope.",
+                    "out_of_scope": "Marked out of scope."
+                },
+                "versions": {
+                    "none": "No product versions recorded.",
+                    "draft_only": "Only draft versions exist.",
+                    "ok": "At least one non-draft version exists."
+                },
+                "support": {
+                    "documented": "Support period is documented.",
+                    "partial": "Support documented, but some unsupported versions lack deadlines.",
+                    "missing": "Support period is not documented."
+                },
+                "requirements": {
+                    "none": "No requirements assessed for this product.",
+                    "partial": "Some requirements are still not assessed.",
+                    "assessed": "All linked requirements have been assessed."
+                },
+                "controls": {
+                    "none": "No controls assigned to this product.",
+                    "assigned": "Controls are assigned."
+                },
+                "risks": {
+                    "none": "No risks recorded.",
+                    "needs_review": "Open risks need review.",
+                    "overdue": "Some risks have overdue deadlines.",
+                    "ok": "Risk register looks healthy."
+                },
+                "sbom": {
+                    "none": "No SBOM or components recorded.",
+                    "present": "SBOM or component inventory is present."
+                },
+                "vulnerabilities": {
+                    "overdue": "Reporting deadlines are overdue.",
+                    "critical_open": "Critical vulnerabilities are still open.",
+                    "open": "Open vulnerabilities are tracked.",
+                    "clear": "No open vulnerabilities."
+                },
+                "evidence": {
+                    "none": "No evidence recorded.",
+                    "expired": "Expired or invalid evidence present.",
+                    "review_due": "Some evidence is due for review.",
+                    "current": "Evidence freshness looks current."
+                },
+                "tasks": {
+                    "overdue": "Open tasks are overdue.",
+                    "in_progress": "Open corrective tasks remain.",
+                    "clear": "No open corrective tasks."
+                },
+                "responsible_persons": {
+                    "both": "Product owner and security contact are set.",
+                    "partial": "At least one responsible person is set.",
+                    "missing": "No product owner or security contact."
+                },
+                "release": {
+                    "not_available": "Releases module is not available yet."
+                },
+                "reporting": {
+                    "deadlines_at_risk": "Vulnerability reporting deadlines need attention.",
+                    "workflow_pending": "Dedicated reporting workflow is not available yet."
+                }
+            },
+            "gaps": {
+                "generic": "Review this section and complete missing data.",
+                "identification": "Complete product identification (name, type, manufacturer).",
+                "classification": "Set a CRA classification for this product.",
+                "classification_review": "Finish the classification review.",
+                "scope": "Complete the CRA scope assessment.",
+                "scope_review": "Resolve further legal review for CRA scope.",
+                "versions": "Add at least one product version.",
+                "versions_draft": "Move a version beyond draft state.",
+                "support": "Document the product support period.",
+                "support_partial": "Add deadlines for unsupported versions.",
+                "requirements": "Assess CRA requirements for this product.",
+                "requirements_partial": "Finish assessing remaining requirements.",
+                "controls": "Assign organization controls to this product.",
+                "risks": "Create at least one risk assessment.",
+                "risks_review": "Review open risks.",
+                "risks_overdue": "Address overdue risk deadlines.",
+                "sbom": "Import an SBOM or add components.",
+                "vulnerabilities_overdue": "Address overdue vulnerability reporting deadlines.",
+                "vulnerabilities_critical": "Treat open critical vulnerabilities.",
+                "evidence": "Add compliance evidence for this product.",
+                "evidence_expired": "Replace or renew expired evidence.",
+                "evidence_review": "Review evidence marked as due.",
+                "tasks_overdue": "Complete overdue corrective tasks.",
+                "responsible_persons": "Assign a product owner or security contact.",
+                "reporting": "Review vulnerability reporting deadlines."
+            }
+        },
         "requirements": {
             "index_title": "Requirements matrix",
             "title": "Requirements matrix",
@@ -1236,7 +1388,9 @@
             "evidence_deleted": "Evidence deleted",
             "task_created": "Task created",
             "task_updated": "Task updated",
-            "task_deleted": "Task deleted"
+            "task_deleted": "Task deleted",
+            "readiness_report_viewed": "Readiness report viewed",
+            "readiness_report_exported": "Readiness report exported"
         },
         "event_sources": {
             "workspace": "Workspace",

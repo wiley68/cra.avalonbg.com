@@ -340,6 +340,38 @@ class AuditLogger
         );
     }
 
+    public static function logReadinessReportViewed(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::ReadinessReportViewed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+            ],
+        );
+    }
+
+    public static function logReadinessReportExported(Product $product, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::ReadinessReportExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_id', 'value' => (string) $product->id],
+                ['field' => 'name', 'value' => $product->name],
+            ],
+        );
+    }
+
     /**
      * @param  list<array{field: string, value?: string|null, initial_value?: string|null, final_value?: string|null}>  $details
      */

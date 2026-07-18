@@ -1,0 +1,762 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\ProductRiskStatus;
+use App\Enums\ProductVersionState;
+use App\Enums\RequirementApplicabilityStatus;
+use App\Enums\ScopeStatus;
+use App\Enums\SupportStatus;
+use App\Enums\TaskStatus;
+use App\Enums\VulnerabilityBusinessSeverity;
+use App\Enums\VulnerabilityStatus;
+use App\Models\Evidence;
+use App\Models\Product;
+use App\Models\ProductComponent;
+use App\Models\ProductControl;
+use App\Models\ProductRequirement;
+use App\Models\ProductRisk;
+use App\Models\ProductVulnerability;
+use App\Models\Sbom;
+use App\Models\Task;
+use Illuminate\Support\Carbon;
+
+class ProductReadinessService
+{
+    /**
+     * @return array{
+     *     generated_at: string,
+     *     product: array{id: int, name: string, slug: string},
+     *     sections: list<array{key: string, status: string, summary: string, metrics?: array<string, int|float|string|null>}>,
+     *     gaps: list<array{section: string, status: string, message_key: string, link: string|null}>,
+     *     metrics: array<string, int|float|null>
+     * }
+     */
+    public function build(Product $product): array
+    {
+        $sections = [
+            $this->identificationSection($product),
+            $this->classificationSection($product),
+            $this->scopeSection($product),
+            $this->versionsSection($product),
+            $this->supportSection($product),
+            $this->requirementsSection($product),
+            $this->controlsSection($product),
+            $this->risksSection($product),
+            $this->sbomSection($product),
+            $this->vulnerabilitiesSection($product),
+            $this->evidenceSection($product),
+            $this->tasksSection($product),
+            $this->responsiblePersonsSection($product),
+            $this->releaseSection(),
+            $this->reportingSection($product),
+        ];
+
+        $gaps = [];
+        foreach ($sections as $section) {
+            if (in_array($section['status'], ['warn', 'fail'], true)) {
+                $gaps[] = [
+                    'section' => $section['key'],
+                    'status' => $section['status'],
+                    'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.' . $section['key']),
+                    'link' => $section['link'] ?? null,
+                ];
+            }
+        }
+
+        $requirements = $this->requirementCounts($product);
+        $vulns = $this->vulnerabilityCounts($product);
+        $evidence = $this->evidenceCounts($product);
+
+        return [
+            'generated_at' => now()->toIso8601String(),
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+            ],
+            'sections' => array_map(function (array $section): array {
+                unset($section['gap_key'], $section['link']);
+
+                return $section;
+            }, $sections),
+            'gaps' => $gaps,
+            'metrics' => [
+                'versions_count' => $product->versions()->count(),
+                'requirements_total' => $requirements['total'],
+                'requirements_assessed_pct' => $requirements['assessed_pct'],
+                'requirements_implemented_pct' => $requirements['implemented_pct'],
+                'requirements_verified_pct' => $requirements['verified_pct'],
+                'controls_count' => ProductControl::query()->where('product_id', $product->id)->count(),
+                'risks_count' => ProductRisk::query()->where('product_id', $product->id)->count(),
+                'open_vulnerabilities' => $vulns['open'],
+                'critical_vulnerabilities' => $vulns['critical'],
+                'overdue_vulnerabilities' => $vulns['overdue'],
+                'evidence_count' => $evidence['total'],
+                'evidence_expired' => $evidence['expired'],
+                'components_count' => ProductComponent::query()->where('product_id', $product->id)->count(),
+                'sboms_count' => Sbom::query()->where('product_id', $product->id)->count(),
+                'open_tasks' => Task::query()
+                    ->where('product_id', $product->id)
+                    ->whereIn('status', [
+                        TaskStatus::Open->value,
+                        TaskStatus::InProgress->value,
+                        TaskStatus::PendingApproval->value,
+                    ])
+                    ->count(),
+            ],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function identificationSection(Product $product): array
+    {
+        $hasName = filled($product->name);
+        $hasType = $product->product_type !== null;
+        $hasManufacturer = filled($product->manufacturer);
+
+        if ($hasName && $hasType && $hasManufacturer) {
+            return [
+                'key' => 'identification',
+                'status' => 'pass',
+                'summary' => 'complete',
+            ];
+        }
+
+        return [
+            'key' => 'identification',
+            'status' => 'fail',
+            'summary' => 'incomplete',
+            'gap_key' => 'products.readiness.gaps.identification',
+            'link' => 'edit',
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function classificationSection(Product $product): array
+    {
+        $status = $product->classification_status;
+
+        if ($status === ClassificationStatus::Unclassified) {
+            return [
+                'key' => 'classification',
+                'status' => 'fail',
+                'summary' => $status->value,
+                'gap_key' => 'products.readiness.gaps.classification',
+                'link' => 'edit',
+                'metrics' => ['classification_status' => $status->value],
+            ];
+        }
+
+        if ($status === ClassificationStatus::UnderReview) {
+            return [
+                'key' => 'classification',
+                'status' => 'warn',
+                'summary' => $status->value,
+                'gap_key' => 'products.readiness.gaps.classification_review',
+                'link' => 'edit',
+                'metrics' => ['classification_status' => $status->value],
+            ];
+        }
+
+        return [
+            'key' => 'classification',
+            'status' => 'pass',
+            'summary' => $status->value,
+            'metrics' => ['classification_status' => $status->value],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function scopeSection(Product $product): array
+    {
+        $status = $product->scope_status;
+
+        if ($status === ScopeStatus::InsufficientInformation) {
+            return [
+                'key' => 'scope',
+                'status' => 'fail',
+                'summary' => $status->value,
+                'gap_key' => 'products.readiness.gaps.scope',
+                'link' => 'edit',
+                'metrics' => ['scope_status' => $status->value],
+            ];
+        }
+
+        if ($status === ScopeStatus::FurtherLegalReview) {
+            return [
+                'key' => 'scope',
+                'status' => 'warn',
+                'summary' => $status->value,
+                'gap_key' => 'products.readiness.gaps.scope_review',
+                'link' => 'edit',
+                'metrics' => ['scope_status' => $status->value],
+            ];
+        }
+
+        return [
+            'key' => 'scope',
+            'status' => 'pass',
+            'summary' => $status->value,
+            'metrics' => ['scope_status' => $status->value],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function versionsSection(Product $product): array
+    {
+        $versions = $product->versions()->get(['id', 'state']);
+        $count = $versions->count();
+
+        if ($count === 0) {
+            return [
+                'key' => 'versions',
+                'status' => 'fail',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.versions',
+                'link' => 'versions',
+                'metrics' => ['versions_count' => 0],
+            ];
+        }
+
+        $nonDraft = $versions->contains(
+            fn($version) => $version->state !== ProductVersionState::Draft,
+        );
+
+        if (!$nonDraft) {
+            return [
+                'key' => 'versions',
+                'status' => 'warn',
+                'summary' => 'draft_only',
+                'gap_key' => 'products.readiness.gaps.versions_draft',
+                'link' => 'versions',
+                'metrics' => ['versions_count' => $count],
+            ];
+        }
+
+        return [
+            'key' => 'versions',
+            'status' => 'pass',
+            'summary' => 'ok',
+            'metrics' => ['versions_count' => $count],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function supportSection(Product $product): array
+    {
+        $hasNotes = filled($product->support_period_notes) || filled($product->end_of_support_policy);
+        $versions = $product->versions()->get(['support_status', 'security_support_deadline']);
+
+        $hasSupported = $versions->contains(
+            fn($version) => in_array($version->support_status, [
+                SupportStatus::Supported,
+                SupportStatus::SecurityOnly,
+            ], true),
+        );
+
+        $unsupportedWithoutDeadline = $versions->contains(
+            fn($version) => $version->support_status === SupportStatus::Unsupported
+            && $version->security_support_deadline === null,
+        );
+
+        if ($hasNotes || $hasSupported) {
+            if ($unsupportedWithoutDeadline) {
+                return [
+                    'key' => 'support',
+                    'status' => 'warn',
+                    'summary' => 'partial',
+                    'gap_key' => 'products.readiness.gaps.support_partial',
+                    'link' => 'versions',
+                ];
+            }
+
+            return [
+                'key' => 'support',
+                'status' => 'pass',
+                'summary' => 'documented',
+            ];
+        }
+
+        return [
+            'key' => 'support',
+            'status' => 'fail',
+            'summary' => 'missing',
+            'gap_key' => 'products.readiness.gaps.support',
+            'link' => 'edit',
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function requirementsSection(Product $product): array
+    {
+        $counts = $this->requirementCounts($product);
+
+        if ($counts['total'] === 0) {
+            return [
+                'key' => 'requirements',
+                'status' => 'fail',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.requirements',
+                'link' => 'requirements',
+                'metrics' => $counts,
+            ];
+        }
+
+        if ($counts['assessed_pct'] < 100) {
+            return [
+                'key' => 'requirements',
+                'status' => 'warn',
+                'summary' => 'partial',
+                'gap_key' => 'products.readiness.gaps.requirements_partial',
+                'link' => 'requirements',
+                'metrics' => $counts,
+            ];
+        }
+
+        return [
+            'key' => 'requirements',
+            'status' => 'pass',
+            'summary' => 'assessed',
+            'metrics' => $counts,
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function controlsSection(Product $product): array
+    {
+        $count = ProductControl::query()->where('product_id', $product->id)->count();
+
+        if ($count === 0) {
+            return [
+                'key' => 'controls',
+                'status' => 'warn',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.controls',
+                'link' => 'controls',
+                'metrics' => ['controls_count' => 0],
+            ];
+        }
+
+        return [
+            'key' => 'controls',
+            'status' => 'pass',
+            'summary' => 'assigned',
+            'metrics' => ['controls_count' => $count],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function risksSection(Product $product): array
+    {
+        $risks = ProductRisk::query()
+            ->where('product_id', $product->id)
+            ->get(['id', 'status', 'deadline', 'reviewed_at']);
+
+        if ($risks->isEmpty()) {
+            return [
+                'key' => 'risks',
+                'status' => 'fail',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.risks',
+                'link' => 'risks',
+                'metrics' => ['risks_count' => 0],
+            ];
+        }
+
+        $now = Carbon::now();
+        $openWithoutReview = $risks->contains(
+            fn(ProductRisk $risk) => in_array($risk->status, [
+                ProductRiskStatus::Open,
+                ProductRiskStatus::InTreatment,
+            ], true) && $risk->reviewed_at === null,
+        );
+        $overdue = $risks->contains(
+            fn(ProductRisk $risk) => $risk->deadline !== null
+            && $risk->deadline->lt($now)
+            && $risk->status !== ProductRiskStatus::Closed,
+        );
+
+        if ($openWithoutReview || $overdue) {
+            return [
+                'key' => 'risks',
+                'status' => 'warn',
+                'summary' => $overdue ? 'overdue' : 'needs_review',
+                'gap_key' => $overdue
+                    ? 'products.readiness.gaps.risks_overdue'
+                    : 'products.readiness.gaps.risks_review',
+                'link' => 'risks',
+                'metrics' => ['risks_count' => $risks->count()],
+            ];
+        }
+
+        return [
+            'key' => 'risks',
+            'status' => 'pass',
+            'summary' => 'ok',
+            'metrics' => ['risks_count' => $risks->count()],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function sbomSection(Product $product): array
+    {
+        $sboms = Sbom::query()->where('product_id', $product->id)->count();
+        $components = ProductComponent::query()->where('product_id', $product->id)->count();
+
+        if ($sboms === 0 && $components === 0) {
+            return [
+                'key' => 'sbom',
+                'status' => 'fail',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.sbom',
+                'link' => 'components',
+                'metrics' => ['sboms_count' => 0, 'components_count' => 0],
+            ];
+        }
+
+        return [
+            'key' => 'sbom',
+            'status' => 'pass',
+            'summary' => 'present',
+            'metrics' => ['sboms_count' => $sboms, 'components_count' => $components],
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function vulnerabilitiesSection(Product $product): array
+    {
+        $counts = $this->vulnerabilityCounts($product);
+
+        if ($counts['overdue'] > 0) {
+            return [
+                'key' => 'vulnerabilities',
+                'status' => 'fail',
+                'summary' => 'overdue',
+                'gap_key' => 'products.readiness.gaps.vulnerabilities_overdue',
+                'link' => 'vulnerabilities',
+                'metrics' => $counts,
+            ];
+        }
+
+        if ($counts['critical'] > 0) {
+            return [
+                'key' => 'vulnerabilities',
+                'status' => 'warn',
+                'summary' => 'critical_open',
+                'gap_key' => 'products.readiness.gaps.vulnerabilities_critical',
+                'link' => 'vulnerabilities',
+                'metrics' => $counts,
+            ];
+        }
+
+        return [
+            'key' => 'vulnerabilities',
+            'status' => 'pass',
+            'summary' => $counts['open'] > 0 ? 'open' : 'clear',
+            'metrics' => $counts,
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function evidenceSection(Product $product): array
+    {
+        $counts = $this->evidenceCounts($product);
+
+        if ($counts['total'] === 0) {
+            return [
+                'key' => 'evidence',
+                'status' => 'fail',
+                'summary' => 'none',
+                'gap_key' => 'products.readiness.gaps.evidence',
+                'link' => 'evidence',
+                'metrics' => $counts,
+            ];
+        }
+
+        if ($counts['expired'] > 0 || $counts['invalid'] > 0) {
+            return [
+                'key' => 'evidence',
+                'status' => 'fail',
+                'summary' => 'expired',
+                'gap_key' => 'products.readiness.gaps.evidence_expired',
+                'link' => 'evidence',
+                'metrics' => $counts,
+            ];
+        }
+
+        if ($counts['review_due'] > 0) {
+            return [
+                'key' => 'evidence',
+                'status' => 'warn',
+                'summary' => 'review_due',
+                'gap_key' => 'products.readiness.gaps.evidence_review',
+                'link' => 'evidence',
+                'metrics' => $counts,
+            ];
+        }
+
+        return [
+            'key' => 'evidence',
+            'status' => 'pass',
+            'summary' => 'current',
+            'metrics' => $counts,
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function tasksSection(Product $product): array
+    {
+        $openStatuses = [
+            TaskStatus::Open,
+            TaskStatus::InProgress,
+            TaskStatus::PendingApproval,
+        ];
+
+        $tasks = Task::query()
+            ->where('product_id', $product->id)
+            ->get(['id', 'status', 'due_at']);
+
+        $open = $tasks->filter(
+            fn(Task $task) => in_array($task->status, $openStatuses, true),
+        );
+
+        $overdue = $open->contains(
+            fn(Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
+        );
+
+        $metrics = [
+            'open_tasks' => $open->count(),
+            'total_tasks' => $tasks->count(),
+        ];
+
+        if ($overdue) {
+            return [
+                'key' => 'tasks',
+                'status' => 'warn',
+                'summary' => 'overdue',
+                'gap_key' => 'products.readiness.gaps.tasks_overdue',
+                'link' => 'tasks',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'tasks',
+            'status' => 'pass',
+            'summary' => $open->isEmpty() ? 'clear' : 'in_progress',
+            'metrics' => $metrics,
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function responsiblePersonsSection(Product $product): array
+    {
+        $hasOwner = $product->product_owner_user_id !== null;
+        $hasSecurity = $product->security_contact_user_id !== null;
+
+        if ($hasOwner || $hasSecurity) {
+            return [
+                'key' => 'responsible_persons',
+                'status' => 'pass',
+                'summary' => $hasOwner && $hasSecurity ? 'both' : 'partial',
+            ];
+        }
+
+        return [
+            'key' => 'responsible_persons',
+            'status' => 'warn',
+            'summary' => 'missing',
+            'gap_key' => 'products.readiness.gaps.responsible_persons',
+            'link' => 'edit',
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string}
+     */
+    private function releaseSection(): array
+    {
+        return [
+            'key' => 'release',
+            'status' => 'na',
+            'summary' => 'not_available',
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function reportingSection(Product $product): array
+    {
+        $counts = $this->vulnerabilityCounts($product);
+
+        if ($counts['overdue'] > 0) {
+            return [
+                'key' => 'reporting',
+                'status' => 'warn',
+                'summary' => 'deadlines_at_risk',
+                'gap_key' => 'products.readiness.gaps.reporting',
+                'link' => 'vulnerabilities',
+                'metrics' => $counts,
+            ];
+        }
+
+        return [
+            'key' => 'reporting',
+            'status' => 'na',
+            'summary' => 'workflow_pending',
+            'metrics' => $counts,
+        ];
+    }
+
+    /**
+     * @return array{total: int, assessed: int, assessed_pct: float, implemented_pct: float, verified_pct: float}
+     */
+    private function requirementCounts(Product $product): array
+    {
+        $rows = ProductRequirement::query()
+            ->where('product_id', $product->id)
+            ->get(['status']);
+
+        $total = $rows->count();
+        if ($total === 0) {
+            return [
+                'total' => 0,
+                'assessed' => 0,
+                'assessed_pct' => 0.0,
+                'implemented_pct' => 0.0,
+                'verified_pct' => 0.0,
+            ];
+        }
+
+        $assessed = $rows->filter(
+            fn(ProductRequirement $row) => $row->status !== RequirementApplicabilityStatus::NotAssessed,
+        )->count();
+
+        $implemented = $rows->filter(
+            fn(ProductRequirement $row) => in_array($row->status, [
+                RequirementApplicabilityStatus::Implemented,
+                RequirementApplicabilityStatus::Verified,
+                RequirementApplicabilityStatus::ExceptionApproved,
+            ], true),
+        )->count();
+
+        $verified = $rows->filter(
+            fn(ProductRequirement $row) => $row->status === RequirementApplicabilityStatus::Verified,
+        )->count();
+
+        return [
+            'total' => $total,
+            'assessed' => $assessed,
+            'assessed_pct' => round(($assessed / $total) * 100, 1),
+            'implemented_pct' => round(($implemented / $total) * 100, 1),
+            'verified_pct' => round(($verified / $total) * 100, 1),
+        ];
+    }
+
+    /**
+     * @return array{open: int, critical: int, overdue: int, total: int}
+     */
+    private function vulnerabilityCounts(Product $product): array
+    {
+        $closed = [
+            VulnerabilityStatus::Rejected,
+            VulnerabilityStatus::Duplicate,
+            VulnerabilityStatus::Patched,
+            VulnerabilityStatus::Released,
+            VulnerabilityStatus::Closed,
+        ];
+
+        $vulns = ProductVulnerability::query()
+            ->where('product_id', $product->id)
+            ->get(['id', 'status', 'business_severity', 'awareness_at']);
+
+        $open = $vulns->filter(
+            fn(ProductVulnerability $vuln) => !in_array($vuln->status, $closed, true),
+        );
+
+        $critical = $open->filter(
+            fn(ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
+        )->count();
+
+        $overdue = $open->filter(function (ProductVulnerability $vuln): bool {
+            $d24 = ProductVulnerabilityService::deadline24h($vuln->awareness_at);
+            $d72 = ProductVulnerabilityService::deadline72h($vuln->awareness_at);
+
+            return ProductVulnerabilityService::isOverdue($d24)
+                || ProductVulnerabilityService::isOverdue($d72);
+        })->count();
+
+        return [
+            'open' => $open->count(),
+            'critical' => $critical,
+            'overdue' => $overdue,
+            'total' => $vulns->count(),
+        ];
+    }
+
+    /**
+     * @return array{total: int, current: int, review_due: int, expired: int, invalid: int}
+     */
+    private function evidenceCounts(Product $product): array
+    {
+        $items = Evidence::query()
+            ->where('product_id', $product->id)
+            ->get(['freshness_status', 'valid_until', 'review_due_at']);
+
+        $counts = [
+            'total' => $items->count(),
+            'current' => 0,
+            'review_due' => 0,
+            'expired' => 0,
+            'invalid' => 0,
+        ];
+
+        foreach ($items as $item) {
+            $freshness = EvidenceService::deriveFreshness(
+                $item->freshness_status,
+                $item->valid_until,
+                $item->review_due_at,
+            );
+
+            match ($freshness) {
+                EvidenceFreshnessStatus::Current => $counts['current']++,
+                EvidenceFreshnessStatus::ReviewDue => $counts['review_due']++,
+                EvidenceFreshnessStatus::Expired => $counts['expired']++,
+                EvidenceFreshnessStatus::Invalid => $counts['invalid']++,
+                default => null,
+            };
+        }
+
+        return $counts;
+    }
+}
