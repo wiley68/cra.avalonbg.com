@@ -1,6 +1,4 @@
-import { router } from '@inertiajs/vue3';
 import {
-    ArrowUpDown,
     Boxes,
     Bug,
     CalendarRange,
@@ -10,17 +8,10 @@ import {
     GitBranch,
     IdCard,
     ListChecks,
-    Pencil,
     Shield,
     ShieldAlert,
-    Trash2,
 } from '@lucide/vue';
-import type { ColumnDef } from '@tanstack/vue-table';
-import { h } from 'vue';
-import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
-import { Button } from '@/components/ui/button';
-import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
-import { edit as editProduct } from '@/routes/products';
+import type { LucideIcon } from '@lucide/vue';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
@@ -33,6 +24,8 @@ import { index as productTasksIndex } from '@/routes/products/tasks';
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
+export type ProductModuleStatus = 'empty' | 'complete' | 'incomplete';
+
 export type ProductListItem = {
     id: number;
     name: string;
@@ -41,261 +34,131 @@ export type ProductListItem = {
     classification_status: string;
     scope_status: string;
     product_line: string | null;
+    module_statuses: Record<string, ProductModuleStatus>;
 };
 
-type TranslateFn = (key: string, replace?: Record<string, string>) => string;
+export type ProductModuleKey =
+    | 'versions'
+    | 'support_periods'
+    | 'requirements'
+    | 'controls'
+    | 'risks'
+    | 'components'
+    | 'vulnerabilities'
+    | 'evidence'
+    | 'tasks'
+    | 'passport'
+    | 'readiness';
 
-export function createProductColumnTitleMap(
-    t: TranslateFn,
-): Record<string, string> {
-    return {
-        id: t('products.columns.id'),
-        name: t('common.name'),
-        product_line: t('products.columns.product_line'),
-        product_type: t('products.columns.product_type'),
-        scope_status: t('products.columns.scope_status'),
-        classification_status: t('products.columns.classification_status'),
-        actions: t('common.manage'),
-    };
-}
+export type ProductModuleDefinition = {
+    key: ProductModuleKey;
+    labelKey: string;
+    descriptionKey: string;
+    icon: LucideIcon;
+    href: (productId: number) => string;
+};
 
-const sortableHeader = (
-    label: string,
-    column: {
-        toggleSorting: (desc: boolean) => void;
-        getIsSorted: () => false | 'asc' | 'desc';
+export const productModules: ProductModuleDefinition[] = [
+    {
+        key: 'versions',
+        labelKey: 'products.versions_link',
+        descriptionKey: 'products.modules.versions.description',
+        icon: GitBranch,
+        href: (productId) => versionsIndex(productId).url,
     },
-) =>
-    h(
-        Button,
-        {
-            variant: 'ghost',
-            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-            class: 'h-8 px-2 lg:px-3',
-        },
-        () => [label, h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
-    );
+    {
+        key: 'support_periods',
+        labelKey: 'products.support_periods_link',
+        descriptionKey: 'products.modules.support_periods.description',
+        icon: CalendarRange,
+        href: (productId) => supportPeriodsIndex(productId).url,
+    },
+    {
+        key: 'requirements',
+        labelKey: 'products.requirements_link',
+        descriptionKey: 'products.modules.requirements.description',
+        icon: ListChecks,
+        href: (productId) => requirementsIndex(productId).url,
+    },
+    {
+        key: 'controls',
+        labelKey: 'products.controls_link',
+        descriptionKey: 'products.modules.controls.description',
+        icon: Shield,
+        href: (productId) => productControlsIndex(productId).url,
+    },
+    {
+        key: 'risks',
+        labelKey: 'products.risks_link',
+        descriptionKey: 'products.modules.risks.description',
+        icon: ShieldAlert,
+        href: (productId) => productRisksIndex(productId).url,
+    },
+    {
+        key: 'components',
+        labelKey: 'products.components_link',
+        descriptionKey: 'products.modules.components.description',
+        icon: Boxes,
+        href: (productId) => productComponentsIndex(productId).url,
+    },
+    {
+        key: 'vulnerabilities',
+        labelKey: 'products.vulnerabilities_link',
+        descriptionKey: 'products.modules.vulnerabilities.description',
+        icon: Bug,
+        href: (productId) => productVulnerabilitiesIndex(productId).url,
+    },
+    {
+        key: 'evidence',
+        labelKey: 'products.evidence_link',
+        descriptionKey: 'products.modules.evidence.description',
+        icon: FileCheck,
+        href: (productId) => productEvidenceIndex(productId).url,
+    },
+    {
+        key: 'tasks',
+        labelKey: 'products.tasks_link',
+        descriptionKey: 'products.modules.tasks.description',
+        icon: CheckSquare,
+        href: (productId) => productTasksIndex(productId).url,
+    },
+    {
+        key: 'passport',
+        labelKey: 'products.passport_link',
+        descriptionKey: 'products.modules.passport.description',
+        icon: IdCard,
+        href: (productId) => productPassportShow(productId).url,
+    },
+    {
+        key: 'readiness',
+        labelKey: 'products.readiness_link',
+        descriptionKey: 'products.modules.readiness.description',
+        icon: ClipboardCheck,
+        href: (productId) => productReadinessShow(productId).url,
+    },
+];
 
-const enumLabel = (t: TranslateFn, group: string, value: string): string => {
+export function productEnumLabel(
+    t: (key: string, replace?: Record<string, string>) => string,
+    group: string,
+    value: string,
+): string {
     const key = `products.${group}.${value}`;
     const translated = t(key);
 
     return translated === key ? value : translated;
-};
+}
 
-export const createProductColumns = ({
-    t,
-    canManage,
-    onDelete,
-}: {
-    t: TranslateFn;
-    canManage: boolean;
-    onDelete: (productId: number) => void;
-}): ColumnDef<ProductListItem>[] => {
-    const columns: ColumnDef<ProductListItem>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) =>
-                sortableHeader(t('products.columns.id'), column),
-            cell: ({ row }) =>
-                h('div', { class: 'font-medium' }, String(row.getValue('id'))),
-        },
-        {
-            accessorKey: 'name',
-            header: ({ column }) => sortableHeader(t('common.name'), column),
-            cell: ({ row }) =>
-                h('div', { class: 'font-medium' }, row.getValue('name')),
-        },
-        {
-            accessorKey: 'product_type',
-            header: ({ column }) =>
-                sortableHeader(t('products.columns.product_type'), column),
-            cell: ({ row }) =>
-                h(
-                    'div',
-                    {},
-                    enumLabel(t, 'types', String(row.getValue('product_type'))),
-                ),
-        },
-        {
-            accessorKey: 'scope_status',
-            header: ({ column }) =>
-                sortableHeader(t('products.columns.scope_status'), column),
-            cell: ({ row }) =>
-                h(
-                    'div',
-                    {},
-                    enumLabel(t, 'scope', String(row.getValue('scope_status'))),
-                ),
-        },
-        {
-            accessorKey: 'classification_status',
-            header: ({ column }) =>
-                sortableHeader(
-                    t('products.columns.classification_status'),
-                    column,
-                ),
-            cell: ({ row }) =>
-                h(
-                    'div',
-                    {},
-                    enumLabel(
-                        t,
-                        'classification',
-                        String(row.getValue('classification_status')),
-                    ),
-                ),
-        },
-        {
-            id: 'actions',
-            enableHiding: false,
-            enableSorting: false,
-            header: () => t('common.manage'),
-            cell: ({ row }) => {
-                const actions: {
-                    label: string;
-                    icon: typeof Pencil;
-                    variant?: 'default' | 'destructive';
-                    separatorAfter?: boolean;
-                    onSelect: () => void;
-                }[] = [
-                    {
-                        label: t('products.versions_link'),
-                        icon: GitBranch,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(versionsIndex(row.original.id).url);
-                        },
-                    },
-                    {
-                        label: t('products.support_periods_link'),
-                        icon: CalendarRange,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                supportPeriodsIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.requirements_link'),
-                        icon: ListChecks,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                requirementsIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.controls_link'),
-                        icon: Shield,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productControlsIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.risks_link'),
-                        icon: ShieldAlert,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productRisksIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.components_link'),
-                        icon: Boxes,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productComponentsIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.vulnerabilities_link'),
-                        icon: Bug,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productVulnerabilitiesIndex(row.original.id)
-                                    .url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.evidence_link'),
-                        icon: FileCheck,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productEvidenceIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.tasks_link'),
-                        icon: CheckSquare,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productTasksIndex(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.passport_link'),
-                        icon: IdCard,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productPassportShow(row.original.id).url,
-                            );
-                        },
-                    },
-                    {
-                        label: t('products.readiness_link'),
-                        icon: ClipboardCheck,
-                        onSelect: () => {
-                            setProductModuleOrigin(row.original.id, 'index');
-                            router.visit(
-                                productReadinessShow(row.original.id).url,
-                            );
-                        },
-                    },
-                ];
+export function productModuleStatusClass(
+    status: ProductModuleStatus | undefined,
+): string {
+    if (status === 'complete') {
+        return 'text-emerald-600 dark:text-emerald-400';
+    }
 
-                if (canManage) {
-                    actions.unshift(
-                        {
-                            label: t('common.edit'),
-                            icon: Pencil,
-                            onSelect: () => {
-                                router.visit(editProduct(row.original.id).url);
-                            },
-                        },
-                        {
-                            label: t('common.delete'),
-                            icon: Trash2,
-                            variant: 'destructive',
-                            separatorAfter: true,
-                            onSelect: () => onDelete(row.original.id),
-                        },
-                    );
-                }
+    if (status === 'incomplete') {
+        return 'text-orange-600 dark:text-orange-400';
+    }
 
-                return h(TableRowActionsMenu, {
-                    label: t('common.manage'),
-                    actions,
-                });
-            },
-        },
-    ];
-
-    return columns;
-};
+    return 'text-foreground';
+}

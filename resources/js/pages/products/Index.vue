@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
-import type { SortingState } from '@tanstack/vue-table';
-import { computed, onMounted, ref } from 'vue';
+import { Loader2, Plus } from '@lucide/vue';
+import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
-import DataTable from '@/components/DataTable.vue';
+import ProductCard from '@/components/products/ProductCard.vue';
 import { Button } from '@/components/ui/button';
-import { useApiTable } from '@/composables/useApiTable';
+import { Input } from '@/components/ui/input';
+import { useApiLoadMore } from '@/composables/useApiLoadMore';
 import { useTranslations } from '@/composables/useTranslations';
+import type { ProductListItem } from '@/pages/products/columns';
 import { index as productsApiIndex } from '@/routes/internal/products';
 import { create, destroy } from '@/routes/products';
-import { createProductColumnTitleMap, createProductColumns } from './columns';
-import type { ProductListItem } from './columns';
 
 type OrganizationSummary = {
     id: number;
@@ -30,44 +29,22 @@ const { t } = useTranslations();
 const showDeleteDialog = ref(false);
 const productToDelete = ref<number | null>(null);
 
-const { rows, pagination, loading, search, fetch } =
-    useApiTable<ProductListItem>({
+const { rows, loading, loadingMore, search, total, hasMore, fetch, loadMore } =
+    useApiLoadMore<ProductListItem>({
         endpoint: productsApiIndex().url,
-        initial: {
-            page: 1,
-            rowsPerPage: 10,
-            sortBy: 'name',
-            descending: false,
-            search: '',
-        },
+        perPage: 12,
+        sortBy: 'name',
+        sortDesc: false,
         onError: (message) => {
             toast.error(message);
         },
         autoload: false,
-        searchDebounceMs: 400,
     });
-
-const totalPages = computed(() =>
-    Math.max(
-        1,
-        Math.ceil(pagination.value.rowsNumber / pagination.value.rowsPerPage),
-    ),
-);
-
-const columnTitleMap = computed(() => createProductColumnTitleMap(t));
 
 const requestDeleteProduct = (productId: number): void => {
     productToDelete.value = productId;
     showDeleteDialog.value = true;
 };
-
-const columns = computed(() =>
-    createProductColumns({
-        t,
-        canManage: props.canManage,
-        onDelete: requestDeleteProduct,
-    }),
-);
 
 const cancelDelete = (): void => {
     productToDelete.value = null;
@@ -86,36 +63,9 @@ const confirmDelete = (): void => {
     router.delete(destroy(productId).url, {
         preserveScroll: true,
         onSuccess: async () => {
-            rows.value = rows.value.filter((row) => row.id !== productId);
-            pagination.value.rowsNumber = Math.max(
-                0,
-                pagination.value.rowsNumber - 1,
-            );
-
-            if (rows.value.length === 0 && pagination.value.page > 1) {
-                pagination.value.page--;
-                await fetch();
-            }
+            await fetch();
         },
     });
-};
-
-const handlePaginationChange = (page: number, pageSize: number) => {
-    pagination.value.page = page;
-    pagination.value.rowsPerPage = pageSize;
-    void fetch();
-};
-
-const handleSortingChange = (sorting: SortingState) => {
-    const primary = sorting[0];
-
-    pagination.value.sortBy = primary?.id ?? 'name';
-    pagination.value.descending = primary?.desc ?? false;
-    void fetch();
-};
-
-const updateSearch = (value: string) => {
-    search.value = value;
 };
 
 onMounted(() => {
@@ -127,41 +77,88 @@ onMounted(() => {
     <Head :title="t('products.index_title')" />
 
     <div class="space-y-6">
-        <div class="flex items-center justify-between gap-4">
+        <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
             <div>
-                <h1 class="text-xl font-semibold">{{ t('products.title') }}</h1>
+                <h1 class="text-xl font-semibold">
+                    {{ t('products.title') }}
+                    <span
+                        v-if="!loading"
+                        class="font-normal text-muted-foreground"
+                        >({{ total }})</span
+                    >
+                </h1>
                 <p class="text-sm text-muted-foreground">
                     {{ t('products.subtitle') }} —
                     {{ props.organization.name }}
                 </p>
             </div>
 
-            <Button v-if="canManage" as-child>
-                <Link :href="create()" class="inline-flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    {{ t('products.create') }}
-                </Link>
-            </Button>
+            <div
+                class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center"
+            >
+                <Input
+                    v-model="search"
+                    type="search"
+                    :placeholder="t('products.search_placeholder')"
+                    class="w-full sm:w-72"
+                />
+                <Button v-if="canManage" as-child class="shrink-0">
+                    <Link
+                        :href="create()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('products.create') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
-        <DataTable
-            :columns="columns"
-            :data="rows"
-            :loading="loading"
-            :search="search"
-            :column-title-map="columnTitleMap"
-            :search-placeholder="t('products.search_placeholder')"
-            server-side
-            :show-pagination="true"
-            :show-column-toggle="true"
-            :page-size="pagination.rowsPerPage"
-            :current-page="pagination.page"
-            :total-pages="totalPages"
-            :total-items="pagination.rowsNumber"
-            @search-change="updateSearch"
-            @pagination-change="handlePaginationChange"
-            @sorting-change="handleSortingChange"
-        />
+        <div
+            v-if="loading"
+            class="flex items-center justify-center gap-2 py-16 text-muted-foreground"
+        >
+            <Loader2 class="size-5 animate-spin" />
+            {{ t('common.table.loading') }}
+        </div>
+
+        <p
+            v-else-if="rows.length === 0"
+            class="py-16 text-center text-muted-foreground"
+        >
+            {{ t('products.empty') }}
+        </p>
+
+        <template v-else>
+            <div
+                class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            >
+                <ProductCard
+                    v-for="product in rows"
+                    :key="product.id"
+                    :product="product"
+                    :can-manage="canManage"
+                    @delete="requestDeleteProduct"
+                />
+            </div>
+
+            <div v-if="hasMore" class="flex justify-center pt-2">
+                <Button
+                    variant="outline"
+                    class="min-w-40"
+                    :disabled="loadingMore"
+                    @click="loadMore"
+                >
+                    <Loader2
+                        v-if="loadingMore"
+                        class="mr-2 size-4 animate-spin"
+                    />
+                    {{ t('products.show_more') }}
+                </Button>
+            </div>
+        </template>
 
         <AppAlertDialog
             v-model:open="showDeleteDialog"

@@ -341,7 +341,10 @@
         "deleted": "Продуктът е изтрит.",
         "confirm_delete": "Да се изтрие ли този продукт и всичките му версии завинаги?",
         "search_placeholder": "Търсене по име, slug, тип или статус...",
+        "show_more": "Покажи още...",
+        "empty": "Няма намерени продукти.",
         "versions_link": "Версии",
+        "support_periods_link": "Периоди на поддръжка",
         "requirements_link": "Изисквания",
         "controls_link": "Контроли",
         "risks_link": "Рискове",
@@ -351,6 +354,41 @@
         "tasks_link": "Задачи",
         "readiness_link": "Готовност",
         "passport_link": "Compliance паспорт",
+        "modules": {
+            "versions": {
+                "description": "Release версии и артефакти"
+            },
+            "support_periods": {
+                "description": "Периоди и политика за поддръжка"
+            },
+            "requirements": {
+                "description": "CRA изисквания и приложимост"
+            },
+            "controls": {
+                "description": "Контроли за съответствие"
+            },
+            "risks": {
+                "description": "Оценка и третиране на рискове"
+            },
+            "components": {
+                "description": "Компоненти и SBOM"
+            },
+            "vulnerabilities": {
+                "description": "Проследяване на уязвимости"
+            },
+            "evidence": {
+                "description": "Доказателства и артефакти"
+            },
+            "tasks": {
+                "description": "Коригиращи и оперативни задачи"
+            },
+            "passport": {
+                "description": "Обобщен compliance паспорт"
+            },
+            "readiness": {
+                "description": "Преглед на готовността"
+            }
+        },
         "passport": {
             "title": "Product Compliance Passport",
             "subtitle": "Една страница с преглед на CRA готовността за този продукт",
@@ -1521,8 +1559,7 @@
                 "non_conformity": "Несъответствие",
                 "exception_approved": "Одобрено изключение"
             }
-        },
-        "support_periods_link": "Периоди на поддръжка"
+        }
     },
     "audit_logs": {
         "title": "Одит",

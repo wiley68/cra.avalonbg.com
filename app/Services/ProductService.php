@@ -8,6 +8,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductService
 {
+    public function __construct(
+        private readonly ProductReadinessService $readiness,
+    ) {
+    }
+
     /**
      * @return LengthAwarePaginator<int, array{
      *     id: int,
@@ -16,7 +21,8 @@ class ProductService
      *     product_type: string,
      *     classification_status: string,
      *     scope_status: string,
-     *     product_line: string|null
+     *     product_line: string|null,
+     *     module_statuses: array<string, 'empty'|'complete'|'incomplete'>
      * }>
      */
     public function paginate(
@@ -60,7 +66,7 @@ class ProductService
 
         return $query
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn (Product $product) => [
+            ->through(fn(Product $product) => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
@@ -68,6 +74,7 @@ class ProductService
                 'classification_status' => $product->classification_status->value,
                 'scope_status' => $product->scope_status->value,
                 'product_line' => $product->product_line,
+                'module_statuses' => $this->readiness->cardModuleStatuses($product),
             ]);
     }
 
@@ -119,7 +126,7 @@ class ProductService
 
         return $query
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn ($version) => [
+            ->through(fn($version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
                 'state' => $version->state->value,
