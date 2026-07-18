@@ -2,23 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ExportPasswordRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\EncryptedUsersExporter;
 use App\Services\OrganizationMembershipService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
 {
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
-    ) {
-    }
+    ) {}
 
     public function index(): Response
     {
@@ -130,6 +132,14 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index');
+    }
+
+    public function export(ExportPasswordRequest $request, EncryptedUsersExporter $exporter): BinaryFileResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('viewAny', [User::class, $organization]);
+
+        return $exporter->download($organization, $request->validated('password'));
     }
 
     private function currentOrganization(): Organization

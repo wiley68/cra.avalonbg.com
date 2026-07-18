@@ -18,6 +18,8 @@
         "delete_confirm_title": "Confirm deletion",
         "continue": "Continue",
         "unknown": "Unknown",
+        "yes": "Yes",
+        "no": "No",
         "actions": "Actions",
         "manage": "Manage",
         "required": "Required",
@@ -214,6 +216,46 @@
         "deleted": "User deleted.",
         "confirm_delete": "Delete this user permanently?",
         "search_placeholder": "Search by name, email, role or ID...",
+        "export": {
+            "button": "Export 7z",
+            "exporting": "Exporting...",
+            "success": "Archive :filename was downloaded successfully.",
+            "error": "Error exporting the file.",
+            "invalid": "Invalid export data.",
+            "dialog": {
+                "title": "Password for encrypted archive",
+                "description": "The export will be packaged in an encrypted 7z archive. Remember the password — it is not stored in the system and is required to open the file.",
+                "password": "Password",
+                "password_placeholder": "Enter password",
+                "confirm_password": "Confirm password",
+                "confirm_placeholder": "Repeat the password"
+            },
+            "sheet_title": "Users",
+            "sheet_columns": {
+                "id": "ID",
+                "name": "User",
+                "email": "Email",
+                "role": "Role",
+                "must_change_password": "Must change password",
+                "created_at": "Created"
+            },
+            "validation": {
+                "password_required": "The archive password is required.",
+                "password_min": "The archive password must be at least :min characters.",
+                "password_max": "The archive password may not be greater than 128 characters.",
+                "password_confirmation_required": "Password confirmation is required.",
+                "password_confirmation_same": "Password confirmation does not match."
+            },
+            "errors": {
+                "xlsx_missing": "The export file was not generated successfully.",
+                "work_dir_failed": "Failed to create a temporary directory for the export.",
+                "source_missing": "The source file for archiving does not exist.",
+                "archive_dir_failed": "Failed to create a temporary directory for the archive.",
+                "archive_failed": "Failed to create the encrypted 7z archive: :details",
+                "archive_missing": "The encrypted archive was not created.",
+                "seven_zip_unavailable": "7z is not available on the server. Install p7zip-full and set SEVEN_ZIP_BINARY in .env."
+            }
+        },
         "columns": {
             "id": "ID"
         },

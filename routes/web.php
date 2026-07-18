@@ -61,6 +61,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::resource('users', UserController::class)->except(['show']);
+        Route::post('users/export', [UserController::class, 'export'])
+            ->name('users.export');
 
         Route::resource('controls', ControlController::class)->except(['show']);
 
@@ -225,4 +227,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

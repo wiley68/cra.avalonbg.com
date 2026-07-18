@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { FileDown, Loader2, Plus } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
+import EncryptedExportDialog from '@/components/exports/EncryptedExportDialog.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { downloadEncryptedExport } from '@/lib/encryptedExport';
 import { index as usersApiIndex } from '@/routes/internal/users';
-import { create, destroy } from '@/routes/users';
+import { create, destroy, exportMethod } from '@/routes/users';
 import { createUserColumnTitleMap, createUserColumns } from './columns';
 import type { UserListItem } from './columns';
 
@@ -28,6 +30,8 @@ const { t } = useTranslations();
 
 const showDeleteDialog = ref(false);
 const userToDelete = ref<number | null>(null);
+const showExportDialog = ref(false);
+const isExporting = ref(false);
 
 const { rows, pagination, loading, search, fetch } = useApiTable<UserListItem>({
     endpoint: usersApiIndex().url,
@@ -115,6 +119,39 @@ const updateSearch = (value: string) => {
     search.value = value;
 };
 
+const handleExport = async (
+    password: string,
+    passwordConfirmation: string,
+): Promise<void> => {
+    isExporting.value = true;
+
+    try {
+        const result = await downloadEncryptedExport(
+            exportMethod().url,
+            password,
+            passwordConfirmation,
+            {},
+            {
+                invalid: t('users.export.invalid'),
+                error: t('users.export.error'),
+            },
+        );
+
+        if (!result.ok) {
+            toast.error(result.message);
+
+            return;
+        }
+
+        showExportDialog.value = false;
+        toast.success(t('users.export.success', { filename: result.filename }));
+    } catch {
+        toast.error(t('users.export.error'));
+    } finally {
+        isExporting.value = false;
+    }
+};
+
 onMounted(() => {
     void fetch();
 });
@@ -132,12 +169,30 @@ onMounted(() => {
                 </p>
             </div>
 
-            <Button as-child>
-                <Link :href="create()" class="inline-flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    {{ t('users.create') }}
-                </Link>
-            </Button>
+            <div class="flex items-center gap-2">
+                <Button
+                    variant="secondary"
+                    :disabled="isExporting"
+                    @click="showExportDialog = true"
+                >
+                    <Loader2 v-if="isExporting" class="h-4 w-4 animate-spin" />
+                    <FileDown v-else class="h-4 w-4" />
+                    {{
+                        isExporting
+                            ? t('users.export.exporting')
+                            : t('users.export.button')
+                    }}
+                </Button>
+                <Button as-child>
+                    <Link
+                        :href="create()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('users.create') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <DataTable
@@ -165,6 +220,13 @@ onMounted(() => {
             :description="t('users.confirm_delete')"
             @confirm="confirmDelete"
             @cancel="cancelDelete"
+        />
+
+        <EncryptedExportDialog
+            v-model:open="showExportDialog"
+            :loading="isExporting"
+            i18n-prefix="users.export"
+            @confirm="handleExport"
         />
     </div>
 </template>
