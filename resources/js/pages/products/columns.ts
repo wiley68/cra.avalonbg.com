@@ -3,6 +3,7 @@ import {
     ArrowUpDown,
     Boxes,
     Bug,
+    FileCheck,
     GitBranch,
     ListChecks,
     Pencil,
@@ -19,6 +20,7 @@ import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
+import { index as productEvidenceIndex } from '@/routes/products/evidence';
 import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
@@ -209,6 +211,15 @@ export const createProductColumns = ({
                             router.visit(
                                 productVulnerabilitiesIndex(row.original.id)
                                     .url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.evidence_link'),
+                        icon: FileCheck,
+                        onSelect: () => {
+                            router.visit(
+                                productEvidenceIndex(row.original.id).url,
                             );
                         },
                     },

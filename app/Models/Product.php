@@ -163,6 +163,11 @@ class Product extends Model
         return $this->productVulnerabilities();
     }
 
+    public function evidence(): HasMany
+    {
+        return $this->hasMany(Evidence::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');
