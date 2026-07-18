@@ -902,6 +902,8 @@
                 "workaround": "Workaround",
                 "corrective_action": "Corrective action",
                 "owner": "Owner",
+                "substitute_owner": "Substitute owner",
+                "corrective_measure_available_at": "Corrective measure available at",
                 "notes": "Notes",
                 "components": "Affected components",
                 "affected_versions": "Affected versions",
@@ -923,6 +925,8 @@
                 "workaround": "Temporary mitigation until a fix is available.",
                 "corrective_action": "Planned or completed permanent fix.",
                 "owner": "Organization member accountable for this vulnerability.",
+                "substitute_owner": "Backup owner for escalation when primary is unavailable.",
+                "corrective_measure_available_at": "When a corrective measure became available — starts the 14-day final report deadline for actively exploited issues.",
                 "notes": "Internal notes for triage and follow-up.",
                 "components": "SBOM components affected by this vulnerability.",
                 "affected_versions": "Product versions impacted.",
@@ -961,6 +965,96 @@
                 "none": "None",
                 "proof_of_concept": "Proof of concept",
                 "active": "Active"
+            },
+            "reporting_link": "Reporting",
+            "reporting": {
+                "title": "Reporting workflow",
+                "subtitle": "Track 24h / 72h / final reporting deadlines and submission records",
+                "export": "Export PDF",
+                "disclaimer": "This workflow helps organise CRA reporting steps. It does not submit to ENISA SRP and does not guarantee legal compliance.",
+                "deadlines_title": "Deadlines",
+                "due_at": "Due",
+                "escalate": "Create escalation task",
+                "escalation_banner": "One or more reporting milestones are overdue.",
+                "escalation_created": "Escalation task created.",
+                "draft_saved": "Reporting draft saved.",
+                "submitted_for_approval": "Submitted for internal approval.",
+                "approved": "Reporting package approved.",
+                "rejected": "Reporting package rejected.",
+                "marked_submitted": "Marked as manually submitted.",
+                "submit_approval": "Submit for approval",
+                "approve": "Approve",
+                "reject": "Reject",
+                "mark_submitted": "Mark as submitted",
+                "mark_submitted_title": "Record manual submission",
+                "remaining": ":hours h :minutes m remaining",
+                "overdue_by": "Overdue by :hours h :minutes m",
+                "types": {
+                    "early_warning": "Early warning (24h)",
+                    "intermediate": "Intermediate (72h)",
+                    "final": "Final report"
+                },
+                "milestone_status": {
+                    "na": "N/A",
+                    "open": "Open",
+                    "pending": "Pending",
+                    "overdue": "Overdue",
+                    "submitted": "Submitted",
+                    "warn": "Warning"
+                },
+                "submission_status": {
+                    "draft": "Draft",
+                    "pending_approval": "Pending approval",
+                    "approved": "Approved",
+                    "submitted": "Submitted",
+                    "rejected": "Rejected"
+                },
+                "summaries": {
+                    "not_applicable": "Not applicable for this vulnerability.",
+                    "corrective_date_missing": "Set corrective measure availability to calculate the final deadline.",
+                    "submitted": "Submission recorded.",
+                    "overdue": "Deadline has passed without submission.",
+                    "deadline_pending": "Deadline not yet calculable.",
+                    "countdown": "Deadline countdown is active."
+                },
+                "channels": {
+                    "email": "Email",
+                    "portal": "Portal",
+                    "other": "Other"
+                },
+                "fields": {
+                    "summary": "Report summary",
+                    "impact": "Impact",
+                    "affected_versions": "Affected versions",
+                    "workaround": "Workaround",
+                    "corrective_action": "Corrective action",
+                    "contact_name": "Contact name",
+                    "contact_email": "Contact email",
+                    "contact": "Contact",
+                    "notes": "Notes",
+                    "approval_comment": "Approval comment",
+                    "channel": "Submission channel",
+                    "reference": "Submission reference"
+                },
+                "help": {
+                    "summary": "Short description of the issue for this reporting milestone.",
+                    "impact": "Potential or observed impact on products, users or systems.",
+                    "affected_versions": "Which product versions are affected.",
+                    "workaround": "Temporary mitigation available to users, if any.",
+                    "corrective_action": "Permanent fix or remediation plan.",
+                    "contact_name": "Person responsible for this submission.",
+                    "contact_email": "Contact email for follow-up on the report.",
+                    "notes": "Internal notes that are not part of the formal submission.",
+                    "approval_comment": "Optional comment recorded with approve or reject.",
+                    "channel": "How the report was sent outside the system (email, portal, other).",
+                    "reference": "External ticket, email ID or portal receipt reference."
+                },
+                "pdf": {
+                    "milestone": "Milestone",
+                    "due": "Due",
+                    "status": "Status",
+                    "submission": "Submission"
+                }
             }
         },
         "evidence": {
@@ -1251,7 +1345,9 @@
                 },
                 "reporting": {
                     "deadlines_at_risk": "Vulnerability reporting deadlines need attention.",
-                    "workflow_pending": "Dedicated reporting workflow is not available yet."
+                    "submissions_recorded": "At least one reporting submission is recorded.",
+                    "in_progress": "Vulnerabilities with awareness timestamps await reporting steps.",
+                    "no_active_reporting": "No active vulnerability reporting deadlines."
                 }
             },
             "gaps": {

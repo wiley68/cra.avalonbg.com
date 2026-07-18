@@ -1,9 +1,10 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil, Trash2 } from '@lucide/vue';
+import { ArrowUpDown, ClipboardList, Pencil, Trash2 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
+import { show as reportingShow } from '@/routes/products/vulnerabilities/reporting';
 import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 
 export type ProductVulnerabilityListItem = {
@@ -205,6 +206,18 @@ export const createProductVulnerabilityColumns = ({
                     variant?: 'default' | 'destructive';
                     onSelect: () => void;
                 }[] = [
+                    {
+                        label: t('products.vulnerabilities.reporting_link'),
+                        icon: ClipboardList,
+                        onSelect: () => {
+                            router.visit(
+                                reportingShow({
+                                    product: productId,
+                                    vulnerability: row.original.id,
+                                }).url,
+                            );
+                        },
+                    },
                     {
                         label: t('common.edit'),
                         icon: Pencil,

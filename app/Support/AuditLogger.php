@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Evidence;
 use App\Models\Product;
 use App\Models\ProductRisk;
+use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -369,6 +370,130 @@ class AuditLogger
                 ['field' => 'product_id', 'value' => (string) $product->id],
                 ['field' => 'name', 'value' => $product->name],
             ],
+        );
+    }
+
+    public static function logReportingDraftUpdated(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        string $type,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingDraftUpdated,
+            $vulnerability,
+            $actor,
+            $type,
+        );
+    }
+
+    public static function logReportingSubmittedForApproval(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        string $type,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingSubmittedForApproval,
+            $vulnerability,
+            $actor,
+            $type,
+        );
+    }
+
+    public static function logReportingApproved(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        string $type,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingApproved,
+            $vulnerability,
+            $actor,
+            $type,
+        );
+    }
+
+    public static function logReportingRejected(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        string $type,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingRejected,
+            $vulnerability,
+            $actor,
+            $type,
+        );
+    }
+
+    public static function logReportingMarkedSubmitted(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        string $type,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingMarkedSubmitted,
+            $vulnerability,
+            $actor,
+            $type,
+        );
+    }
+
+    public static function logReportingExported(
+        ProductVulnerability $vulnerability,
+        User $actor,
+    ): void {
+        self::persistReportingEvent(
+            AuditEventType::ReportingExported,
+            $vulnerability,
+            $actor,
+        );
+    }
+
+    public static function logReportingEscalationCreated(
+        ProductVulnerability $vulnerability,
+        User $actor,
+        int $taskId,
+    ): void {
+        self::persist(
+            type: AuditEventType::ReportingEscalationCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $vulnerability->product->organization_id,
+            productId: $vulnerability->product_id,
+            details: [
+                ['field' => 'vulnerability_id', 'value' => (string) $vulnerability->id],
+                ['field' => 'product_id', 'value' => (string) $vulnerability->product_id],
+                ['field' => 'title', 'value' => $vulnerability->title],
+                ['field' => 'task_id', 'value' => (string) $taskId],
+            ],
+        );
+    }
+
+    private static function persistReportingEvent(
+        AuditEventType $type,
+        ProductVulnerability $vulnerability,
+        User $actor,
+        ?string $reportType = null,
+    ): void {
+        $details = [
+            ['field' => 'vulnerability_id', 'value' => (string) $vulnerability->id],
+            ['field' => 'product_id', 'value' => (string) $vulnerability->product_id],
+            ['field' => 'title', 'value' => $vulnerability->title],
+        ];
+
+        if ($reportType !== null) {
+            $details[] = ['field' => 'report_type', 'value' => $reportType];
+        }
+
+        self::persist(
+            type: $type,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $vulnerability->product->organization_id,
+            productId: $vulnerability->product_id,
+            details: $details,
         );
     }
 

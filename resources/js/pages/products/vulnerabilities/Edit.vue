@@ -41,6 +41,8 @@ type VulnerabilityDetail = {
     workaround: string | null;
     corrective_action: string | null;
     owner_user_id: number | null;
+    substitute_owner_user_id: number | null;
+    corrective_measure_available_at: string | null;
     notes: string | null;
     component_ids: number[];
     affected_version_ids: number[];
@@ -92,6 +94,10 @@ const form = useForm({
     workaround: props.vulnerability.workaround ?? '',
     corrective_action: props.vulnerability.corrective_action ?? '',
     owner_user_id: (props.vulnerability.owner_user_id ?? '') as number | '',
+    substitute_owner_user_id: (props.vulnerability.substitute_owner_user_id ??
+        '') as number | '',
+    corrective_measure_available_at:
+        props.vulnerability.corrective_measure_available_at ?? '',
     notes: props.vulnerability.notes ?? '',
     component_ids: [...props.vulnerability.component_ids],
     affected_version_ids: [...props.vulnerability.affected_version_ids],
@@ -122,6 +128,9 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         owner_user_id: data.owner_user_id || null,
+        substitute_owner_user_id: data.substitute_owner_user_id || null,
+        corrective_measure_available_at:
+            data.corrective_measure_available_at || null,
         cvss_score: data.cvss_score === '' ? null : data.cvss_score,
         discovered_at: data.discovered_at || null,
         awareness_at: data.awareness_at || null,
@@ -470,6 +479,69 @@ const toggleId = (
                             </option>
                         </select>
                         <InputError :message="form.errors.owner_user_id" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="substitute_owner_user_id"
+                            :help="
+                                t(
+                                    'products.vulnerabilities.help.substitute_owner',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.vulnerabilities.fields.substitute_owner',
+                                )
+                            }}
+                        </FieldLabel>
+                        <select
+                            id="substitute_owner_user_id"
+                            v-model="form.substitute_owner_user_id"
+                            :class="selectClass"
+                        >
+                            <option value="">
+                                {{ t('products.none') }}
+                            </option>
+                            <option
+                                v-for="member in members"
+                                :key="member.id"
+                                :value="member.id"
+                            >
+                                {{ member.name }} ({{ member.email }})
+                            </option>
+                        </select>
+                        <InputError
+                            :message="form.errors.substitute_owner_user_id"
+                        />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="corrective_measure_available_at"
+                            :help="
+                                t(
+                                    'products.vulnerabilities.help.corrective_measure_available_at',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.vulnerabilities.fields.corrective_measure_available_at',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="corrective_measure_available_at"
+                            v-model="form.corrective_measure_available_at"
+                            type="datetime-local"
+                        />
+                        <InputError
+                            :message="
+                                form.errors.corrective_measure_available_at
+                            "
+                        />
                     </div>
 
                     <div class="flex items-center gap-3 sm:col-span-2">

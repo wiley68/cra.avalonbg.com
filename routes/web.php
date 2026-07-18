@@ -33,6 +33,7 @@ use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVulnerabilityController;
+use App\Http\Controllers\VulnerabilityReportingController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ProductReadinessController;
@@ -96,6 +97,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();
+        Route::get(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting',
+            [VulnerabilityReportingController::class, 'show'],
+        )->name('products.vulnerabilities.reporting.show')->scopeBindings();
+        Route::put(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting',
+            [VulnerabilityReportingController::class, 'update'],
+        )->name('products.vulnerabilities.reporting.update')->scopeBindings();
+        Route::post(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/submit-approval',
+            [VulnerabilityReportingController::class, 'submitApproval'],
+        )->name('products.vulnerabilities.reporting.submit-approval')->scopeBindings();
+        Route::post(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/approve',
+            [VulnerabilityReportingController::class, 'approve'],
+        )->name('products.vulnerabilities.reporting.approve')->scopeBindings();
+        Route::post(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/reject',
+            [VulnerabilityReportingController::class, 'reject'],
+        )->name('products.vulnerabilities.reporting.reject')->scopeBindings();
+        Route::post(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/mark-submitted',
+            [VulnerabilityReportingController::class, 'markSubmitted'],
+        )->name('products.vulnerabilities.reporting.mark-submitted')->scopeBindings();
+        Route::post(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/escalate',
+            [VulnerabilityReportingController::class, 'escalate'],
+        )->name('products.vulnerabilities.reporting.escalate')->scopeBindings();
+        Route::get(
+            'products/{product}/vulnerabilities/{vulnerability}/reporting/export',
+            [VulnerabilityReportingController::class, 'export'],
+        )->name('products.vulnerabilities.reporting.export')->scopeBindings();
         Route::get('products/{product}/evidence/{evidence}/download', [EvidenceController::class, 'download'])
             ->name('products.evidence.download');
         Route::resource('products.evidence', EvidenceController::class)

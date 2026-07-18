@@ -617,24 +617,44 @@ class ProductReadinessService
      */
     private function reportingSection(Product $product): array
     {
-        $counts = $this->vulnerabilityCounts($product);
+        $stats = app(VulnerabilityReportingService::class)->productReportingStats($product);
 
-        if ($counts['overdue'] > 0) {
+        if ($stats['overdue_milestones'] > 0) {
             return [
                 'key' => 'reporting',
-                'status' => 'warn',
+                'status' => 'fail',
                 'summary' => 'deadlines_at_risk',
                 'gap_key' => 'products.readiness.gaps.reporting',
                 'link' => 'vulnerabilities',
-                'metrics' => $counts,
+                'metrics' => $stats,
+            ];
+        }
+
+        if ($stats['submitted'] > 0) {
+            return [
+                'key' => 'reporting',
+                'status' => 'pass',
+                'summary' => 'submissions_recorded',
+                'metrics' => $stats,
+            ];
+        }
+
+        if ($stats['open_with_awareness'] > 0) {
+            return [
+                'key' => 'reporting',
+                'status' => 'warn',
+                'summary' => 'in_progress',
+                'gap_key' => 'products.readiness.gaps.reporting',
+                'link' => 'vulnerabilities',
+                'metrics' => $stats,
             ];
         }
 
         return [
             'key' => 'reporting',
             'status' => 'na',
-            'summary' => 'workflow_pending',
-            'metrics' => $counts,
+            'summary' => 'no_active_reporting',
+            'metrics' => $stats,
         ];
     }
 

@@ -902,6 +902,8 @@
                 "workaround": "Workaround",
                 "corrective_action": "Коригиращо действие",
                 "owner": "Отговорник",
+                "substitute_owner": "Заместник-отговорник",
+                "corrective_measure_available_at": "Коригираща мярка налична от",
                 "notes": "Бележки",
                 "components": "Засегнати компоненти",
                 "affected_versions": "Засегнати версии",
@@ -923,6 +925,8 @@
                 "workaround": "Временна мярка до постоянна поправка.",
                 "corrective_action": "Планирана или завършена постоянна поправка.",
                 "owner": "Член на организацията, отговорен за уязвимостта.",
+                "substitute_owner": "Резервен отговорник за ескалация, когато основният не е наличен.",
+                "corrective_measure_available_at": "Кога е налична коригираща мярка — стартира 14-дневния срок за финален доклад при активна експлоатация.",
                 "notes": "Вътрешни бележки за triage и проследяване.",
                 "components": "SBOM компоненти, засегнати от уязвимостта.",
                 "affected_versions": "Засегнати версии на продукта.",
@@ -961,6 +965,96 @@
                 "none": "Няма",
                 "proof_of_concept": "Proof of concept",
                 "active": "Активна"
+            },
+            "reporting_link": "Докладване",
+            "reporting": {
+                "title": "Reporting workflow",
+                "subtitle": "Проследяване на 24ч / 72ч / финални срокове и записи за подаване",
+                "export": "Експорт PDF",
+                "disclaimer": "Този workflow организира стъпките по CRA докладване. Не подава към ENISA SRP и не гарантира правно съответствие.",
+                "deadlines_title": "Срокове",
+                "due_at": "Краен срок",
+                "escalate": "Създай ескалационна задача",
+                "escalation_banner": "Един или повече reporting етапи са просрочени.",
+                "escalation_created": "Ескалационната задача е създадена.",
+                "draft_saved": "Черновата за докладване е записана.",
+                "submitted_for_approval": "Изпратено за вътрешно одобрение.",
+                "approved": "Пакетът за докладване е одобрен.",
+                "rejected": "Пакетът за докладване е отхвърлен.",
+                "marked_submitted": "Маркирано като ръчно подадено.",
+                "submit_approval": "Изпрати за одобрение",
+                "approve": "Одобри",
+                "reject": "Отхвърли",
+                "mark_submitted": "Маркирай като подадено",
+                "mark_submitted_title": "Запиши ръчно подаване",
+                "remaining": "Остават :hours ч :minutes мин",
+                "overdue_by": "Просрочено с :hours ч :minutes мин",
+                "types": {
+                    "early_warning": "Ранно предупреждение (24ч)",
+                    "intermediate": "Междинен доклад (72ч)",
+                    "final": "Финален доклад"
+                },
+                "milestone_status": {
+                    "na": "N/A",
+                    "open": "Отворен",
+                    "pending": "Чакащ",
+                    "overdue": "Просрочен",
+                    "submitted": "Подаден",
+                    "warn": "Предупреждение"
+                },
+                "submission_status": {
+                    "draft": "Чернова",
+                    "pending_approval": "Чака одобрение",
+                    "approved": "Одобрен",
+                    "submitted": "Подаден",
+                    "rejected": "Отхвърлен"
+                },
+                "summaries": {
+                    "not_applicable": "Не е приложимо за тази уязвимост.",
+                    "corrective_date_missing": "Задайте дата на коригираща мярка, за да се изчисли финалният срок.",
+                    "submitted": "Подаването е записано.",
+                    "overdue": "Срокът е изтекъл без подаване.",
+                    "deadline_pending": "Срокът все още не може да се изчисли.",
+                    "countdown": "Броенето към срока е активно."
+                },
+                "channels": {
+                    "email": "Имейл",
+                    "portal": "Портал",
+                    "other": "Друго"
+                },
+                "fields": {
+                    "summary": "Резюме на доклада",
+                    "impact": "Въздействие",
+                    "affected_versions": "Засегнати версии",
+                    "workaround": "Workaround",
+                    "corrective_action": "Коригиращо действие",
+                    "contact_name": "Име за контакт",
+                    "contact_email": "Имейл за контакт",
+                    "contact": "Контакт",
+                    "notes": "Бележки",
+                    "approval_comment": "Коментар по одобрение",
+                    "channel": "Канал на подаване",
+                    "reference": "Референция на подаване"
+                },
+                "help": {
+                    "summary": "Кратко описание на проблема за този reporting етап.",
+                    "impact": "Потенциално или наблюдавано въздействие върху продукти, потребители или системи.",
+                    "affected_versions": "Кои версии на продукта са засегнати.",
+                    "workaround": "Временна мярка за потребителите, ако има такава.",
+                    "corrective_action": "Постоянна поправка или план за remediation.",
+                    "contact_name": "Лице, отговорно за това подаване.",
+                    "contact_email": "Имейл за последваща комуникация по доклада.",
+                    "notes": "Вътрешни бележки, които не са част от официалното подаване.",
+                    "approval_comment": "Опционален коментар при одобрение или отхвърляне.",
+                    "channel": "Как е изпратен докладът извън системата (имейл, портал, друго).",
+                    "reference": "Външен ticket, имейл ID или референция от портал."
+                },
+                "pdf": {
+                    "milestone": "Етап",
+                    "due": "Срок",
+                    "status": "Статус",
+                    "submission": "Подаване"
+                }
             }
         },
         "evidence": {
@@ -1251,7 +1345,9 @@
                 },
                 "reporting": {
                     "deadlines_at_risk": "Сроковете за докладване на уязвимости изискват внимание.",
-                    "workflow_pending": "Отделният reporting workflow все още не е наличен."
+                    "submissions_recorded": "Записано е поне едно подаване по reporting.",
+                    "in_progress": "Уязвимости с awareness timestamp чакат reporting стъпки.",
+                    "no_active_reporting": "Няма активни срокове за докладване на уязвимости."
                 }
             },
             "gaps": {
@@ -1390,7 +1486,14 @@
             "task_updated": "Обновена задача",
             "task_deleted": "Изтрита задача",
             "readiness_report_viewed": "Прегледан readiness отчет",
-            "readiness_report_exported": "Експортиран readiness отчет"
+            "readiness_report_exported": "Експортиран readiness отчет",
+            "reporting_draft_updated": "Обновена reporting чернова",
+            "reporting_submitted_for_approval": "Reporting изпратен за одобрение",
+            "reporting_approved": "Reporting одобрен",
+            "reporting_rejected": "Reporting отхвърлен",
+            "reporting_marked_submitted": "Reporting маркиран като подаден",
+            "reporting_exported": "Експортиран reporting пакет",
+            "reporting_escalation_created": "Създадена ескалационна задача за reporting"
         },
         "event_sources": {
             "workspace": "Workspace",
