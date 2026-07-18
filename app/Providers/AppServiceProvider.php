@@ -5,13 +5,17 @@ namespace App\Providers;
 use App\Enums\PermissionSlug;
 use App\Http\Middleware\ForceHttps;
 use App\Models\AuditLog;
+use App\Models\Control;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductControl;
 use App\Models\ProductRequirement;
 use App\Models\Requirement;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
+use App\Policies\ControlPolicy;
 use App\Policies\OrganizationPolicy;
+use App\Policies\ProductControlPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\ProductRequirementPolicy;
 use App\Policies\RequirementPolicy;
@@ -67,7 +71,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn (): Password => Password::min(9)
+            fn(): Password => Password::min(9)
                 ->mixedCase()
                 ->numbers()
                 ->symbols(),
@@ -78,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define(
             'platform.admin',
-            fn (User $user) => $user->isPlatformAdmin()
+            fn(User $user) => $user->isPlatformAdmin()
             || $user->hasPermission(PermissionSlug::PlatformAdmin->value),
         );
         Gate::policy(User::class, UserPolicy::class);
@@ -86,6 +90,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Requirement::class, RequirementPolicy::class);
         Gate::policy(ProductRequirement::class, ProductRequirementPolicy::class);
+        Gate::policy(Control::class, ControlPolicy::class);
+        Gate::policy(ProductControl::class, ProductControlPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 
@@ -123,12 +129,12 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $forceHttps = filter_var(env('APP_FORCE_HTTPS', false), FILTER_VALIDATE_BOOLEAN);
-        if (! $forceHttps) {
+        if (!$forceHttps) {
             return;
         }
 
         $kernel = $this->app->make(Kernel::class);
-        if (! $kernel instanceof HttpKernel) {
+        if (!$kernel instanceof HttpKernel) {
             return;
         }
 
@@ -138,7 +144,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureAuditLogging(): void
     {
         Event::listen(Login::class, function (Login $event): void {
-            if ($event->guard !== 'web' || ! $event->user instanceof User) {
+            if ($event->guard !== 'web' || !$event->user instanceof User) {
                 return;
             }
 

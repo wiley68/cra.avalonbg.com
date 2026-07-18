@@ -144,6 +144,30 @@ class User extends Authenticatable implements MustVerifyEmail
             || $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
     }
 
+    public function canViewControls(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::ControlsView->value, $organization)
+            || $this->hasPermission(PermissionSlug::ProductsView->value, $organization);
+    }
+
+    public function canManageControls(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::ControlsManage->value, $organization)
+            || $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+    }
+
     public function canManageOrganizations(): bool
     {
         return $this->isPlatformAdmin()
@@ -161,7 +185,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return true;
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return false;
         }
 
@@ -177,7 +201,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return $this->platformAdminPermissions();
         }
 
-        if (! $organization) {
+        if (!$organization) {
             return [];
         }
 
@@ -185,7 +209,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->where('organizations.id', $organization->id)
             ->first()?->pivot?->role_id;
 
-        if (! $roleId) {
+        if (!$roleId) {
             return [];
         }
 
@@ -213,7 +237,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->first();
 
         if ($role === null) {
-            return config('cra.roles.'.RoleSlug::PlatformAdmin->value.'.permissions', []);
+            return config('cra.roles.' . RoleSlug::PlatformAdmin->value . '.permissions', []);
         }
 
         return $role->permissions->pluck('slug')->all();

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -54,5 +55,11 @@ class Requirement extends Model
     public function productRequirements(): HasMany
     {
         return $this->hasMany(ProductRequirement::class);
+    }
+
+    public function controls(): BelongsToMany
+    {
+        return $this->belongsToMany(Control::class)
+            ->withTimestamps();
     }
 }

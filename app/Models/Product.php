@@ -123,6 +123,11 @@ class Product extends Model
         return $this->hasMany(ProductRequirement::class);
     }
 
+    public function productControls(): HasMany
+    {
+        return $this->hasMany(ProductControl::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

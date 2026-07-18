@@ -36,4 +36,9 @@ class Organization extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function controls(): HasMany
+    {
+        return $this->hasMany(Control::class);
+    }
 }

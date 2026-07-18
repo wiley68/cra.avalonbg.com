@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
+import { ArrowLeft, Plus, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,10 @@ import {
     index as requirementsIndex,
     update,
 } from '@/routes/products/requirements';
+import {
+    create as createProductControl,
+    edit as editProductControl,
+} from '@/routes/products/controls';
 
 type Member = {
     id: number;
@@ -44,11 +48,24 @@ type HistoryItem = {
     created_at: string | null;
 };
 
+type LinkedControl = {
+    id: number;
+    code: string;
+    name: string;
+    product_control: {
+        id: number;
+        status: string;
+        notes: string | null;
+    } | null;
+};
+
 const props = defineProps<{
     product: ProductSummary;
     productRequirement: ProductRequirementPayload;
+    linkedControls?: LinkedControl[];
     histories: HistoryItem[];
     canManage: boolean;
+    canManageControls?: boolean;
     options: { statuses: string[] };
     members: Member[];
 }>();
@@ -64,6 +81,13 @@ const form = useForm({
 
 const statusLabel = (value: string): string => {
     const key = `products.requirements.statuses.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const controlStatusLabel = (value: string): string => {
+    const key = `products.controls.statuses.${value}`;
     const translated = t(key);
 
     return translated === key ? value : translated;
@@ -152,6 +176,74 @@ const textareaClass =
                     {{ props.productRequirement.required_evidence_text }}
                 </p>
             </div>
+        </section>
+
+        <section class="space-y-3 rounded-lg border p-6">
+            <div class="flex items-center justify-between gap-4">
+                <h2
+                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+                >
+                    {{ t('products.requirements.linked_controls_title') }}
+                </h2>
+                <Button
+                    v-if="canManageControls"
+                    as-child
+                    variant="outline"
+                    size="sm"
+                >
+                    <Link :href="createProductControl(props.product.id)">
+                        <Plus class="h-4 w-4" />
+                        {{ t('products.controls.assign') }}
+                    </Link>
+                </Button>
+            </div>
+            <p
+                v-if="!linkedControls || linkedControls.length === 0"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('products.requirements.no_linked_controls') }}
+            </p>
+            <ul v-else class="space-y-3 text-sm">
+                <li
+                    v-for="control in linkedControls"
+                    :key="control.id"
+                    class="flex items-start justify-between gap-4 border-b pb-2 last:border-0"
+                >
+                    <div>
+                        <p class="font-medium">
+                            {{ control.code }} — {{ control.name }}
+                        </p>
+                        <p class="text-muted-foreground">
+                            {{
+                                control.product_control
+                                    ? controlStatusLabel(
+                                          control.product_control.status,
+                                      )
+                                    : t(
+                                          'products.requirements.control_not_assigned',
+                                      )
+                            }}
+                        </p>
+                    </div>
+                    <Button
+                        v-if="control.product_control"
+                        as-child
+                        variant="outline"
+                        size="sm"
+                    >
+                        <Link
+                            :href="
+                                editProductControl({
+                                    product: props.product.id,
+                                    product_control: control.product_control.id,
+                                })
+                            "
+                        >
+                            {{ t('common.edit') }}
+                        </Link>
+                    </Button>
+                </li>
+            </ul>
         </section>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">

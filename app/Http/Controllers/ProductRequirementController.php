@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\RequirementApplicabilityStatus;
 use App\Http\Requests\UpdateProductRequirementRequest;
+use App\Models\Control;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductRequirement;
@@ -17,7 +18,8 @@ class ProductRequirementController extends Controller
 {
     public function __construct(
         private readonly ProductRequirementService $requirements,
-    ) {}
+    ) {
+    }
 
     public function index(Product $product): Response
     {
@@ -46,7 +48,7 @@ class ProductRequirementController extends Controller
             'members' => $organization->users()
                 ->orderBy('name')
                 ->get(['users.id', 'users.name', 'users.email'])
-                ->map(fn ($user) => [
+                ->map(fn($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -62,7 +64,28 @@ class ProductRequirementController extends Controller
         $this->assertRequirementBelongsToProduct($requirement, $product);
         $this->authorize('view', [$requirement, $organization]);
 
-        $requirement->load(['requirement.regulation', 'requirementVersion', 'owner', 'histories' => fn ($q) => $q->latest('id')->limit(20)]);
+        $requirement->load(['requirement.regulation', 'requirementVersion', 'owner', 'histories' => fn($q) => $q->latest('id')->limit(20)]);
+
+        $linkedControls = Control::query()
+            ->where('organization_id', $organization->id)
+            ->where('is_active', true)
+            ->whereHas('requirements', fn($q) => $q->where('requirements.id', $requirement->requirement_id))
+            ->with(['productControls' => fn($q) => $q->where('product_id', $product->id)])
+            ->orderBy('name')
+            ->get()
+            ->map(fn(Control $control) => [
+                'id' => $control->id,
+                'code' => $control->code,
+                'name' => $control->name,
+                'product_control' => ($pc = $control->productControls->first())
+                    ? [
+                        'id' => $pc->id,
+                        'status' => $pc->status->value,
+                        'notes' => $pc->notes,
+                    ]
+                    : null,
+            ])
+            ->all();
 
         return Inertia::render('products/requirements/Edit', [
             'organization' => [
@@ -76,7 +99,8 @@ class ProductRequirementController extends Controller
                 'slug' => $product->slug,
             ],
             'productRequirement' => $this->requirements->listItemPayload($requirement),
-            'histories' => $requirement->histories->map(fn ($history) => [
+            'linkedControls' => $linkedControls,
+            'histories' => $requirement->histories->map(fn($history) => [
                 'id' => $history->id,
                 'from_status' => $history->from_status?->value ?? $history->getRawOriginal('from_status'),
                 'to_status' => $history->to_status instanceof RequirementApplicabilityStatus
@@ -87,13 +111,14 @@ class ProductRequirementController extends Controller
                 'created_at' => $history->created_at?->toIso8601String(),
             ])->all(),
             'canManage' => request()->user()->canManageRequirements($organization),
+            'canManageControls' => request()->user()->canManageControls($organization),
             'options' => [
                 'statuses' => array_column(RequirementApplicabilityStatus::cases(), 'value'),
             ],
             'members' => $organization->users()
                 ->orderBy('name')
                 ->get(['users.id', 'users.name', 'users.email'])
-                ->map(fn ($user) => [
+                ->map(fn($user) => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,

@@ -8,14 +8,18 @@ use App\Http\Controllers\Api\Admin\AuditLogApiController;
 use App\Http\Controllers\Api\Admin\OrganizationApiController;
 use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\Admin\RequirementApiController;
+use App\Http\Controllers\Api\ControlApiController;
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
+use App\Http\Controllers\ControlController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProductClassificationController;
+use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductScopeAssessmentController;
@@ -41,6 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::resource('users', UserController::class)->except(['show']);
 
+        Route::resource('controls', ControlController::class)->except(['show']);
+
         Route::resource('products', ProductController::class)->except(['show']);
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
             ->name('products.scope-assessment.preview');
@@ -60,6 +66,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.requirements.edit');
         Route::put('products/{product}/requirements/{requirement}', [ProductRequirementController::class, 'update'])
             ->name('products.requirements.update');
+        Route::resource('products.controls', ProductControlController::class)
+            ->except(['show'])
+            ->parameters(['controls' => 'product_control'])
+            ->scoped();
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
@@ -68,12 +78,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('internal-api')->name('internal.')->group(function () {
             Route::get('users', [UserApiController::class, 'index'])
                 ->name('users.index');
+            Route::get('controls', [ControlApiController::class, 'index'])
+                ->name('controls.index');
             Route::get('products', [ProductApiController::class, 'index'])
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])
                 ->name('products.versions.index');
             Route::get('products/{product}/requirements', [ProductRequirementApiController::class, 'index'])
                 ->name('products.requirements.index');
+            Route::get('products/{product}/controls', [ProductControlApiController::class, 'index'])
+                ->name('products.controls.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
@@ -107,4 +121,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

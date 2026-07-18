@@ -15,6 +15,8 @@ export type User = {
     can_manage_products?: boolean;
     can_view_requirements?: boolean;
     can_manage_requirements?: boolean;
+    can_view_controls?: boolean;
+    can_manage_controls?: boolean;
     can_manage_organizations?: boolean;
     created_at: string;
     updated_at: string;

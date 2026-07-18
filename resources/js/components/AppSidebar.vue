@@ -9,6 +9,7 @@ import {
     Mail,
     Package,
     ScrollText,
+    Shield,
     User,
     Users,
 } from '@lucide/vue';
@@ -34,6 +35,7 @@ import { index as adminRequirementsIndex } from '@/routes/admin/requirements';
 import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
+import { index as controlsIndex } from '@/routes/controls';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -73,6 +75,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.products'),
             href: productsIndex(),
             icon: Package,
+        });
+    }
+
+    if (user.can_view_controls) {
+        items.push({
+            title: t('nav.controls'),
+            href: controlsIndex(),
+            icon: Shield,
         });
     }
 

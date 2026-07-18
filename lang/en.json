@@ -226,9 +226,66 @@
         "organizations": "Organizations",
         "users": "Users",
         "products": "Products",
+        "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
         "requirements_catalogue": "Requirements catalogue"
+    },
+    "controls": {
+        "index_title": "Controls library",
+        "title": "Controls library",
+        "subtitle": "How your organization implements CRA requirements",
+        "create": "Create control",
+        "create_title": "Create control",
+        "edit_title": "Edit control",
+        "created": "Control created.",
+        "updated": "Control updated.",
+        "deleted": "Control deleted.",
+        "confirm_delete": "Delete this control permanently?",
+        "search_placeholder": "Search by code, name or description...",
+        "active": "Active",
+        "inactive": "Inactive",
+        "columns": {
+            "id": "ID",
+            "code": "Code",
+            "automation_level": "Automation",
+            "frequency": "Frequency",
+            "status": "Status",
+            "requirements": "Requirements"
+        },
+        "fields": {
+            "code": "Code",
+            "description": "Description",
+            "implementation_guidance": "Implementation guidance",
+            "automation_level": "Automation level",
+            "frequency": "Frequency",
+            "owner": "Owner",
+            "is_active": "Active",
+            "requirements": "Linked requirements"
+        },
+        "help": {
+            "code": "Stable short code unique within the organization.",
+            "name": "Short name for the control as used by product teams.",
+            "description": "What this control does and why it exists.",
+            "implementation_guidance": "Practical steps for implementing and operating the control.",
+            "automation_level": "How much of the control is automated versus manual.",
+            "frequency": "How often the control runs or is reviewed.",
+            "owner": "Organization member accountable for this control.",
+            "is_active": "Inactive controls are hidden from new product assignments.",
+            "requirements": "CRA catalogue requirements this control helps satisfy."
+        },
+        "automation_levels": {
+            "manual": "Manual",
+            "semi_automated": "Semi-automated",
+            "automated": "Automated"
+        },
+        "frequencies": {
+            "continuous": "Continuous",
+            "per_release": "Per release",
+            "periodic": "Periodic",
+            "on_demand": "On demand",
+            "ad_hoc": "Ad hoc"
+        }
     },
     "products": {
         "index_title": "Products",
@@ -243,6 +300,8 @@
         "confirm_delete": "Delete this product and all its versions permanently?",
         "search_placeholder": "Search by name, slug, type or status...",
         "versions_link": "Versions",
+        "requirements_link": "Requirements",
+        "controls_link": "Controls",
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -557,7 +616,42 @@
                 }
             }
         },
-        "requirements_link": "Requirements",
+        "controls": {
+            "index_title": "Product controls",
+            "title": "Product controls",
+            "subtitle": "Controls applied to this product and their status",
+            "assign": "Assign control",
+            "assign_title": "Assign control",
+            "edit_title": "Edit product control",
+            "assigned": "Control assigned to product.",
+            "updated": "Product control updated.",
+            "removed": "Control removed from product.",
+            "confirm_remove": "Remove this control from the product?",
+            "search_placeholder": "Search by code, name or status...",
+            "no_available": "All active controls are already assigned to this product.",
+            "columns": {
+                "id": "ID",
+                "code": "Code",
+                "status": "Status",
+                "reviewed_at": "Reviewed"
+            },
+            "fields": {
+                "control": "Control",
+                "status": "Status",
+                "notes": "Notes"
+            },
+            "help": {
+                "control": "Choose a control from the organization library.",
+                "status": "Current implementation status of this control on the product.",
+                "notes": "Optional notes about gaps, owners or next steps."
+            },
+            "statuses": {
+                "planned": "Planned",
+                "in_place": "In place",
+                "partial": "Partial",
+                "not_applicable": "Not applicable"
+            }
+        },
         "requirements": {
             "index_title": "Requirements matrix",
             "title": "Requirements matrix",
@@ -567,6 +661,9 @@
             "search_placeholder": "Search by code, article or status...",
             "history_title": "Change history",
             "no_history": "No status changes recorded yet.",
+            "linked_controls_title": "Linked controls",
+            "no_linked_controls": "No organization controls are linked to this requirement yet.",
+            "control_not_assigned": "Not assigned to this product",
             "columns": {
                 "id": "ID",
                 "code": "Code",

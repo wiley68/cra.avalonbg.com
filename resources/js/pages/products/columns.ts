@@ -4,6 +4,7 @@ import {
     GitBranch,
     ListChecks,
     Pencil,
+    Shield,
     Trash2,
 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
@@ -13,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { edit as editProduct } from '@/routes/products';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
+import { index as productControlsIndex } from '@/routes/products/controls';
 
 export type ProductListItem = {
     id: number;
@@ -164,6 +166,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 requirementsIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.controls_link'),
+                        icon: Shield,
+                        onSelect: () => {
+                            router.visit(
+                                productControlsIndex(row.original.id).url,
                             );
                         },
                     },

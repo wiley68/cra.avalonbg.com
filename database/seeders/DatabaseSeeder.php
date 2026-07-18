@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             PlatformAdminSeeder::class,
             RequirementCatalogueSeeder::class,
+            ControlCatalogueSeeder::class,
         ]);
     }
 }
