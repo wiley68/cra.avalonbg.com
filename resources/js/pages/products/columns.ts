@@ -5,6 +5,7 @@ import {
     ListChecks,
     Pencil,
     Shield,
+    ShieldAlert,
     Trash2,
 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
@@ -15,6 +16,7 @@ import { edit as editProduct } from '@/routes/products';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productControlsIndex } from '@/routes/products/controls';
+import { index as productRisksIndex } from '@/routes/products/risks';
 
 export type ProductListItem = {
     id: number;
@@ -175,6 +177,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productControlsIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.risks_link'),
+                        icon: ShieldAlert,
+                        onSelect: () => {
+                            router.visit(
+                                productRisksIndex(row.original.id).url,
                             );
                         },
                     },

@@ -18,6 +18,8 @@ enum PermissionSlug: string
     case RequirementsManage = 'requirements.manage';
     case ControlsView = 'controls.view';
     case ControlsManage = 'controls.manage';
+    case RisksView = 'risks.view';
+    case RisksManage = 'risks.manage';
     case ReleasesView = 'releases.view';
     case ReleasesApprove = 'releases.approve';
     case VulnerabilitiesView = 'vulnerabilities.view';

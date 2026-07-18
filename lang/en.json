@@ -302,6 +302,7 @@
         "versions_link": "Versions",
         "requirements_link": "Requirements",
         "controls_link": "Controls",
+        "risks_link": "Risks",
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -650,6 +651,124 @@
                 "in_place": "In place",
                 "partial": "Partial",
                 "not_applicable": "Not applicable"
+            }
+        },
+        "risks": {
+            "index_title": "Risk register",
+            "title": "Risk register",
+            "subtitle": "Cybersecurity risks for this product",
+            "create": "Create risk",
+            "create_title": "Create risk",
+            "edit_title": "Edit risk",
+            "created": "Risk created.",
+            "updated": "Risk updated.",
+            "deleted": "Risk deleted.",
+            "confirm_delete": "Delete this risk permanently?",
+            "search_placeholder": "Search by title, category or status...",
+            "no_controls": "No active controls in the organization library yet.",
+            "on_product": "assigned to product",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "category": "Category",
+                "status": "Status",
+                "treatment": "Treatment",
+                "initial_risk": "Initial risk",
+                "residual_risk": "Residual risk",
+                "deadline": "Deadline"
+            },
+            "fields": {
+                "title": "Title",
+                "category": "Category",
+                "status": "Status",
+                "asset": "Asset",
+                "threat": "Threat",
+                "weakness": "Vulnerability or weakness",
+                "attack_scenario": "Attack scenario",
+                "likelihood": "Likelihood",
+                "impact": "Impact",
+                "initial_risk": "Initial risk",
+                "residual_likelihood": "Residual likelihood",
+                "residual_impact": "Residual impact",
+                "residual_risk": "Residual risk",
+                "treatment": "Treatment",
+                "treatment_plan": "Treatment plan",
+                "owner": "Owner",
+                "deadline": "Deadline",
+                "product_version": "Product version",
+                "controls": "Existing controls",
+                "requirements": "Related requirements"
+            },
+            "help": {
+                "title": "Short name for the risk entry.",
+                "category": "Primary threat category for reporting and filtering.",
+                "status": "Lifecycle status of this risk record.",
+                "asset": "What is at risk (product function, data, interface, etc.).",
+                "threat": "Who or what may cause harm.",
+                "weakness": "Vulnerability, design gap or weakness enabling the threat.",
+                "attack_scenario": "How the attack or failure could unfold.",
+                "likelihood": "Estimated probability before additional treatment.",
+                "impact": "Estimated business or safety impact before additional treatment.",
+                "residual_likelihood": "Likelihood after planned or applied treatment.",
+                "residual_impact": "Impact after planned or applied treatment.",
+                "treatment": "Chosen risk treatment strategy.",
+                "treatment_plan": "Actions to mitigate, transfer or avoid the risk.",
+                "owner": "Organization member accountable for this risk.",
+                "deadline": "Target date for treatment or review.",
+                "product_version": "Optional product version this risk applies to.",
+                "controls": "Controls that already reduce this risk.",
+                "requirements": "CRA requirements related to this risk."
+            },
+            "levels": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High",
+                "critical": "Critical"
+            },
+            "likelihoods": {
+                "1": "1 — Very low",
+                "2": "2 — Low",
+                "3": "3 — Medium",
+                "4": "4 — High",
+                "5": "5 — Very high"
+            },
+            "impacts": {
+                "1": "1 — Very low",
+                "2": "2 — Low",
+                "3": "3 — Medium",
+                "4": "4 — High",
+                "5": "5 — Very high"
+            },
+            "treatments": {
+                "mitigate": "Mitigate",
+                "accept": "Accept",
+                "transfer": "Transfer",
+                "avoid": "Avoid"
+            },
+            "statuses": {
+                "open": "Open",
+                "in_treatment": "In treatment",
+                "accepted": "Accepted",
+                "closed": "Closed"
+            },
+            "categories": {
+                "unauthorised_access": "Unauthorised access",
+                "privilege_escalation": "Privilege escalation",
+                "data_exposure": "Data exposure",
+                "insecure_communication": "Insecure communication",
+                "broken_authentication": "Broken authentication",
+                "injection": "Injection",
+                "dependency_compromise": "Dependency compromise",
+                "update_mechanism_compromise": "Update mechanism compromise",
+                "supply_chain_attack": "Supply-chain attack",
+                "insufficient_logging": "Insufficient logging",
+                "denial_of_service": "Denial of service",
+                "insecure_defaults": "Insecure defaults",
+                "secrets_exposure": "Secrets exposure",
+                "cryptographic_weakness": "Cryptographic weakness",
+                "tampering": "Tampering",
+                "insecure_configuration": "Insecure configuration",
+                "unsupported_component": "Unsupported component"
             }
         },
         "requirements": {

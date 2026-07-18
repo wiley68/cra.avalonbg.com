@@ -128,6 +128,16 @@ class Product extends Model
         return $this->hasMany(ProductControl::class);
     }
 
+    public function productRisks(): HasMany
+    {
+        return $this->hasMany(ProductRisk::class);
+    }
+
+    public function risks(): HasMany
+    {
+        return $this->productRisks();
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

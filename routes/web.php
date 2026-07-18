@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ControlApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
+use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\ProductClassificationController;
 use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequirementController;
+use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\UserController;
@@ -70,6 +72,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->parameters(['controls' => 'product_control'])
             ->scoped();
+        Route::resource('products.risks', ProductRiskController::class)
+            ->except(['show'])
+            ->scoped();
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
@@ -88,6 +93,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.requirements.index');
             Route::get('products/{product}/controls', [ProductControlApiController::class, 'index'])
                 ->name('products.controls.index');
+            Route::get('products/{product}/risks', [ProductRiskApiController::class, 'index'])
+                ->name('products.risks.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {

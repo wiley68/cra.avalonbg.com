@@ -168,6 +168,30 @@ class User extends Authenticatable implements MustVerifyEmail
             || $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
     }
 
+    public function canViewRisks(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::RisksView->value, $organization)
+            || $this->hasPermission(PermissionSlug::ProductsView->value, $organization);
+    }
+
+    public function canManageRisks(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::RisksManage->value, $organization)
+            || $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+    }
+
     public function canManageOrganizations(): bool
     {
         return $this->isPlatformAdmin()
