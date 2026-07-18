@@ -2,6 +2,7 @@ import { router } from '@inertiajs/vue3';
 import {
     ArrowUpDown,
     Boxes,
+    Bug,
     GitBranch,
     ListChecks,
     Pencil,
@@ -19,6 +20,7 @@ import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productRisksIndex } from '@/routes/products/risks';
+import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
 export type ProductListItem = {
     id: number;
@@ -197,6 +199,16 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productComponentsIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.vulnerabilities_link'),
+                        icon: Bug,
+                        onSelect: () => {
+                            router.visit(
+                                productVulnerabilitiesIndex(row.original.id)
+                                    .url,
                             );
                         },
                     },

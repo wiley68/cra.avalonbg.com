@@ -7,6 +7,7 @@ use App\Enums\SupportStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -69,5 +70,13 @@ class ProductVersion extends Model
     public function sboms(): HasMany
     {
         return $this->hasMany(Sbom::class);
+    }
+
+    public function vulnerabilities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProductVulnerability::class,
+            'product_vulnerability_versions',
+        )->withPivot('relation')->withTimestamps();
     }
 }

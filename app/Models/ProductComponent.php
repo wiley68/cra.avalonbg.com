@@ -7,6 +7,7 @@ use App\Enums\PackageEcosystem;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -71,5 +72,13 @@ class ProductComponent extends Model
     public function sbom(): BelongsTo
     {
         return $this->belongsTo(Sbom::class);
+    }
+
+    public function vulnerabilities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProductVulnerability::class,
+            'product_vulnerability_components',
+        )->withTimestamps();
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
+use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductVersionController;
+use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.risks', ProductRiskController::class)
             ->except(['show'])
             ->scoped();
+        Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
+            ->except(['show'])
+            ->scoped();
         Route::get('products/{product}/components/import', [ProductComponentController::class, 'importForm'])
             ->name('products.components.import');
         Route::post('products/{product}/components/import', [ProductComponentController::class, 'import'])
@@ -106,6 +111,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.risks.index');
             Route::get('products/{product}/components', [ProductComponentApiController::class, 'index'])
                 ->name('products.components.index');
+            Route::get('products/{product}/vulnerabilities', [ProductVulnerabilityApiController::class, 'index'])
+                ->name('products.vulnerabilities.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {

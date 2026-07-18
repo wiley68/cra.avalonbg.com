@@ -12,6 +12,7 @@ use App\Models\ProductControl;
 use App\Models\ProductRequirement;
 use App\Models\ProductRisk;
 use App\Models\ProductComponent;
+use App\Models\ProductVulnerability;
 use App\Models\Requirement;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
@@ -22,6 +23,7 @@ use App\Policies\ProductControlPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\ProductRequirementPolicy;
 use App\Policies\ProductRiskPolicy;
+use App\Policies\ProductVulnerabilityPolicy;
 use App\Policies\RequirementPolicy;
 use App\Policies\UserPolicy;
 use App\Support\AuditLogger;
@@ -98,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ProductControl::class, ProductControlPolicy::class);
         Gate::policy(ProductRisk::class, ProductRiskPolicy::class);
         Gate::policy(ProductComponent::class, ProductComponentPolicy::class);
+        Gate::policy(ProductVulnerability::class, ProductVulnerabilityPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 

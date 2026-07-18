@@ -153,6 +153,16 @@ class Product extends Model
         return $this->hasMany(Sbom::class);
     }
 
+    public function productVulnerabilities(): HasMany
+    {
+        return $this->hasMany(ProductVulnerability::class);
+    }
+
+    public function vulnerabilities(): HasMany
+    {
+        return $this->productVulnerabilities();
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');
