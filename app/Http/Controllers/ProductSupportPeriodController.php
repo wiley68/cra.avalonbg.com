@@ -26,7 +26,7 @@ class ProductSupportPeriodController extends Controller
             ->with(['versions:id,version_number'])
             ->orderByDesc('ends_at')
             ->get()
-            ->map(fn (ProductSupportPeriod $period) => $this->periodPayload($period));
+            ->map(fn(ProductSupportPeriod $period) => $this->periodPayload($period));
 
         return Inertia::render('products/support-periods/Index', [
             'organization' => $this->organizationPayload($organization),
@@ -56,7 +56,7 @@ class ProductSupportPeriodController extends Controller
         $this->assertProductInOrganization($product, $organization);
 
         $period = $product->supportPeriods()->create($this->validatedAttributes($request));
-        $period->versions()->sync($request->input('version_ids', []));
+        $period->versions()->sync($this->validatedVersionIds($request));
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -94,7 +94,7 @@ class ProductSupportPeriodController extends Controller
         $this->assertPeriodBelongsToProduct($product, $support_period);
 
         $support_period->update($this->validatedAttributes($request));
-        $support_period->versions()->sync($request->input('version_ids', []));
+        $support_period->versions()->sync($this->validatedVersionIds($request));
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -178,8 +178,8 @@ class ProductSupportPeriodController extends Controller
         return $product->versions()
             ->orderByDesc('version_number')
             ->get(['id', 'version_number'])
-            ->map(fn (ProductVersion $version) => [
-                'id' => $version->id,
+            ->map(fn(ProductVersion $version) => [
+                'id' => (int) $version->id,
                 'version_number' => $version->version_number,
             ])
             ->all();
@@ -211,6 +211,17 @@ class ProductSupportPeriodController extends Controller
     }
 
     /**
+     * @return list<int>
+     */
+    private function validatedVersionIds(StoreProductSupportPeriodRequest $request): array
+    {
+        /** @var list<int>|null $ids */
+        $ids = $request->validated('version_ids');
+
+        return array_values(array_map('intval', $ids ?? []));
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function periodPayload(ProductSupportPeriod $period): array
@@ -225,9 +236,9 @@ class ProductSupportPeriodController extends Controller
             'exceptions_notes' => $period->exceptions_notes,
             'is_active' => $period->isActive(),
             'days_until_end' => $period->daysUntilEnd(),
-            'version_ids' => $period->versions->pluck('id')->all(),
-            'versions' => $period->versions->map(fn (ProductVersion $version) => [
-                'id' => $version->id,
+            'version_ids' => $period->versions->pluck('id')->map(fn($id) => (int) $id)->values()->all(),
+            'versions' => $period->versions->map(fn(ProductVersion $version) => [
+                'id' => (int) $version->id,
                 'version_number' => $version->version_number,
             ])->values()->all(),
         ];

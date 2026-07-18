@@ -4,8 +4,8 @@ import { ArrowLeft } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     destroy,
@@ -58,7 +58,7 @@ const form = useForm({
     basis: props.period.basis ?? '',
     is_extended: props.period.is_extended,
     exceptions_notes: props.period.exceptions_notes ?? '',
-    version_ids: [...props.period.version_ids],
+    version_ids: props.period.version_ids.map(Number),
 });
 
 const submit = () => {
@@ -90,16 +90,13 @@ const typeLabel = (type: string): string => {
     return translated === key ? type : translated;
 };
 
+const isVersionSelected = (versionId: number): boolean =>
+    form.version_ids.includes(versionId);
+
 const toggleVersion = (versionId: number, checked: boolean): void => {
-    if (checked) {
-        if (!form.version_ids.includes(versionId)) {
-            form.version_ids.push(versionId);
-        }
-
-        return;
-    }
-
-    form.version_ids = form.version_ids.filter((id) => id !== versionId);
+    form.version_ids = checked
+        ? [...new Set([...form.version_ids, versionId])]
+        : form.version_ids.filter((id) => id !== versionId);
 };
 
 const textareaClass =
@@ -199,19 +196,22 @@ const textareaClass =
                 <textarea
                     id="basis"
                     v-model="form.basis"
-                    rows="3"
+                    rows="6"
                     :class="textareaClass"
                 />
                 <InputError :message="form.errors.basis" />
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <Checkbox
-                    :checked="form.is_extended"
-                    @update:checked="form.is_extended = Boolean($event)"
+            <div class="flex items-center gap-3">
+                <Switch
+                    id="is_extended"
+                    v-model="form.is_extended"
+                    class="cursor-pointer"
                 />
-                {{ t('products.support_periods.fields.is_extended') }}
-            </label>
+                <label for="is_extended" class="cursor-pointer text-sm">
+                    {{ t('products.support_periods.fields.is_extended') }}
+                </label>
+            </div>
 
             <div class="grid gap-2">
                 <FieldLabel
@@ -224,13 +224,13 @@ const textareaClass =
                 <textarea
                     id="exceptions_notes"
                     v-model="form.exceptions_notes"
-                    rows="2"
+                    rows="6"
                     :class="textareaClass"
                 />
                 <InputError :message="form.errors.exceptions_notes" />
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-3">
                 <FieldLabel
                     :help="t('products.support_periods.help.versions')"
                     >{{
@@ -240,16 +240,29 @@ const textareaClass =
                 <div
                     v-for="version in versions"
                     :key="version.id"
-                    class="flex items-center gap-2 text-sm"
+                    class="flex items-center gap-3 text-sm"
                 >
-                    <Checkbox
-                        :checked="form.version_ids.includes(version.id)"
-                        @update:checked="
+                    <Switch
+                        :id="`version-${version.id}`"
+                        :model-value="isVersionSelected(version.id)"
+                        class="cursor-pointer"
+                        @update:model-value="
                             toggleVersion(version.id, Boolean($event))
                         "
                     />
-                    {{ version.version_number }}
+                    <label
+                        :for="`version-${version.id}`"
+                        class="cursor-pointer"
+                    >
+                        {{ version.version_number }}
+                    </label>
                 </div>
+                <p
+                    v-if="versions.length === 0"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('products.support_periods.no_versions') }}
+                </p>
                 <InputError :message="form.errors.version_ids" />
             </div>
 

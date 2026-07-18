@@ -586,11 +586,11 @@
                 "status": "Status"
             },
             "help": {
-                "type": "Commercial vs security support window for CRA planning.",
+                "type": "Select the support type. Commercial covers contractual and functional product support. Security covers the period during which vulnerabilities are handled and security updates are provided.",
                 "starts_at": "First day this support commitment applies.",
                 "ends_at": "Last day of this support commitment.",
-                "basis": "How the support end date was determined (contract, policy, release plan).",
-                "exceptions_notes": "Optional notes about customer-specific exceptions.",
+                "basis": "Describe the criteria and facts used to determine the length of the support period. For Commercial, state the licensing and contractual terms. For Security, state the expected lifecycle, product purpose, user expectations, and applicable regulatory requirements.",
+                "exceptions_notes": "Describe any agreed deviations from the standard support period for specific customers, versions, or installations. If there are none, state \"No customer exceptions\".",
                 "versions": "Product versions covered by this support period."
             }
         },

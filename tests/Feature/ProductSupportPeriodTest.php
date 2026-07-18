@@ -91,6 +91,49 @@ test('owner can create structured support period', function () {
     expect($period->versions()->pluck('product_versions.id')->all())->toContain($version->id);
 });
 
+test('owner can update support period version links', function () {
+    ['owner' => $owner, 'product' => $product] = makeSupportPeriodFixture();
+
+    $versionA = ProductVersion::query()->create([
+        'product_id' => $product->id,
+        'version_number' => '1.0.0',
+        'state' => 'released',
+        'support_status' => 'supported',
+    ]);
+
+    $versionB = ProductVersion::query()->create([
+        'product_id' => $product->id,
+        'version_number' => '2.0.0',
+        'state' => 'released',
+        'support_status' => 'supported',
+    ]);
+
+    $period = ProductSupportPeriod::query()->create([
+        'product_id' => $product->id,
+        'type' => SupportPeriodType::Commercial,
+        'starts_at' => now()->toDateString(),
+        'ends_at' => now()->addYear()->toDateString(),
+        'is_extended' => false,
+    ]);
+    $period->versions()->sync([$versionA->id]);
+
+    $this->actingAs($owner)->put(
+        route('products.support-periods.update', [$product, $period]),
+        [
+            'type' => SupportPeriodType::Commercial->value,
+            'starts_at' => now()->toDateString(),
+            'ends_at' => now()->addYear()->toDateString(),
+            'is_extended' => true,
+            'version_ids' => [$versionB->id],
+        ],
+    )->assertRedirect(route('products.support-periods.index', $product));
+
+    $period->refresh();
+    expect($period->is_extended)->toBeTrue();
+    expect($period->versions()->pluck('product_versions.id')->all())
+        ->toEqual([$versionB->id]);
+});
+
 test('support periods index is reachable', function () {
     ['owner' => $owner, 'product' => $product] = makeSupportPeriodFixture();
 
