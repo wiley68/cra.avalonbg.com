@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('regulations', function (Blueprint $table) {
@@ -71,7 +70,10 @@ return new class extends Migration
             $table->foreignId('changed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['product_requirement_id', 'created_at']);
+            $table->index(
+                ['product_requirement_id', 'created_at'],
+                'pr_histories_req_created_idx',
+            );
         });
     }
 
