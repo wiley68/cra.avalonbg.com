@@ -344,9 +344,16 @@ class ProductReadinessService
      */
     private function supportSection(Product $product): array
     {
-        $periods = $product->supportPeriods()->get(['type', 'starts_at', 'ends_at']);
+        $periods = $product->supportPeriods()
+            ->with(['versions:id,release_date'])
+            ->get();
         $hasStructuredPeriods = $periods->isNotEmpty();
-        $hasActivePeriod = $periods->contains(fn($period) => $period->isActive());
+        $hasResolvedSchedule = $periods->contains(
+            fn($period) => $period->scheduleResolved(),
+        );
+        $hasActivePeriod = $periods->contains(
+            fn($period) => $period->isActive() === true,
+        );
         $hasNotes = filled($product->support_period_notes) || filled($product->end_of_support_policy);
         $versions = $product->versions()->get(['support_status', 'security_support_deadline']);
 
@@ -363,11 +370,14 @@ class ProductReadinessService
         );
 
         $endingSoon = $periods->contains(
-            fn($period) => $period->isActive() && $period->daysUntilEnd() <= 90,
+            fn($period) => $period->isActive() === true
+            && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 90,
         );
 
         if ($hasStructuredPeriods) {
-            if (!$hasActivePeriod || $endingSoon || $unsupportedWithoutDeadline) {
+            $calendarProblem = $hasResolvedSchedule && (!$hasActivePeriod || $endingSoon);
+
+            if ($calendarProblem || $unsupportedWithoutDeadline) {
                 return [
                     'key' => 'support',
                     'status' => 'warn',
@@ -376,7 +386,9 @@ class ProductReadinessService
                     'link' => 'support-periods',
                     'metrics' => [
                         'periods_count' => $periods->count(),
-                        'active_periods' => $periods->filter(fn($period) => $period->isActive())->count(),
+                        'active_periods' => $periods->filter(
+                            fn($period) => $period->isActive() === true,
+                        )->count(),
                     ],
                 ];
             }
@@ -387,7 +399,9 @@ class ProductReadinessService
                 'summary' => 'documented',
                 'metrics' => [
                     'periods_count' => $periods->count(),
-                    'active_periods' => $periods->filter(fn($period) => $period->isActive())->count(),
+                    'active_periods' => $periods->filter(
+                        fn($period) => $period->isActive() === true,
+                    )->count(),
                 ],
             ];
         }

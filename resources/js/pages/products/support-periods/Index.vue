@@ -2,8 +2,8 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct } from '@/routes/products';
 import { create, destroy, edit } from '@/routes/products/support-periods';
 
@@ -22,12 +22,15 @@ type ProductSummary = {
 type PeriodRow = {
     id: number;
     type: string;
-    starts_at: string;
-    ends_at: string;
+    start_basis: string;
+    duration_months: number;
     basis: string | null;
     is_extended: boolean;
-    is_active: boolean;
-    days_until_end: number;
+    schedule_resolved: boolean;
+    effective_starts_at: string | null;
+    effective_ends_at: string | null;
+    is_active: boolean | null;
+    days_until_end: number | null;
     versions: Array<{ id: number; version_number: string }>;
 };
 
@@ -46,6 +49,13 @@ const typeLabel = (type: string): string => {
     const translated = t(key);
 
     return translated === key ? type : translated;
+};
+
+const startBasisLabel = (basis: string): string => {
+    const key = `products.support_periods.start_bases.${basis}`;
+    const translated = t(key);
+
+    return translated === key ? basis : translated;
 };
 
 const remove = (periodId: number): void => {
@@ -107,10 +117,16 @@ const remove = (periodId: number): void => {
                             {{ t('products.support_periods.fields.type') }}
                         </th>
                         <th class="px-4 py-3">
-                            {{ t('products.support_periods.fields.starts_at') }}
+                            {{
+                                t('products.support_periods.fields.start_basis')
+                            }}
                         </th>
                         <th class="px-4 py-3">
-                            {{ t('products.support_periods.fields.ends_at') }}
+                            {{
+                                t(
+                                    'products.support_periods.fields.duration_months',
+                                )
+                            }}
                         </th>
                         <th class="px-4 py-3">
                             {{ t('products.support_periods.fields.status') }}
@@ -137,28 +153,61 @@ const remove = (periodId: number): void => {
                                 }}</span
                             >
                         </td>
-                        <td class="px-4 py-3">{{ period.starts_at }}</td>
-                        <td class="px-4 py-3">{{ period.ends_at }}</td>
                         <td class="px-4 py-3">
-                            <span v-if="period.is_active">{{
-                                t('products.support_periods.active')
-                            }}</span>
-                            <span v-else>{{
-                                t('products.support_periods.inactive')
-                            }}</span>
-                            <span
+                            {{ startBasisLabel(period.start_basis) }}
+                            <p
                                 v-if="
-                                    period.is_active &&
-                                    period.days_until_end <= 90
+                                    period.schedule_resolved &&
+                                    period.effective_starts_at &&
+                                    period.effective_ends_at
                                 "
-                                class="ml-2 text-xs text-amber-600"
+                                class="text-xs text-muted-foreground"
                             >
-                                {{
-                                    t('products.support_periods.ending_soon', {
-                                        days: String(period.days_until_end),
-                                    })
-                                }}
-                            </span>
+                                {{ period.effective_starts_at }} →
+                                {{ period.effective_ends_at }}
+                            </p>
+                        </td>
+                        <td class="px-4 py-3">
+                            {{
+                                t(
+                                    'products.support_periods.duration_months_label',
+                                    {
+                                        count: String(period.duration_months),
+                                    },
+                                )
+                            }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <template v-if="period.schedule_resolved">
+                                <span v-if="period.is_active">{{
+                                    t('products.support_periods.active')
+                                }}</span>
+                                <span v-else>{{
+                                    t('products.support_periods.inactive')
+                                }}</span>
+                                <span
+                                    v-if="
+                                        period.is_active &&
+                                        period.days_until_end !== null &&
+                                        period.days_until_end <= 90
+                                    "
+                                    class="ml-2 text-xs text-amber-600"
+                                >
+                                    {{
+                                        t(
+                                            'products.support_periods.ending_soon',
+                                            {
+                                                days: String(
+                                                    period.days_until_end,
+                                                ),
+                                            },
+                                        )
+                                    }}
+                                </span>
+                            </template>
+                            <span v-else class="text-muted-foreground">{{
+                                t('products.support_periods.policy_only')
+                            }}</span>
                         </td>
                         <td class="px-4 py-3">
                             {{

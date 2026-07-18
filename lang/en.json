@@ -569,16 +569,26 @@
             "no_versions": "Create product versions first to link them here.",
             "active": "Active",
             "inactive": "Inactive",
+            "policy_only": "Policy only",
             "extended": "Extended",
             "ending_soon": ":days days left",
+            "duration_months_label": ":count months",
+            "release_schedule_hint": "The calendar window is calculated from the earliest release date of the linked versions.",
             "types": {
                 "commercial": "Commercial support",
                 "security": "Security support"
             },
+            "start_bases": {
+                "release_date": "Release date",
+                "purchase_date": "Purchase date",
+                "contract_start_date": "Contract start date",
+                "activation_date": "Activation date",
+                "custom": "Custom"
+            },
             "fields": {
                 "type": "Type",
-                "starts_at": "Start date",
-                "ends_at": "End date",
+                "start_basis": "Start basis",
+                "duration_months": "Duration (months)",
                 "basis": "Basis for determination",
                 "is_extended": "Extended support",
                 "exceptions_notes": "Customer exceptions",
@@ -587,8 +597,8 @@
             },
             "help": {
                 "type": "Select the support type. Commercial covers contractual and functional product support. Security covers the period during which vulnerabilities are handled and security updates are provided.",
-                "starts_at": "First day this support commitment applies.",
-                "ends_at": "Last day of this support commitment.",
+                "start_basis": "What event starts this support window. Calendar status is calculated only for Release date when linked versions have a release date.",
+                "duration_months": "How many months the support commitment lasts after the start basis event.",
                 "basis": "Describe the criteria and facts used to determine the length of the support period. For Commercial, state the licensing and contractual terms. For Security, state the expected lifecycle, product purpose, user expectations, and applicable regulatory requirements.",
                 "exceptions_notes": "Describe any agreed deviations from the standard support period for specific customers, versions, or installations. If there are none, state \"No customer exceptions\".",
                 "versions": "Product versions covered by this support period."

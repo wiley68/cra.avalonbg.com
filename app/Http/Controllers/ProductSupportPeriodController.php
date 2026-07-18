@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SupportPeriodStartBasis;
 use App\Enums\SupportPeriodType;
 use App\Http\Requests\StoreProductSupportPeriodRequest;
 use App\Http\Requests\UpdateProductSupportPeriodRequest;
@@ -23,8 +24,8 @@ class ProductSupportPeriodController extends Controller
         $this->authorize('view', [$product, $organization]);
 
         $periods = $product->supportPeriods()
-            ->with(['versions:id,version_number'])
-            ->orderByDesc('ends_at')
+            ->with(['versions:id,version_number,release_date'])
+            ->orderByDesc('id')
             ->get()
             ->map(fn(ProductSupportPeriod $period) => $this->periodPayload($period));
 
@@ -73,7 +74,7 @@ class ProductSupportPeriodController extends Controller
         $this->assertPeriodBelongsToProduct($product, $support_period);
         $this->authorize('update', [$product, $organization]);
 
-        $support_period->load(['versions:id,version_number']);
+        $support_period->load(['versions:id,version_number,release_date']);
 
         return Inertia::render('products/support-periods/Edit', [
             'organization' => $this->organizationPayload($organization),
@@ -171,27 +172,29 @@ class ProductSupportPeriodController extends Controller
     }
 
     /**
-     * @return list<array{id: int, version_number: string}>
+     * @return list<array{id: int, version_number: string, release_date: string|null}>
      */
     private function versionOptions(Product $product): array
     {
         return $product->versions()
             ->orderByDesc('version_number')
-            ->get(['id', 'version_number'])
+            ->get(['id', 'version_number', 'release_date'])
             ->map(fn(ProductVersion $version) => [
                 'id' => (int) $version->id,
                 'version_number' => $version->version_number,
+                'release_date' => $version->release_date?->toDateString(),
             ])
             ->all();
     }
 
     /**
-     * @return array{types: list<string>}
+     * @return array{types: list<string>, start_bases: list<string>}
      */
     private function enumOptions(): array
     {
         return [
             'types' => array_column(SupportPeriodType::cases(), 'value'),
+            'start_bases' => array_column(SupportPeriodStartBasis::cases(), 'value'),
         ];
     }
 
@@ -202,8 +205,8 @@ class ProductSupportPeriodController extends Controller
     {
         return [
             'type' => $request->string('type')->toString(),
-            'starts_at' => $request->date('starts_at'),
-            'ends_at' => $request->date('ends_at'),
+            'start_basis' => $request->string('start_basis')->toString(),
+            'duration_months' => $request->integer('duration_months'),
             'basis' => $request->input('basis'),
             'is_extended' => $request->boolean('is_extended'),
             'exceptions_notes' => $request->input('exceptions_notes'),
@@ -229,17 +232,21 @@ class ProductSupportPeriodController extends Controller
         return [
             'id' => $period->id,
             'type' => $period->type->value,
-            'starts_at' => $period->starts_at->toDateString(),
-            'ends_at' => $period->ends_at->toDateString(),
+            'start_basis' => $period->start_basis->value,
+            'duration_months' => $period->duration_months,
             'basis' => $period->basis,
             'is_extended' => $period->is_extended,
             'exceptions_notes' => $period->exceptions_notes,
+            'schedule_resolved' => $period->scheduleResolved(),
+            'effective_starts_at' => $period->effectiveStartsAt()?->toDateString(),
+            'effective_ends_at' => $period->effectiveEndsAt()?->toDateString(),
             'is_active' => $period->isActive(),
             'days_until_end' => $period->daysUntilEnd(),
             'version_ids' => $period->versions->pluck('id')->map(fn($id) => (int) $id)->values()->all(),
             'versions' => $period->versions->map(fn(ProductVersion $version) => [
                 'id' => (int) $version->id,
                 'version_number' => $version->version_number,
+                'release_date' => $version->release_date?->toDateString(),
             ])->values()->all(),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SupportPeriodStartBasis;
 use App\Enums\SupportPeriodType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -13,8 +14,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $product_id
  * @property SupportPeriodType $type
- * @property Carbon $starts_at
- * @property Carbon $ends_at
+ * @property SupportPeriodStartBasis $start_basis
+ * @property int $duration_months
  * @property string|null $basis
  * @property bool $is_extended
  * @property string|null $exceptions_notes
@@ -24,8 +25,8 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'product_id',
     'type',
-    'starts_at',
-    'ends_at',
+    'start_basis',
+    'duration_months',
     'basis',
     'is_extended',
     'exceptions_notes',
@@ -36,8 +37,8 @@ class ProductSupportPeriod extends Model
     {
         return [
             'type' => SupportPeriodType::class,
-            'starts_at' => 'date',
-            'ends_at' => 'date',
+            'start_basis' => SupportPeriodStartBasis::class,
+            'duration_months' => 'integer',
             'is_extended' => 'boolean',
         ];
     }
@@ -55,17 +56,69 @@ class ProductSupportPeriod extends Model
         )->withTimestamps();
     }
 
-    public function isActive(?Carbon $on = null): bool
+    public function scheduleResolved(): bool
     {
-        $on ??= now()->startOfDay();
-
-        return $this->starts_at->lte($on) && $this->ends_at->gte($on);
+        return $this->effectiveStartsAt() !== null && $this->effectiveEndsAt() !== null;
     }
 
-    public function daysUntilEnd(?Carbon $on = null): int
+    public function effectiveStartsAt(): ?Carbon
     {
+        if ($this->start_basis !== SupportPeriodStartBasis::ReleaseDate) {
+            return null;
+        }
+
+        if (!$this->relationLoaded('versions')) {
+            $this->load('versions:id,release_date');
+        }
+
+        $dates = $this->versions
+            ->pluck('release_date')
+            ->filter()
+            ->map(fn($date) => $date instanceof Carbon ? $date->copy()->startOfDay() : Carbon::parse($date)->startOfDay())
+            ->sort()
+            ->values();
+
+        return $dates->first();
+    }
+
+    public function effectiveEndsAt(): ?Carbon
+    {
+        $startsAt = $this->effectiveStartsAt();
+
+        if ($startsAt === null) {
+            return null;
+        }
+
+        return $startsAt->copy()
+            ->addMonthsNoOverflow(max(1, $this->duration_months))
+            ->subDay()
+            ->startOfDay();
+    }
+
+    public function isActive(?Carbon $on = null): ?bool
+    {
+        $startsAt = $this->effectiveStartsAt();
+        $endsAt = $this->effectiveEndsAt();
+
+        if ($startsAt === null || $endsAt === null) {
+            return null;
+        }
+
         $on ??= now()->startOfDay();
 
-        return (int) $on->diffInDays($this->ends_at, false);
+        return $startsAt->lte($on) && $endsAt->gte($on);
+    }
+
+    public function daysUntilEnd(?Carbon $on = null): ?int
+    {
+        $endsAt = $this->effectiveEndsAt();
+
+        if ($endsAt === null) {
+            return null;
+        }
+
+        $on ??= now()->startOfDay();
+
+        return (int) $on->diffInDays($endsAt, false);
     }
 }

@@ -30,8 +30,9 @@ class ProductCompliancePassportController extends Controller
                 ->orderByDesc('id')
                 ->limit(5),
             'supportPeriods' => fn($query) => $query
+                ->with(['versions:id,version_number,release_date'])
                 ->orderBy('type')
-                ->orderByDesc('ends_at'),
+                ->orderByDesc('id'),
         ]);
 
         $report = $this->readiness->build($product);
@@ -79,8 +80,11 @@ class ProductCompliancePassportController extends Controller
                 'support_periods' => $product->supportPeriods->map(fn($period) => [
                     'id' => $period->id,
                     'type' => $period->type->value,
-                    'starts_at' => $period->starts_at->toDateString(),
-                    'ends_at' => $period->ends_at->toDateString(),
+                    'start_basis' => $period->start_basis->value,
+                    'duration_months' => $period->duration_months,
+                    'effective_starts_at' => $period->effectiveStartsAt()?->toDateString(),
+                    'effective_ends_at' => $period->effectiveEndsAt()?->toDateString(),
+                    'schedule_resolved' => $period->scheduleResolved(),
                     'basis' => $period->basis,
                     'is_extended' => $period->is_extended,
                 ])->values()->all(),

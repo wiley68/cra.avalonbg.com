@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\SupportPeriodStartBasis;
 use App\Enums\SupportPeriodType;
 use App\Models\Product;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -31,8 +32,8 @@ class StoreProductSupportPeriodRequest extends FormRequest
 
         return [
             'type' => ['required', Rule::enum(SupportPeriodType::class)],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after_or_equal:starts_at'],
+            'start_basis' => ['required', Rule::enum(SupportPeriodStartBasis::class)],
+            'duration_months' => ['required', 'integer', 'min:1', 'max:1200'],
             'basis' => ['nullable', 'string'],
             'is_extended' => ['nullable', 'boolean'],
             'exceptions_notes' => ['nullable', 'string'],
@@ -40,7 +41,7 @@ class StoreProductSupportPeriodRequest extends FormRequest
             'version_ids.*' => [
                 'integer',
                 Rule::exists('product_versions', 'id')
-                    ->where(fn ($query) => $query->where('product_id', $product->id)),
+                    ->where(fn($query) => $query->where('product_id', $product->id)),
             ],
         ];
     }

@@ -4,16 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('product_support_periods', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('type', 32);
-            $table->date('starts_at');
-            $table->date('ends_at');
+            $table->string('start_basis', 32);
+            $table->unsignedInteger('duration_months');
             $table->text('basis')->nullable();
             $table->boolean('is_extended')->default(false);
             $table->text('exceptions_notes')->nullable();

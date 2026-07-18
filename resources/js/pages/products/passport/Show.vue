@@ -4,8 +4,8 @@ import { ArrowLeft, ClipboardCheck, FileDown } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct } from '@/routes/products';
 import {
     exportMethod as readinessExport,
@@ -39,8 +39,11 @@ type ProductPassport = {
     support_periods: Array<{
         id: number;
         type: string;
-        starts_at: string;
-        ends_at: string;
+        start_basis: string;
+        duration_months: number;
+        effective_starts_at: string | null;
+        effective_ends_at: string | null;
+        schedule_resolved: boolean;
         basis: string | null;
         is_extended: boolean;
     }>;
@@ -333,7 +336,31 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                             </Badge>
                         </div>
                         <p class="text-muted-foreground">
-                            {{ period.starts_at }} → {{ period.ends_at }}
+                            {{
+                                t(
+                                    `products.support_periods.start_bases.${period.start_basis}`,
+                                )
+                            }}
+                            ·
+                            {{
+                                t(
+                                    'products.support_periods.duration_months_label',
+                                    {
+                                        count: String(period.duration_months),
+                                    },
+                                )
+                            }}
+                        </p>
+                        <p
+                            v-if="
+                                period.schedule_resolved &&
+                                period.effective_starts_at &&
+                                period.effective_ends_at
+                            "
+                            class="text-xs text-muted-foreground"
+                        >
+                            {{ period.effective_starts_at }} →
+                            {{ period.effective_ends_at }}
                         </p>
                     </li>
                 </ul>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from '@lucide/vue';
+import { computed } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -27,21 +28,22 @@ type ProductSummary = {
 type VersionOption = {
     id: number;
     version_number: string;
+    release_date: string | null;
 };
 
 const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
     versions: VersionOption[];
-    options: { types: string[] };
+    options: { types: string[]; start_bases: string[] };
 }>();
 
 const { t } = useTranslations();
 
 const form = useForm({
     type: props.options.types[0] ?? 'commercial',
-    starts_at: '',
-    ends_at: '',
+    start_basis: 'purchase_date',
+    duration_months: 12,
     basis: '',
     is_extended: false,
     exceptions_notes: '',
@@ -59,6 +61,13 @@ const typeLabel = (type: string): string => {
     return translated === key ? type : translated;
 };
 
+const startBasisLabel = (basis: string): string => {
+    const key = `products.support_periods.start_bases.${basis}`;
+    const translated = t(key);
+
+    return translated === key ? basis : translated;
+};
+
 const isVersionSelected = (versionId: number): boolean =>
     form.version_ids.includes(versionId);
 
@@ -67,6 +76,8 @@ const toggleVersion = (versionId: number, checked: boolean): void => {
         ? [...new Set([...form.version_ids, versionId])]
         : form.version_ids.filter((id) => id !== versionId);
 };
+
+const showReleaseHint = computed(() => form.start_basis === 'release_date');
 
 const textareaClass =
     'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none';
@@ -120,37 +131,56 @@ const textareaClass =
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
                     <FieldLabel
-                        html-for="starts_at"
+                        html-for="start_basis"
                         required
-                        :help="t('products.support_periods.help.starts_at')"
+                        :help="t('products.support_periods.help.start_basis')"
                         >{{
-                            t('products.support_periods.fields.starts_at')
+                            t('products.support_periods.fields.start_basis')
                         }}</FieldLabel
                     >
-                    <Input
-                        id="starts_at"
-                        v-model="form.starts_at"
-                        type="date"
-                        required
-                    />
-                    <InputError :message="form.errors.starts_at" />
+                    <select
+                        id="start_basis"
+                        v-model="form.start_basis"
+                        class="h-9 rounded-md border bg-background px-3"
+                    >
+                        <option
+                            v-for="basis in options.start_bases"
+                            :key="basis"
+                            :value="basis"
+                        >
+                            {{ startBasisLabel(basis) }}
+                        </option>
+                    </select>
+                    <p
+                        v-if="showReleaseHint"
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{
+                            t('products.support_periods.release_schedule_hint')
+                        }}
+                    </p>
+                    <InputError :message="form.errors.start_basis" />
                 </div>
                 <div class="grid gap-2">
                     <FieldLabel
-                        html-for="ends_at"
+                        html-for="duration_months"
                         required
-                        :help="t('products.support_periods.help.ends_at')"
+                        :help="
+                            t('products.support_periods.help.duration_months')
+                        "
                         >{{
-                            t('products.support_periods.fields.ends_at')
+                            t('products.support_periods.fields.duration_months')
                         }}</FieldLabel
                     >
                     <Input
-                        id="ends_at"
-                        v-model="form.ends_at"
-                        type="date"
+                        id="duration_months"
+                        v-model.number="form.duration_months"
+                        type="number"
+                        min="1"
+                        max="1200"
                         required
                     />
-                    <InputError :message="form.errors.ends_at" />
+                    <InputError :message="form.errors.duration_months" />
                 </div>
             </div>
 
@@ -224,6 +254,12 @@ const textareaClass =
                         class="cursor-pointer"
                     >
                         {{ version.version_number }}
+                        <span
+                            v-if="version.release_date"
+                            class="text-muted-foreground"
+                        >
+                            ({{ version.release_date }})
+                        </span>
                     </label>
                 </div>
                 <p

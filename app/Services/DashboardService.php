@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ClassificationStatus;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\SupportPeriodStartBasis;
 use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
@@ -135,8 +136,13 @@ class DashboardService
 
         $endingSupport = ProductSupportPeriod::query()
             ->whereIn('product_id', $productIds)
-            ->whereDate('ends_at', '>=', now()->toDateString())
-            ->whereDate('ends_at', '<=', now()->addDays(90)->toDateString())
+            ->where('start_basis', SupportPeriodStartBasis::ReleaseDate->value)
+            ->with(['versions:id,release_date'])
+            ->get()
+            ->filter(
+                fn(ProductSupportPeriod $period) => $period->isActive() === true
+                && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 90,
+            )
             ->count();
 
         if ($endingSupport > 0) {
