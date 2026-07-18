@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
+use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
@@ -178,6 +179,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])
                 ->name('products.versions.index');
+            Route::get('products/{product}/support-periods', [ProductSupportPeriodApiController::class, 'index'])
+                ->name('products.support-periods.index');
             Route::get('products/{product}/requirements', [ProductRequirementApiController::class, 'index'])
                 ->name('products.requirements.index');
             Route::get('products/{product}/controls', [ProductControlApiController::class, 'index'])
@@ -227,4 +230,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

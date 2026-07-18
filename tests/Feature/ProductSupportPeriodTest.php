@@ -167,5 +167,30 @@ test('support periods index is reachable', function () {
 
     $this->actingAs($owner)
         ->get(route('products.support-periods.index', $product))
-        ->assertOk();
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/support-periods/Index')
+            ->has('product')
+            ->has('canManage')
+            ->missing('periods'));
+});
+
+test('support periods internal api returns paginated results', function () {
+    ['owner' => $owner, 'product' => $product] = makeSupportPeriodFixture();
+
+    ProductSupportPeriod::query()->create([
+        'product_id' => $product->id,
+        'type' => SupportPeriodType::Commercial,
+        'start_basis' => SupportPeriodStartBasis::PurchaseDate,
+        'duration_months' => 12,
+        'is_extended' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->getJson(route('internal.products.support-periods.index', $product))
+        ->assertOk()
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('data.0.start_basis', 'purchase_date')
+        ->assertJsonPath('data.0.duration_months', 12)
+        ->assertJsonPath('data.0.schedule_resolved', false);
 });

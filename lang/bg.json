@@ -565,6 +565,7 @@
             "updated": "Периодът на поддръжка е обновен.",
             "deleted": "Периодът на поддръжка е изтрит.",
             "confirm_delete": "Да се изтрие ли този период на поддръжка?",
+            "search_placeholder": "Търсене по тип, начало, версии...",
             "empty": "Все още няма структурирани периоди на поддръжка.",
             "no_versions": "Първо създайте версии, за да ги свържете тук.",
             "active": "Активен",
@@ -584,6 +585,14 @@
                 "contract_start_date": "Contract start date",
                 "activation_date": "Activation date",
                 "custom": "Custom"
+            },
+            "columns": {
+                "id": "ID",
+                "type": "Тип",
+                "start_basis": "Начало",
+                "duration_months": "Продължителност",
+                "status": "Статус",
+                "versions": "Версии"
             },
             "fields": {
                 "type": "Тип",

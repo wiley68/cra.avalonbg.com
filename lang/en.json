@@ -565,6 +565,7 @@
             "updated": "Support period updated.",
             "deleted": "Support period deleted.",
             "confirm_delete": "Delete this support period?",
+            "search_placeholder": "Search by type, start basis, versions...",
             "empty": "No structured support periods yet.",
             "no_versions": "Create product versions first to link them here.",
             "active": "Active",
@@ -584,6 +585,14 @@
                 "contract_start_date": "Contract start date",
                 "activation_date": "Activation date",
                 "custom": "Custom"
+            },
+            "columns": {
+                "id": "ID",
+                "type": "Type",
+                "start_basis": "Start basis",
+                "duration_months": "Duration",
+                "status": "Status",
+                "versions": "Versions"
             },
             "fields": {
                 "type": "Type",

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductSupportPeriod;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductService
@@ -133,6 +134,68 @@ class ProductService
                 'support_status' => $version->support_status->value,
                 'release_date' => $version->release_date?->toDateString(),
                 'security_support_deadline' => $version->security_support_deadline?->toDateString(),
+            ]);
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function paginateSupportPeriods(
+        Product $product,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'id',
+        string $sortOrder = 'desc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = $product->supportPeriods()
+            ->with(['versions:id,version_number,release_date']);
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('type', 'like', "%{$search}%")
+                    ->orWhere('start_basis', 'like', "%{$search}%")
+                    ->orWhere('basis', 'like', "%{$search}%")
+                    ->orWhere('exceptions_notes', 'like', "%{$search}%")
+                    ->orWhereHas('versions', function ($versions) use ($search): void {
+                        $versions->where('version_number', 'like', "%{$search}%");
+                    });
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('id', (int) $search)
+                        ->orWhere('duration_months', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'type' => 'type',
+            'start_basis' => 'start_basis',
+            'duration_months' => 'duration_months',
+            default => 'id',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(ProductSupportPeriod $period) => [
+                'id' => $period->id,
+                'type' => $period->type->value,
+                'start_basis' => $period->start_basis->value,
+                'duration_months' => $period->duration_months,
+                'basis' => $period->basis,
+                'is_extended' => $period->is_extended,
+                'schedule_resolved' => $period->scheduleResolved(),
+                'effective_starts_at' => $period->effectiveStartsAt()?->toDateString(),
+                'effective_ends_at' => $period->effectiveEndsAt()?->toDateString(),
+                'is_active' => $period->isActive(),
+                'days_until_end' => $period->daysUntilEnd(),
+                'versions' => $period->versions->map(fn($version) => [
+                    'id' => (int) $version->id,
+                    'version_number' => $version->version_number,
+                ])->values()->all(),
             ]);
     }
 }

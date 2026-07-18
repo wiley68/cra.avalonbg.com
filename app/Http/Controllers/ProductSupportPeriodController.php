@@ -23,16 +23,9 @@ class ProductSupportPeriodController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('view', [$product, $organization]);
 
-        $periods = $product->supportPeriods()
-            ->with(['versions:id,version_number,release_date'])
-            ->orderByDesc('id')
-            ->get()
-            ->map(fn(ProductSupportPeriod $period) => $this->periodPayload($period));
-
         return Inertia::render('products/support-periods/Index', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productSummary($product),
-            'periods' => $periods,
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
