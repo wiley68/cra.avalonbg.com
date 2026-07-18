@@ -11,11 +11,13 @@ use App\Models\Product;
 use App\Models\ProductControl;
 use App\Models\ProductRequirement;
 use App\Models\ProductRisk;
+use App\Models\ProductComponent;
 use App\Models\Requirement;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\ControlPolicy;
 use App\Policies\OrganizationPolicy;
+use App\Policies\ProductComponentPolicy;
 use App\Policies\ProductControlPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\ProductRequirementPolicy;
@@ -95,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Control::class, ControlPolicy::class);
         Gate::policy(ProductControl::class, ProductControlPolicy::class);
         Gate::policy(ProductRisk::class, ProductRiskPolicy::class);
+        Gate::policy(ProductComponent::class, ProductComponentPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 

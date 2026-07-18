@@ -1,0 +1,33 @@
+{
+    "_readme": ["Sample composer.lock for MVP8 SBOM import tests"],
+    "content-hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "packages": [
+        {
+            "name": "laravel/framework",
+            "version": "v11.0.0",
+            "license": ["MIT"],
+            "dist": {
+                "shasum": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "reference": "ref-laravel"
+            }
+        },
+        {
+            "name": "guzzlehttp/guzzle",
+            "version": "7.8.1",
+            "license": "MIT",
+            "dist": {
+                "reference": "ref-guzzle"
+            }
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "pestphp/pest",
+            "version": "v3.0.0",
+            "license": ["MIT"],
+            "dist": {
+                "reference": "ref-pest"
+            }
+        }
+    ]
+}

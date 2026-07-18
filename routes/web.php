@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\Admin\RequirementApiController;
 use App\Http\Controllers\Api\ControlApiController;
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\Api\ProductComponentApiController;
 use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProductClassificationController;
+use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequirementController;
@@ -75,6 +77,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.risks', ProductRiskController::class)
             ->except(['show'])
             ->scoped();
+        Route::get('products/{product}/components/import', [ProductComponentController::class, 'importForm'])
+            ->name('products.components.import');
+        Route::post('products/{product}/components/import', [ProductComponentController::class, 'import'])
+            ->name('products.components.import.store');
+        Route::resource('products.components', ProductComponentController::class)
+            ->except(['show'])
+            ->scoped();
         Route::resource('products.versions', ProductVersionController::class)
             ->except(['show'])
             ->parameters(['versions' => 'version'])
@@ -95,6 +104,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.controls.index');
             Route::get('products/{product}/risks', [ProductRiskApiController::class, 'index'])
                 ->name('products.risks.index');
+            Route::get('products/{product}/components', [ProductComponentApiController::class, 'index'])
+                ->name('products.components.index');
         });
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {

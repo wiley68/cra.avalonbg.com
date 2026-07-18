@@ -138,6 +138,21 @@ class Product extends Model
         return $this->productRisks();
     }
 
+    public function productComponents(): HasMany
+    {
+        return $this->hasMany(ProductComponent::class);
+    }
+
+    public function components(): HasMany
+    {
+        return $this->productComponents();
+    }
+
+    public function sboms(): HasMany
+    {
+        return $this->hasMany(Sbom::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

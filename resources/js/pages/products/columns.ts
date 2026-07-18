@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/vue3';
 import {
     ArrowUpDown,
+    Boxes,
     GitBranch,
     ListChecks,
     Pencil,
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { edit as editProduct } from '@/routes/products';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as versionsIndex } from '@/routes/products/versions';
+import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productRisksIndex } from '@/routes/products/risks';
 
@@ -186,6 +188,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productRisksIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.components_link'),
+                        icon: Boxes,
+                        onSelect: () => {
+                            router.visit(
+                                productComponentsIndex(row.original.id).url,
                             );
                         },
                     },

@@ -1,0 +1,42 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.5",
+    "version": 1,
+    "components": [
+        {
+            "type": "library",
+            "name": "guzzlehttp/guzzle",
+            "version": "7.8.1",
+            "purl": "pkg:composer/guzzlehttp/guzzle@7.8.1",
+            "supplier": {
+                "name": "Guzzle"
+            },
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ],
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+            ]
+        },
+        {
+            "type": "library",
+            "name": "symfony/http-foundation",
+            "version": "7.0.0",
+            "purl": "pkg:composer/symfony/http-foundation@7.0.0",
+            "licenses": [
+                {
+                    "license": {
+                        "id": "MIT"
+                    }
+                }
+            ]
+        }
+    ]
+}

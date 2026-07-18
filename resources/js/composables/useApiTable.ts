@@ -21,6 +21,8 @@ type UseApiTableOptions = {
     onError?: (message: string) => void;
     autoload?: boolean;
     searchDebounceMs?: number;
+    /** Extra query params merged into each request (e.g. version_id filter). */
+    getExtraParams?: () => Record<string, string>;
 };
 
 function debounce<F extends (...args: never[]) => void>(fn: F, delay = 300) {
@@ -42,6 +44,7 @@ export function useApiTable<T = unknown>(opts: UseApiTableOptions) {
         onError,
         autoload = true,
         searchDebounceMs = 400,
+        getExtraParams,
     } = opts;
 
     const rows = ref<T[]>([]);
@@ -74,6 +77,7 @@ export function useApiTable<T = unknown>(opts: UseApiTableOptions) {
             sort_by: pagination.value.sortBy,
             sort_desc: pagination.value.descending ? '1' : '0',
             search: search.value,
+            ...(getExtraParams?.() ?? {}),
         });
 
         try {

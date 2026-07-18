@@ -303,6 +303,7 @@
         "requirements_link": "Requirements",
         "controls_link": "Controls",
         "risks_link": "Risks",
+        "components_link": "Components",
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -769,6 +770,91 @@
                 "tampering": "Tampering",
                 "insecure_configuration": "Insecure configuration",
                 "unsupported_component": "Unsupported component"
+            }
+        },
+        "components": {
+            "index_title": "Components",
+            "title": "Component inventory",
+            "subtitle": "SBOM components for product versions",
+            "create": "Add component",
+            "create_title": "Add component",
+            "edit_title": "Edit component",
+            "import": "Import SBOM",
+            "import_title": "Import SBOM",
+            "import_subtitle": "Import CycloneDX JSON or composer.lock into a product version",
+            "import_submit": "Import",
+            "created": "Component created.",
+            "updated": "Component updated.",
+            "deleted": "Component deleted.",
+            "imported": "Imported :count component(s).",
+            "confirm_delete": "Delete this component permanently?",
+            "search_placeholder": "Search by name, version, ecosystem or purl...",
+            "filter_version": "Product version",
+            "filter_version_all": "All versions",
+            "format_auto": "Auto-detect",
+            "columns": {
+                "id": "ID",
+                "name": "Name",
+                "version": "Version",
+                "package_ecosystem": "Ecosystem",
+                "product_version": "Product version",
+                "support_status": "Support",
+                "licence": "Licence"
+            },
+            "fields": {
+                "product_version": "Product version",
+                "name": "Name",
+                "supplier": "Supplier",
+                "package_ecosystem": "Package ecosystem",
+                "version": "Component version",
+                "licence": "Licence",
+                "purl": "Package URL (purl)",
+                "hash": "Hash",
+                "is_direct": "Direct dependency",
+                "is_dev": "Development dependency",
+                "usage_context": "Usage context",
+                "support_status": "Support status",
+                "notes": "Notes",
+                "format": "SBOM format",
+                "file": "SBOM file"
+            },
+            "help": {
+                "product_version": "Components belong to a specific product release.",
+                "filter_version": "Limit the inventory to components of one product version.",
+                "name": "Package or component name.",
+                "supplier": "Vendor or publisher when known.",
+                "package_ecosystem": "Package manager or origin of the component.",
+                "version": "Exact version string from the SBOM or lockfile.",
+                "licence": "Declared licence identifier or name.",
+                "purl": "Package URL used for upsert matching on re-import.",
+                "hash": "Integrity hash when available.",
+                "is_direct": "Whether this is a direct dependency of the product.",
+                "is_dev": "Whether this is only used in development or build tooling.",
+                "usage_context": "How the component is used (runtime, library, plugin, etc.).",
+                "support_status": "Known support lifecycle for this component.",
+                "notes": "Free-form notes for compliance or review.",
+                "format": "Leave empty to detect CycloneDX JSON or composer.lock automatically.",
+                "file": "Upload a CycloneDX JSON or composer.lock file (max 10 MB)."
+            },
+            "ecosystems": {
+                "composer": "Composer",
+                "npm": "npm",
+                "nuget": "NuGet",
+                "maven": "Maven",
+                "pypi": "PyPI",
+                "other": "Other",
+                "first_party": "First-party"
+            },
+            "support_statuses": {
+                "unknown": "Unknown",
+                "supported": "Supported",
+                "deprecated": "Deprecated",
+                "end_of_life": "End of life"
+            },
+            "formats": {
+                "cyclonedx_json": "CycloneDX JSON",
+                "composer_lock": "composer.lock",
+                "manual": "Manual"
             }
         },
         "requirements": {

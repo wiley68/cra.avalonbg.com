@@ -19,6 +19,8 @@ export type User = {
     can_manage_controls?: boolean;
     can_view_risks?: boolean;
     can_manage_risks?: boolean;
+    can_view_components?: boolean;
+    can_manage_components?: boolean;
     can_manage_organizations?: boolean;
     created_at: string;
     updated_at: string;

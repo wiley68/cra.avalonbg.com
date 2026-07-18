@@ -303,6 +303,7 @@
         "requirements_link": "Изисквания",
         "controls_link": "Контроли",
         "risks_link": "Рискове",
+        "components_link": "Компоненти",
         "sections": {
             "identity": "Идентификация",
             "technical": "Технически данни",
@@ -769,6 +770,91 @@
                 "tampering": "Подмяна / манипулация",
                 "insecure_configuration": "Несигурна конфигурация",
                 "unsupported_component": "Неподдържан компонент"
+            }
+        },
+        "components": {
+            "index_title": "Компоненти",
+            "title": "Инвентар на компоненти",
+            "subtitle": "SBOM компоненти по версии на продукта",
+            "create": "Добави компонент",
+            "create_title": "Добави компонент",
+            "edit_title": "Редакция на компонент",
+            "import": "Импорт на SBOM",
+            "import_title": "Импорт на SBOM",
+            "import_subtitle": "Импортирай CycloneDX JSON или composer.lock към версия на продукта",
+            "import_submit": "Импортирай",
+            "created": "Компонентът е създаден.",
+            "updated": "Компонентът е обновен.",
+            "deleted": "Компонентът е изтрит.",
+            "imported": "Импортирани :count компонент(а).",
+            "confirm_delete": "Да се изтрие ли този компонент завинаги?",
+            "search_placeholder": "Търсене по име, версия, екосистема или purl...",
+            "filter_version": "Версия на продукта",
+            "filter_version_all": "Всички версии",
+            "format_auto": "Автоматично разпознаване",
+            "columns": {
+                "id": "ID",
+                "name": "Име",
+                "version": "Версия",
+                "package_ecosystem": "Екосистема",
+                "product_version": "Версия на продукта",
+                "support_status": "Поддръжка",
+                "licence": "Лиценз"
+            },
+            "fields": {
+                "product_version": "Версия на продукта",
+                "name": "Име",
+                "supplier": "Доставчик",
+                "package_ecosystem": "Пакетна екосистема",
+                "version": "Версия на компонента",
+                "licence": "Лиценз",
+                "purl": "Package URL (purl)",
+                "hash": "Хеш",
+                "is_direct": "Директна зависимост",
+                "is_dev": "Development зависимост",
+                "usage_context": "Контекст на използване",
+                "support_status": "Статус на поддръжка",
+                "notes": "Бележки",
+                "format": "SBOM формат",
+                "file": "SBOM файл"
+            },
+            "help": {
+                "product_version": "Компонентите принадлежат към конкретна версия (release) на продукта.",
+                "filter_version": "Ограничи инвентара до компоненти от една версия на продукта.",
+                "name": "Име на пакета или компонента.",
+                "supplier": "Доставчик или издател, когато е известен.",
+                "package_ecosystem": "Мениджър на пакети или произход на компонента.",
+                "version": "Точна версия от SBOM или lock файла.",
+                "licence": "Деклариран идентификатор или име на лиценза.",
+                "purl": "Package URL за съвпадение при повторни импорти.",
+                "hash": "Integrity хеш, когато е наличен.",
+                "is_direct": "Дали е директна зависимост на продукта.",
+                "is_dev": "Дали се използва само за development или build.",
+                "usage_context": "Как се използва компонентът (runtime, library, plugin и т.н.).",
+                "support_status": "Известен жизнен цикъл на поддръжка.",
+                "notes": "Свободен текст за съответствие или преглед.",
+                "format": "Оставете празно за автоматично разпознаване на CycloneDX JSON или composer.lock.",
+                "file": "Качете CycloneDX JSON или composer.lock файл (макс. 10 MB)."
+            },
+            "ecosystems": {
+                "composer": "Composer",
+                "npm": "npm",
+                "nuget": "NuGet",
+                "maven": "Maven",
+                "pypi": "PyPI",
+                "other": "Друго",
+                "first_party": "Собствен (first-party)"
+            },
+            "support_statuses": {
+                "unknown": "Неизвестен",
+                "supported": "Поддържан",
+                "deprecated": "Deprecated",
+                "end_of_life": "Край на живота"
+            },
+            "formats": {
+                "cyclonedx_json": "CycloneDX JSON",
+                "composer_lock": "composer.lock",
+                "manual": "Ръчен"
             }
         },
         "requirements": {

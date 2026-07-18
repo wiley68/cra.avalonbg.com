@@ -7,6 +7,7 @@ use App\Enums\SupportStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -58,5 +59,15 @@ class ProductVersion extends Model
     public function previousVersion(): BelongsTo
     {
         return $this->belongsTo(ProductVersion::class, 'previous_version_id');
+    }
+
+    public function components(): HasMany
+    {
+        return $this->hasMany(ProductComponent::class);
+    }
+
+    public function sboms(): HasMany
+    {
+        return $this->hasMany(Sbom::class);
     }
 }
