@@ -10,6 +10,8 @@ enum AuditEventType: string
     case LoginFailed = 'login_failed';
     case TwoFactorChallengeSuccess = 'two_factor_challenge_success';
     case TwoFactorChallengeFailed = 'two_factor_challenge_failed';
+    case TaskApproved = 'task_approved';
+    case TaskRejected = 'task_rejected';
 
     public function label(): string
     {

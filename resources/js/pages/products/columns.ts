@@ -3,6 +3,7 @@ import {
     ArrowUpDown,
     Boxes,
     Bug,
+    CheckSquare,
     FileCheck,
     GitBranch,
     ListChecks,
@@ -22,6 +23,7 @@ import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
 import { index as productRisksIndex } from '@/routes/products/risks';
+import { index as productTasksIndex } from '@/routes/products/tasks';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
 export type ProductListItem = {
@@ -220,6 +222,15 @@ export const createProductColumns = ({
                         onSelect: () => {
                             router.visit(
                                 productEvidenceIndex(row.original.id).url,
+                            );
+                        },
+                    },
+                    {
+                        label: t('products.tasks_link'),
+                        icon: CheckSquare,
+                        onSelect: () => {
+                            router.visit(
+                                productTasksIndex(row.original.id).url,
                             );
                         },
                     },

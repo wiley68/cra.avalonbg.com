@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -94,6 +95,38 @@ class AuditLogger
             details: [
                 ['field' => 'email', 'value' => $user->email],
                 ['field' => 'reason', 'value' => 'invalid_mfa_code'],
+            ],
+        );
+    }
+
+    public static function logTaskApproved(Task $task, User $actor, ?string $comment = null): void
+    {
+        self::persist(
+            type: AuditEventType::TaskApproved,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            details: [
+                ['field' => 'task_id', 'value' => (string) $task->id],
+                ['field' => 'product_id', 'value' => (string) $task->product_id],
+                ['field' => 'title', 'value' => $task->title],
+                ['field' => 'comment', 'value' => $comment],
+            ],
+        );
+    }
+
+    public static function logTaskRejected(Task $task, User $actor, ?string $comment = null): void
+    {
+        self::persist(
+            type: AuditEventType::TaskRejected,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            details: [
+                ['field' => 'task_id', 'value' => (string) $task->id],
+                ['field' => 'product_id', 'value' => (string) $task->product_id],
+                ['field' => 'title', 'value' => $task->title],
+                ['field' => 'comment', 'value' => $comment],
             ],
         );
     }

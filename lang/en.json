@@ -306,6 +306,7 @@
         "components_link": "Components",
         "vulnerabilities_link": "Vulnerabilities",
         "evidence_link": "Evidence",
+        "tasks_link": "Tasks",
         "sections": {
             "identity": "Identity",
             "technical": "Technical",
@@ -1054,6 +1055,81 @@
                 "invalid": "Invalid"
             }
         },
+        "tasks": {
+            "index_title": "Tasks",
+            "title": "Tasks and approvals",
+            "subtitle": "Product tasks with optional approval workflow",
+            "create": "Add task",
+            "create_title": "Add task",
+            "edit_title": "Edit task",
+            "created": "Task created.",
+            "updated": "Task updated.",
+            "deleted": "Task deleted.",
+            "confirm_delete": "Delete this task permanently?",
+            "search_placeholder": "Search by title, status, priority or approval...",
+            "submit_for_approval": "Submit for approval",
+            "submitted_for_approval": "Task submitted for approval.",
+            "approve": "Approve",
+            "approved": "Task approved.",
+            "reject": "Reject",
+            "rejected": "Task rejected.",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "priority": "Priority",
+                "approval_status": "Approval",
+                "assignee": "Assignee",
+                "due_at": "Due"
+            },
+            "fields": {
+                "title": "Title",
+                "description": "Description",
+                "status": "Status",
+                "priority": "Priority",
+                "assignee": "Assignee",
+                "due_at": "Due date",
+                "subject_type": "Linked record type",
+                "subject_id": "Linked record",
+                "approval_status": "Approval status",
+                "approval_comment": "Approval comment"
+            },
+            "help": {
+                "title": "Short name for the task.",
+                "description": "What needs to be done and why.",
+                "status": "Current workflow status.",
+                "priority": "Relative urgency of the task.",
+                "assignee": "Organization member responsible for completing the task.",
+                "due_at": "Optional target completion date.",
+                "subject_type": "Optional related risk, vulnerability, or evidence.",
+                "subject_id": "Specific record this task is about.",
+                "approval_status": "Whether approval is required or already pending.",
+                "approval_comment": "Optional note recorded with approve or reject."
+            },
+            "statuses": {
+                "open": "Open",
+                "in_progress": "In progress",
+                "pending_approval": "Pending approval",
+                "completed": "Completed",
+                "cancelled": "Cancelled"
+            },
+            "priorities": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High"
+            },
+            "approval_statuses": {
+                "not_required": "Not required",
+                "pending": "Pending",
+                "approved": "Approved",
+                "rejected": "Rejected"
+            },
+            "subject_types": {
+                "risk": "Risk",
+                "vulnerability": "Vulnerability",
+                "evidence": "Evidence"
+            }
+        },
         "requirements": {
             "index_title": "Requirements matrix",
             "title": "Requirements matrix",
@@ -1136,7 +1212,9 @@
             "login_success": "Successful login",
             "login_failed": "Failed login",
             "two_factor_challenge_success": "Successful 2FA challenge",
-            "two_factor_challenge_failed": "Failed 2FA challenge"
+            "two_factor_challenge_failed": "Failed 2FA challenge",
+            "task_approved": "Task approved",
+            "task_rejected": "Task rejected"
         },
         "event_sources": {
             "workspace": "Workspace",

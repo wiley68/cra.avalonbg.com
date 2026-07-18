@@ -306,6 +306,7 @@
         "components_link": "Компоненти",
         "vulnerabilities_link": "Уязвимости",
         "evidence_link": "Доказателства",
+        "tasks_link": "Задачи",
         "sections": {
             "identity": "Идентификация",
             "technical": "Технически данни",
@@ -1054,6 +1055,81 @@
                 "invalid": "Невалидно"
             }
         },
+        "tasks": {
+            "index_title": "Задачи",
+            "title": "Задачи и одобрения",
+            "subtitle": "Задачи по продукта с опционален процес на одобрение",
+            "create": "Добави задача",
+            "create_title": "Добави задача",
+            "edit_title": "Редакция на задача",
+            "created": "Задачата е създадена.",
+            "updated": "Задачата е обновена.",
+            "deleted": "Задачата е изтрита.",
+            "confirm_delete": "Изтриване на тази задача завинаги?",
+            "search_placeholder": "Търсене по заглавие, статус, приоритет или одобрение...",
+            "submit_for_approval": "Изпрати за одобрение",
+            "submitted_for_approval": "Задачата е изпратена за одобрение.",
+            "approve": "Одобри",
+            "approved": "Задачата е одобрена.",
+            "reject": "Отхвърли",
+            "rejected": "Задачата е отхвърлена.",
+            "columns": {
+                "id": "ID",
+                "title": "Заглавие",
+                "status": "Статус",
+                "priority": "Приоритет",
+                "approval_status": "Одобрение",
+                "assignee": "Изпълнител",
+                "due_at": "Срок"
+            },
+            "fields": {
+                "title": "Заглавие",
+                "description": "Описание",
+                "status": "Статус",
+                "priority": "Приоритет",
+                "assignee": "Изпълнител",
+                "due_at": "Срок",
+                "subject_type": "Тип свързан запис",
+                "subject_id": "Свързан запис",
+                "approval_status": "Статус на одобрение",
+                "approval_comment": "Коментар към одобрението"
+            },
+            "help": {
+                "title": "Кратко име на задачата.",
+                "description": "Какво трябва да се направи и защо.",
+                "status": "Текущ статус в работния процес.",
+                "priority": "Относителна спешност на задачата.",
+                "assignee": "Член на организацията, отговорен за изпълнението.",
+                "due_at": "Опционална целева дата за завършване.",
+                "subject_type": "Опционално свързан риск, уязвимост или доказателство.",
+                "subject_id": "Конкретният запис, за който е задачата.",
+                "approval_status": "Дали се изисква одобрение или вече е в изчакване.",
+                "approval_comment": "Опционална бележка при одобрение или отхвърляне."
+            },
+            "statuses": {
+                "open": "Отворена",
+                "in_progress": "В процес",
+                "pending_approval": "Чака одобрение",
+                "completed": "Завършена",
+                "cancelled": "Отменена"
+            },
+            "priorities": {
+                "low": "Нисък",
+                "medium": "Среден",
+                "high": "Висок"
+            },
+            "approval_statuses": {
+                "not_required": "Не се изисква",
+                "pending": "Чака",
+                "approved": "Одобрена",
+                "rejected": "Отхвърлена"
+            },
+            "subject_types": {
+                "risk": "Риск",
+                "vulnerability": "Уязвимост",
+                "evidence": "Доказателство"
+            }
+        },
         "requirements": {
             "index_title": "Матрица на изискванията",
             "title": "Матрица на изискванията",
@@ -1136,7 +1212,9 @@
             "login_success": "Успешен вход",
             "login_failed": "Неуспешен вход",
             "two_factor_challenge_success": "Успешно 2FA предизвикателство",
-            "two_factor_challenge_failed": "Неуспешно 2FA предизвикателство"
+            "two_factor_challenge_failed": "Неуспешно 2FA предизвикателство",
+            "task_approved": "Одобрена задача",
+            "task_rejected": "Отхвърлена задача"
         },
         "event_sources": {
             "workspace": "Workspace",

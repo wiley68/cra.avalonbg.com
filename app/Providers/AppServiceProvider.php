@@ -15,6 +15,7 @@ use App\Models\ProductComponent;
 use App\Models\ProductVulnerability;
 use App\Models\Evidence;
 use App\Models\Requirement;
+use App\Models\Task;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\ControlPolicy;
@@ -27,6 +28,7 @@ use App\Policies\ProductRiskPolicy;
 use App\Policies\ProductVulnerabilityPolicy;
 use App\Policies\EvidencePolicy;
 use App\Policies\RequirementPolicy;
+use App\Policies\TaskPolicy;
 use App\Policies\UserPolicy;
 use App\Support\AuditLogger;
 use Carbon\CarbonImmutable;
@@ -104,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ProductComponent::class, ProductComponentPolicy::class);
         Gate::policy(ProductVulnerability::class, ProductVulnerabilityPolicy::class);
         Gate::policy(Evidence::class, EvidencePolicy::class);
+        Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 
