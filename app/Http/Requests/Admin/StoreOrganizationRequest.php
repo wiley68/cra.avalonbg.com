@@ -34,6 +34,7 @@ class StoreOrganizationRequest extends FormRequest
             'create_owner' => $this->boolean('create_owner'),
             'seed_starter_controls' => $this->boolean('seed_starter_controls', true),
             'is_active' => $this->boolean('is_active', true),
+            'locale' => $this->input('locale', Organization::DEFAULT_LOCALE),
         ]);
     }
 
@@ -50,6 +51,7 @@ class StoreOrganizationRequest extends FormRequest
             'is_active' => ['boolean'],
             'create_owner' => ['boolean'],
             'seed_starter_controls' => ['boolean'],
+            'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
         ];
 
         if ($this->boolean('create_owner')) {

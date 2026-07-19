@@ -14,6 +14,11 @@ class LocaleController extends Controller
 
         abort_unless(in_array($locale, $availableLocales, true), 404);
 
+        // Organization members follow organization.locale via SetLocale.
+        if ($request->user()?->currentOrganization() !== null) {
+            return back();
+        }
+
         $request->session()->put('locale', $locale);
 
         return back();

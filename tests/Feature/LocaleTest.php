@@ -43,3 +43,66 @@ test('password reset status messages are translated for bulgarian locale', funct
     expect(__('passwords.sent'))->toBe('Изпратихме ви връзка за нулиране на паролата по имейл.')
         ->and(__('auth.failed'))->toBe('Тези данни за вход не съвпадат с нашите записи.');
 });
+
+test('organization member session locale follows organization locale', function () {
+    test()->seed([\Database\Seeders\RolePermissionSeeder::class]);
+
+    $organization = \App\Models\Organization::query()->create([
+        'name' => 'Locale Org',
+        'slug' => 'locale-org',
+        'is_active' => true,
+        'locale' => 'bg',
+    ]);
+
+    $owner = \App\Models\User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $ownerRole = \App\Models\Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($owner->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->withSession(['locale' => 'en'])
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page->where('locale', 'bg'));
+
+    $this->actingAs($owner)
+        ->from(route('dashboard'))
+        ->get(route('locale.update', ['locale' => 'en']))
+        ->assertRedirect();
+
+    $this->actingAs($owner)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page->where('locale', 'bg'));
+});
+
+test('platform admin without organization can still switch personal locale', function () {
+    test()->seed([\Database\Seeders\RolePermissionSeeder::class]);
+
+    $admin = \App\Models\User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => true,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->from(route('dashboard'))
+        ->get(route('locale.update', ['locale' => 'bg']))
+        ->assertRedirect();
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page->where('locale', 'bg'));
+});

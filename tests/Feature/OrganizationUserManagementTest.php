@@ -113,13 +113,38 @@ test('platform admin can create organization with owner', function () {
     expect($admin->organizations()->count())->toBe(0);
     expect(\App\Models\Control::query()->where('organization_id', $organization->id)->count())
         ->toBe(count(\App\Support\StarterControlCatalogue::items()));
+    expect($organization->locale)->toBe('en');
     expect(
         \App\Models\Control::query()
             ->where('organization_id', $organization->id)
             ->where('source', 'starter_template')
-            ->whereNotNull('name_bg')
-            ->count(),
-    )->toBe(count(\App\Support\StarterControlCatalogue::items()));
+            ->where('name', 'Dependency scanning before release')
+            ->exists(),
+    )->toBeTrue();
+});
+
+test('platform admin can create organization with bulgarian locale and starter controls', function () {
+    $admin = makePlatformAdmin();
+    test()->seed([\Database\Seeders\RequirementCatalogueSeeder::class]);
+
+    $this->actingAs($admin)->post(route('admin.organizations.store'), [
+        'name' => 'BG Tenant',
+        'slug' => 'bg-tenant',
+        'is_active' => true,
+        'locale' => 'bg',
+        'create_owner' => false,
+        'seed_starter_controls' => true,
+    ])->assertRedirect();
+
+    $organization = Organization::query()->where('slug', 'bg-tenant')->firstOrFail();
+
+    expect($organization->locale)->toBe('bg');
+    expect(
+        \App\Models\Control::query()
+            ->where('organization_id', $organization->id)
+            ->where('code', 'CTL-DEP-SCAN')
+            ->value('name'),
+    )->toBe('Сканиране на зависимости преди release');
 });
 
 test('platform admin can create organization without starter controls', function () {

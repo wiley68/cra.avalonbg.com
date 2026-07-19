@@ -233,4 +233,46 @@ final class StarterControlCatalogue
             ->values()
             ->all();
     }
+
+    /**
+     * Resolve catalogue item content for a single organization locale.
+     *
+     * @param  array{
+     *     code: string,
+     *     name: string,
+     *     name_bg: string,
+     *     description: string,
+     *     description_bg: string,
+     *     implementation_guidance: string,
+     *     implementation_guidance_bg: string,
+     *     automation_level: ControlAutomationLevel,
+     *     frequency: ControlFrequency,
+     *     requirement_codes: list<string>
+     * }  $item
+     * @return array{
+     *     code: string,
+     *     name: string,
+     *     description: string,
+     *     implementation_guidance: string,
+     *     automation_level: ControlAutomationLevel,
+     *     frequency: ControlFrequency,
+     *     requirement_codes: list<string>
+     * }
+     */
+    public static function localizedItem(array $item, string $locale): array
+    {
+        $useBg = $locale === 'bg';
+
+        return [
+            'code' => $item['code'],
+            'name' => $useBg ? $item['name_bg'] : $item['name'],
+            'description' => $useBg ? $item['description_bg'] : $item['description'],
+            'implementation_guidance' => $useBg
+                ? $item['implementation_guidance_bg']
+                : $item['implementation_guidance'],
+            'automation_level' => $item['automation_level'],
+            'frequency' => $item['frequency'],
+            'requirement_codes' => $item['requirement_codes'],
+        ];
+    }
 }

@@ -317,11 +317,11 @@ class EvidenceController extends Controller
             ->where('organization_id', $organization->id)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'code', 'name', 'name_bg'])
+            ->get(['id', 'code', 'name'])
             ->map(fn(Control $control) => [
                 'id' => $control->id,
                 'code' => $control->code,
-                'name' => $control->localized('name') ?? $control->name,
+                'name' => $control->name,
             ])
             ->all();
     }

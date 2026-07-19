@@ -6,8 +6,8 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
 import { index as controlsIndex, update } from '@/routes/controls';
 import { edit as controlsEdit } from '@/routes/controls';
 
@@ -27,12 +27,9 @@ type ControlPayload = {
     id: number;
     code: string;
     name: string;
-    name_bg: string | null;
     description: string | null;
-    description_bg: string | null;
     owner_user_id: number | null;
     implementation_guidance: string | null;
-    implementation_guidance_bg: string | null;
     automation_level: string;
     frequency: string;
     is_active: boolean;
@@ -61,12 +58,9 @@ usePageBreadcrumbs(() => [
 const form = useForm({
     code: props.control.code,
     name: props.control.name,
-    name_bg: props.control.name_bg ?? '',
     description: props.control.description ?? '',
-    description_bg: props.control.description_bg ?? '',
     owner_user_id: (props.control.owner_user_id ?? '') as number | '',
     implementation_guidance: props.control.implementation_guidance ?? '',
-    implementation_guidance_bg: props.control.implementation_guidance_bg ?? '',
     automation_level: props.control.automation_level,
     frequency: props.control.frequency,
     is_active: props.control.is_active,
@@ -161,12 +155,6 @@ const textareaClass =
                     }}
                 </p>
 
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
-                    {{ t('controls.fields.content_en') }}
-                </h2>
-
                 <div class="grid gap-2">
                     <FieldLabel
                         html-for="description"
@@ -198,57 +186,6 @@ const textareaClass =
                     />
                     <InputError
                         :message="form.errors.implementation_guidance"
-                    />
-                </div>
-
-                <h2
-                    class="pt-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
-                    {{ t('controls.fields.content_bg') }}
-                </h2>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="name_bg"
-                        :help="t('controls.help.name_bg')"
-                    >
-                        {{ t('controls.fields.name_bg') }}
-                    </FieldLabel>
-                    <Input id="name_bg" v-model="form.name_bg" />
-                    <InputError :message="form.errors.name_bg" />
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="description_bg"
-                        :help="t('controls.help.description_bg')"
-                    >
-                        {{ t('controls.fields.description_bg') }}
-                    </FieldLabel>
-                    <textarea
-                        id="description_bg"
-                        v-model="form.description_bg"
-                        rows="3"
-                        :class="textareaClass"
-                    />
-                    <InputError :message="form.errors.description_bg" />
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="implementation_guidance_bg"
-                        :help="t('controls.help.implementation_guidance_bg')"
-                    >
-                        {{ t('controls.fields.implementation_guidance_bg') }}
-                    </FieldLabel>
-                    <textarea
-                        id="implementation_guidance_bg"
-                        v-model="form.implementation_guidance_bg"
-                        rows="3"
-                        :class="textareaClass"
-                    />
-                    <InputError
-                        :message="form.errors.implementation_guidance_bg"
                     />
                 </div>
 

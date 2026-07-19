@@ -49,6 +49,7 @@ class OrganizationController extends Controller
                 'billing_email' => $request->input('billing_email'),
                 'subscription_plan' => $request->input('subscription_plan'),
                 'is_active' => $request->boolean('is_active', true),
+                'locale' => $request->string('locale')->toString(),
             ]);
 
             if ($request->boolean('create_owner')) {
@@ -100,6 +101,7 @@ class OrganizationController extends Controller
                 'billing_email' => $organization->billing_email,
                 'subscription_plan' => $organization->subscription_plan,
                 'is_active' => (bool) $organization->is_active,
+                'locale' => $organization->resolvedLocale(),
                 'users_count' => $organization->users()->count(),
             ],
         ]);
@@ -107,13 +109,21 @@ class OrganizationController extends Controller
 
     public function update(UpdateOrganizationRequest $request, Organization $organization): RedirectResponse
     {
+        $previousLocale = $organization->resolvedLocale();
+        $locale = $request->string('locale')->toString();
+
         $organization->update([
             'name' => $request->string('name'),
             'slug' => $request->string('slug'),
             'billing_email' => $request->input('billing_email'),
             'subscription_plan' => $request->input('subscription_plan'),
             'is_active' => $request->boolean('is_active'),
+            'locale' => $locale,
         ]);
+
+        if ($previousLocale !== $locale) {
+            $this->controls->seedStarterCatalogue($organization->fresh(), refreshExisting: true);
+        }
 
         Inertia::flash('toast', [
             'type' => 'success',

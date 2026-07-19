@@ -74,7 +74,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function currentOrganization(): ?Organization
     {
         return $this->organizations()
-            ->select('organizations.id', 'organizations.name', 'organizations.slug', 'organizations.is_active')
+            ->select(
+                'organizations.id',
+                'organizations.name',
+                'organizations.slug',
+                'organizations.is_active',
+                'organizations.locale',
+            )
             ->first();
     }
 

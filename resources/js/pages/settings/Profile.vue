@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, Link, usePage } from '@inertiajs/vue3';
+import { Form, Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteOrganization from '@/components/DeleteOrganization.vue';
@@ -9,20 +9,22 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/profile';
+import { update as updateOrganization } from '@/routes/settings/organization';
 import { send } from '@/routes/verification';
-
 
 const props = defineProps<{
     mustVerifyEmail?: boolean;
     status?: string;
+    canManageOrganization?: boolean;
     canDeleteOrganization?: boolean;
     deletableOrganization?: {
         id: number;
         name: string;
         slug: string;
+        locale?: string;
     } | null;
 }>();
 
@@ -33,6 +35,16 @@ usePageBreadcrumbs(() => [
     { titleKey: 'settings.profile_title', href: edit() },
 ]);
 const user = computed(() => page.props.auth.user);
+
+const localeForm = useForm({
+    locale: props.deletableOrganization?.locale || 'en',
+});
+
+const saveLocale = () => {
+    localeForm.patch(updateOrganization().url, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -110,6 +122,44 @@ const user = computed(() => page.props.auth.user);
                 </Button>
             </div>
         </Form>
+    </div>
+
+    <div
+        v-if="canManageOrganization && deletableOrganization"
+        class="mt-8 space-y-6"
+    >
+        <Heading
+            variant="small"
+            :title="t('settings.organization_locale.title')"
+            :description="t('settings.organization_locale.description')"
+        />
+
+        <form class="space-y-4" @submit.prevent="saveLocale">
+            <div class="grid gap-2">
+                <Label for="organization_locale">{{
+                    t('settings.organization_locale.label')
+                }}</Label>
+                <select
+                    id="organization_locale"
+                    v-model="localeForm.locale"
+                    class="h-9 max-w-xs rounded-md border bg-background px-3"
+                >
+                    <option value="en">
+                        {{ t('admin.organizations.locale_en') }}
+                    </option>
+                    <option value="bg">
+                        {{ t('admin.organizations.locale_bg') }}
+                    </option>
+                </select>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('settings.organization_locale.help') }}
+                </p>
+                <InputError :message="localeForm.errors.locale" />
+            </div>
+            <Button type="submit" :disabled="localeForm.processing">
+                {{ t('common.save') }}
+            </Button>
+        </form>
     </div>
 
     <div

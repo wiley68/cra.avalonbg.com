@@ -107,32 +107,67 @@ test('control catalogue seeder creates controls linked to requirements', functio
 
     expect($control->requirements()->count())->toBeGreaterThan(0)
         ->and($control->source->value)->toBe('starter_template')
-        ->and($control->name_bg)->not->toBeNull();
+        ->and($control->name)->toBe('Dependency scanning before release');
 });
 
-test('control list resolves bulgarian names when locale is bg', function () {
+test('starter controls are seeded in organization locale', function () {
+    [$organization] = makeControlsOrgWithOwner();
+    $organization->update(['locale' => 'bg']);
+
+    (new ControlCatalogueSeeder)->seedForOrganization($organization);
+
+    $control = Control::query()
+        ->where('organization_id', $organization->id)
+        ->where('code', 'CTL-DEP-SCAN')
+        ->firstOrFail();
+
+    expect($control->name)->toBe('Сканиране на зависимости преди release');
+});
+
+test('control list returns stored organization language names', function () {
+    [$organization, $owner] = makeControlsOrgWithOwner();
+    $organization->update(['locale' => 'bg']);
+    (new ControlCatalogueSeeder)->seedForOrganization($organization);
+
+    $items = $this->actingAs($owner)
+        ->getJson(route('internal.controls.index') . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $item = collect($items)->firstWhere('code', 'CTL-DEP-SCAN');
+
+    expect($item)->not->toBeNull()
+        ->and($item['name'])->toContain('Сканиране');
+});
+
+test('changing organization locale refreshes starter controls but keeps custom', function () {
     [$organization, $owner] = makeControlsOrgWithOwner();
     (new ControlCatalogueSeeder)->seedForOrganization($organization);
 
-    $english = $this->actingAs($owner)
-        ->withSession(['locale' => 'en'])
-        ->getJson(route('internal.controls.index') . '?per_page=100')
-        ->assertOk()
-        ->json('data');
+    $template = Control::query()
+        ->where('organization_id', $organization->id)
+        ->where('code', 'CTL-DEP-SCAN')
+        ->firstOrFail();
 
-    $bulgarian = $this->actingAs($owner)
-        ->withSession(['locale' => 'bg'])
-        ->getJson(route('internal.controls.index') . '?per_page=100')
-        ->assertOk()
-        ->json('data');
+    $custom = Control::query()->create([
+        'organization_id' => $organization->id,
+        'code' => 'CTL-CUSTOM',
+        'name' => 'Custom control',
+        'automation_level' => ControlAutomationLevel::Manual,
+        'frequency' => ControlFrequency::OnDemand,
+        'is_active' => true,
+        'source' => \App\Enums\ControlSource::Custom,
+    ]);
 
-    $enItem = collect($english)->firstWhere('code', 'CTL-DEP-SCAN');
-    $bgItem = collect($bulgarian)->firstWhere('code', 'CTL-DEP-SCAN');
+    $this->actingAs($owner)
+        ->patch(route('settings.organization.update'), [
+            'locale' => 'bg',
+        ])
+        ->assertRedirect();
 
-    expect($enItem)->not->toBeNull()
-        ->and($bgItem)->not->toBeNull()
-        ->and($enItem['name'])->not->toBe($bgItem['name'])
-        ->and($bgItem['name'])->toContain('Сканиране');
+    expect($organization->fresh()->locale)->toBe('bg')
+        ->and($template->fresh()->name)->toBe('Сканиране на зависимости преди release')
+        ->and($custom->fresh()->name)->toBe('Custom control');
 });
 
 test('refresh starter controls updates template rows and skips custom', function () {
@@ -281,4 +316,39 @@ test('internal api lists org controls', function () {
         ->getJson(route('internal.controls.index'))
         ->assertOk()
         ->assertJsonStructure(['data', 'current_page', 'per_page', 'total']);
+});
+
+test('control catalogue seeder forces first organization to bulgarian', function () {
+    test()->seed([RolePermissionSeeder::class, RequirementCatalogueSeeder::class]);
+
+    $first = Organization::query()->create([
+        'name' => 'First Org',
+        'slug' => 'first-org',
+        'is_active' => true,
+        'locale' => 'en',
+    ]);
+
+    $second = Organization::query()->create([
+        'name' => 'Second Org',
+        'slug' => 'second-org',
+        'is_active' => true,
+        'locale' => 'en',
+    ]);
+
+    (new ControlCatalogueSeeder)->run();
+
+    expect($first->fresh()->locale)->toBe('bg')
+        ->and($second->fresh()->locale)->toBe('en')
+        ->and(
+            Control::query()
+                ->where('organization_id', $first->id)
+                ->where('code', 'CTL-DEP-SCAN')
+                ->value('name'),
+        )->toBe('Сканиране на зависимости преди release')
+        ->and(
+            Control::query()
+                ->where('organization_id', $second->id)
+                ->where('code', 'CTL-DEP-SCAN')
+                ->value('name'),
+        )->toBe('Dependency scanning before release');
 });

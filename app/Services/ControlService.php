@@ -46,10 +46,8 @@ class ControlService
             $query->where(function ($builder) use ($search): void {
                 $builder
                     ->where('name', 'like', "%{$search}%")
-                    ->orWhere('name_bg', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('description_bg', 'like', "%{$search}%")
                     ->orWhere('automation_level', 'like', "%{$search}%")
                     ->orWhere('frequency', 'like', "%{$search}%");
 
@@ -104,7 +102,6 @@ class ControlService
             $query->where(function ($builder) use ($search): void {
                 $builder
                     ->where('controls.name', 'like', "%{$search}%")
-                    ->orWhere('controls.name_bg', 'like', "%{$search}%")
                     ->orWhere('controls.code', 'like', "%{$search}%")
                     ->orWhere('product_controls.status', 'like', "%{$search}%")
                     ->orWhere('product_controls.notes', 'like', "%{$search}%");
@@ -237,7 +234,7 @@ class ControlService
         return [
             'id' => $control->id,
             'code' => $control->code,
-            'name' => $control->localized('name') ?? $control->name,
+            'name' => $control->name,
             'automation_level' => $control->automation_level instanceof ControlAutomationLevel
                 ? $control->automation_level->value
                 : (string) $control->automation_level,
@@ -272,7 +269,7 @@ class ControlService
             'id' => $productControl->id,
             'control_id' => $productControl->control_id,
             'code' => $control?->code ?? '',
-            'name' => $control?->localized('name') ?? $control?->name ?? '',
+            'name' => $control?->name ?? '',
             'status' => $productControl->status instanceof ProductControlStatus
                 ? $productControl->status->value
                 : (string) $productControl->status,

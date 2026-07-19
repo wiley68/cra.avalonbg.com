@@ -193,18 +193,18 @@ test('owner can list product requirements via internal api', function () {
         ->assertJsonPath('total', Requirement::query()->where('is_active', true)->count());
 });
 
-test('product requirements resolve bulgarian catalogue texts when locale is bg', function () {
+test('product requirements resolve bulgarian catalogue texts when organization locale is bg', function () {
     [$organization, $owner] = makeRequirementsOrgWithOwner();
     $product = makeProductForRequirements($organization, $owner);
 
     $englishResponse = $this->actingAs($owner)
-        ->withSession(['locale' => 'en'])
         ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
         ->assertOk()
         ->json('data');
 
+    $organization->update(['locale' => 'bg']);
+
     $bulgarianResponse = $this->actingAs($owner)
-        ->withSession(['locale' => 'bg'])
         ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
         ->assertOk()
         ->json('data');
@@ -243,8 +243,9 @@ test('product requirements fall back to english when bulgarian text is missing',
         'required_evidence_text_bg' => null,
     ]);
 
+    $organization->update(['locale' => 'bg']);
+
     $payload = $this->actingAs($owner)
-        ->withSession(['locale' => 'bg'])
         ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
         ->assertOk()
         ->json('data');

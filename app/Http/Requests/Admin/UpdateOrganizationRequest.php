@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Organization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -49,6 +50,7 @@ class UpdateOrganizationRequest extends FormRequest
             'billing_email' => ['nullable', 'email', 'max:255'],
             'subscription_plan' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
+            'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
         ];
     }
 }

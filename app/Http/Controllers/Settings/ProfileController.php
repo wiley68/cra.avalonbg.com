@@ -21,14 +21,16 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         $organization = $request->user()?->currentOrganization();
+        $canManageOrganization = $organization !== null
+            && ($request->user()?->can('update', $organization) ?? false)
+            && !($request->user()?->isPlatformAdmin() ?? false);
 
         return Inertia::render('settings/Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
-            'canDeleteOrganization' => $organization !== null
-                && ($request->user()?->can('delete', $organization) ?? false)
-                && !($request->user()?->isPlatformAdmin() ?? false),
-            'deletableOrganization' => $organization?->only(['id', 'name', 'slug']),
+            'canManageOrganization' => $canManageOrganization,
+            'canDeleteOrganization' => $canManageOrganization,
+            'deletableOrganization' => $organization?->only(['id', 'name', 'slug', 'locale']),
         ]);
     }
 

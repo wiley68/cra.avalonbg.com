@@ -14,15 +14,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'subscription_plan',
     'trial_ends_at',
     'billing_email',
+    'locale',
 ])]
 class Organization extends Model
 {
+    public const LOCALES = ['en', 'bg'];
+
+    public const DEFAULT_LOCALE = 'en';
+
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
             'trial_ends_at' => 'datetime',
         ];
+    }
+
+    public function resolvedLocale(): string
+    {
+        $locale = $this->locale ?: self::DEFAULT_LOCALE;
+
+        return in_array($locale, self::LOCALES, true)
+            ? $locale
+            : self::DEFAULT_LOCALE;
     }
 
     public function users(): BelongsToMany

@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
 import {
     index as organizationsIndex,
     store,
@@ -19,7 +19,10 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.organizations', href: organizationsIndex() },
-    { titleKey: 'admin.organizations.create_title', href: organizationsCreate() },
+    {
+        titleKey: 'admin.organizations.create_title',
+        href: organizationsCreate(),
+    },
 ]);
 
 const form = useForm({
@@ -28,6 +31,7 @@ const form = useForm({
     billing_email: '',
     subscription_plan: '',
     is_active: true,
+    locale: 'en',
     create_owner: true,
     seed_starter_controls: true,
     owner_name: '',
@@ -97,6 +101,29 @@ const submit = () => {
                     v-model="form.subscription_plan"
                 />
                 <InputError :message="form.errors.subscription_plan" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="locale">{{
+                    t('admin.organizations.locale')
+                }}</Label>
+                <select
+                    id="locale"
+                    v-model="form.locale"
+                    class="h-9 rounded-md border bg-background px-3"
+                    required
+                >
+                    <option value="en">
+                        {{ t('admin.organizations.locale_en') }}
+                    </option>
+                    <option value="bg">
+                        {{ t('admin.organizations.locale_bg') }}
+                    </option>
+                </select>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.locale_help') }}
+                </p>
+                <InputError :message="form.errors.locale" />
             </div>
 
             <div class="flex items-center gap-3">

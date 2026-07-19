@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
 import {
     destroy,
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
-import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 import { edit as organizationsEdit } from '@/routes/admin/organizations';
+import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 type OrganizationPayload = {
     id: number;
@@ -25,6 +25,7 @@ type OrganizationPayload = {
     billing_email: string | null;
     subscription_plan: string | null;
     is_active: boolean;
+    locale: string;
     users_count: number;
 };
 
@@ -36,7 +37,10 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.organizations', href: organizationsIndex() },
-    { title: props.organization.name, href: organizationsEdit(props.organization.id) },
+    {
+        title: props.organization.name,
+        href: organizationsEdit(props.organization.id),
+    },
 ]);
 const showDeleteDialog = ref(false);
 const deleting = ref(false);
@@ -47,6 +51,7 @@ const form = useForm({
     billing_email: props.organization.billing_email ?? '',
     subscription_plan: props.organization.subscription_plan ?? '',
     is_active: Boolean(props.organization.is_active),
+    locale: props.organization.locale || 'en',
 });
 
 const submit = () => {
@@ -129,6 +134,29 @@ const confirmDelete = () => {
                     v-model="form.subscription_plan"
                 />
                 <InputError :message="form.errors.subscription_plan" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="locale">{{
+                    t('admin.organizations.locale')
+                }}</Label>
+                <select
+                    id="locale"
+                    v-model="form.locale"
+                    class="h-9 rounded-md border bg-background px-3"
+                    required
+                >
+                    <option value="en">
+                        {{ t('admin.organizations.locale_en') }}
+                    </option>
+                    <option value="bg">
+                        {{ t('admin.organizations.locale_bg') }}
+                    </option>
+                </select>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.locale_help_edit') }}
+                </p>
+                <InputError :message="form.errors.locale" />
             </div>
 
             <div class="flex items-center gap-3">

@@ -76,7 +76,7 @@ class ProductRequirementController extends Controller
             ->map(fn(Control $control) => [
                 'id' => $control->id,
                 'code' => $control->code,
-                'name' => $control->localized('name') ?? $control->name,
+                'name' => $control->name,
                 'product_control' => ($pc = $control->productControls->first())
                     ? [
                         'id' => $pc->id,

@@ -15,6 +15,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('settings/organization', [OrganizationController::class, 'update'])
+        ->name('settings.organization.update');
     Route::delete('settings/organization', [OrganizationController::class, 'destroy'])
         ->name('settings.organization.destroy');
 

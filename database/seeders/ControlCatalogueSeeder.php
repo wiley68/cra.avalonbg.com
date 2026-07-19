@@ -13,7 +13,13 @@ class ControlCatalogueSeeder extends Seeder
 {
     public function run(): void
     {
-        Organization::query()->each(function (Organization $organization): void {
+        $first = Organization::query()->orderBy('id')->first();
+
+        if ($first !== null) {
+            $first->update(['locale' => 'bg']);
+        }
+
+        Organization::query()->orderBy('id')->each(function (Organization $organization): void {
             $this->seedForOrganization($organization);
         });
     }
@@ -24,6 +30,7 @@ class ControlCatalogueSeeder extends Seeder
      * - Creates missing starter codes as starter_template.
      * - Updates existing starter_template rows from the catalogue.
      * - Never overwrites custom controls.
+     * - Content language follows organization.locale.
      *
      * @return array{created: int, updated: int, skipped: int}
      */
@@ -33,11 +40,14 @@ class ControlCatalogueSeeder extends Seeder
             ->whereIn('code', StarterControlCatalogue::allLinkedRequirementCodes())
             ->pluck('id', 'code');
 
+        $locale = $organization->resolvedLocale();
         $created = 0;
         $updated = 0;
         $skipped = 0;
 
-        foreach (StarterControlCatalogue::items() as $item) {
+        foreach (StarterControlCatalogue::items() as $raw) {
+            $item = StarterControlCatalogue::localizedItem($raw, $locale);
+
             $existing = Control::query()
                 ->where('organization_id', $organization->id)
                 ->where('code', $item['code'])
@@ -45,11 +55,8 @@ class ControlCatalogueSeeder extends Seeder
 
             $content = [
                 'name' => $item['name'],
-                'name_bg' => $item['name_bg'],
                 'description' => $item['description'],
-                'description_bg' => $item['description_bg'],
                 'implementation_guidance' => $item['implementation_guidance'],
-                'implementation_guidance_bg' => $item['implementation_guidance_bg'],
                 'automation_level' => $item['automation_level'],
                 'frequency' => $item['frequency'],
                 'is_active' => true,

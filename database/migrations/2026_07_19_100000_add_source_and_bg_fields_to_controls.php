@@ -13,18 +13,6 @@ return new class extends Migration {
             if (!Schema::hasColumn('controls', 'source')) {
                 $table->string('source')->default('custom')->after('is_active');
             }
-
-            if (!Schema::hasColumn('controls', 'name_bg')) {
-                $table->string('name_bg')->nullable()->after('name');
-            }
-
-            if (!Schema::hasColumn('controls', 'description_bg')) {
-                $table->text('description_bg')->nullable()->after('description');
-            }
-
-            if (!Schema::hasColumn('controls', 'implementation_guidance_bg')) {
-                $table->text('implementation_guidance_bg')->nullable()->after('implementation_guidance');
-            }
         });
 
         $codes = collect(StarterControlCatalogue::items())->pluck('code')->all();
@@ -39,15 +27,8 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('controls', function (Blueprint $table) {
-            foreach ([
-                'source',
-                'name_bg',
-                'description_bg',
-                'implementation_guidance_bg',
-            ] as $column) {
-                if (Schema::hasColumn('controls', $column)) {
-                    $table->dropColumn($column);
-                }
+            if (Schema::hasColumn('controls', 'source')) {
+                $table->dropColumn('source');
             }
         });
     }
