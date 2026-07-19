@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     createAuditLogColumnTitleMap,
     createAuditLogColumns,
@@ -21,8 +22,13 @@ import {
 } from './columns';
 import type { AuditLog, AuditLogDetail } from './columns';
 import { index as auditLogsApiIndex } from '@/routes/admin/internal/audit-logs';
+import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.audit', href: auditLogsIndex() },
+]);
 
 const showDetailsDialog = ref(false);
 const selectedLog = ref<AuditLog | null>(null);

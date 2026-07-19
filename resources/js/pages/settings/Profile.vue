@@ -10,19 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Profile settings',
-                href: edit(),
-            },
-        ],
-    },
-});
 
 const props = defineProps<{
     mustVerifyEmail?: boolean;
@@ -37,6 +28,10 @@ const props = defineProps<{
 
 const page = usePage();
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'settings.profile_title', href: edit() },
+]);
 const user = computed(() => page.props.auth.user);
 </script>
 

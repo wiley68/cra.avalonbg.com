@@ -9,6 +9,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     edit as editOrganization,
     index as organizationsIndex,
@@ -20,6 +21,7 @@ import {
 } from './columns';
 import type { OrganizationUserListItem } from './columns';
 import { index as organizationUsersApiIndex } from '@/routes/admin/internal/organizations/users';
+import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 type OrganizationSummary = {
     id: number;
@@ -32,6 +34,12 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.organizations', href: organizationsIndex() },
+    { title: props.organization.name, href: editOrganization(props.organization.id) },
+    { titleKey: 'admin.users.index_title', href: organizationUsersIndex(props.organization.id) },
+]);
 
 const showDeleteDialog = ref(false);
 const userToDelete = ref<number | null>(null);

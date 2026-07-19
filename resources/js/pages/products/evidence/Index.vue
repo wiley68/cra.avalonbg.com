@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { createEvidenceColumnTitleMap, createEvidenceColumns } from './columns';
 import type { EvidenceListItem } from './columns';
 import { index as evidenceApiIndex } from '@/routes/internal/products/evidence';
@@ -17,6 +18,8 @@ import {
     create as createEvidence,
     destroy as destroyEvidence,
 } from '@/routes/products/evidence';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as evidenceIndex } from '@/routes/products/evidence';
 
 type OrganizationSummary = {
     id: number;
@@ -37,6 +40,12 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.evidence.index_title', href: evidenceIndex(props.product.id) },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);

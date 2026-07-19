@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct } from '@/routes/products';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
@@ -18,6 +19,8 @@ import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 import { show as passportShow } from '@/routes/products/passport';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
+import { index as productsIndex } from '@/routes/products';
+import { show as readinessShow } from '@/routes/products/readiness';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -51,6 +54,12 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'breadcrumbs.readiness', href: readinessShow(props.product.id) },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const statusVariant = (

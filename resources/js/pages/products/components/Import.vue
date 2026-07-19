@@ -6,8 +6,11 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { store as importStore } from '@/routes/products/components/import';
 import { index as productComponentsIndex } from '@/routes/products/components';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { importMethod as productComponentsImport } from '@/routes/products/components';
 
 type VersionOption = { id: number; version_number: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -21,6 +24,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.components.index_title', href: productComponentsIndex(props.product.id) },
+    {
+        titleKey: 'products.components.import_title',
+        href: productComponentsImport(props.product.id),
+    },
+]);
 
 const selectClass =
     'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';

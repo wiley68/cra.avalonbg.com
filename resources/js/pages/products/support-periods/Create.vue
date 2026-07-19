@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as periodsIndex,
     store,
 } from '@/routes/products/support-periods';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { create as supportPeriodsCreate } from '@/routes/products/support-periods';
 
 type OrganizationSummary = {
     id: number;
@@ -39,6 +42,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.support_periods.index_title', href: periodsIndex(props.product.id) },
+    { titleKey: 'products.support_periods.create_title', href: supportPeriodsCreate(props.product.id) },
+]);
 
 const form = useForm({
     type: props.options.types[0] ?? 'commercial',

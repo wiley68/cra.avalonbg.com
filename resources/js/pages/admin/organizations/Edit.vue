@@ -9,12 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy,
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
 import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
+import { edit as organizationsEdit } from '@/routes/admin/organizations';
 
 type OrganizationPayload = {
     id: number;
@@ -31,6 +33,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.organizations', href: organizationsIndex() },
+    { title: props.organization.name, href: organizationsEdit(props.organization.id) },
+]);
 const showDeleteDialog = ref(false);
 const deleting = ref(false);
 

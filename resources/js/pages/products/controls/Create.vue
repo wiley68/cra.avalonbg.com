@@ -5,10 +5,13 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as productControlsIndex,
     store,
 } from '@/routes/products/controls';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { create as productControlsCreate } from '@/routes/products/controls';
 
 type ControlOption = {
     id: number;
@@ -29,6 +32,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.controls.index_title', href: productControlsIndex(props.product.id) },
+    { titleKey: 'products.controls.assign_title', href: productControlsCreate(props.product.id) },
+]);
 
 const form = useForm({
     control_id: props.availableControls[0]?.id ?? ('' as number | ''),

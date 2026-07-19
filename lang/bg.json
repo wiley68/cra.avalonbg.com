@@ -1809,7 +1809,9 @@
             "confirmation_mismatch": "Текстът за потвърждение трябва да съвпада точно с името на организацията.",
             "no_organization": "Няма членство в организация.",
             "confirm": "Изтрий организацията"
-        }
+        },
+        "security_title": "Настройки за сигурност",
+        "appearance_title": "Настройки за изглед"
     },
     "appearance": {
         "label": "Изглед",
@@ -1832,5 +1834,12 @@
         "auditor": "Одитор",
         "external_consultant": "Външен консултант",
         "read_only": "Потребител само за четене"
+    },
+    "breadcrumbs": {
+        "reporting": "Докладване",
+        "passport": "Compliance паспорт",
+        "readiness": "Готовност",
+        "import": "Импорт",
+        "assign_control": "Назначи контрол"
     }
 }

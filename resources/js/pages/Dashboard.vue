@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { AlertTriangle, CheckCircle2, Info, Package } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { dashboard as dashboardRoute } from '@/routes';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
@@ -28,16 +29,9 @@ defineProps<{
 
 const { t } = useTranslations();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboardRoute(),
-            },
-        ],
-    },
-});
+usePageBreadcrumbs(() => [
+    { titleKey: 'common.dashboard', href: dashboardRoute() },
+]);
 
 const severityClass = (severity: string): string => {
     if (severity === 'fail') {

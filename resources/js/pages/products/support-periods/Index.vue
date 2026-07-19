@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as supportPeriodsApiIndex } from '@/routes/internal/products/support-periods';
 import { create, destroy } from '@/routes/products/support-periods';
 import {
@@ -17,6 +18,8 @@ import {
     createSupportPeriodColumns,
 } from './columns';
 import type { ProductSupportPeriodListItem } from './columns';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 
 type OrganizationSummary = {
     id: number;
@@ -37,6 +40,15 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    {
+        titleKey: 'products.support_periods.index_title',
+        href: supportPeriodsIndex(props.product.id),
+    },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);

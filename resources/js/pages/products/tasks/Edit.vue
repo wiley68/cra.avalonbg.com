@@ -7,6 +7,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     approve as approveTask,
     index as productTasksIndex,
@@ -14,6 +15,8 @@ import {
     submitApproval,
     update,
 } from '@/routes/products/tasks';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as productTasksEdit } from '@/routes/products/tasks';
 
 type Member = { id: number; name: string; email: string };
 type SubjectOption = { id: number; label: string };
@@ -59,6 +62,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.tasks.index_title', href: productTasksIndex(props.product.id) },
+    {
+        title: props.task.title,
+        href: productTasksEdit({ product: props.product.id, task: props.task.id }),
+    },
+]);
 
 const approvalComment = ref(props.task.approval_comment ?? '');
 

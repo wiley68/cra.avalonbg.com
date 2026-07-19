@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as productsIndex, store } from '@/routes/products';
+import { create as productsCreate } from '@/routes/products';
 
 type Member = {
     id: number;
@@ -40,6 +42,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { titleKey: 'products.create_title', href: productsCreate() },
+]);
 const showScopeWizard = ref(false);
 const showClassificationWizard = ref(false);
 

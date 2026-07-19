@@ -6,7 +6,10 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as versionsIndex, store } from '@/routes/products/versions';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { create as versionsCreate } from '@/routes/products/versions';
 
 type OrganizationSummary = {
     id: number;
@@ -38,6 +41,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.versions.index_title', href: versionsIndex(props.product.id) },
+    { titleKey: 'products.versions.create_title', href: versionsCreate(props.product.id) },
+]);
 
 const form = useForm({
     version_number: '',

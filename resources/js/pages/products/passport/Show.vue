@@ -6,11 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct } from '@/routes/products';
 import {
     exportMethod as readinessExport,
     show as readinessShow,
 } from '@/routes/products/readiness';
+import { index as productsIndex } from '@/routes/products';
+import { show as passportShow } from '@/routes/products/passport';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 
@@ -71,6 +74,12 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'breadcrumbs.passport', href: passportShow(props.product.id) },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const statusVariant = (

@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as requirementsIndex, store } from '@/routes/admin/requirements';
+import { create as requirementsCreate } from '@/routes/admin/requirements';
 
 type RegulationOption = {
     id: number;
@@ -20,6 +22,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.requirements_catalogue', href: requirementsIndex() },
+    { titleKey: 'admin.requirements.create_title', href: requirementsCreate() },
+]);
 
 const form = useForm({
     regulation_id: props.regulations[0]?.id ?? '',

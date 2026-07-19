@@ -9,10 +9,12 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { create, destroy, refreshStarter } from '@/routes/controls';
 import { index as controlsApiIndex } from '@/routes/internal/controls';
 import { createControlColumnTitleMap, createControlColumns } from './columns';
 import type { ControlListItem } from './columns';
+import { index as controlsIndex } from '@/routes/controls';
 
 type OrganizationSummary = {
     id: number;
@@ -26,6 +28,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.controls', href: controlsIndex() },
+]);
 
 const showDeleteDialog = ref(false);
 const controlToDelete = ref<number | null>(null);

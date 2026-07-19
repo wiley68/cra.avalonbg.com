@@ -7,7 +7,10 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as productTasksIndex, store } from '@/routes/products/tasks';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { create as productTasksCreate } from '@/routes/products/tasks';
 
 type Member = { id: number; name: string; email: string };
 type SubjectOption = { id: number; label: string };
@@ -30,6 +33,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.tasks.index_title', href: productTasksIndex(props.product.id) },
+    { titleKey: 'products.tasks.create_title', href: productTasksCreate(props.product.id) },
+]);
 
 const form = useForm({
     title: '',

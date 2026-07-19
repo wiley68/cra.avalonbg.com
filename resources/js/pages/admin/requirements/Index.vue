@@ -8,6 +8,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as requirementsApiIndex } from '@/routes/admin/internal/requirements';
 import { create } from '@/routes/admin/requirements';
 import {
@@ -15,8 +16,13 @@ import {
     createRequirementColumns,
 } from './columns';
 import type { RequirementListItem } from './columns';
+import { index as requirementsIndex } from '@/routes/admin/requirements';
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.requirements_catalogue', href: requirementsIndex() },
+]);
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<RequirementListItem>({

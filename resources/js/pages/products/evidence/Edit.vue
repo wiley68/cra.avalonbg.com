@@ -8,12 +8,15 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy as destroyEvidence,
     download as downloadEvidence,
     index as evidenceIndex,
     update,
 } from '@/routes/products/evidence';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as evidenceEdit } from '@/routes/products/evidence';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
@@ -76,6 +79,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.evidence.index_title', href: evidenceIndex(props.product.id) },
+    {
+        title: props.evidence.title,
+        href: evidenceEdit({ product: props.product.id, evidence: props.evidence.id }),
+    },
+]);
 
 const textareaClass =
     'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';

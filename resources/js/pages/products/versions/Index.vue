@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as versionsApiIndex } from '@/routes/internal/products/versions';
 import { create, destroy } from '@/routes/products/versions';
 import {
@@ -17,6 +18,8 @@ import {
     createProductVersionColumns,
 } from './columns';
 import type { ProductVersionListItem } from './columns';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as versionsIndex } from '@/routes/products/versions';
 
 type OrganizationSummary = {
     id: number;
@@ -37,6 +40,12 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.versions.index_title', href: versionsIndex(props.product.id) },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);

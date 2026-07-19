@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { destroy, index as usersIndex, update } from '@/routes/users';
+import { edit as usersEdit } from '@/routes/users';
 
 type Role = {
     id: number;
@@ -38,6 +40,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.users', href: usersIndex() },
+    { title: props.user.name, href: usersEdit(props.user.id) },
+]);
 
 const showDeleteDialog = ref(false);
 

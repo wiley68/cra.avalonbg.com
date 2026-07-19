@@ -5,10 +5,13 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as productControlsIndex,
     update,
 } from '@/routes/products/controls';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as productControlsEdit } from '@/routes/products/controls';
 
 type ProductSummary = {
     id: number;
@@ -39,6 +42,19 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.controls.index_title', href: productControlsIndex(props.product.id) },
+    {
+        title: props.productControl.control.code,
+        href: productControlsEdit({
+            product: props.product.id,
+            product_control: props.productControl.id,
+        }),
+    },
+]);
 
 const form = useForm({
     status: props.productControl.status,

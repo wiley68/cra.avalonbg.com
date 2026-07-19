@@ -8,11 +8,14 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy,
     index as versionsIndex,
     update,
 } from '@/routes/products/versions';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as versionsEdit } from '@/routes/products/versions';
 
 type OrganizationSummary = {
     id: number;
@@ -59,6 +62,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.versions.index_title', href: versionsIndex(props.product.id) },
+    {
+        title: props.version.version_number,
+        href: versionsEdit({ product: props.product.id, version: props.version.id }),
+    },
+]);
 const showDeleteDialog = ref(false);
 
 const form = useForm({

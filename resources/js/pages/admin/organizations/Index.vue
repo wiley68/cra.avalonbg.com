@@ -9,6 +9,7 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as organizationsApiIndex } from '@/routes/admin/internal/organizations';
 import { create, destroy } from '@/routes/admin/organizations';
 import {
@@ -16,8 +17,13 @@ import {
     createOrganizationColumns,
 } from './columns';
 import type { OrganizationListItem } from './columns';
+import { index as organizationsIndex } from '@/routes/admin/organizations';
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.organizations', href: organizationsIndex() },
+]);
 
 const showDeleteDialog = ref(false);
 const organizationToDelete = ref<OrganizationListItem | null>(null);

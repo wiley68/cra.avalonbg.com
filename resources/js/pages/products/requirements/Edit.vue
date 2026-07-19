@@ -5,6 +5,7 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as requirementsIndex,
     update,
@@ -13,6 +14,8 @@ import {
     create as createProductControl,
     edit as editProductControl,
 } from '@/routes/products/controls';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as requirementsEdit } from '@/routes/products/requirements';
 
 type Member = {
     id: number;
@@ -71,6 +74,19 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.requirements.index_title', href: requirementsIndex(props.product.id) },
+    {
+        title: props.productRequirement.code,
+        href: requirementsEdit({
+            product: props.product.id,
+            requirement: props.productRequirement.id,
+        }),
+    },
+]);
 
 const form = useForm({
     status: props.productRequirement.status,

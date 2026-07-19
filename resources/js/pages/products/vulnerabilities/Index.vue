@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     createProductVulnerabilityColumnTitleMap,
     createProductVulnerabilityColumns,
@@ -20,6 +21,8 @@ import {
     create as createProductVulnerability,
     destroy as destroyProductVulnerability,
 } from '@/routes/products/vulnerabilities';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
 type OrganizationSummary = {
     id: number;
@@ -40,6 +43,15 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    {
+        titleKey: 'products.vulnerabilities.index_title',
+        href: productVulnerabilitiesIndex(props.product.id),
+    },
+]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);

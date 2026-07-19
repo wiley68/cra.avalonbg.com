@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as requirementsIndex,
     update,
 } from '@/routes/admin/requirements';
+import { edit as requirementsEdit } from '@/routes/admin/requirements';
 
 type RegulationOption = {
     id: number;
@@ -52,6 +54,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.requirements_catalogue', href: requirementsIndex() },
+    { title: props.requirement.code, href: requirementsEdit(props.requirement.id) },
+]);
 
 const currentVersion = computed(
     () =>

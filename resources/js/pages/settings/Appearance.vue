@@ -3,20 +3,15 @@ import { Head } from '@inertiajs/vue3';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import Heading from '@/components/Heading.vue';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit } from '@/routes/appearance';
 
 const { t } = useTranslations();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Appearance settings',
-                href: edit(),
-            },
-        ],
-    },
-});
+usePageBreadcrumbs(() => [
+    { titleKey: 'settings.appearance_title', href: edit() },
+]);
+
 </script>
 
 <template>

@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as usersIndex, store } from '@/routes/users';
+import { create as usersCreate } from '@/routes/users';
 
 type Role = {
     id: number;
@@ -28,6 +30,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.users', href: usersIndex() },
+    { titleKey: 'users.create_title', href: usersCreate() },
+]);
 
 const form = useForm({
     name: '',

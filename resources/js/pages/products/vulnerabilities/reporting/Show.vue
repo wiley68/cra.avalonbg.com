@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     approve as approveReport,
     escalate as escalateReport,
@@ -18,6 +19,9 @@ import {
     update as updateDraft,
 } from '@/routes/products/vulnerabilities/reporting';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as productVulnerabilitiesEdit } from '@/routes/products/vulnerabilities';
+import { show as reportingShow } from '@/routes/products/vulnerabilities/reporting';
 
 type ProductSummary = { id: number; name: string; slug: string };
 
@@ -77,6 +81,29 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    {
+        titleKey: 'products.vulnerabilities.index_title',
+        href: productVulnerabilitiesIndex(props.product.id),
+    },
+    {
+        title: props.wizard.vulnerability.title,
+        href: productVulnerabilitiesEdit({
+            product: props.product.id,
+            vulnerability: props.wizard.vulnerability.id,
+        }),
+    },
+    {
+        titleKey: 'breadcrumbs.reporting',
+        href: reportingShow({
+            product: props.product.id,
+            vulnerability: props.wizard.vulnerability.id,
+        }),
+    },
+]);
 
 const textareaClass =
     'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';

@@ -10,11 +10,13 @@ import EncryptedExportDialog from '@/components/exports/EncryptedExportDialog.vu
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { downloadEncryptedExport } from '@/lib/encryptedExport';
 import { index as usersApiIndex } from '@/routes/internal/users';
 import { create, destroy, exportMethod } from '@/routes/users';
 import { createUserColumnTitleMap, createUserColumns } from './columns';
 import type { UserListItem } from './columns';
+import { index as usersIndex } from '@/routes/users';
 
 type OrganizationSummary = {
     id: number;
@@ -27,6 +29,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.users', href: usersIndex() },
+]);
 
 const showDeleteDialog = ref(false);
 const userToDelete = ref<number | null>(null);

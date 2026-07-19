@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApiLoadMore } from '@/composables/useApiLoadMore';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import type { ProductListItem } from '@/pages/products/columns';
 import { index as productsApiIndex } from '@/routes/internal/products';
 import { create, destroy } from '@/routes/products';
+import { index as productsIndex } from '@/routes/products';
 
 type OrganizationSummary = {
     id: number;
@@ -25,6 +27,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+]);
 
 const showDeleteDialog = ref(false);
 const productToDelete = ref<number | null>(null);

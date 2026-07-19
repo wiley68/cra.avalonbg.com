@@ -8,12 +8,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     index as organizationsIndex,
     store,
 } from '@/routes/admin/organizations';
+import { create as organizationsCreate } from '@/routes/admin/organizations';
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.organizations', href: organizationsIndex() },
+    { titleKey: 'admin.organizations.create_title', href: organizationsCreate() },
+]);
 
 const form = useForm({
     name: '',

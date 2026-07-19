@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy as destroyProductComponent,
     index as productComponentsIndex,
     update,
 } from '@/routes/products/components';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as productComponentsEdit } from '@/routes/products/components';
 
 type VersionOption = { id: number; version_number: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -48,6 +51,19 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    { titleKey: 'products.components.index_title', href: productComponentsIndex(props.product.id) },
+    {
+        title: props.component.name,
+        href: productComponentsEdit({
+            product: props.product.id,
+            component: props.component.id,
+        }),
+    },
+]);
 
 const textareaClass =
     'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';

@@ -9,11 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy,
     index as usersIndex,
     update,
 } from '@/routes/admin/organizations/users';
+import { edit as editOrganization, index as organizationsIndex } from '@/routes/admin/organizations';
+import { edit as organizationUsersEdit } from '@/routes/admin/organizations/users';
 
 type Role = {
     id: number;
@@ -42,6 +45,19 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.organizations', href: organizationsIndex() },
+    { title: props.organization.name, href: editOrganization(props.organization.id) },
+    { titleKey: 'admin.users.index_title', href: usersIndex(props.organization.id) },
+    {
+        title: props.user.name,
+        href: organizationUsersEdit({
+            organization: props.organization.id,
+            user: props.user.id,
+        }),
+    },
+]);
 
 const showDeleteDialog = ref(false);
 

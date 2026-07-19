@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as controlsIndex, store } from '@/routes/controls';
+import { create as controlsCreate } from '@/routes/controls';
 
 type Member = {
     id: number;
@@ -31,6 +33,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.controls', href: controlsIndex() },
+    { titleKey: 'controls.create_title', href: controlsCreate() },
+]);
 
 const form = useForm({
     code: '',

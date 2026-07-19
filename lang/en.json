@@ -1802,7 +1802,9 @@
             "confirmation_mismatch": "The confirmation text must match the organization name exactly.",
             "no_organization": "No organization membership.",
             "confirm": "Delete organization"
-        }
+        },
+        "security_title": "Security settings",
+        "appearance_title": "Appearance settings"
     },
     "appearance": {
         "label": "Appearance",
@@ -1825,5 +1827,12 @@
         "auditor": "Auditor",
         "external_consultant": "External Consultant",
         "read_only": "Read-only User"
+    },
+    "breadcrumbs": {
+        "reporting": "Reporting",
+        "passport": "Compliance passport",
+        "readiness": "Readiness",
+        "import": "Import",
+        "assign_control": "Assign control"
     }
 }
