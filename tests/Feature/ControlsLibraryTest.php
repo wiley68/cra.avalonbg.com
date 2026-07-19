@@ -105,7 +105,63 @@ test('control catalogue seeder creates controls linked to requirements', functio
         ->where('code', 'CTL-DEP-SCAN')
         ->firstOrFail();
 
-    expect($control->requirements()->count())->toBeGreaterThan(0);
+    expect($control->requirements()->count())->toBeGreaterThan(0)
+        ->and($control->source->value)->toBe('starter_template')
+        ->and($control->name_bg)->not->toBeNull();
+});
+
+test('control list resolves bulgarian names when locale is bg', function () {
+    [$organization, $owner] = makeControlsOrgWithOwner();
+    (new ControlCatalogueSeeder)->seedForOrganization($organization);
+
+    $english = $this->actingAs($owner)
+        ->withSession(['locale' => 'en'])
+        ->getJson(route('internal.controls.index') . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $bulgarian = $this->actingAs($owner)
+        ->withSession(['locale' => 'bg'])
+        ->getJson(route('internal.controls.index') . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $enItem = collect($english)->firstWhere('code', 'CTL-DEP-SCAN');
+    $bgItem = collect($bulgarian)->firstWhere('code', 'CTL-DEP-SCAN');
+
+    expect($enItem)->not->toBeNull()
+        ->and($bgItem)->not->toBeNull()
+        ->and($enItem['name'])->not->toBe($bgItem['name'])
+        ->and($bgItem['name'])->toContain('Сканиране');
+});
+
+test('refresh starter controls updates template rows and skips custom', function () {
+    [$organization, $owner] = makeControlsOrgWithOwner();
+    (new ControlCatalogueSeeder)->seedForOrganization($organization);
+
+    $template = Control::query()
+        ->where('organization_id', $organization->id)
+        ->where('code', 'CTL-DEP-SCAN')
+        ->firstOrFail();
+
+    $template->update(['name' => 'Changed template name']);
+
+    $custom = Control::query()->create([
+        'organization_id' => $organization->id,
+        'code' => 'CTL-CUSTOM',
+        'name' => 'Custom control',
+        'automation_level' => ControlAutomationLevel::Manual,
+        'frequency' => ControlFrequency::OnDemand,
+        'is_active' => true,
+        'source' => \App\Enums\ControlSource::Custom,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('controls.refresh-starter'))
+        ->assertRedirect(route('controls.index'));
+
+    expect($template->fresh()->name)->toBe('Dependency scanning before release')
+        ->and($custom->fresh()->name)->toBe('Custom control');
 });
 
 test('organization owner can create control with requirement links', function () {

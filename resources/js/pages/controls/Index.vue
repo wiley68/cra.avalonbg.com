@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { Plus, RefreshCw } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -9,10 +9,10 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
+import { create, destroy, refreshStarter } from '@/routes/controls';
+import { index as controlsApiIndex } from '@/routes/internal/controls';
 import { createControlColumnTitleMap, createControlColumns } from './columns';
 import type { ControlListItem } from './columns';
-import { create, destroy } from '@/routes/controls';
-import { index as controlsApiIndex } from '@/routes/internal/controls';
 
 type OrganizationSummary = {
     id: number;
@@ -29,6 +29,23 @@ const { t } = useTranslations();
 
 const showDeleteDialog = ref(false);
 const controlToDelete = ref<number | null>(null);
+const refreshingStarter = ref(false);
+
+const refreshStarterControls = (): void => {
+    refreshingStarter.value = true;
+
+    router.post(
+        refreshStarter().url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                refreshingStarter.value = false;
+                void fetch();
+            },
+        },
+    );
+};
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<ControlListItem>({
@@ -136,12 +153,33 @@ onMounted(() => {
                 </p>
             </div>
 
-            <Button v-if="canManage" as-child>
-                <Link :href="create()" class="inline-flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    {{ t('controls.create') }}
-                </Link>
-            </Button>
+            <div
+                v-if="canManage"
+                class="flex flex-wrap items-center justify-end gap-2"
+            >
+                <Button
+                    type="button"
+                    variant="outline"
+                    :disabled="refreshingStarter"
+                    :title="t('controls.refresh_starter_help')"
+                    @click="refreshStarterControls"
+                >
+                    <RefreshCw
+                        class="h-4 w-4"
+                        :class="{ 'animate-spin': refreshingStarter }"
+                    />
+                    {{ t('controls.refresh_starter') }}
+                </Button>
+                <Button as-child>
+                    <Link
+                        :href="create()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('controls.create') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <DataTable

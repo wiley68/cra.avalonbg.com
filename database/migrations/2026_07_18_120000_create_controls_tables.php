@@ -12,12 +12,16 @@ return new class extends Migration {
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             $table->string('code');
             $table->string('name');
+            $table->string('name_bg')->nullable();
             $table->text('description')->nullable();
+            $table->text('description_bg')->nullable();
             $table->foreignId('owner_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('implementation_guidance')->nullable();
+            $table->text('implementation_guidance_bg')->nullable();
             $table->string('automation_level');
             $table->string('frequency');
             $table->boolean('is_active')->default(true);
+            $table->string('source')->default('custom');
             $table->timestamps();
 
             $table->unique(['organization_id', 'code']);

@@ -55,9 +55,12 @@ class ControlController extends Controller
             [
                 'code' => $request->string('code')->toString(),
                 'name' => $request->string('name')->toString(),
+                'name_bg' => $request->input('name_bg'),
                 'description' => $request->input('description'),
+                'description_bg' => $request->input('description_bg'),
                 'owner_user_id' => $request->input('owner_user_id') ? (int) $request->input('owner_user_id') : null,
                 'implementation_guidance' => $request->input('implementation_guidance'),
+                'implementation_guidance_bg' => $request->input('implementation_guidance_bg'),
                 'automation_level' => ControlAutomationLevel::from($request->string('automation_level')->toString()),
                 'frequency' => ControlFrequency::from($request->string('frequency')->toString()),
                 'is_active' => $request->boolean('is_active', true),
@@ -87,12 +90,16 @@ class ControlController extends Controller
                 'id' => $control->id,
                 'code' => $control->code,
                 'name' => $control->name,
+                'name_bg' => $control->name_bg,
                 'description' => $control->description,
+                'description_bg' => $control->description_bg,
                 'owner_user_id' => $control->owner_user_id,
                 'implementation_guidance' => $control->implementation_guidance,
+                'implementation_guidance_bg' => $control->implementation_guidance_bg,
                 'automation_level' => $control->automation_level->value,
                 'frequency' => $control->frequency->value,
                 'is_active' => $control->is_active,
+                'source' => $control->source->value,
                 'requirement_ids' => $control->requirements->pluck('id')->all(),
             ],
             'members' => $this->memberOptions($organization),
@@ -112,9 +119,12 @@ class ControlController extends Controller
             [
                 'code' => $request->string('code')->toString(),
                 'name' => $request->string('name')->toString(),
+                'name_bg' => $request->input('name_bg'),
                 'description' => $request->input('description'),
+                'description_bg' => $request->input('description_bg'),
                 'owner_user_id' => $request->input('owner_user_id') ? (int) $request->input('owner_user_id') : null,
                 'implementation_guidance' => $request->input('implementation_guidance'),
+                'implementation_guidance_bg' => $request->input('implementation_guidance_bg'),
                 'automation_level' => ControlAutomationLevel::from($request->string('automation_level')->toString()),
                 'frequency' => ControlFrequency::from($request->string('frequency')->toString()),
                 'is_active' => $request->boolean('is_active', true),
@@ -141,6 +151,24 @@ class ControlController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('controls.deleted'),
+        ]);
+
+        return redirect()->route('controls.index');
+    }
+
+    public function refreshStarter(): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('create', [Control::class, $organization]);
+
+        $result = $this->controls->seedStarterCatalogue($organization, refreshExisting: true);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('controls.starter_refreshed', [
+                'created' => (string) $result['created'],
+                'updated' => (string) $result['updated'],
+            ]),
         ]);
 
         return redirect()->route('controls.index');

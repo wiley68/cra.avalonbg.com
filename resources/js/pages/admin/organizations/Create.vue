@@ -22,6 +22,7 @@ const form = useForm({
     subscription_plan: '',
     is_active: true,
     create_owner: true,
+    seed_starter_controls: true,
     owner_name: '',
     owner_email: '',
     owner_password: '',
@@ -104,6 +105,25 @@ const submit = () => {
                             : t('admin.organizations.inactive')
                     }}
                 </Label>
+            </div>
+
+            <div class="space-y-2 rounded-md border border-dashed p-4">
+                <div class="flex items-center gap-3">
+                    <Switch
+                        id="seed_starter_controls"
+                        v-model="form.seed_starter_controls"
+                        class="cursor-pointer"
+                    />
+                    <Label
+                        for="seed_starter_controls"
+                        class="cursor-pointer font-medium"
+                    >
+                        {{ t('admin.organizations.seed_starter_controls') }}
+                    </Label>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.seed_starter_controls_help') }}
+                </p>
             </div>
 
             <div class="space-y-4 border-t pt-4">

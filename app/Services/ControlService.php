@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Enums\ControlAutomationLevel;
 use App\Enums\ControlFrequency;
+use App\Enums\ControlSource;
 use App\Enums\ProductControlStatus;
 use App\Models\Control;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductControl;
 use App\Models\User;
+use Database\Seeders\ControlCatalogueSeeder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -44,8 +46,10 @@ class ControlService
             $query->where(function ($builder) use ($search): void {
                 $builder
                     ->where('name', 'like', "%{$search}%")
+                    ->orWhere('name_bg', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('description_bg', 'like', "%{$search}%")
                     ->orWhere('automation_level', 'like', "%{$search}%")
                     ->orWhere('frequency', 'like', "%{$search}%");
 
@@ -100,6 +104,7 @@ class ControlService
             $query->where(function ($builder) use ($search): void {
                 $builder
                     ->where('controls.name', 'like', "%{$search}%")
+                    ->orWhere('controls.name_bg', 'like', "%{$search}%")
                     ->orWhere('controls.code', 'like', "%{$search}%")
                     ->orWhere('product_controls.status', 'like', "%{$search}%")
                     ->orWhere('product_controls.notes', 'like', "%{$search}%");
@@ -137,6 +142,7 @@ class ControlService
             $control = Control::query()->create([
                 ...$attributes,
                 'organization_id' => $organization->id,
+                'source' => $attributes['source'] ?? ControlSource::Custom,
             ]);
 
             $control->requirements()->sync($this->filterRequirementIds($requirementIds));
@@ -206,6 +212,14 @@ class ControlService
     }
 
     /**
+     * @return array{created: int, updated: int, skipped: int}
+     */
+    public function seedStarterCatalogue(Organization $organization, bool $refreshExisting = true): array
+    {
+        return (new ControlCatalogueSeeder)->seedForOrganization($organization, $refreshExisting);
+    }
+
+    /**
      * @return array{
      *     id: int,
      *     code: string,
@@ -213,6 +227,7 @@ class ControlService
      *     automation_level: string,
      *     frequency: string,
      *     is_active: bool,
+     *     source: string,
      *     owner_name: string|null,
      *     requirements_count: int
      * }
@@ -222,7 +237,7 @@ class ControlService
         return [
             'id' => $control->id,
             'code' => $control->code,
-            'name' => $control->name,
+            'name' => $control->localized('name') ?? $control->name,
             'automation_level' => $control->automation_level instanceof ControlAutomationLevel
                 ? $control->automation_level->value
                 : (string) $control->automation_level,
@@ -230,6 +245,9 @@ class ControlService
                 ? $control->frequency->value
                 : (string) $control->frequency,
             'is_active' => (bool) $control->is_active,
+            'source' => $control->source instanceof ControlSource
+                ? $control->source->value
+                : (string) $control->source,
             'owner_name' => $control->owner?->name,
             'requirements_count' => (int) ($control->requirements_count ?? $control->requirements()->count()),
         ];
@@ -254,7 +272,7 @@ class ControlService
             'id' => $productControl->id,
             'control_id' => $productControl->control_id,
             'code' => $control?->code ?? '',
-            'name' => $control?->name ?? '',
+            'name' => $control?->localized('name') ?? $control?->name ?? '',
             'status' => $productControl->status instanceof ProductControlStatus
                 ? $productControl->status->value
                 : (string) $productControl->status,

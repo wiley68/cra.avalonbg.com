@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreOrganizationRequest;
 use App\Http\Requests\Admin\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\Role;
+use App\Services\ControlService;
 use App\Services\OrganizationMembershipService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -19,6 +20,7 @@ class OrganizationController extends Controller
 {
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
+        private readonly ControlService $controls,
     ) {
     }
 
@@ -67,6 +69,10 @@ class OrganizationController extends Controller
                     (int) $ownerRoleId,
                     $request->user(),
                 );
+            }
+
+            if ($request->boolean('seed_starter_controls', true)) {
+                $this->controls->seedStarterCatalogue($organization, refreshExisting: false);
             }
 
             return $organization;

@@ -272,11 +272,11 @@ class ProductRiskController extends Controller
             ->where('organization_id', $organization->id)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'code', 'name'])
+            ->get(['id', 'code', 'name', 'name_bg'])
             ->map(fn(Control $control) => [
                 'id' => $control->id,
                 'code' => $control->code,
-                'name' => $control->name,
+                'name' => $control->localized('name') ?? $control->name,
                 'assigned' => in_array($control->id, $assignedIds, true),
             ])
             ->all();

@@ -88,6 +88,7 @@ test('platform admin can view organizations index', function () {
 
 test('platform admin can create organization with owner', function () {
     $admin = makePlatformAdmin();
+    test()->seed([\Database\Seeders\RequirementCatalogueSeeder::class]);
 
     $response = $this->actingAs($admin)->post(route('admin.organizations.store'), [
         'name' => 'New Tenant',
@@ -95,6 +96,7 @@ test('platform admin can create organization with owner', function () {
         'billing_email' => 'billing@tenant.test',
         'is_active' => true,
         'create_owner' => true,
+        'seed_starter_controls' => true,
         'owner_name' => 'Tenant Owner',
         'owner_email' => 'owner@tenant.test',
         'owner_password' => 'OwnerPassword!123',
@@ -109,6 +111,31 @@ test('platform admin can create organization with owner', function () {
     expect($organization->users()->where('email', 'owner@tenant.test')->exists())->toBeTrue();
     expect(User::query()->where('email', 'owner@tenant.test')->first()?->email_verified_at)->not->toBeNull();
     expect($admin->organizations()->count())->toBe(0);
+    expect(\App\Models\Control::query()->where('organization_id', $organization->id)->count())
+        ->toBe(count(\App\Support\StarterControlCatalogue::items()));
+    expect(
+        \App\Models\Control::query()
+            ->where('organization_id', $organization->id)
+            ->where('source', 'starter_template')
+            ->whereNotNull('name_bg')
+            ->count(),
+    )->toBe(count(\App\Support\StarterControlCatalogue::items()));
+});
+
+test('platform admin can create organization without starter controls', function () {
+    $admin = makePlatformAdmin();
+
+    $this->actingAs($admin)->post(route('admin.organizations.store'), [
+        'name' => 'Empty Library Org',
+        'slug' => 'empty-library-org',
+        'is_active' => true,
+        'create_owner' => false,
+        'seed_starter_controls' => false,
+    ])->assertRedirect();
+
+    $organization = Organization::query()->where('slug', 'empty-library-org')->firstOrFail();
+
+    expect(\App\Models\Control::query()->where('organization_id', $organization->id)->count())->toBe(0);
 });
 
 test('organization owner cannot access admin organizations', function () {

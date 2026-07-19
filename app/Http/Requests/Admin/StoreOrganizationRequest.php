@@ -32,6 +32,7 @@ class StoreOrganizationRequest extends FormRequest
 
         $this->merge([
             'create_owner' => $this->boolean('create_owner'),
+            'seed_starter_controls' => $this->boolean('seed_starter_controls', true),
             'is_active' => $this->boolean('is_active', true),
         ]);
     }
@@ -48,6 +49,7 @@ class StoreOrganizationRequest extends FormRequest
             'subscription_plan' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
             'create_owner' => ['boolean'],
+            'seed_starter_controls' => ['boolean'],
         ];
 
         if ($this->boolean('create_owner')) {

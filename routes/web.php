@@ -65,6 +65,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('users/export', [UserController::class, 'export'])
             ->name('users.export');
 
+        Route::post('controls/refresh-starter', [ControlController::class, 'refreshStarter'])
+            ->name('controls.refresh-starter');
         Route::resource('controls', ControlController::class)->except(['show']);
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])

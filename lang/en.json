@@ -214,6 +214,8 @@
             "create_owner": "Create organization owner",
             "owner_name": "Owner name",
             "owner_email": "Owner email",
+            "seed_starter_controls": "Seed starter controls library",
+            "seed_starter_controls_help": "Recommended. Copies a curated CRA starter set into the organization library. You can edit, deactivate or add more controls later.",
             "created": "Organization created.",
             "updated": "Organization updated."
         },
@@ -360,6 +362,9 @@
         "updated": "Control updated.",
         "deleted": "Control deleted.",
         "confirm_delete": "Delete this control permanently?",
+        "refresh_starter": "Refresh starter controls",
+        "refresh_starter_help": "Adds missing starter controls and updates existing starter_template rows from the catalogue. Custom controls are left unchanged.",
+        "starter_refreshed": "Starter controls refreshed (:created added, :updated updated).",
         "search_placeholder": "Search by code, name or description...",
         "active": "Active",
         "inactive": "Inactive",
@@ -373,24 +378,37 @@
         },
         "fields": {
             "code": "Code",
+            "content_en": "English content",
+            "content_bg": "Bulgarian content",
+            "name_bg": "Name (BG)",
             "description": "Description",
+            "description_bg": "Description (BG)",
             "implementation_guidance": "Implementation guidance",
+            "implementation_guidance_bg": "Implementation guidance (BG)",
             "automation_level": "Automation level",
             "frequency": "Frequency",
             "owner": "Owner",
             "is_active": "Active",
+            "source": "Source",
             "requirements": "Linked requirements"
         },
         "help": {
             "code": "Stable short code unique within the organization.",
             "name": "Short name for the control as used by product teams.",
+            "name_bg": "Bulgarian translation of the control name.",
             "description": "What this control does and why it exists.",
+            "description_bg": "Bulgarian translation of the description.",
             "implementation_guidance": "Practical steps for implementing and operating the control.",
+            "implementation_guidance_bg": "Bulgarian translation of the implementation guidance.",
             "automation_level": "How much of the control is automated versus manual.",
             "frequency": "How often the control runs or is reviewed.",
             "owner": "Organization member accountable for this control.",
             "is_active": "Inactive controls are hidden from new product assignments.",
             "requirements": "CRA catalogue requirements this control helps satisfy."
+        },
+        "sources": {
+            "starter_template": "Starter template",
+            "custom": "Custom"
         },
         "automation_levels": {
             "manual": "Manual",

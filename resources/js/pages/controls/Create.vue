@@ -35,9 +35,12 @@ const { t } = useTranslations();
 const form = useForm({
     code: '',
     name: '',
+    name_bg: '',
     description: '',
+    description_bg: '',
     owner_user_id: '' as number | '',
     implementation_guidance: '',
+    implementation_guidance_bg: '',
     automation_level: props.options.automation_levels[0] ?? 'manual',
     frequency: props.options.frequencies[0] ?? 'per_release',
     is_active: true,
@@ -116,6 +119,12 @@ const textareaClass =
                 </div>
             </div>
 
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('controls.fields.content_en') }}
+            </h2>
+
             <div class="grid gap-2">
                 <FieldLabel
                     html-for="description"
@@ -146,6 +155,55 @@ const textareaClass =
                     :class="textareaClass"
                 />
                 <InputError :message="form.errors.implementation_guidance" />
+            </div>
+
+            <h2
+                class="pt-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('controls.fields.content_bg') }}
+            </h2>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="name_bg"
+                    :help="t('controls.help.name_bg')"
+                >
+                    {{ t('controls.fields.name_bg') }}
+                </FieldLabel>
+                <Input id="name_bg" v-model="form.name_bg" />
+                <InputError :message="form.errors.name_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="description_bg"
+                    :help="t('controls.help.description_bg')"
+                >
+                    {{ t('controls.fields.description_bg') }}
+                </FieldLabel>
+                <textarea
+                    id="description_bg"
+                    v-model="form.description_bg"
+                    rows="3"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.description_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="implementation_guidance_bg"
+                    :help="t('controls.help.implementation_guidance_bg')"
+                >
+                    {{ t('controls.fields.implementation_guidance_bg') }}
+                </FieldLabel>
+                <textarea
+                    id="implementation_guidance_bg"
+                    v-model="form.implementation_guidance_bg"
+                    rows="3"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.implementation_guidance_bg" />
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
