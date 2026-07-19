@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import {
-    ArrowLeft,
-    Boxes,
-    Bug,
-    CalendarRange,
-    CheckSquare,
-    ClipboardCheck,
-    ClipboardList,
-    FileCheck,
-    GitBranch,
-    IdCard,
-    ListChecks,
-    Save,
-    Shield,
-    ShieldAlert,
-    Tags,
-    Trash2,
-} from '@lucide/vue';
+import { ArrowLeft, ClipboardList, Save, Tags, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -28,22 +11,20 @@ import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
-import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
-import { destroy, index as productsIndex, update } from '@/routes/products';
-import { index as productComponentsIndex } from '@/routes/products/components';
-import { index as productControlsIndex } from '@/routes/products/controls';
-import { index as productEvidenceIndex } from '@/routes/products/evidence';
-import { show as productPassportShow } from '@/routes/products/passport';
-import { show as productReadinessShow } from '@/routes/products/readiness';
-import { index as requirementsIndex } from '@/routes/products/requirements';
-import { index as productRisksIndex } from '@/routes/products/risks';
-import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
-import { index as productTasksIndex } from '@/routes/products/tasks';
-import { index as versionsIndex } from '@/routes/products/versions';
-import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
-import { edit as editProduct } from '@/routes/products';
+import {
+    productModules,
+    productModuleStatusClass,
+} from '@/pages/products/columns';
+import type { ProductModuleStatus } from '@/pages/products/columns';
+import {
+    destroy,
+    edit as editProduct,
+    index as productsIndex,
+    update,
+} from '@/routes/products';
 
 type Member = {
     id: number;
@@ -119,6 +100,7 @@ const props = defineProps<{
     product: EditableProduct;
     members: Member[];
     options: Options;
+    module_statuses?: Record<string, ProductModuleStatus>;
     latestScopeAssessment?: LatestScopeAssessment;
     latestClassification?: LatestClassification;
     openScopeWizard?: boolean;
@@ -137,68 +119,20 @@ const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 
 const moduleActions = computed(() => {
     const productId = props.product.id;
-    const go = (url: string): void => {
-        setProductModuleOrigin(productId, 'edit');
-        router.visit(url);
-    };
 
-    return [
-        {
-            label: t('products.versions_link'),
-            icon: GitBranch,
-            onSelect: () => go(versionsIndex(productId).url),
-        },
-        {
-            label: t('products.support_periods_link'),
-            icon: CalendarRange,
-            onSelect: () => go(supportPeriodsIndex(productId).url),
-        },
-        {
-            label: t('products.requirements_link'),
-            icon: ListChecks,
-            onSelect: () => go(requirementsIndex(productId).url),
-        },
-        {
-            label: t('products.controls_link'),
-            icon: Shield,
-            onSelect: () => go(productControlsIndex(productId).url),
-        },
-        {
-            label: t('products.risks_link'),
-            icon: ShieldAlert,
-            onSelect: () => go(productRisksIndex(productId).url),
-        },
-        {
-            label: t('products.components_link'),
-            icon: Boxes,
-            onSelect: () => go(productComponentsIndex(productId).url),
-        },
-        {
-            label: t('products.vulnerabilities_link'),
-            icon: Bug,
-            onSelect: () => go(productVulnerabilitiesIndex(productId).url),
-        },
-        {
-            label: t('products.evidence_link'),
-            icon: FileCheck,
-            onSelect: () => go(productEvidenceIndex(productId).url),
-        },
-        {
-            label: t('products.tasks_link'),
-            icon: CheckSquare,
-            onSelect: () => go(productTasksIndex(productId).url),
-        },
-        {
-            label: t('products.passport_link'),
-            icon: IdCard,
-            onSelect: () => go(productPassportShow(productId).url),
-        },
-        {
-            label: t('products.readiness_link'),
-            icon: ClipboardCheck,
-            onSelect: () => go(productReadinessShow(productId).url),
-        },
-    ];
+    return productModules.map((module) => {
+        const status = props.module_statuses?.[module.key] ?? 'empty';
+
+        return {
+            label: t(module.labelKey),
+            icon: module.icon,
+            class: productModuleStatusClass(status),
+            onSelect: () => {
+                setProductModuleOrigin(productId, 'edit');
+                router.visit(module.href(productId));
+            },
+        };
+    });
 });
 
 const form = useForm({

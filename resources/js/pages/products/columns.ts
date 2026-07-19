@@ -153,12 +153,12 @@ export function productModuleStatusClass(
     status: ProductModuleStatus | undefined,
 ): string {
     if (status === 'complete') {
-        return 'text-emerald-600 dark:text-emerald-400';
+        return 'text-emerald-600 focus:text-emerald-600 dark:text-emerald-400 dark:focus:text-emerald-400';
     }
 
     if (status === 'incomplete') {
-        return 'text-orange-600 dark:text-orange-400';
+        return 'text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400';
     }
 
-    return 'text-foreground';
+    return 'text-foreground focus:text-foreground';
 }

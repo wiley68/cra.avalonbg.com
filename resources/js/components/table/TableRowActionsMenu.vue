@@ -18,6 +18,7 @@ export type TableRowAction = {
     onSelect: () => void;
     variant?: 'default' | 'destructive';
     separatorAfter?: boolean;
+    class?: string;
 };
 
 const props = withDefaults(
@@ -75,12 +76,14 @@ const showTextTrigger = computed(() => Boolean(props.triggerText));
             <template v-for="action in actions" :key="action.label">
                 <DropdownMenuItem
                     :variant="action.variant"
+                    :class="action.class"
                     @click="action.onSelect"
                 >
                     <component
                         :is="action.icon"
                         v-if="action.icon"
-                        class="mr-2 h-4 w-4"
+                        class="size-4"
+                        :class="action.class"
                     />
                     {{ action.label }}
                 </DropdownMenuItem>

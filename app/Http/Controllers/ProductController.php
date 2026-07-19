@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\ClassificationAssessmentService;
+use App\Services\ProductReadinessService;
 use App\Services\ScopeAssessmentService;
 use App\Support\AuditLogger;
 use App\Support\Translations;
@@ -23,6 +24,7 @@ class ProductController extends Controller
     public function __construct(
         private readonly ScopeAssessmentService $scopeAssessments,
         private readonly ClassificationAssessmentService $classificationAssessments,
+        private readonly ProductReadinessService $readiness,
     ) {
     }
 
@@ -126,6 +128,7 @@ class ProductController extends Controller
             'product' => $this->productPayload($product),
             'members' => $this->memberOptions($organization),
             'options' => $this->enumOptions(),
+            'module_statuses' => $this->readiness->cardModuleStatuses($product),
             'canManage' => true,
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),
