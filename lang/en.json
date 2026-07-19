@@ -80,6 +80,39 @@
             "forgot": "Forgot your password?",
             "submit": "Log in"
         },
+        "forgot_password": {
+            "title": "Forgot password",
+            "description": "Enter your email to receive a password reset link",
+            "head_title": "Forgot password",
+            "email": "Email address",
+            "submit": "Email password reset link",
+            "return_prefix": "Or, return to",
+            "return_login": "log in"
+        },
+        "reset_password": {
+            "title": "Reset password",
+            "description": "Please enter your new password below",
+            "head_title": "Reset password",
+            "email": "Email",
+            "password": "Password",
+            "confirm_password": "Confirm password",
+            "submit": "Reset password"
+        },
+        "verify_email": {
+            "title": "Email verification",
+            "description": "Please verify your email address by clicking on the link we just emailed to you.",
+            "head_title": "Email verification",
+            "link_sent": "A new verification link has been sent to the email address you provided during registration.",
+            "resend": "Resend verification email",
+            "logout": "Log out"
+        },
+        "confirm_password": {
+            "title": "Confirm password",
+            "description": "This is a secure area of the application. Please confirm your password before continuing.",
+            "head_title": "Confirm password",
+            "password": "Password",
+            "submit": "Confirm password"
+        },
         "force_password": {
             "title": "Change your password",
             "description": "Your account requires a password change before continuing.",
@@ -95,6 +128,18 @@
             "title": "Enable two-factor authentication",
             "description": "Two-factor authentication is required before you can use the workspace.",
             "head_title": "Set up 2FA"
+        },
+        "two_factor_challenge": {
+            "head_title": "Two-factor authentication",
+            "code_title": "Authentication code",
+            "code_description": "Enter the authentication code provided by your authenticator application.",
+            "recovery_title": "Recovery code",
+            "recovery_description": "Please confirm access to your account by entering one of your emergency recovery codes.",
+            "continue": "Continue",
+            "or_you_can": "or you can",
+            "use_recovery": "login using a recovery code",
+            "use_code": "login using an authentication code",
+            "recovery_placeholder": "Enter recovery code"
         }
     },
     "two_factor": {
@@ -105,7 +150,26 @@
         "continue_setup": "Continue setup",
         "preparing": "Preparing two-factor setup…",
         "enable": "Enable 2FA",
-        "disable": "Disable 2FA"
+        "disable": "Disable 2FA",
+        "modal": {
+            "enabled_title": "Two-factor authentication enabled",
+            "enabled_description": "Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.",
+            "verify_title": "Verify authentication code",
+            "verify_description": "Enter the 6-digit code from your authenticator app",
+            "enable_title": "Enable two-factor authentication",
+            "enable_description": "To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app",
+            "enter_manually": "or, enter the code manually",
+            "close": "Close"
+        },
+        "recovery": {
+            "title": "2FA recovery codes",
+            "description": "Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.",
+            "view": "View recovery codes",
+            "hide": "Hide recovery codes",
+            "regenerate": "Regenerate codes",
+            "hint": "Each recovery code can be used once to access your account and will be removed after use. If you need more, click :action above.",
+            "regenerate_action": "Regenerate codes"
+        }
     },
     "admin": {
         "users": {
