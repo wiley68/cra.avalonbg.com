@@ -33,10 +33,15 @@ return new class extends Migration {
             $table->foreignId('requirement_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('version');
             $table->text('requirement_text');
+            $table->text('requirement_text_bg')->nullable();
             $table->text('plain_language')->nullable();
+            $table->text('plain_language_bg')->nullable();
             $table->text('applicability_notes')->nullable();
+            $table->text('applicability_notes_bg')->nullable();
             $table->text('suggested_controls_text')->nullable();
+            $table->text('suggested_controls_text_bg')->nullable();
             $table->text('required_evidence_text')->nullable();
+            $table->text('required_evidence_text_bg')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->boolean('is_current')->default(false);
             $table->timestamps();

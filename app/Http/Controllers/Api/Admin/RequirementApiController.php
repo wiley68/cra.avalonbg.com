@@ -38,7 +38,9 @@ class RequirementApiController extends Controller
                     ->orWhereHas('currentVersion', function ($versionQuery) use ($search): void {
                         $versionQuery
                             ->where('requirement_text', 'like', "%{$search}%")
-                            ->orWhere('plain_language', 'like', "%{$search}%");
+                            ->orWhere('plain_language', 'like', "%{$search}%")
+                            ->orWhere('requirement_text_bg', 'like', "%{$search}%")
+                            ->orWhere('plain_language_bg', 'like', "%{$search}%");
                     });
 
                 if (ctype_digit($search)) {
@@ -50,14 +52,14 @@ class RequirementApiController extends Controller
         $requirements = $query
             ->orderBy($sortBy, $sortOrder)
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn (Requirement $requirement) => [
+            ->through(fn(Requirement $requirement) => [
                 'id' => $requirement->id,
                 'code' => $requirement->code,
                 'article_ref' => $requirement->article_ref,
                 'sort_order' => $requirement->sort_order,
                 'is_active' => $requirement->is_active,
                 'regulation_code' => $requirement->regulation?->code,
-                'plain_language' => $requirement->currentVersion?->plain_language,
+                'plain_language' => $requirement->currentVersion?->localized('plain_language'),
                 'version' => $requirement->currentVersion?->version,
                 'created_at' => $requirement->created_at?->toIso8601String(),
             ]);

@@ -28,10 +28,15 @@ const form = useForm({
     sort_order: 0,
     is_active: true,
     requirement_text: '',
+    requirement_text_bg: '',
     plain_language: '',
+    plain_language_bg: '',
     applicability_notes: '',
+    applicability_notes_bg: '',
     suggested_controls_text: '',
+    suggested_controls_text_bg: '',
     required_evidence_text: '',
+    required_evidence_text_bg: '',
 });
 
 const submit = () => {
@@ -137,6 +142,12 @@ const textareaClass =
                 </div>
             </div>
 
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('admin.requirements.fields.content_en') }}
+            </h2>
+
             <div class="grid gap-2">
                 <FieldLabel
                     html-for="requirement_text"
@@ -217,6 +228,102 @@ const textareaClass =
                     :class="textareaClass"
                 />
                 <InputError :message="form.errors.required_evidence_text" />
+            </div>
+
+            <h2
+                class="pt-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('admin.requirements.fields.content_bg') }}
+            </h2>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="requirement_text_bg"
+                    :help="t('admin.requirements.help.requirement_text_bg')"
+                >
+                    {{ t('admin.requirements.fields.requirement_text_bg') }}
+                </FieldLabel>
+                <textarea
+                    id="requirement_text_bg"
+                    v-model="form.requirement_text_bg"
+                    rows="4"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.requirement_text_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="plain_language_bg"
+                    :help="t('admin.requirements.help.plain_language_bg')"
+                >
+                    {{ t('admin.requirements.fields.plain_language_bg') }}
+                </FieldLabel>
+                <textarea
+                    id="plain_language_bg"
+                    v-model="form.plain_language_bg"
+                    rows="3"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.plain_language_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="applicability_notes_bg"
+                    :help="t('admin.requirements.help.applicability_notes_bg')"
+                >
+                    {{ t('admin.requirements.fields.applicability_notes_bg') }}
+                </FieldLabel>
+                <textarea
+                    id="applicability_notes_bg"
+                    v-model="form.applicability_notes_bg"
+                    rows="2"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.applicability_notes_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="suggested_controls_text_bg"
+                    :help="
+                        t('admin.requirements.help.suggested_controls_text_bg')
+                    "
+                >
+                    {{
+                        t(
+                            'admin.requirements.fields.suggested_controls_text_bg',
+                        )
+                    }}
+                </FieldLabel>
+                <textarea
+                    id="suggested_controls_text_bg"
+                    v-model="form.suggested_controls_text_bg"
+                    rows="3"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.suggested_controls_text_bg" />
+            </div>
+
+            <div class="grid gap-2">
+                <FieldLabel
+                    html-for="required_evidence_text_bg"
+                    :help="
+                        t('admin.requirements.help.required_evidence_text_bg')
+                    "
+                >
+                    {{
+                        t('admin.requirements.fields.required_evidence_text_bg')
+                    }}
+                </FieldLabel>
+                <textarea
+                    id="required_evidence_text_bg"
+                    v-model="form.required_evidence_text_bg"
+                    rows="3"
+                    :class="textareaClass"
+                />
+                <InputError :message="form.errors.required_evidence_text_bg" />
             </div>
 
             <Button type="submit" :disabled="form.processing">

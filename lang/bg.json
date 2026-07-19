@@ -183,11 +183,18 @@
                 "sort_order": "Ред на сортиране",
                 "is_active": "Активно",
                 "create_new_version": "Публикувай като нова версия",
+                "content_en": "Съдържание на английски",
+                "content_bg": "Съдържание на български",
                 "requirement_text": "Текст на изискването",
+                "requirement_text_bg": "Текст на изискването (BG)",
                 "plain_language": "Обяснение на достъпен език",
+                "plain_language_bg": "Обяснение на достъпен език (BG)",
                 "applicability_notes": "Бележки за приложимост",
+                "applicability_notes_bg": "Бележки за приложимост (BG)",
                 "suggested_controls_text": "Предложени controls",
-                "required_evidence_text": "Необходими evidence"
+                "suggested_controls_text_bg": "Предложени controls (BG)",
+                "required_evidence_text": "Необходими evidence",
+                "required_evidence_text_bg": "Необходими evidence (BG)"
             },
             "help": {
                 "regulation": "Регулаторен източник на изискването.",
@@ -196,11 +203,16 @@
                 "sort_order": "Ред на показване в каталози и матрици.",
                 "is_active": "Неактивните изисквания не се добавят към нови продуктови матрици.",
                 "create_new_version": "При включване съдържанието се записва като нова текуща версия вместо редакция на текущата.",
-                "requirement_text": "Формален текст на изискването за оценки.",
-                "plain_language": "Кратко обяснение за продуктовите екипи.",
-                "applicability_notes": "Кога обикновено се прилага това изискване.",
-                "suggested_controls_text": "Stub насоки докато няма Controls library.",
-                "required_evidence_text": "Stub очаквания за evidence докато няма Evidence repository."
+                "requirement_text": "Формален текст на изискването за оценки (английски).",
+                "requirement_text_bg": "Български превод на формалния текст на изискването.",
+                "plain_language": "Кратко обяснение за продуктовите екипи (английски).",
+                "plain_language_bg": "Кратко обяснение на български за продуктовите екипи.",
+                "applicability_notes": "Кога обикновено се прилага това изискване (английски).",
+                "applicability_notes_bg": "Бележки на български кога обикновено се прилага изискването.",
+                "suggested_controls_text": "Предложени контроли (английски).",
+                "suggested_controls_text_bg": "Предложени контроли на български.",
+                "required_evidence_text": "Очаквания за evidence (английски).",
+                "required_evidence_text_bg": "Очаквания за evidence на български."
             }
         }
     },

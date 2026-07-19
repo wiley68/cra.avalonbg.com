@@ -192,3 +192,66 @@ test('owner can list product requirements via internal api', function () {
         ->assertOk()
         ->assertJsonPath('total', Requirement::query()->where('is_active', true)->count());
 });
+
+test('product requirements resolve bulgarian catalogue texts when locale is bg', function () {
+    [$organization, $owner] = makeRequirementsOrgWithOwner();
+    $product = makeProductForRequirements($organization, $owner);
+
+    $englishResponse = $this->actingAs($owner)
+        ->withSession(['locale' => 'en'])
+        ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $bulgarianResponse = $this->actingAs($owner)
+        ->withSession(['locale' => 'bg'])
+        ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $english = collect($englishResponse)->firstWhere('code', 'CRA-AI-01');
+    $bulgarian = collect($bulgarianResponse)->firstWhere('code', 'CRA-AI-01');
+
+    expect($english)->not->toBeNull()
+        ->and($bulgarian)->not->toBeNull()
+        ->and($english['requirement_text'])->not->toBe($bulgarian['requirement_text'])
+        ->and($english['plain_language'])->not->toBe($bulgarian['plain_language'])
+        ->and($bulgarian['requirement_text'])->toContain('Продуктите')
+        ->and($bulgarian['plain_language'])->not->toBeNull();
+});
+
+test('product requirements fall back to english when bulgarian text is missing', function () {
+    [$organization, $owner] = makeRequirementsOrgWithOwner();
+    $product = makeProductForRequirements($organization, $owner);
+
+    app(ProductRequirementService::class)->ensureMatrix($product);
+
+    $row = ProductRequirement::query()
+        ->where('product_id', $product->id)
+        ->with('requirementVersion')
+        ->firstOrFail();
+
+    $version = $row->requirementVersion;
+    $englishText = $version->requirement_text;
+    $englishPlain = $version->plain_language;
+
+    $version->update([
+        'requirement_text_bg' => null,
+        'plain_language_bg' => null,
+        'applicability_notes_bg' => null,
+        'suggested_controls_text_bg' => null,
+        'required_evidence_text_bg' => null,
+    ]);
+
+    $payload = $this->actingAs($owner)
+        ->withSession(['locale' => 'bg'])
+        ->getJson(route('internal.products.requirements.index', $product) . '?per_page=100')
+        ->assertOk()
+        ->json('data');
+
+    $item = collect($payload)->firstWhere('id', $row->id);
+
+    expect($item)->not->toBeNull()
+        ->and($item['requirement_text'])->toBe($englishText)
+        ->and($item['plain_language'])->toBe($englishPlain);
+});

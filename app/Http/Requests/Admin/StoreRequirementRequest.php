@@ -26,17 +26,22 @@ class StoreRequirementRequest extends FormRequest
                 'string',
                 'max:64',
                 Rule::unique('requirements', 'code')->where(
-                    fn ($query) => $query->where('regulation_id', $this->integer('regulation_id')),
+                    fn($query) => $query->where('regulation_id', $this->integer('regulation_id')),
                 ),
             ],
             'article_ref' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'requirement_text' => ['required', 'string'],
+            'requirement_text_bg' => ['nullable', 'string'],
             'plain_language' => ['nullable', 'string'],
+            'plain_language_bg' => ['nullable', 'string'],
             'applicability_notes' => ['nullable', 'string'],
+            'applicability_notes_bg' => ['nullable', 'string'],
             'suggested_controls_text' => ['nullable', 'string'],
+            'suggested_controls_text_bg' => ['nullable', 'string'],
             'required_evidence_text' => ['nullable', 'string'],
+            'required_evidence_text_bg' => ['nullable', 'string'],
         ];
     }
 }

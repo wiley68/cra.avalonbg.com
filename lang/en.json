@@ -183,11 +183,18 @@
                 "sort_order": "Sort order",
                 "is_active": "Active",
                 "create_new_version": "Publish as new version",
+                "content_en": "English content",
+                "content_bg": "Bulgarian content",
                 "requirement_text": "Requirement text",
+                "requirement_text_bg": "Requirement text (BG)",
                 "plain_language": "Plain-language explanation",
+                "plain_language_bg": "Plain-language explanation (BG)",
                 "applicability_notes": "Applicability notes",
+                "applicability_notes_bg": "Applicability notes (BG)",
                 "suggested_controls_text": "Suggested controls",
-                "required_evidence_text": "Required evidence"
+                "suggested_controls_text_bg": "Suggested controls (BG)",
+                "required_evidence_text": "Required evidence",
+                "required_evidence_text_bg": "Required evidence (BG)"
             },
             "help": {
                 "regulation": "Regulatory source for this requirement.",
@@ -196,11 +203,16 @@
                 "sort_order": "Display order in catalogues and matrices.",
                 "is_active": "Inactive requirements are not added to new product matrices.",
                 "create_new_version": "When enabled, saves content as a new current version instead of editing the current one.",
-                "requirement_text": "Formal requirement wording used for assessments.",
-                "plain_language": "Short explanation for product teams.",
-                "applicability_notes": "When this requirement typically applies.",
-                "suggested_controls_text": "Stub guidance until the Controls library exists.",
-                "required_evidence_text": "Stub evidence expectations until the Evidence repository exists."
+                "requirement_text": "Formal requirement wording used for assessments (English).",
+                "requirement_text_bg": "Bulgarian translation of the formal requirement wording.",
+                "plain_language": "Short explanation for product teams (English).",
+                "plain_language_bg": "Bulgarian short explanation for product teams.",
+                "applicability_notes": "When this requirement typically applies (English).",
+                "applicability_notes_bg": "Bulgarian notes on when this requirement typically applies.",
+                "suggested_controls_text": "Suggested controls guidance (English).",
+                "suggested_controls_text_bg": "Bulgarian suggested controls guidance.",
+                "required_evidence_text": "Evidence expectations (English).",
+                "required_evidence_text_bg": "Bulgarian evidence expectations."
             }
         }
     },

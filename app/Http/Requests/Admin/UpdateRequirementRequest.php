@@ -32,7 +32,7 @@ class UpdateRequirementRequest extends FormRequest
                 'string',
                 'max:64',
                 Rule::unique('requirements', 'code')
-                    ->where(fn ($query) => $query->where('regulation_id', $this->integer('regulation_id')))
+                    ->where(fn($query) => $query->where('regulation_id', $this->integer('regulation_id')))
                     ->ignore($requirement->id),
             ],
             'article_ref' => ['nullable', 'string', 'max:255'],
@@ -40,10 +40,15 @@ class UpdateRequirementRequest extends FormRequest
             'is_active' => ['boolean'],
             'create_new_version' => ['boolean'],
             'requirement_text' => ['required', 'string'],
+            'requirement_text_bg' => ['nullable', 'string'],
             'plain_language' => ['nullable', 'string'],
+            'plain_language_bg' => ['nullable', 'string'],
             'applicability_notes' => ['nullable', 'string'],
+            'applicability_notes_bg' => ['nullable', 'string'],
             'suggested_controls_text' => ['nullable', 'string'],
+            'suggested_controls_text_bg' => ['nullable', 'string'],
             'required_evidence_text' => ['nullable', 'string'],
+            'required_evidence_text_bg' => ['nullable', 'string'],
         ];
     }
 }

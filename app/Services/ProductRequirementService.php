@@ -20,7 +20,7 @@ class ProductRequirementService
     {
         $currentVersions = RequirementVersion::query()
             ->where('is_current', true)
-            ->whereHas('requirement', fn ($query) => $query->where('is_active', true))
+            ->whereHas('requirement', fn($query) => $query->where('is_active', true))
             ->with('requirement')
             ->get();
 
@@ -108,6 +108,7 @@ class ProductRequirementService
      *     requirement_text: string|null,
      *     suggested_controls_text: string|null,
      *     required_evidence_text: string|null,
+     *     applicability_notes: string|null,
      *     version: int|null,
      *     rationale: string|null,
      *     owner_user_id: int|null,
@@ -127,10 +128,11 @@ class ProductRequirementService
             'article_ref' => $requirement?->article_ref,
             'regulation_code' => $requirement?->regulation?->code,
             'status' => $row->status->value,
-            'plain_language' => $version?->plain_language,
-            'requirement_text' => $version?->requirement_text,
-            'suggested_controls_text' => $version?->suggested_controls_text,
-            'required_evidence_text' => $version?->required_evidence_text,
+            'plain_language' => $version?->localized('plain_language'),
+            'requirement_text' => $version?->localized('requirement_text'),
+            'suggested_controls_text' => $version?->localized('suggested_controls_text'),
+            'required_evidence_text' => $version?->localized('required_evidence_text'),
+            'applicability_notes' => $version?->localized('applicability_notes'),
             'version' => $version?->version,
             'rationale' => $row->rationale,
             'owner_user_id' => $row->owner_user_id,
