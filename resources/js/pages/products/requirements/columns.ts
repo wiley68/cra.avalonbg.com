@@ -4,6 +4,12 @@ import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { edit as editRequirement } from '@/routes/products/requirements';
 
 export type ProductRequirementListItem = {
@@ -13,6 +19,7 @@ export type ProductRequirementListItem = {
     regulation_code: string | null;
     status: string;
     plain_language: string | null;
+    requirement_text: string | null;
     version: number | null;
     owner_name: string | null;
     reviewed_at: string | null;
@@ -79,8 +86,38 @@ export const createProductRequirementColumns = ({
             accessorKey: 'code',
             header: ({ column }) =>
                 sortableHeader(t('products.requirements.columns.code'), column),
-            cell: ({ row }) =>
-                h('div', { class: 'font-medium' }, row.getValue('code')),
+            cell: ({ row }) => {
+                const code = row.original.code;
+                const requirementText = row.original.requirement_text?.trim();
+
+                if (!requirementText) {
+                    return h('div', { class: 'font-medium' }, code);
+                }
+
+                return h(TooltipProvider, { delayDuration: 200 }, () =>
+                    h(Tooltip, null, {
+                        default: () => [
+                            h(TooltipTrigger, { asChild: true }, () =>
+                                h(
+                                    'div',
+                                    {
+                                        class: 'max-w-[14rem] cursor-help truncate font-medium',
+                                    },
+                                    code,
+                                ),
+                            ),
+                            h(
+                                TooltipContent,
+                                {
+                                    side: 'top',
+                                    class: 'max-w-sm text-left leading-relaxed whitespace-normal',
+                                },
+                                () => requirementText,
+                            ),
+                        ],
+                    }),
+                );
+            },
         },
         {
             accessorKey: 'article_ref',
