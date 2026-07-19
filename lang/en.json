@@ -217,7 +217,11 @@
             "seed_starter_controls": "Seed starter controls library",
             "seed_starter_controls_help": "Recommended. Copies a curated CRA starter set into the organization library. You can edit, deactivate or add more controls later.",
             "created": "Organization created.",
-            "updated": "Organization updated."
+            "updated": "Organization updated.",
+            "deleted": "Organization deleted.",
+            "delete": "Delete organization",
+            "confirm_delete_title": "Delete organization permanently?",
+            "confirm_delete": "This permanently deletes the organization, all its products, controls, evidence and related data, and removes member accounts that belong only to this organization. This cannot be undone."
         },
         "requirements": {
             "index_title": "Requirements catalogue",

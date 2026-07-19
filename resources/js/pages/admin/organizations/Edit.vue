@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, Users } from '@lucide/vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Trash2, Users } from '@lucide/vue';
+import { ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    destroy,
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
@@ -28,6 +31,8 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const showDeleteDialog = ref(false);
+const deleting = ref(false);
 
 const form = useForm({
     name: props.organization.name,
@@ -39,6 +44,17 @@ const form = useForm({
 
 const submit = () => {
     form.put(update(props.organization.id).url);
+};
+
+const confirmDelete = () => {
+    deleting.value = true;
+    showDeleteDialog.value = false;
+
+    router.delete(destroy(props.organization.id).url, {
+        onFinish: () => {
+            deleting.value = false;
+        },
+    });
 };
 </script>
 
@@ -134,5 +150,31 @@ const submit = () => {
                 {{ t('common.save') }}
             </Button>
         </form>
+
+        <section class="space-y-3 rounded-lg border border-destructive/40 p-6">
+            <h2 class="text-sm font-semibold text-destructive">
+                {{ t('admin.organizations.delete') }}
+            </h2>
+            <p class="text-sm text-muted-foreground">
+                {{ t('admin.organizations.confirm_delete') }}
+            </p>
+            <Button
+                type="button"
+                variant="destructive"
+                :disabled="deleting"
+                @click="showDeleteDialog = true"
+            >
+                <Trash2 class="h-4 w-4" />
+                {{ t('admin.organizations.delete') }}
+            </Button>
+        </section>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('admin.organizations.confirm_delete_title')"
+            :description="t('admin.organizations.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

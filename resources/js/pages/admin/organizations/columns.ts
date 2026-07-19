@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil, Users } from '@lucide/vue';
+import { ArrowUpDown, Pencil, Trash2, Users } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
@@ -54,6 +54,7 @@ const sortableHeader = (
 
 export const createOrganizationColumns = (
     t: TranslateFn,
+    onDelete?: (organization: OrganizationListItem) => void,
 ): ColumnDef<OrganizationListItem>[] => [
     {
         accessorKey: 'id',
@@ -153,6 +154,18 @@ export const createOrganizationColumns = (
                             router.visit(edit(row.original.id).url);
                         },
                     },
+                    ...(onDelete
+                        ? [
+                              {
+                                  label: t('admin.organizations.delete'),
+                                  icon: Trash2,
+                                  variant: 'destructive' as const,
+                                  onSelect: () => {
+                                      onDelete(row.original);
+                                  },
+                              },
+                          ]
+                        : []),
                 ],
             }),
     },

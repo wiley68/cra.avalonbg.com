@@ -138,6 +138,69 @@ test('platform admin can create organization without starter controls', function
     expect(\App\Models\Control::query()->where('organization_id', $organization->id)->count())->toBe(0);
 });
 
+test('platform admin can permanently delete organization with members and products', function () {
+    $admin = makePlatformAdmin();
+    test()->seed([\Database\Seeders\RequirementCatalogueSeeder::class]);
+
+    $this->actingAs($admin)->post(route('admin.organizations.store'), [
+        'name' => 'Doomed Tenant',
+        'slug' => 'doomed-tenant',
+        'is_active' => true,
+        'create_owner' => true,
+        'seed_starter_controls' => true,
+        'owner_name' => 'Doomed Owner',
+        'owner_email' => 'doomed-owner@tenant.test',
+        'owner_password' => 'OwnerPassword!123',
+        'owner_password_confirmation' => 'OwnerPassword!123',
+    ])->assertRedirect();
+
+    $organization = Organization::query()->where('slug', 'doomed-tenant')->firstOrFail();
+    $owner = User::query()->where('email', 'doomed-owner@tenant.test')->firstOrFail();
+
+    $product = \App\Models\Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Doomed Product',
+        'slug' => 'doomed-product',
+        'product_type' => \App\Enums\ProductType::Software,
+        'licensing_model' => \App\Enums\LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => \App\Enums\ScopeStatus::InsufficientInformation,
+        'classification_status' => \App\Enums\ClassificationStatus::Unclassified,
+    ]);
+
+    $organizationId = $organization->id;
+    $productId = $product->id;
+    $ownerId = $owner->id;
+    $controlIds = \App\Models\Control::query()
+        ->where('organization_id', $organizationId)
+        ->pluck('id')
+        ->all();
+
+    expect($controlIds)->not->toBeEmpty();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.organizations.destroy', $organization))
+        ->assertRedirect(route('admin.organizations.index'));
+
+    expect(Organization::query()->find($organizationId))->toBeNull()
+        ->and(\App\Models\Product::query()->find($productId))->toBeNull()
+        ->and(User::query()->find($ownerId))->toBeNull()
+        ->and(
+            \App\Models\Control::query()->whereIn('id', $controlIds)->count(),
+        )->toBe(0)
+        ->and(User::query()->find($admin->id))->not->toBeNull();
+});
+
+test('organization owner cannot delete organizations', function () {
+    [, $owner] = makeOrganizationWithOwner();
+    $organization = Organization::query()->firstOrFail();
+
+    $this->actingAs($owner)
+        ->delete(route('admin.organizations.destroy', $organization))
+        ->assertForbidden();
+});
+
 test('organization owner cannot access admin organizations', function () {
     [, $owner] = makeOrganizationWithOwner();
 

@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Role;
 use App\Services\ControlService;
 use App\Services\OrganizationMembershipService;
+use App\Services\OrganizationService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class OrganizationController extends Controller
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
         private readonly ControlService $controls,
+        private readonly OrganizationService $organizations,
     ) {
     }
 
@@ -119,5 +121,19 @@ class OrganizationController extends Controller
         ]);
 
         return redirect()->route('admin.organizations.edit', $organization);
+    }
+
+    public function destroy(Organization $organization): RedirectResponse
+    {
+        $this->authorize('delete', $organization);
+
+        $this->organizations->destroy($organization);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('admin.organizations.deleted'),
+        ]);
+
+        return redirect()->route('admin.organizations.index');
     }
 }

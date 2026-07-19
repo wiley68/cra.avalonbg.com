@@ -87,6 +87,7 @@ export function useApiTable<T = unknown>(opts: UseApiTableOptions) {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'same-origin',
+                cache: 'no-store',
                 signal: abortController.signal,
             });
 

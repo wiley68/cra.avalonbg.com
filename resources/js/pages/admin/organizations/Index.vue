@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
-import { create } from '@/routes/admin/organizations';
+import { index as organizationsApiIndex } from '@/routes/admin/internal/organizations';
+import { create, destroy } from '@/routes/admin/organizations';
 import {
     createOrganizationColumnTitleMap,
     createOrganizationColumns,
 } from './columns';
 import type { OrganizationListItem } from './columns';
-import { index as organizationsApiIndex } from '@/routes/admin/internal/organizations';
 
 const { t } = useTranslations();
+
+const showDeleteDialog = ref(false);
+const organizationToDelete = ref<OrganizationListItem | null>(null);
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<OrganizationListItem>({
@@ -42,8 +46,35 @@ const totalPages = computed(() =>
     ),
 );
 
+const requestDelete = (organization: OrganizationListItem): void => {
+    organizationToDelete.value = organization;
+    showDeleteDialog.value = true;
+};
+
 const columnTitleMap = computed(() => createOrganizationColumnTitleMap(t));
-const columns = computed(() => createOrganizationColumns(t));
+const columns = computed(() => createOrganizationColumns(t, requestDelete));
+
+const cancelDelete = (): void => {
+    organizationToDelete.value = null;
+    showDeleteDialog.value = false;
+};
+
+const confirmDelete = (): void => {
+    if (organizationToDelete.value === null) {
+        return;
+    }
+
+    const organizationId = organizationToDelete.value.id;
+    organizationToDelete.value = null;
+    showDeleteDialog.value = false;
+
+    router.delete(destroy(organizationId).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            void fetch();
+        },
+    });
+};
 
 const handlePaginationChange = (page: number, pageSize: number) => {
     pagination.value.page = page;
@@ -107,6 +138,14 @@ onMounted(() => {
             @search-change="updateSearch"
             @pagination-change="handlePaginationChange"
             @sorting-change="handleSortingChange"
+        />
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('admin.organizations.confirm_delete_title')"
+            :description="t('admin.organizations.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="cancelDelete"
         />
     </div>
 </template>

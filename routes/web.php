@@ -203,7 +203,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
             Route::resource('organizations', AdminOrganizationController::class)
-                ->except(['show', 'destroy']);
+                ->except(['show']);
 
             Route::resource('organizations.users', AdminOrganizationUserController::class)
                 ->except(['show'])
