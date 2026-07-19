@@ -54,10 +54,48 @@ return new class extends Migration {
             );
             $table->index(['linkable_type', 'linkable_id'], 'evidence_links_morph_idx');
         });
+
+        Schema::create('vulnerability_report_submissions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('product_vulnerability_id');
+            $table->string('type');
+            $table->string('status')->default('draft');
+            $table->text('summary')->nullable();
+            $table->text('impact')->nullable();
+            $table->text('affected_versions_text')->nullable();
+            $table->text('workaround')->nullable();
+            $table->text('corrective_action')->nullable();
+            $table->string('contact_name')->nullable();
+            $table->string('contact_email')->nullable();
+            $table->text('notes')->nullable();
+            $table->timestamp('submitted_at')->nullable();
+            $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('submission_channel')->nullable();
+            $table->string('submission_reference')->nullable();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
+            $table->text('approval_comment')->nullable();
+            $table->foreignId('evidence_id')->nullable()->constrained('evidence')->nullOnDelete();
+            $table->timestamps();
+
+            $table->foreign('product_vulnerability_id', 'vuln_report_sub_vuln_fk')
+                ->references('id')
+                ->on('product_vulnerabilities')
+                ->cascadeOnDelete();
+            $table->unique(
+                ['product_vulnerability_id', 'type'],
+                'vuln_report_submission_type_unique',
+            );
+            $table->index(
+                ['product_vulnerability_id', 'status'],
+                'vuln_report_sub_status_idx',
+            );
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('vulnerability_report_submissions');
         Schema::dropIfExists('evidence_links');
         Schema::dropIfExists('evidence');
     }

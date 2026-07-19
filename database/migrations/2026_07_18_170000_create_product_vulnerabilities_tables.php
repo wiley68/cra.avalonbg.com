@@ -25,6 +25,8 @@ return new class extends Migration {
             $table->text('workaround')->nullable();
             $table->text('corrective_action')->nullable();
             $table->foreignId('owner_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('substitute_owner_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('corrective_measure_available_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 

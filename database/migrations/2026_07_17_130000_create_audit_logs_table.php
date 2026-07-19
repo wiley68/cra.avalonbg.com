@@ -10,14 +10,19 @@ return new class extends Migration {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->timestamp('occurred_at')->index();
-            $table->string('event_type', 32);
+            $table->string('event_type', 64);
             $table->string('event_source', 16);
             $table->boolean('is_success');
+            $table->foreignId('organization_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('user_email', 191);
             $table->string('user_name', 191);
             $table->text('description');
             $table->timestamps();
+
+            $table->index(['organization_id', 'occurred_at']);
+            $table->index(['product_id', 'occurred_at']);
         });
     }
 
