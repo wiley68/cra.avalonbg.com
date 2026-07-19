@@ -353,7 +353,9 @@
         "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
-        "requirements_catalogue": "Requirements catalogue"
+        "requirements_catalogue": "Requirements catalogue",
+        "settings": "Settings",
+        "logout": "Log out"
     },
     "controls": {
         "index_title": "Controls library",

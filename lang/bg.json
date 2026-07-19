@@ -353,7 +353,9 @@
         "controls": "Контроли",
         "logs": "Журнали",
         "audit": "Одит",
-        "requirements_catalogue": "Каталог изисквания"
+        "requirements_catalogue": "Каталог изисквания",
+        "settings": "Настройки",
+        "logout": "Изход"
     },
     "controls": {
         "index_title": "Библиотека контроли",
