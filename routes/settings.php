@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AppearanceController;
+use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('settings/organization', [OrganizationController::class, 'destroy'])
+        ->name('settings.organization.destroy');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])
         ->middleware('password.confirm')

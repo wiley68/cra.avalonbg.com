@@ -201,6 +201,82 @@ test('organization owner cannot delete organizations', function () {
         ->assertForbidden();
 });
 
+test('organization owner can permanently delete their organization from profile settings', function () {
+    [$organization, $owner] = makeOrganizationWithOwner();
+
+    $product = \App\Models\Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Owner Product',
+        'slug' => 'owner-product',
+        'product_type' => \App\Enums\ProductType::Software,
+        'licensing_model' => \App\Enums\LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => \App\Enums\ScopeStatus::InsufficientInformation,
+        'classification_status' => \App\Enums\ClassificationStatus::Unclassified,
+    ]);
+
+    $organizationId = $organization->id;
+    $productId = $product->id;
+    $ownerId = $owner->id;
+    $organizationName = $organization->name;
+
+    $this->actingAs($owner)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('settings/Profile')
+            ->where('canDeleteOrganization', true)
+            ->where('deletableOrganization.id', $organizationId));
+
+    $this->actingAs($owner)
+        ->delete(route('settings.organization.destroy'), [
+            'password' => 'password',
+            'confirmation' => $organizationName,
+        ])
+        ->assertRedirect(route('home'));
+
+    $this->assertGuest();
+
+    expect(Organization::query()->find($organizationId))->toBeNull()
+        ->and(\App\Models\Product::query()->find($productId))->toBeNull()
+        ->and(User::query()->find($ownerId))->toBeNull();
+});
+
+test('organization owner must confirm organization name to delete it', function () {
+    [$organization, $owner] = makeOrganizationWithOwner();
+
+    $this->actingAs($owner)
+        ->from(route('profile.edit'))
+        ->delete(route('settings.organization.destroy'), [
+            'password' => 'password',
+            'confirmation' => 'Wrong Name',
+        ])
+        ->assertSessionHasErrors('confirmation')
+        ->assertRedirect(route('profile.edit'));
+
+    expect($organization->fresh())->not->toBeNull()
+        ->and($owner->fresh())->not->toBeNull();
+});
+
+test('developer cannot delete organization from profile settings', function () {
+    [$organization] = makeOrganizationWithOwner();
+    $developer = makeDeveloperInOrganization($organization);
+
+    $this->actingAs($developer)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('canDeleteOrganization', false));
+
+    $this->actingAs($developer)
+        ->delete(route('settings.organization.destroy'), [
+            'password' => 'password',
+            'confirmation' => $organization->name,
+        ])
+        ->assertForbidden();
+});
+
 test('organization owner cannot access admin organizations', function () {
     [, $owner] = makeOrganizationWithOwner();
 

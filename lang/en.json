@@ -1780,7 +1780,27 @@
     },
     "settings": {
         "password_updated": "Password updated.",
-        "profile_updated": "Profile updated."
+        "profile_updated": "Profile updated.",
+        "organization_deleted": "Organization deleted.",
+        "profile_title": "Profile settings",
+        "profile_heading": "Profile",
+        "profile_description": "Update your name and email address",
+        "email_unverified": "Your email address is unverified.",
+        "resend_verification": "Click here to re-send the verification email.",
+        "verification_sent": "A new verification link has been sent to your email address.",
+        "delete_organization": {
+            "title": "Delete organization",
+            "description": "Permanently delete your organization and all of its data",
+            "warning_title": "Warning",
+            "warning_body": "This permanently deletes the organization, all products, controls, evidence and member accounts that belong only to this organization. This cannot be undone.",
+            "button": "Delete organization",
+            "dialog_title": "Delete organization permanently?",
+            "dialog_description": "Type :name and enter your password to confirm permanent deletion of the organization and related data.",
+            "confirmation_label": "Type :name to confirm",
+            "confirmation_mismatch": "The confirmation text must match the organization name exactly.",
+            "no_organization": "No organization membership.",
+            "confirm": "Delete organization"
+        }
     },
     "appearance": {
         "label": "Appearance",

@@ -34,8 +34,14 @@ class OrganizationPolicy
 
     public function delete(User $user, Organization $organization): bool
     {
-        return $user->isPlatformAdmin()
-            || $user->hasPermission(PermissionSlug::PlatformAdmin->value);
+        if (
+            $user->isPlatformAdmin()
+            || $user->hasPermission(PermissionSlug::PlatformAdmin->value)
+        ) {
+            return true;
+        }
+
+        return $user->hasPermission(PermissionSlug::OrganizationsManage->value, $organization);
     }
 
     public function manage(User $user, Organization $organization): bool
