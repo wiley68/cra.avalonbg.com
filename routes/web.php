@@ -34,6 +34,7 @@ use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductReadinessController;
+use App\Http\Controllers\ProductRepositoryController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
@@ -75,6 +76,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('audit-logs.index');
 
         Route::resource('products', ProductController::class)->except(['show']);
+        Route::post('products/{product}/repository', [ProductRepositoryController::class, 'store'])
+            ->name('products.repository.store');
+        Route::delete('products/{product}/repository', [ProductRepositoryController::class, 'destroy'])
+            ->name('products.repository.destroy');
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
             ->name('products.scope-assessment.preview');
         Route::get('products/{product}/scope-assessments/latest', [ProductScopeAssessmentController::class, 'show'])
@@ -238,4 +243,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

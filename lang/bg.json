@@ -540,7 +540,29 @@
             "support": "Поддръжка",
             "scope": "CRA scope оценка",
             "classification": "Класификация",
-            "contacts": "Контакти"
+            "contacts": "Контакти",
+            "repository": "Хранилище"
+        },
+        "repository": {
+            "connection": "GitHub връзка",
+            "connection_help": "GitHub връзката на организацията, с която се достъпва хранилището.",
+            "field": "Хранилище",
+            "help": "Въведете owner/repo или GitHub URL.",
+            "placeholder": "owner/repo",
+            "link": "Свържи хранилище",
+            "update": "Обнови връзката",
+            "unlink": "Премахни връзката",
+            "unlink_confirm_title": "Премахване на връзката?",
+            "unlink_confirm": "Продуктът вече няма да е свързан с това GitHub хранилище. Историята на sync за връзката ще бъде премахната.",
+            "default_branch": "Default branch",
+            "no_connection": "Свържете GitHub в Настройки → Интеграции преди да свържете хранилище.",
+            "open_integrations": "Отвори интеграции",
+            "linked": "Хранилището е свързано.",
+            "unlinked": "Връзката с хранилището е премахната.",
+            "invalid_format": "Въведете валидно GitHub хранилище като owner/repo или URL.",
+            "not_found": "Хранилището не е намерено с свързания GitHub токен.",
+            "fetch_failed": "Неуспешно зареждане на данни за хранилището от GitHub.",
+            "connection_unavailable": "Избраната GitHub връзка не е налична."
         },
         "fields": {
             "product_line": "Продуктова линия",
@@ -1797,7 +1819,9 @@
             "reporting_escalation_created": "Създадена ескалационна задача за reporting",
             "vcs_connection_created": "Създадена VCS връзка",
             "vcs_connection_updated": "Обновена VCS връзка",
-            "vcs_connection_deleted": "Изтрита VCS връзка"
+            "vcs_connection_deleted": "Изтрита VCS връзка",
+            "vcs_repository_linked": "Свързано product хранилище",
+            "vcs_repository_unlinked": "Премахната връзка към product хранилище"
         },
         "event_sources": {
             "workspace": "Workspace",

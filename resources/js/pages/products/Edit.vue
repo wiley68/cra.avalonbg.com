@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, Save, Tags, Trash2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    ClipboardList,
+    GitBranch,
+    Save,
+    Tags,
+    Trash2,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -26,6 +33,11 @@ import {
     index as productsIndex,
     update,
 } from '@/routes/products';
+import {
+    destroy as destroyRepository,
+    store as storeRepository,
+} from '@/routes/products/repository';
+import { edit as editIntegrations } from '@/routes/settings/integrations';
 
 type Member = {
     id: number;
@@ -96,6 +108,24 @@ type LatestClassification = {
     next_review_at: string | null;
 } | null;
 
+type ProductRepositoryPayload = {
+    id: number;
+    full_name: string;
+    remote_url: string;
+    default_branch: string | null;
+    connection_id: number;
+    external_id: string | null;
+    last_synced_at: string | null;
+    last_sync_summary: Record<string, unknown> | null;
+};
+
+type VcsConnectionOption = {
+    id: number;
+    provider: string;
+    label: string | null;
+    status: string;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: EditableProduct;
@@ -106,6 +136,8 @@ const props = defineProps<{
     latestClassification?: LatestClassification;
     openScopeWizard?: boolean;
     openClassificationWizard?: boolean;
+    repository?: ProductRepositoryPayload | null;
+    vcs_connections?: VcsConnectionOption[];
 }>();
 
 const { t } = useTranslations();
@@ -119,6 +151,35 @@ usePageBreadcrumbs(() => [
 const showDeleteDialog = ref(false);
 const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
+const showUnlinkRepositoryDialog = ref(false);
+
+const repositoryForm = useForm({
+    connection_id:
+        props.repository?.connection_id ?? props.vcs_connections?.[0]?.id ?? '',
+    repository: props.repository?.full_name ?? '',
+});
+
+const activeVcsConnections = computed(() =>
+    (props.vcs_connections ?? []).filter(
+        (connection) => connection.status === 'active',
+    ),
+);
+
+const linkRepository = () => {
+    repositoryForm.post(storeRepository.url(props.product.id), {
+        preserveScroll: true,
+    });
+};
+
+const confirmUnlinkRepository = () => {
+    router.delete(destroyRepository.url(props.product.id), {
+        preserveScroll: true,
+        onFinish: () => {
+            showUnlinkRepositoryDialog.value = false;
+            repositoryForm.repository = '';
+        },
+    });
+};
 
 const moduleActions = computed(() => {
     const productId = props.product.id;
@@ -779,11 +840,134 @@ const textareaClass =
             </div>
         </form>
 
+        <section class="space-y-4 rounded-lg border p-6">
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('products.sections.repository') }}
+            </h2>
+
+            <div v-if="repository" class="space-y-3 rounded-lg border p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 font-medium">
+                            <GitBranch class="h-4 w-4" />
+                            <a
+                                :href="repository.remote_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline-offset-4 hover:underline"
+                            >
+                                {{ repository.full_name }}
+                            </a>
+                        </div>
+                        <p
+                            v-if="repository.default_branch"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.repository.default_branch') }}:
+                            {{ repository.default_branch }}
+                        </p>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        @click="showUnlinkRepositoryDialog = true"
+                    >
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('products.repository.unlink') }}
+                    </Button>
+                </div>
+            </div>
+
+            <div
+                v-if="activeVcsConnections.length === 0"
+                class="space-y-2 text-sm text-muted-foreground"
+            >
+                <p>{{ t('products.repository.no_connection') }}</p>
+                <Button type="button" variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{ t('products.repository.open_integrations') }}
+                    </Link>
+                </Button>
+            </div>
+
+            <form v-else class="space-y-4" @submit.prevent="linkRepository">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="vcs_connection_id"
+                            :help="t('products.repository.connection_help')"
+                        >
+                            {{ t('products.repository.connection') }}
+                        </FieldLabel>
+                        <select
+                            id="vcs_connection_id"
+                            v-model="repositoryForm.connection_id"
+                            class="h-9 w-full rounded-md border bg-background px-3"
+                            required
+                        >
+                            <option
+                                v-for="connection in activeVcsConnections"
+                                :key="connection.id"
+                                :value="connection.id"
+                            >
+                                {{
+                                    connection.label ||
+                                    t('settings.integrations.github')
+                                }}
+                            </option>
+                        </select>
+                        <InputError
+                            :message="repositoryForm.errors.connection_id"
+                        />
+                    </div>
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="repository_input"
+                            :help="t('products.repository.help')"
+                        >
+                            {{ t('products.repository.field') }}
+                        </FieldLabel>
+                        <Input
+                            id="repository_input"
+                            v-model="repositoryForm.repository"
+                            :placeholder="t('products.repository.placeholder')"
+                            required
+                        />
+                        <InputError
+                            :message="repositoryForm.errors.repository"
+                        />
+                    </div>
+                </div>
+                <Button
+                    type="submit"
+                    :disabled="repositoryForm.processing"
+                    data-test="link-repository-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{
+                        repository
+                            ? t('products.repository.update')
+                            : t('products.repository.link')
+                    }}
+                </Button>
+            </form>
+        </section>
+
         <AppAlertDialog
             v-model:open="showDeleteDialog"
             :title="t('common.delete_confirm_title')"
             :description="t('products.confirm_delete')"
             @confirm="confirmDelete"
+        />
+
+        <AppAlertDialog
+            v-model:open="showUnlinkRepositoryDialog"
+            :title="t('products.repository.unlink_confirm_title')"
+            :description="t('products.repository.unlink_confirm')"
+            :confirm-label="t('products.repository.unlink')"
+            @confirm="confirmUnlinkRepository"
         />
 
         <ScopeWizard

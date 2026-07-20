@@ -175,7 +175,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 1. Migrations + Eloquent models + encrypted token cast — **Done** (2026-07-20)
 2. GitHub PAT connection UI (settings) + audit events — **Done** (2026-07-20)
-3. Product ↔ repository link
+3. Product ↔ repository link — **Done** (2026-07-20)
 4. Sync now: tags/releases + CI status + `vcs_sync_runs`
 5. Evidence snapshot (JSON + hash) при успешен sync
 6. Readiness gaps + i18n EN/BG

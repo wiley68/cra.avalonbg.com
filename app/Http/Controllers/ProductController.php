@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Services\ClassificationAssessmentService;
 use App\Services\ProductReadinessService;
+use App\Services\ProductRepositoryService;
 use App\Services\ScopeAssessmentService;
 use App\Support\AuditLogger;
 use App\Support\Translations;
@@ -25,8 +26,8 @@ class ProductController extends Controller
         private readonly ScopeAssessmentService $scopeAssessments,
         private readonly ClassificationAssessmentService $classificationAssessments,
         private readonly ProductReadinessService $readiness,
-    ) {
-    }
+        private readonly ProductRepositoryService $repositories,
+    ) {}
 
     public function index(): Response
     {
@@ -65,8 +66,8 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
-        $openScopeWizard = !$request->boolean('skip_scope_wizard');
-        $openClassificationWizard = !$request->boolean('skip_classification_wizard');
+        $openScopeWizard = ! $request->boolean('skip_scope_wizard');
+        $openClassificationWizard = ! $request->boolean('skip_classification_wizard');
 
         if ($request->filled('scope_assessment.answers')) {
             $this->scopeAssessments->storeAndApply(
@@ -130,6 +131,8 @@ class ProductController extends Controller
             'options' => $this->enumOptions(),
             'module_statuses' => $this->readiness->cardModuleStatuses($product),
             'canManage' => true,
+            'repository' => $this->repositories->payload($product->repository),
+            'vcs_connections' => ProductRepositoryController::connectionOptions($organization),
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),
             ),
@@ -234,7 +237,7 @@ class ProductController extends Controller
         return $organization->users()
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn($user) => [
+            ->map(fn ($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

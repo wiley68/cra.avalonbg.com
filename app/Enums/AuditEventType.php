@@ -38,6 +38,8 @@ enum AuditEventType: string
     case VcsConnectionCreated = 'vcs_connection_created';
     case VcsConnectionUpdated = 'vcs_connection_updated';
     case VcsConnectionDeleted = 'vcs_connection_deleted';
+    case VcsRepositoryLinked = 'vcs_repository_linked';
+    case VcsRepositoryUnlinked = 'vcs_repository_unlinked';
 
     public function label(): string
     {

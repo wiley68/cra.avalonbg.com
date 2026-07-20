@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
+use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
@@ -532,6 +533,42 @@ class AuditLogger
                 ['field' => 'provider', 'value' => $connection->provider->value],
                 ['field' => 'auth_type', 'value' => $connection->auth_type->value],
                 ['field' => 'label', 'value' => $connection->label],
+            ],
+        );
+    }
+
+    public static function logVcsRepositoryLinked(ProductRepository $repository, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsRepositoryLinked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $repository->product->organization_id,
+            productId: $repository->product_id,
+            details: [
+                ['field' => 'repository_id', 'value' => (string) $repository->id],
+                ['field' => 'full_name', 'value' => $repository->full_name],
+                ['field' => 'remote_url', 'value' => $repository->remote_url],
+                ['field' => 'connection_id', 'value' => (string) $repository->connection_id],
+            ],
+        );
+    }
+
+    public static function logVcsRepositoryUnlinked(ProductRepository $repository, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsRepositoryUnlinked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $repository->product->organization_id,
+            productId: $repository->product_id,
+            details: [
+                ['field' => 'repository_id', 'value' => (string) $repository->id],
+                ['field' => 'full_name', 'value' => $repository->full_name],
+                ['field' => 'remote_url', 'value' => $repository->remote_url],
+                ['field' => 'connection_id', 'value' => (string) $repository->connection_id],
             ],
         );
     }
