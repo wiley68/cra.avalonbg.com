@@ -4,6 +4,7 @@ import { ArrowLeft, Save } from '@lucide/vue';
 import { computed } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
@@ -18,12 +19,14 @@ type ControlOption = {
     id: number;
     code: string;
     name: string;
+    description: string | null;
     assigned: boolean;
 };
 type RequirementOption = {
     id: number;
     code: string;
     article_ref: string | null;
+    requirement_text: string | null;
 };
 type ProductSummary = { id: number; name: string; slug: string };
 
@@ -73,10 +76,16 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.risks.index_title', href: productRisksIndex(props.product.id) },
+    {
+        titleKey: 'products.risks.index_title',
+        href: productRisksIndex(props.product.id),
+    },
     {
         title: props.risk.title,
-        href: productRisksEdit({ product: props.product.id, risk: props.risk.id }),
+        href: productRisksEdit({
+            product: props.product.id,
+            risk: props.risk.id,
+        }),
     },
 ]);
 
@@ -576,9 +585,18 @@ const textareaClass =
                             />
                             <span>
                                 <span class="font-medium"
-                                    >{{ control.code }} —
-                                    {{ control.name }}</span
-                                >
+                                    >{{ control.code }} — {{ control.name
+                                    }}{{ ' — '
+                                    }}<OptionInfoTooltip
+                                        :items="[
+                                            {
+                                                label: t(
+                                                    'controls.fields.description',
+                                                ),
+                                                value: control.description,
+                                            },
+                                        ]"
+                                /></span>
                                 <span
                                     v-if="control.assigned"
                                     class="text-muted-foreground"
@@ -628,8 +646,18 @@ const textareaClass =
                                     v-if="requirement.article_ref"
                                     class="text-muted-foreground"
                                 >
-                                    — {{ requirement.article_ref }}
-                                </span>
+                                    — {{ requirement.article_ref }} </span
+                                >{{ ' — '
+                                }}<OptionInfoTooltip
+                                    :items="[
+                                        {
+                                            label: t(
+                                                'products.requirements.fields.requirement_text',
+                                            ),
+                                            value: requirement.requirement_text,
+                                        },
+                                    ]"
+                                />
                             </span>
                         </label>
                     </div>

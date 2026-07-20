@@ -259,7 +259,7 @@ class ProductRiskController extends Controller
     /**
      * Prefer controls already assigned to the product; fall back to all active org controls.
      *
-     * @return list<array{id: int, code: string, name: string, assigned: bool}>
+     * @return list<array{id: int, code: string, name: string, description: string|null, assigned: bool}>
      */
     private function controlOptions(Product $product, Organization $organization): array
     {
@@ -272,30 +272,33 @@ class ProductRiskController extends Controller
             ->where('organization_id', $organization->id)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'code', 'name'])
+            ->get(['id', 'code', 'name', 'description'])
             ->map(fn(Control $control) => [
                 'id' => $control->id,
                 'code' => $control->code,
                 'name' => $control->name,
+                'description' => $control->description,
                 'assigned' => in_array($control->id, $assignedIds, true),
             ])
             ->all();
     }
 
     /**
-     * @return list<array{id: int, code: string, article_ref: string|null}>
+     * @return list<array{id: int, code: string, article_ref: string|null, requirement_text: string|null}>
      */
     private function requirementOptions(): array
     {
         return Requirement::query()
             ->where('is_active', true)
+            ->with('currentVersion')
             ->orderBy('sort_order')
             ->orderBy('code')
-            ->get(['id', 'code', 'article_ref'])
+            ->get()
             ->map(fn(Requirement $requirement) => [
                 'id' => $requirement->id,
                 'code' => $requirement->code,
                 'article_ref' => $requirement->article_ref,
+                'requirement_text' => $requirement->currentVersion?->localized('requirement_text'),
             ])
             ->all();
     }
