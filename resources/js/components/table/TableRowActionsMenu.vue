@@ -19,6 +19,7 @@ export type TableRowAction = {
     variant?: 'default' | 'destructive';
     separatorAfter?: boolean;
     class?: string;
+    disabled?: boolean;
 };
 
 const props = withDefaults(
@@ -77,7 +78,8 @@ const showTextTrigger = computed(() => Boolean(props.triggerText));
                 <DropdownMenuItem
                     :variant="action.variant"
                     :class="action.class"
-                    @click="action.onSelect"
+                    :disabled="action.disabled"
+                    @click="action.disabled ? undefined : action.onSelect()"
                 >
                     <component
                         :is="action.icon"

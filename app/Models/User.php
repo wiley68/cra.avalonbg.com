@@ -230,8 +230,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        return $this->hasPermission(PermissionSlug::VulnerabilitiesView->value, $organization)
-            || $this->hasPermission(PermissionSlug::ProductsView->value, $organization);
+        return $this->hasPermission(PermissionSlug::VulnerabilitiesView->value, $organization);
     }
 
     public function canManageVulnerabilities(?Organization $organization = null): bool
@@ -242,8 +241,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        return $this->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization)
-            || $this->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+        return $this->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization);
     }
 
     public function canViewEvidence(?Organization $organization = null): bool

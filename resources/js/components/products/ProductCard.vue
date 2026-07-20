@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { Pencil, Trash2 } from '@lucide/vue';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    canAccessProductModule,
     productEnumLabel,
     productModules,
     productModuleStatusClass,
@@ -34,6 +35,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useTranslations();
+const page = usePage();
+const authUser = computed(() => page.props.auth.user);
 
 const typeLabel = computed(() =>
     productEnumLabel(t, 'types', props.product.product_type),
@@ -89,6 +92,9 @@ const openEdit = (): void => {
                 v-for="module in productModules"
                 :key="module.key"
                 class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+                :class="
+                    canAccessProductModule(module, authUser) ? '' : 'opacity-50'
+                "
             >
                 <component
                     :is="module.icon"
@@ -114,7 +120,16 @@ const openEdit = (): void => {
                     variant="outline"
                     size="sm"
                     class="h-7 px-2 text-xs"
-                    @click="openModule(module.href(product.id))"
+                    :disabled="!canAccessProductModule(module, authUser)"
+                    :title="
+                        canAccessProductModule(module, authUser)
+                            ? undefined
+                            : t('common.no_access')
+                    "
+                    @click="
+                        canAccessProductModule(module, authUser) &&
+                        openModule(module.href(product.id))
+                    "
                 >
                     {{ t('dashboard.open') }}
                 </Button>

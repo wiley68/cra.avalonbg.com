@@ -24,6 +24,7 @@
         "manage": "Manage",
         "required": "Required",
         "field_help": "Field help",
+        "no_access": "No access",
         "table": {
             "search_placeholder": "Search...",
             "empty": "No matching records",

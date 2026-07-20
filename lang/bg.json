@@ -24,6 +24,7 @@
         "manage": "Управление",
         "required": "Задължително",
         "field_help": "Помощ за полето",
+        "no_access": "Няма достъп",
         "table": {
             "search_placeholder": "Търсене...",
             "empty": "Няма съвпадащи записи",

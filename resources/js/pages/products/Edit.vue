@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, ClipboardList, Save, Tags, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -15,6 +15,7 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    canAccessProductModule,
     productModules,
     productModuleStatusClass,
 } from '@/pages/products/columns';
@@ -108,6 +109,8 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const page = usePage();
+const authUser = computed(() => page.props.auth.user);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -122,12 +125,20 @@ const moduleActions = computed(() => {
 
     return productModules.map((module) => {
         const status = props.module_statuses?.[module.key] ?? 'empty';
+        const accessible = canAccessProductModule(module, authUser.value);
 
         return {
             label: t(module.labelKey),
             icon: module.icon,
-            class: productModuleStatusClass(status),
+            class: accessible
+                ? productModuleStatusClass(status)
+                : `${productModuleStatusClass(status)} opacity-50`,
+            disabled: !accessible,
             onSelect: () => {
+                if (!accessible) {
+                    return;
+                }
+
                 setProductModuleOrigin(productId, 'edit');
                 router.visit(module.href(productId));
             },

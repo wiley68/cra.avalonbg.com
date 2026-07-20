@@ -56,6 +56,19 @@ export type ProductModuleDefinition = {
     descriptionKey: string;
     icon: LucideIcon;
     href: (productId: number) => string;
+    /**
+     * Auth flag on shared Inertia user (e.g. can_view_vulnerabilities).
+     * When omitted, module is treated as accessible if the user can view products.
+     */
+    canViewFlag?:
+        | 'can_view_products'
+        | 'can_view_requirements'
+        | 'can_view_controls'
+        | 'can_view_risks'
+        | 'can_view_components'
+        | 'can_view_vulnerabilities'
+        | 'can_view_evidence'
+        | 'can_view_tasks';
 };
 
 export const productModules: ProductModuleDefinition[] = [
@@ -65,6 +78,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.versions.description',
         icon: GitBranch,
         href: (productId) => versionsIndex(productId).url,
+        canViewFlag: 'can_view_products',
     },
     {
         key: 'support_periods',
@@ -72,6 +86,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.support_periods.description',
         icon: CalendarRange,
         href: (productId) => supportPeriodsIndex(productId).url,
+        canViewFlag: 'can_view_products',
     },
     {
         key: 'requirements',
@@ -79,6 +94,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.requirements.description',
         icon: ListChecks,
         href: (productId) => requirementsIndex(productId).url,
+        canViewFlag: 'can_view_requirements',
     },
     {
         key: 'controls',
@@ -86,6 +102,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.controls.description',
         icon: Shield,
         href: (productId) => productControlsIndex(productId).url,
+        canViewFlag: 'can_view_controls',
     },
     {
         key: 'risks',
@@ -93,6 +110,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.risks.description',
         icon: ShieldAlert,
         href: (productId) => productRisksIndex(productId).url,
+        canViewFlag: 'can_view_risks',
     },
     {
         key: 'components',
@@ -100,6 +118,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.components.description',
         icon: Boxes,
         href: (productId) => productComponentsIndex(productId).url,
+        canViewFlag: 'can_view_components',
     },
     {
         key: 'vulnerabilities',
@@ -107,6 +126,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.vulnerabilities.description',
         icon: Bug,
         href: (productId) => productVulnerabilitiesIndex(productId).url,
+        canViewFlag: 'can_view_vulnerabilities',
     },
     {
         key: 'evidence',
@@ -114,6 +134,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.evidence.description',
         icon: FileCheck,
         href: (productId) => productEvidenceIndex(productId).url,
+        canViewFlag: 'can_view_evidence',
     },
     {
         key: 'tasks',
@@ -121,6 +142,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.tasks.description',
         icon: CheckSquare,
         href: (productId) => productTasksIndex(productId).url,
+        canViewFlag: 'can_view_tasks',
     },
     {
         key: 'passport',
@@ -128,6 +150,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.passport.description',
         icon: IdCard,
         href: (productId) => productPassportShow(productId).url,
+        canViewFlag: 'can_view_products',
     },
     {
         key: 'readiness',
@@ -135,9 +158,22 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.readiness.description',
         icon: ClipboardCheck,
         href: (productId) => productReadinessShow(productId).url,
+        canViewFlag: 'can_view_products',
     },
 ];
 
+export function canAccessProductModule(
+    module: ProductModuleDefinition,
+    user: { [key: string]: unknown } | null | undefined,
+): boolean {
+    if (!user) {
+        return false;
+    }
+
+    const flag = module.canViewFlag ?? 'can_view_products';
+
+    return user[flag] === true;
+}
 export function productEnumLabel(
     t: (key: string, replace?: Record<string, string>) => string,
     group: string,
