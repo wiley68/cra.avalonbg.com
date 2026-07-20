@@ -190,7 +190,14 @@
             "created": "Потребителят е създаден.",
             "updated": "Потребителят е обновен.",
             "deleted": "Потребителят е изтрит.",
-            "confirm_delete": "Да се изтрие ли този потребител завинаги?"
+            "confirm_delete": "Да се изтрие ли този потребител завинаги?",
+            "reset_two_factor": "Нулирай 2FA",
+            "confirm_reset_two_factor_title": "Нулиране на двуфакторна автентикация?",
+            "confirm_reset_two_factor": "Това изчиства authenticator-а и кодовете за възстановяване на потребителя. При следващ вход трябва да настрои 2FA отново.",
+            "two_factor_reset": "Двуфакторната автентикация е нулирана.",
+            "two_factor_not_enabled": "Този потребител няма активирана двуфакторна автентикация.",
+            "two_factor_enabled": "2FA е активирана",
+            "two_factor_disabled": "2FA не е активирана"
         },
         "organizations": {
             "index_title": "Организации",
@@ -303,6 +310,13 @@
         "updated": "Потребителят е обновен.",
         "deleted": "Потребителят е изтрит.",
         "confirm_delete": "Да се изтрие ли този потребител завинаги?",
+        "reset_two_factor": "Нулирай 2FA",
+        "confirm_reset_two_factor_title": "Нулиране на двуфакторна автентикация?",
+        "confirm_reset_two_factor": "Това изчиства authenticator-а и кодовете за възстановяване на потребителя. При следващ вход трябва да настрои 2FA отново.",
+        "two_factor_reset": "Двуфакторната автентикация е нулирана.",
+        "two_factor_not_enabled": "Този потребител няма активирана двуфакторна автентикация.",
+        "two_factor_enabled": "2FA е активирана",
+        "two_factor_disabled": "2FA не е активирана",
         "search_placeholder": "Търсене по име, имейл, роля или ID...",
         "export": {
             "button": "Експорт 7z",
@@ -1731,6 +1745,7 @@
             "login_failed": "Неуспешен вход",
             "two_factor_challenge_success": "Успешно 2FA предизвикателство",
             "two_factor_challenge_failed": "Неуспешно 2FA предизвикателство",
+            "two_factor_reset": "2FA нулирана от администратор",
             "task_approved": "Одобрена задача",
             "task_rejected": "Отхвърлена задача",
             "product_created": "Създаден продукт",

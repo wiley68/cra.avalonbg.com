@@ -190,7 +190,14 @@
             "created": "User created.",
             "updated": "User updated.",
             "deleted": "User deleted.",
-            "confirm_delete": "Delete this user permanently?"
+            "confirm_delete": "Delete this user permanently?",
+            "reset_two_factor": "Reset 2FA",
+            "confirm_reset_two_factor_title": "Reset two-factor authentication?",
+            "confirm_reset_two_factor": "This clears the user's authenticator and recovery codes. They must set up 2FA again on their next login.",
+            "two_factor_reset": "Two-factor authentication was reset.",
+            "two_factor_not_enabled": "This user does not have two-factor authentication enabled.",
+            "two_factor_enabled": "2FA enabled",
+            "two_factor_disabled": "2FA not enabled"
         },
         "organizations": {
             "index_title": "Organizations",
@@ -303,6 +310,13 @@
         "updated": "User updated.",
         "deleted": "User deleted.",
         "confirm_delete": "Delete this user permanently?",
+        "reset_two_factor": "Reset 2FA",
+        "confirm_reset_two_factor_title": "Reset two-factor authentication?",
+        "confirm_reset_two_factor": "This clears the user's authenticator and recovery codes. They must set up 2FA again on their next login.",
+        "two_factor_reset": "Two-factor authentication was reset.",
+        "two_factor_not_enabled": "This user does not have two-factor authentication enabled.",
+        "two_factor_enabled": "2FA enabled",
+        "two_factor_disabled": "2FA not enabled",
         "search_placeholder": "Search by name, email, role or ID...",
         "export": {
             "button": "Export 7z",
@@ -1731,6 +1745,7 @@
             "login_failed": "Failed login",
             "two_factor_challenge_success": "Successful 2FA challenge",
             "two_factor_challenge_failed": "Failed 2FA challenge",
+            "two_factor_reset": "2FA reset by administrator",
             "task_approved": "Task approved",
             "task_rejected": "Task rejected",
             "product_created": "Product created",

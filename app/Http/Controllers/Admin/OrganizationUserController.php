@@ -8,8 +8,10 @@ use App\Http\Requests\Admin\UpdateOrganizationUserRequest;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationMembershipService;
+use App\Services\UserTwoFactorResetService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,8 +20,8 @@ class OrganizationUserController extends Controller
 {
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
-    ) {
-    }
+        private readonly UserTwoFactorResetService $twoFactorReset,
+    ) {}
 
     public function index(Organization $organization): Response
     {
@@ -79,9 +81,37 @@ class OrganizationUserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
+                'two_factor_enabled' => $user->hasEnabledTwoFactorAuthentication(),
                 'role_id' => (int) $pivot->role_id,
             ],
             'roles' => $this->memberships->organizationRoles(),
+        ]);
+    }
+
+    public function resetTwoFactor(
+        Request $request,
+        Organization $organization,
+        User $user,
+    ): RedirectResponse {
+        $this->memberships->assertMembership($organization, $user);
+        $this->authorize('update', [$user, $organization]);
+
+        $reset = $this->twoFactorReset->reset(
+            target: $user,
+            actor: $request->user(),
+            organization: $organization,
+        );
+
+        Inertia::flash('toast', [
+            'type' => $reset ? 'success' : 'error',
+            'message' => Translations::get(
+                $reset ? 'admin.users.two_factor_reset' : 'admin.users.two_factor_not_enabled',
+            ),
+        ]);
+
+        return redirect()->route('admin.organizations.users.edit', [
+            $organization,
+            $user,
         ]);
     }
 

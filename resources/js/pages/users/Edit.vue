@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Save, ShieldOff, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
@@ -10,7 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
-import { destroy, index as usersIndex, update } from '@/routes/users';
+import {
+    destroy,
+    index as usersIndex,
+    resetTwoFactor,
+    update,
+} from '@/routes/users';
 import { edit as usersEdit } from '@/routes/users';
 
 type Role = {
@@ -31,6 +36,7 @@ type EditableUser = {
     email: string;
     role_id: number;
     must_change_password: boolean;
+    two_factor_enabled: boolean;
 };
 
 const props = defineProps<{
@@ -47,6 +53,8 @@ usePageBreadcrumbs(() => [
 ]);
 
 const showDeleteDialog = ref(false);
+const showResetTwoFactorDialog = ref(false);
+const resettingTwoFactor = ref(false);
 
 const form = useForm({
     name: props.user.name,
@@ -62,6 +70,21 @@ const submit = () => {
 const confirmDelete = () => {
     showDeleteDialog.value = false;
     router.delete(destroy(props.user.id).url);
+};
+
+const confirmResetTwoFactor = () => {
+    resettingTwoFactor.value = true;
+    router.post(
+        resetTwoFactor(props.user.id).url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                resettingTwoFactor.value = false;
+                showResetTwoFactorDialog.value = false;
+            },
+        },
+    );
 };
 
 const roleLabel = (slug: string): string => {
@@ -135,6 +158,27 @@ const roleLabel = (slug: string): string => {
                 </Label>
             </div>
 
+            <div
+                class="flex flex-col gap-3 rounded-md border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        props.user.two_factor_enabled
+                            ? t('users.two_factor_enabled')
+                            : t('users.two_factor_disabled')
+                    }}
+                </p>
+                <Button
+                    v-if="props.user.two_factor_enabled"
+                    type="button"
+                    variant="destructive"
+                    @click="showResetTwoFactorDialog = true"
+                >
+                    <ShieldOff class="h-4 w-4" />
+                    {{ t('users.reset_two_factor') }}
+                </Button>
+            </div>
+
             <div class="flex items-center justify-between gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
@@ -156,6 +200,15 @@ const roleLabel = (slug: string): string => {
             :title="t('common.delete_confirm_title')"
             :description="t('users.confirm_delete')"
             @confirm="confirmDelete"
+        />
+
+        <AppAlertDialog
+            v-model:open="showResetTwoFactorDialog"
+            :title="t('users.confirm_reset_two_factor_title')"
+            :description="t('users.confirm_reset_two_factor')"
+            :confirm-label="t('users.reset_two_factor')"
+            :loading="resettingTwoFactor"
+            @confirm="confirmResetTwoFactor"
         />
     </div>
 </template>

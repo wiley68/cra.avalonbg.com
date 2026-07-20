@@ -110,6 +110,7 @@ const eventTypeVariant = (type: string) => {
             return 'default';
         case 'login_failed':
         case 'two_factor_challenge_failed':
+        case 'two_factor_reset':
         case 'task_rejected':
         case 'product_deleted':
         case 'risk_deleted':

@@ -16,8 +16,8 @@ use App\Http\Controllers\Api\ProductComponentApiController;
 use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
-use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductSupportPeriodApiController;
+use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
@@ -62,6 +62,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::resource('users', UserController::class)->except(['show']);
+        Route::post('users/{user}/reset-two-factor', [UserController::class, 'resetTwoFactor'])
+            ->name('users.reset-two-factor');
         Route::post('users/export', [UserController::class, 'export'])
             ->name('users.export');
 
@@ -208,6 +210,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('organizations.users', AdminOrganizationUserController::class)
                 ->except(['show'])
                 ->scoped();
+            Route::post(
+                'organizations/{organization}/users/{user}/reset-two-factor',
+                [AdminOrganizationUserController::class, 'resetTwoFactor'],
+            )->name('organizations.users.reset-two-factor');
 
             Route::resource('requirements', AdminRequirementController::class)
                 ->except(['show', 'destroy']);
@@ -232,4 +238,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

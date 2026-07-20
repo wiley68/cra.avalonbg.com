@@ -9,8 +9,10 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\EncryptedUsersExporter;
 use App\Services\OrganizationMembershipService;
+use App\Services\UserTwoFactorResetService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,6 +22,7 @@ class UserController extends Controller
 {
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
+        private readonly UserTwoFactorResetService $twoFactorReset,
     ) {}
 
     public function index(): Response
@@ -85,10 +88,33 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'must_change_password' => (bool) $user->must_change_password,
+                'two_factor_enabled' => $user->hasEnabledTwoFactorAuthentication(),
                 'role_id' => (int) $pivot->role_id,
             ],
             'roles' => $this->memberships->organizationRoles(),
         ]);
+    }
+
+    public function resetTwoFactor(Request $request, User $user): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->memberships->assertMembership($organization, $user);
+        $this->authorize('update', [$user, $organization]);
+
+        $reset = $this->twoFactorReset->reset(
+            target: $user,
+            actor: $request->user(),
+            organization: $organization,
+        );
+
+        Inertia::flash('toast', [
+            'type' => $reset ? 'success' : 'error',
+            'message' => Translations::get(
+                $reset ? 'users.two_factor_reset' : 'users.two_factor_not_enabled',
+            ),
+        ]);
+
+        return redirect()->route('users.edit', $user);
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse

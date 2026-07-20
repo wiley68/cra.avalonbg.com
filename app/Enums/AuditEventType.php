@@ -10,6 +10,7 @@ enum AuditEventType: string
     case LoginFailed = 'login_failed';
     case TwoFactorChallengeSuccess = 'two_factor_challenge_success';
     case TwoFactorChallengeFailed = 'two_factor_challenge_failed';
+    case TwoFactorReset = 'two_factor_reset';
     case TaskApproved = 'task_approved';
     case TaskRejected = 'task_rejected';
     case ProductCreated = 'product_created';
@@ -37,7 +38,7 @@ enum AuditEventType: string
 
     public function label(): string
     {
-        return Translations::get('audit_logs.event_types.' . $this->value);
+        return Translations::get('audit_logs.event_types.'.$this->value);
     }
 
     /**
@@ -46,8 +47,8 @@ enum AuditEventType: string
     public static function options(): array
     {
         return array_combine(
-            array_map(fn(self $case) => $case->value, self::cases()),
-            array_map(fn(self $case) => $case->label(), self::cases()),
+            array_map(fn (self $case) => $case->value, self::cases()),
+            array_map(fn (self $case) => $case->label(), self::cases()),
         );
     }
 }

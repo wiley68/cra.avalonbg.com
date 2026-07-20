@@ -103,6 +103,25 @@ class AuditLogger
         );
     }
 
+    public static function logTwoFactorReset(
+        User $target,
+        User $actor,
+        int $organizationId,
+        ?AuditEventSource $source = null,
+    ): void {
+        self::persist(
+            type: AuditEventType::TwoFactorReset,
+            success: true,
+            source: $source ?? self::resolveSource(),
+            actor: $actor,
+            organizationId: $organizationId,
+            details: [
+                ['field' => 'target_user_id', 'value' => (string) $target->id],
+                ['field' => 'target_email', 'value' => $target->email],
+            ],
+        );
+    }
+
     public static function logProductCreated(Product $product, User $actor): void
     {
         self::persist(

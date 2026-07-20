@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Save, ShieldOff, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
@@ -13,9 +13,13 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     destroy,
     index as usersIndex,
+    resetTwoFactor,
     update,
 } from '@/routes/admin/organizations/users';
-import { edit as editOrganization, index as organizationsIndex } from '@/routes/admin/organizations';
+import {
+    edit as editOrganization,
+    index as organizationsIndex,
+} from '@/routes/admin/organizations';
 import { edit as organizationUsersEdit } from '@/routes/admin/organizations/users';
 
 type Role = {
@@ -36,6 +40,7 @@ type EditableUser = {
     email: string;
     role_id: number;
     must_change_password: boolean;
+    two_factor_enabled: boolean;
 };
 
 const props = defineProps<{
@@ -48,8 +53,14 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.organizations', href: organizationsIndex() },
-    { title: props.organization.name, href: editOrganization(props.organization.id) },
-    { titleKey: 'admin.users.index_title', href: usersIndex(props.organization.id) },
+    {
+        title: props.organization.name,
+        href: editOrganization(props.organization.id),
+    },
+    {
+        titleKey: 'admin.users.index_title',
+        href: usersIndex(props.organization.id),
+    },
     {
         title: props.user.name,
         href: organizationUsersEdit({
@@ -60,6 +71,8 @@ usePageBreadcrumbs(() => [
 ]);
 
 const showDeleteDialog = ref(false);
+const showResetTwoFactorDialog = ref(false);
+const resettingTwoFactor = ref(false);
 
 const form = useForm({
     name: props.user.name,
@@ -84,6 +97,24 @@ const confirmDelete = () => {
             organization: props.organization.id,
             user: props.user.id,
         }).url,
+    );
+};
+
+const confirmResetTwoFactor = () => {
+    resettingTwoFactor.value = true;
+    router.post(
+        resetTwoFactor({
+            organization: props.organization.id,
+            user: props.user.id,
+        }).url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                resettingTwoFactor.value = false;
+                showResetTwoFactorDialog.value = false;
+            },
+        },
     );
 };
 
@@ -158,6 +189,27 @@ const roleLabel = (slug: string): string => {
                 </Label>
             </div>
 
+            <div
+                class="flex flex-col gap-3 rounded-md border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        props.user.two_factor_enabled
+                            ? t('admin.users.two_factor_enabled')
+                            : t('admin.users.two_factor_disabled')
+                    }}
+                </p>
+                <Button
+                    v-if="props.user.two_factor_enabled"
+                    type="button"
+                    variant="destructive"
+                    @click="showResetTwoFactorDialog = true"
+                >
+                    <ShieldOff class="h-4 w-4" />
+                    {{ t('admin.users.reset_two_factor') }}
+                </Button>
+            </div>
+
             <div class="flex items-center justify-between gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
@@ -179,6 +231,15 @@ const roleLabel = (slug: string): string => {
             :title="t('common.delete_confirm_title')"
             :description="t('admin.users.confirm_delete')"
             @confirm="confirmDelete"
+        />
+
+        <AppAlertDialog
+            v-model:open="showResetTwoFactorDialog"
+            :title="t('admin.users.confirm_reset_two_factor_title')"
+            :description="t('admin.users.confirm_reset_two_factor')"
+            :confirm-label="t('admin.users.reset_two_factor')"
+            :loading="resettingTwoFactor"
+            @confirm="confirmResetTwoFactor"
         />
     </div>
 </template>
