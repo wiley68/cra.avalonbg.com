@@ -1979,7 +1979,20 @@
                 "off": "Изключена",
                 "hourly": "Всеки час",
                 "daily": "Ежедневно"
-            }
+            },
+            "webhook_title": "GitHub webhook",
+            "webhook_help": "Създайте repository или organization webhook в GitHub към този URL. Събития: release, create (tags), workflow_run, dependabot_alert, push. Content type: application/json.",
+            "webhook_url": "Payload URL",
+            "webhook_status": "Таен ключ",
+            "webhook_configured": "Конфигуриран",
+            "webhook_not_configured": "Не е конфигуриран — първо генерирайте таен ключ",
+            "generate_webhook_secret": "Генерирай webhook secret",
+            "rotate_webhook_secret": "Ротирай webhook secret",
+            "webhook_secret_rotated": "Webhook secret е генериран. Копирайте го сега — няма да се покаже отново.",
+            "webhook_secret_once": "Webhook secret (копирайте сега)",
+            "webhook_secret_once_help": "Поставете го в GitHub като webhook secret. Показва се само веднъж.",
+            "copy": "Копирай",
+            "copied": "Копирано"
         }
     },
     "appearance": {

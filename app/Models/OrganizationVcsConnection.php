@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $label
  * @property VcsConnectionStatus $status
  * @property VcsSyncSchedule $sync_schedule
+ * @property string|null $webhook_secret
  * @property Carbon|null $last_verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -34,9 +35,10 @@ use Illuminate\Support\Carbon;
     'label',
     'status',
     'sync_schedule',
+    'webhook_secret',
     'last_verified_at',
 ])]
-#[Hidden(['token'])]
+#[Hidden(['token', 'webhook_secret'])]
 class OrganizationVcsConnection extends Model
 {
     protected function casts(): array
@@ -45,6 +47,7 @@ class OrganizationVcsConnection extends Model
             'provider' => VcsProvider::class,
             'auth_type' => VcsAuthType::class,
             'token' => 'encrypted',
+            'webhook_secret' => 'encrypted',
             'status' => VcsConnectionStatus::class,
             'sync_schedule' => VcsSyncSchedule::class,
             'last_verified_at' => 'datetime',
@@ -59,5 +62,10 @@ class OrganizationVcsConnection extends Model
     public function repositories(): HasMany
     {
         return $this->hasMany(ProductRepository::class, 'connection_id');
+    }
+
+    public function webhookDeliveries(): HasMany
+    {
+        return $this->hasMany(VcsWebhookDelivery::class, 'connection_id');
     }
 }

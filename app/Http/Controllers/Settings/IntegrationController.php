@@ -45,6 +45,8 @@ class IntegrationController extends Controller
                 'label' => $connection->label,
                 'status' => $connection->status->value,
                 'sync_schedule' => $connection->sync_schedule->value,
+                'webhook_configured' => filled($connection->webhook_secret),
+                'webhook_url' => route('api.webhooks.github', $connection),
                 'last_verified_at' => $connection->last_verified_at?->toIso8601String(),
                 'created_at' => $connection->created_at?->toIso8601String(),
             ]);
@@ -52,6 +54,7 @@ class IntegrationController extends Controller
         return Inertia::render('settings/Integrations', [
             'connections' => $connections,
             'canManage' => $user->canManageProducts($organization),
+            'revealed_webhook_secret' => $request->session()->pull('revealed_webhook_secret'),
         ]);
     }
 
@@ -91,6 +94,33 @@ class IntegrationController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('settings.integrations.sync_schedule_updated'),
+        ]);
+
+        return back();
+    }
+
+    public function rotateWebhookSecret(
+        Request $request,
+        OrganizationVcsConnection $connection,
+    ): RedirectResponse {
+        $user = $request->user();
+        $organization = $user?->currentOrganization();
+
+        if ($organization === null || $connection->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if (!$user->canManageProducts($organization)) {
+            abort(403);
+        }
+
+        $plain = $this->connections->rotateWebhookSecret($connection, $user);
+
+        $request->session()->flash('revealed_webhook_secret', $plain);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.webhook_secret_rotated'),
         ]);
 
         return back();

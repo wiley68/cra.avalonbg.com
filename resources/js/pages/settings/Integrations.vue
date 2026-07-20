@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { GitBranch, Save, Trash2 } from '@lucide/vue';
+import { Copy, GitBranch, RefreshCw, Save, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import IntegrationController from '@/actions/App/Http/Controllers/Settings/IntegrationController';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -28,6 +28,8 @@ type VcsConnection = {
     label: string | null;
     status: string;
     sync_schedule: 'off' | 'hourly' | 'daily' | string;
+    webhook_configured: boolean;
+    webhook_url: string;
     last_verified_at: string | null;
     created_at: string | null;
 };
@@ -35,6 +37,7 @@ type VcsConnection = {
 const props = defineProps<{
     connections: VcsConnection[];
     canManage: boolean;
+    revealed_webhook_secret?: string | null;
 }>();
 
 const { t } = useTranslations();
@@ -54,6 +57,8 @@ const scheduleForm = useForm({
 
 const disconnectId = ref<number | null>(null);
 const disconnecting = ref(false);
+const rotatingWebhook = ref(false);
+const copyFeedback = ref<'url' | 'secret' | null>(null);
 
 const disconnectDialogOpen = computed({
     get: () => disconnectId.value !== null,
@@ -94,6 +99,58 @@ const saveSyncSchedule = () => {
             preserveScroll: true,
         },
     );
+};
+
+const rotateWebhookSecret = () => {
+    if (!githubConnection.value) {
+        return;
+    }
+
+    rotatingWebhook.value = true;
+    router.post(
+        IntegrationController.rotateWebhookSecret.url(
+            githubConnection.value.id,
+        ),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                rotatingWebhook.value = false;
+            },
+        },
+    );
+};
+
+const copyText = async (value: string, kind: 'url' | 'secret') => {
+    try {
+        await navigator.clipboard.writeText(value);
+        copyFeedback.value = kind;
+        window.setTimeout(() => {
+            if (copyFeedback.value === kind) {
+                copyFeedback.value = null;
+            }
+        }, 2000);
+    } catch {
+        copyFeedback.value = null;
+    }
+};
+
+const copyWebhookUrl = () => {
+    const connection = githubConnection.value;
+    if (!connection) {
+        return;
+    }
+
+    void copyText(connection.webhook_url, 'url');
+};
+
+const copyRevealedWebhookSecret = () => {
+    const secret = props.revealed_webhook_secret;
+    if (!secret) {
+        return;
+    }
+
+    void copyText(secret, 'secret');
 };
 
 const confirmDisconnect = () => {
@@ -244,6 +301,97 @@ const confirmDisconnect = () => {
                     )
                 }}
             </p>
+
+            <div class="space-y-3 border-t pt-4">
+                <h3 class="text-sm font-medium">
+                    {{ t('settings.integrations.webhook_title') }}
+                </h3>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('settings.integrations.webhook_help') }}
+                </p>
+                <div class="grid gap-2">
+                    <Label>{{ t('settings.integrations.webhook_url') }}</Label>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                            :model-value="githubConnection.webhook_url"
+                            readonly
+                            class="font-mono text-xs"
+                            data-test="webhook-url"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="copyWebhookUrl"
+                        >
+                            <Copy class="h-4 w-4" />
+                            {{
+                                copyFeedback === 'url'
+                                    ? t('settings.integrations.copied')
+                                    : t('settings.integrations.copy')
+                            }}
+                        </Button>
+                    </div>
+                </div>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('settings.integrations.webhook_status') }}:
+                    {{
+                        githubConnection.webhook_configured
+                            ? t('settings.integrations.webhook_configured')
+                            : t('settings.integrations.webhook_not_configured')
+                    }}
+                </p>
+                <div
+                    v-if="revealed_webhook_secret"
+                    class="grid gap-2 rounded-md border border-dashed p-3"
+                >
+                    <Label>{{
+                        t('settings.integrations.webhook_secret_once')
+                    }}</Label>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                            :model-value="revealed_webhook_secret"
+                            readonly
+                            class="font-mono text-xs"
+                            data-test="webhook-secret-revealed"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="copyRevealedWebhookSecret"
+                        >
+                            <Copy class="h-4 w-4" />
+                            {{
+                                copyFeedback === 'secret'
+                                    ? t('settings.integrations.copied')
+                                    : t('settings.integrations.copy')
+                            }}
+                        </Button>
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                        {{
+                            t('settings.integrations.webhook_secret_once_help')
+                        }}
+                    </p>
+                </div>
+                <Button
+                    v-if="canManage"
+                    type="button"
+                    variant="outline"
+                    :disabled="rotatingWebhook"
+                    data-test="rotate-webhook-secret-button"
+                    @click="rotateWebhookSecret"
+                >
+                    <RefreshCw
+                        class="h-4 w-4"
+                        :class="{ 'animate-spin': rotatingWebhook }"
+                    />
+                    {{
+                        githubConnection.webhook_configured
+                            ? t('settings.integrations.rotate_webhook_secret')
+                            : t('settings.integrations.generate_webhook_secret')
+                    }}
+                </Button>
+            </div>
         </div>
 
         <div v-if="canManage" class="space-y-6">

@@ -1979,7 +1979,20 @@
                 "off": "Off",
                 "hourly": "Hourly",
                 "daily": "Daily"
-            }
+            },
+            "webhook_title": "GitHub webhook",
+            "webhook_help": "Create a repository or organization webhook in GitHub pointing to this URL. Events: release, create (tags), workflow_run, dependabot_alert, push. Content type: application/json.",
+            "webhook_url": "Payload URL",
+            "webhook_status": "Secret",
+            "webhook_configured": "Configured",
+            "webhook_not_configured": "Not configured — generate a secret first",
+            "generate_webhook_secret": "Generate webhook secret",
+            "rotate_webhook_secret": "Rotate webhook secret",
+            "webhook_secret_rotated": "Webhook secret generated. Copy it now — it will not be shown again.",
+            "webhook_secret_once": "Webhook secret (copy now)",
+            "webhook_secret_once_help": "Paste this into GitHub as the webhook secret. It is shown only once.",
+            "copy": "Copy",
+            "copied": "Copied"
         }
     },
     "appearance": {

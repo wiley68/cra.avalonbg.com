@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class VcsConnectionService
@@ -70,6 +71,21 @@ class VcsConnectionService
         AuditLogger::logVcsConnectionUpdated($fresh, $actor);
 
         return $fresh;
+    }
+
+    public function rotateWebhookSecret(
+        OrganizationVcsConnection $connection,
+        User $actor,
+    ): string {
+        $plain = Str::random(48);
+
+        $connection->update([
+            'webhook_secret' => $plain,
+        ]);
+
+        AuditLogger::logVcsConnectionUpdated($connection->fresh(), $actor);
+
+        return $plain;
     }
 
     public function delete(OrganizationVcsConnection $connection, User $actor): void

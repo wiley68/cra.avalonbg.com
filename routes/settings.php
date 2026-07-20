@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.github.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
+    Route::post('settings/integrations/{connection}/webhook-secret', [IntegrationController::class, 'rotateWebhookSecret'])
+        ->name('settings.integrations.webhook-secret.rotate');
     Route::delete('settings/integrations/{connection}', [IntegrationController::class, 'destroy'])
         ->name('settings.integrations.destroy');
 });
