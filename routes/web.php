@@ -78,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products', ProductController::class)->except(['show']);
         Route::post('products/{product}/repository', [ProductRepositoryController::class, 'store'])
             ->name('products.repository.store');
+        Route::post('products/{product}/repository/sync', [ProductRepositoryController::class, 'sync'])
+            ->name('products.repository.sync');
         Route::delete('products/{product}/repository', [ProductRepositoryController::class, 'destroy'])
             ->name('products.repository.destroy');
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])

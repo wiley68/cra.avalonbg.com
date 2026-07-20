@@ -559,6 +559,16 @@
             "open_integrations": "Отвори интеграции",
             "linked": "Хранилището е свързано.",
             "unlinked": "Връзката с хранилището е премахната.",
+            "sync_now": "Синхронизирай сега",
+            "sync_succeeded": "Синхронизацията на хранилището завърши.",
+            "sync_failed": "Синхронизацията не успя. Проверете детайлите от последния sync.",
+            "last_synced": "Последна синхронизация",
+            "tags": "Тагове",
+            "releases": "Релийзи",
+            "ci_status": "CI статус",
+            "ci_unknown": "неизвестен",
+            "view_run": "Виж run",
+            "sync_error": "Грешка при sync",
             "invalid_format": "Въведете валидно GitHub хранилище като owner/repo или URL.",
             "not_found": "Хранилището не е намерено с свързания GitHub токен.",
             "fetch_failed": "Неуспешно зареждане на данни за хранилището от GitHub.",
@@ -1821,7 +1831,9 @@
             "vcs_connection_updated": "Обновена VCS връзка",
             "vcs_connection_deleted": "Изтрита VCS връзка",
             "vcs_repository_linked": "Свързано product хранилище",
-            "vcs_repository_unlinked": "Премахната връзка към product хранилище"
+            "vcs_repository_unlinked": "Премахната връзка към product хранилище",
+            "vcs_sync_succeeded": "Успешен VCS sync",
+            "vcs_sync_failed": "Неуспешен VCS sync"
         },
         "event_sources": {
             "workspace": "Workspace",

@@ -13,6 +13,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\VcsSyncRun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -569,6 +570,47 @@ class AuditLogger
                 ['field' => 'full_name', 'value' => $repository->full_name],
                 ['field' => 'remote_url', 'value' => $repository->remote_url],
                 ['field' => 'connection_id', 'value' => (string) $repository->connection_id],
+            ],
+        );
+    }
+
+    public static function logVcsSyncSucceeded(ProductRepository $repository, VcsSyncRun $run, ?User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsSyncSucceeded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $repository->product->organization_id,
+            productId: $repository->product_id,
+            details: [
+                ['field' => 'repository_id', 'value' => (string) $repository->id],
+                ['field' => 'sync_run_id', 'value' => (string) $run->id],
+                ['field' => 'full_name', 'value' => $repository->full_name],
+                ['field' => 'tags_count', 'value' => (string) ($run->summary['tags_count'] ?? 0)],
+                ['field' => 'releases_count', 'value' => (string) ($run->summary['releases_count'] ?? 0)],
+            ],
+        );
+    }
+
+    public static function logVcsSyncFailed(
+        ProductRepository $repository,
+        VcsSyncRun $run,
+        ?User $actor,
+        string $error,
+    ): void {
+        self::persist(
+            type: AuditEventType::VcsSyncFailed,
+            success: false,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $repository->product->organization_id,
+            productId: $repository->product_id,
+            details: [
+                ['field' => 'repository_id', 'value' => (string) $repository->id],
+                ['field' => 'sync_run_id', 'value' => (string) $run->id],
+                ['field' => 'full_name', 'value' => $repository->full_name],
+                ['field' => 'error', 'value' => $error],
             ],
         );
     }

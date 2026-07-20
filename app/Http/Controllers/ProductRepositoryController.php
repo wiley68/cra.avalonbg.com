@@ -3,20 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Enums\VcsProvider;
+use App\Enums\VcsSyncRunStatus;
 use App\Http\Requests\StoreProductRepositoryRequest;
+use App\Jobs\SyncProductRepositoryJob;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
+use App\Models\VcsSyncRun;
 use App\Services\ProductRepositoryService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductRepositoryController extends Controller
 {
     public function __construct(
         private readonly ProductRepositoryService $repositories,
-    ) {}
+    ) {
+    }
 
     public function store(StoreProductRepositoryRequest $request, Product $product): RedirectResponse
     {
@@ -37,6 +42,42 @@ class ProductRepositoryController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.repository.linked'),
+        ]);
+
+        return back();
+    }
+
+    public function sync(Request $request, Product $product): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('update', [$product, $organization]);
+
+        $repository = $product->repository;
+
+        if ($repository === null) {
+            abort(404);
+        }
+
+        SyncProductRepositoryJob::dispatchSync($repository->id, $request->user()->id);
+
+        $run = VcsSyncRun::query()
+            ->where('repository_id', $repository->id)
+            ->latest('id')
+            ->first();
+
+        if ($run?->status === VcsSyncRunStatus::Failed) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => Translations::get('products.repository.sync_failed'),
+            ]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.repository.sync_succeeded'),
         ]);
 
         return back();
@@ -92,7 +133,7 @@ class ProductRepositoryController extends Controller
             ->where('provider', VcsProvider::Github)
             ->orderBy('label')
             ->get()
-            ->map(fn (OrganizationVcsConnection $connection): array => [
+            ->map(fn(OrganizationVcsConnection $connection): array => [
                 'id' => $connection->id,
                 'provider' => $connection->provider->value,
                 'label' => $connection->label,

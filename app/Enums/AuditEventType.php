@@ -40,10 +40,12 @@ enum AuditEventType: string
     case VcsConnectionDeleted = 'vcs_connection_deleted';
     case VcsRepositoryLinked = 'vcs_repository_linked';
     case VcsRepositoryUnlinked = 'vcs_repository_unlinked';
+    case VcsSyncSucceeded = 'vcs_sync_succeeded';
+    case VcsSyncFailed = 'vcs_sync_failed';
 
     public function label(): string
     {
-        return Translations::get('audit_logs.event_types.'.$this->value);
+        return Translations::get('audit_logs.event_types.' . $this->value);
     }
 
     /**
@@ -52,8 +54,8 @@ enum AuditEventType: string
     public static function options(): array
     {
         return array_combine(
-            array_map(fn (self $case) => $case->value, self::cases()),
-            array_map(fn (self $case) => $case->label(), self::cases()),
+            array_map(fn(self $case) => $case->value, self::cases()),
+            array_map(fn(self $case) => $case->label(), self::cases()),
         );
     }
 }

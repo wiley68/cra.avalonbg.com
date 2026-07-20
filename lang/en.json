@@ -559,6 +559,16 @@
             "open_integrations": "Open integrations",
             "linked": "Repository linked.",
             "unlinked": "Repository unlinked.",
+            "sync_now": "Sync now",
+            "sync_succeeded": "Repository sync completed.",
+            "sync_failed": "Repository sync failed. Check the last sync details.",
+            "last_synced": "Last synced",
+            "tags": "Tags",
+            "releases": "Releases",
+            "ci_status": "CI status",
+            "ci_unknown": "unknown",
+            "view_run": "View run",
+            "sync_error": "Sync error",
             "invalid_format": "Enter a valid GitHub repository as owner/repo or URL.",
             "not_found": "Repository not found with the connected GitHub token.",
             "fetch_failed": "Could not fetch repository details from GitHub.",
@@ -1821,7 +1831,9 @@
             "vcs_connection_updated": "VCS connection updated",
             "vcs_connection_deleted": "VCS connection deleted",
             "vcs_repository_linked": "Product repository linked",
-            "vcs_repository_unlinked": "Product repository unlinked"
+            "vcs_repository_unlinked": "Product repository unlinked",
+            "vcs_sync_succeeded": "VCS sync succeeded",
+            "vcs_sync_failed": "VCS sync failed"
         },
         "event_sources": {
             "workspace": "Workspace",

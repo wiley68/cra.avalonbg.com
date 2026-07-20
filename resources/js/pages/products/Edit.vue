@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     ClipboardList,
     GitBranch,
+    RefreshCw,
     Save,
     Tags,
     Trash2,
@@ -36,6 +37,7 @@ import {
 import {
     destroy as destroyRepository,
     store as storeRepository,
+    sync as syncRepository,
 } from '@/routes/products/repository';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 
@@ -116,7 +118,19 @@ type ProductRepositoryPayload = {
     connection_id: number;
     external_id: string | null;
     last_synced_at: string | null;
-    last_sync_summary: Record<string, unknown> | null;
+    last_sync_summary: {
+        tags_count?: number;
+        releases_count?: number;
+        latest_tag?: string | null;
+        latest_release?: string | null;
+        error?: string;
+        ci?: {
+            status?: string;
+            conclusion?: string | null;
+            workflow_name?: string | null;
+            html_url?: string | null;
+        };
+    } | null;
 };
 
 type VcsConnectionOption = {
@@ -152,6 +166,7 @@ const showDeleteDialog = ref(false);
 const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 const showUnlinkRepositoryDialog = ref(false);
+const syncingRepository = ref(false);
 
 const repositoryForm = useForm({
     connection_id:
@@ -171,6 +186,20 @@ const linkRepository = () => {
     });
 };
 
+const syncRepositoryNow = () => {
+    syncingRepository.value = true;
+    router.post(
+        syncRepository.url(props.product.id),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                syncingRepository.value = false;
+            },
+        },
+    );
+};
+
 const confirmUnlinkRepository = () => {
     router.delete(destroyRepository.url(props.product.id), {
         preserveScroll: true,
@@ -179,6 +208,21 @@ const confirmUnlinkRepository = () => {
             repositoryForm.repository = '';
         },
     });
+};
+
+const ciLabel = (
+    summary: ProductRepositoryPayload['last_sync_summary'],
+): string => {
+    if (!summary?.ci) {
+        return t('products.repository.ci_unknown');
+    }
+
+    const conclusion = summary.ci.conclusion;
+    if (conclusion) {
+        return conclusion;
+    }
+
+    return summary.ci.status || t('products.repository.ci_unknown');
 };
 
 const moduleActions = computed(() => {
@@ -868,15 +912,109 @@ const textareaClass =
                             {{ t('products.repository.default_branch') }}:
                             {{ repository.default_branch }}
                         </p>
+                        <p
+                            v-if="repository.last_synced_at"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.repository.last_synced') }}:
+                            {{
+                                new Date(
+                                    repository.last_synced_at,
+                                ).toLocaleString()
+                            }}
+                        </p>
+                        <div
+                            v-if="repository.last_sync_summary"
+                            class="space-y-1 text-sm text-muted-foreground"
+                        >
+                            <p v-if="repository.last_sync_summary.error">
+                                {{ t('products.repository.sync_error') }}:
+                                {{ repository.last_sync_summary.error }}
+                            </p>
+                            <template v-else>
+                                <p>
+                                    {{ t('products.repository.tags') }}:
+                                    {{
+                                        repository.last_sync_summary
+                                            .tags_count ?? 0
+                                    }}
+                                    <span
+                                        v-if="
+                                            repository.last_sync_summary
+                                                .latest_tag
+                                        "
+                                    >
+                                        ({{
+                                            repository.last_sync_summary
+                                                .latest_tag
+                                        }})
+                                    </span>
+                                </p>
+                                <p>
+                                    {{ t('products.repository.releases') }}:
+                                    {{
+                                        repository.last_sync_summary
+                                            .releases_count ?? 0
+                                    }}
+                                    <span
+                                        v-if="
+                                            repository.last_sync_summary
+                                                .latest_release
+                                        "
+                                    >
+                                        ({{
+                                            repository.last_sync_summary
+                                                .latest_release
+                                        }})
+                                    </span>
+                                </p>
+                                <p>
+                                    {{ t('products.repository.ci_status') }}:
+                                    {{ ciLabel(repository.last_sync_summary) }}
+                                    <a
+                                        v-if="
+                                            repository.last_sync_summary.ci
+                                                ?.html_url
+                                        "
+                                        :href="
+                                            repository.last_sync_summary.ci
+                                                .html_url
+                                        "
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="ml-1 underline-offset-4 hover:underline"
+                                    >
+                                        {{ t('products.repository.view_run') }}
+                                    </a>
+                                </p>
+                            </template>
+                        </div>
                     </div>
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        @click="showUnlinkRepositoryDialog = true"
-                    >
-                        <Trash2 class="h-4 w-4" />
-                        {{ t('products.repository.unlink') }}
-                    </Button>
+                    <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="syncingRepository"
+                            data-test="sync-repository-button"
+                            @click="syncRepositoryNow"
+                        >
+                            <RefreshCw
+                                class="h-4 w-4"
+                                :class="{
+                                    'animate-spin': syncingRepository,
+                                }"
+                            />
+                            {{ t('products.repository.sync_now') }}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            @click="showUnlinkRepositoryDialog = true"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('products.repository.unlink') }}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
