@@ -3,7 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
-import RiskOptionInfoTooltip from '@/components/RiskOptionInfoTooltip.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
@@ -18,8 +18,14 @@ type RequirementOption = {
     id: number;
     code: string;
     article_ref: string | null;
+    requirement_text: string | null;
 };
-type ControlOption = { id: number; code: string; name: string };
+type ControlOption = {
+    id: number;
+    code: string;
+    name: string;
+    description: string | null;
+};
 type RiskOption = {
     id: number;
     title: string;
@@ -32,6 +38,8 @@ type VulnerabilityOption = {
     id: number;
     title: string;
     cve_id: string | null;
+    summary: string | null;
+    corrective_action: string | null;
 };
 type EvidenceOption = { id: number; title: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -437,7 +445,18 @@ const toggleId = (
                                 )
                             "
                         />
-                        <span class="font-medium">{{ requirement.code }}</span>
+                        <span class="min-w-0 font-medium"
+                            >{{ requirement.code }}{{ ' — '
+                            }}<OptionInfoTooltip
+                                :items="[
+                                    {
+                                        label: t(
+                                            'products.requirements.fields.requirement_text',
+                                        ),
+                                        value: requirement.requirement_text,
+                                    },
+                                ]"
+                        /></span>
                     </label>
                 </div>
             </div>
@@ -466,7 +485,16 @@ const toggleId = (
                                 )
                             "
                         />
-                        <span>{{ control.code }} — {{ control.name }}</span>
+                        <span class="min-w-0"
+                            >{{ control.code }} — {{ control.name }}{{ ' — '
+                            }}<OptionInfoTooltip
+                                :items="[
+                                    {
+                                        label: t('controls.fields.description'),
+                                        value: control.description,
+                                    },
+                                ]"
+                        /></span>
                     </label>
                 </div>
             </div>
@@ -497,8 +525,36 @@ const toggleId = (
                                     )
                                 "
                             />
-                            <span class="min-w-0 flex-1">{{ risk.title }}</span>
-                            <RiskOptionInfoTooltip :risk="risk" />
+                            <span class="min-w-0"
+                                >{{ risk.title }}{{ ' — '
+                                }}<OptionInfoTooltip
+                                    :items="[
+                                        {
+                                            label: t(
+                                                'products.risks.fields.asset',
+                                            ),
+                                            value: risk.asset,
+                                        },
+                                        {
+                                            label: t(
+                                                'products.risks.fields.threat',
+                                            ),
+                                            value: risk.threat,
+                                        },
+                                        {
+                                            label: t(
+                                                'products.risks.fields.weakness',
+                                            ),
+                                            value: risk.weakness,
+                                        },
+                                        {
+                                            label: t(
+                                                'products.risks.fields.attack_scenario',
+                                            ),
+                                            value: risk.attack_scenario,
+                                        },
+                                    ]"
+                            /></span>
                         </label>
                     </div>
                 </div>
@@ -534,7 +590,24 @@ const toggleId = (
                                     )
                                 "
                             />
-                            <span>{{ vulnerability.title }}</span>
+                            <span class="min-w-0"
+                                >{{ vulnerability.title }}{{ ' — '
+                                }}<OptionInfoTooltip
+                                    :items="[
+                                        {
+                                            label: t(
+                                                'products.vulnerabilities.fields.summary',
+                                            ),
+                                            value: vulnerability.summary,
+                                        },
+                                        {
+                                            label: t(
+                                                'products.vulnerabilities.fields.corrective_action',
+                                            ),
+                                            value: vulnerability.corrective_action,
+                                        },
+                                    ]"
+                            /></span>
                         </label>
                     </div>
                 </div>

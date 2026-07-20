@@ -291,25 +291,27 @@ class EvidenceController extends Controller
     }
 
     /**
-     * @return list<array{id: int, code: string, article_ref: string|null}>
+     * @return list<array{id: int, code: string, article_ref: string|null, requirement_text: string|null}>
      */
     private function requirementOptions(): array
     {
         return Requirement::query()
             ->where('is_active', true)
+            ->with('currentVersion')
             ->orderBy('sort_order')
             ->orderBy('code')
-            ->get(['id', 'code', 'article_ref'])
+            ->get()
             ->map(fn(Requirement $requirement) => [
                 'id' => $requirement->id,
                 'code' => $requirement->code,
                 'article_ref' => $requirement->article_ref,
+                'requirement_text' => $requirement->currentVersion?->localized('requirement_text'),
             ])
             ->all();
     }
 
     /**
-     * @return list<array{id: int, code: string, name: string}>
+     * @return list<array{id: int, code: string, name: string, description: string|null}>
      */
     private function controlOptions(Organization $organization): array
     {
@@ -317,11 +319,12 @@ class EvidenceController extends Controller
             ->where('organization_id', $organization->id)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'code', 'name'])
+            ->get(['id', 'code', 'name', 'description'])
             ->map(fn(Control $control) => [
                 'id' => $control->id,
                 'code' => $control->code,
                 'name' => $control->name,
+                'description' => $control->description,
             ])
             ->all();
     }
@@ -347,18 +350,20 @@ class EvidenceController extends Controller
     }
 
     /**
-     * @return list<array{id: int, title: string, cve_id: string|null}>
+     * @return list<array{id: int, title: string, cve_id: string|null, summary: string|null, corrective_action: string|null}>
      */
     private function vulnerabilityOptions(Product $product): array
     {
         return ProductVulnerability::query()
             ->where('product_id', $product->id)
             ->orderBy('title')
-            ->get(['id', 'title', 'cve_id'])
+            ->get(['id', 'title', 'cve_id', 'summary', 'corrective_action'])
             ->map(fn(ProductVulnerability $vulnerability) => [
                 'id' => $vulnerability->id,
                 'title' => $vulnerability->title,
                 'cve_id' => $vulnerability->cve_id,
+                'summary' => $vulnerability->summary,
+                'corrective_action' => $vulnerability->corrective_action,
             ])
             ->all();
     }
