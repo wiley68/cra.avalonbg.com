@@ -518,6 +518,7 @@ class AuditLogger
                 ['field' => 'provider', 'value' => $connection->provider->value],
                 ['field' => 'auth_type', 'value' => $connection->auth_type->value],
                 ['field' => 'label', 'value' => $connection->label],
+                ['field' => 'sync_schedule', 'value' => $connection->sync_schedule->value],
             ],
         );
     }

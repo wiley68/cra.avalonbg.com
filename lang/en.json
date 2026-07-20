@@ -1969,7 +1969,17 @@
             "github_connected": "GitHub connection saved.",
             "disconnected": "Integration disconnected.",
             "github_token_invalid": "GitHub rejected this token. Check the token and try again.",
-            "no_access": "You do not have permission to manage integrations."
+            "no_access": "You do not have permission to manage integrations.",
+            "sync_schedule": "Scheduled sync",
+            "sync_schedule_placeholder": "Select frequency",
+            "sync_schedule_help": "Applies to all product repositories linked through this connection. The scheduler runs hourly and syncs only when due.",
+            "save_sync_schedule": "Save schedule",
+            "sync_schedule_updated": "Sync schedule updated.",
+            "sync_schedules": {
+                "off": "Off",
+                "hourly": "Hourly",
+                "daily": "Daily"
+            }
         }
     },
     "appearance": {

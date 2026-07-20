@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { GitBranch, Save, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import IntegrationController from '@/actions/App/Http/Controllers/Settings/IntegrationController';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import Heading from '@/components/Heading.vue';
@@ -10,6 +10,13 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/settings/integrations';
@@ -20,6 +27,7 @@ type VcsConnection = {
     auth_type: string;
     label: string | null;
     status: string;
+    sync_schedule: 'off' | 'hourly' | 'daily' | string;
     last_verified_at: string | null;
     created_at: string | null;
 };
@@ -40,6 +48,10 @@ const githubForm = useForm({
     label: 'GitHub',
 });
 
+const scheduleForm = useForm({
+    sync_schedule: 'off',
+});
+
 const disconnectId = ref<number | null>(null);
 const disconnecting = ref(false);
 
@@ -56,11 +68,32 @@ const githubConnection = computed(() =>
     props.connections.find((connection) => connection.provider === 'github'),
 );
 
+watch(
+    githubConnection,
+    (connection) => {
+        scheduleForm.sync_schedule = connection?.sync_schedule ?? 'off';
+    },
+    { immediate: true },
+);
+
 const connectGithub = () => {
     githubForm.post(IntegrationController.storeGithub.url(), {
         preserveScroll: true,
         onSuccess: () => githubForm.reset('token'),
     });
+};
+
+const saveSyncSchedule = () => {
+    if (!githubConnection.value) {
+        return;
+    }
+
+    scheduleForm.put(
+        IntegrationController.updateSyncSchedule.url(githubConnection.value.id),
+        {
+            preserveScroll: true,
+        },
+    );
 };
 
 const confirmDisconnect = () => {
@@ -131,6 +164,86 @@ const confirmDisconnect = () => {
                     {{ t('settings.integrations.disconnect') }}
                 </Button>
             </div>
+
+            <form
+                v-if="canManage"
+                class="space-y-3 border-t pt-4"
+                @submit.prevent="saveSyncSchedule"
+            >
+                <div class="grid gap-2">
+                    <Label for="sync_schedule">{{
+                        t('settings.integrations.sync_schedule')
+                    }}</Label>
+                    <Select
+                        :model-value="scheduleForm.sync_schedule"
+                        @update:model-value="
+                            (value) => {
+                                if (typeof value === 'string') {
+                                    scheduleForm.sync_schedule = value;
+                                }
+                            }
+                        "
+                    >
+                        <SelectTrigger
+                            id="sync_schedule"
+                            class="w-full max-w-xs"
+                            data-test="sync-schedule-select"
+                        >
+                            <SelectValue
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.sync_schedule_placeholder',
+                                    )
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="off">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.off',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem value="hourly">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.hourly',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem value="daily">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.daily',
+                                    )
+                                }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('settings.integrations.sync_schedule_help') }}
+                    </p>
+                    <InputError :message="scheduleForm.errors.sync_schedule" />
+                </div>
+                <Button
+                    type="submit"
+                    variant="outline"
+                    :disabled="scheduleForm.processing"
+                    data-test="save-sync-schedule-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{ t('settings.integrations.save_sync_schedule') }}
+                </Button>
+            </form>
+            <p v-else class="border-t pt-4 text-sm text-muted-foreground">
+                {{ t('settings.integrations.sync_schedule') }}:
+                {{
+                    t(
+                        `settings.integrations.sync_schedules.${githubConnection.sync_schedule}`,
+                    )
+                }}
+            </p>
         </div>
 
         <div v-if="canManage" class="space-y-6">

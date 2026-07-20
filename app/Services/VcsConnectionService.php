@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\VcsAuthType;
 use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
+use App\Enums\VcsSyncSchedule;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\User;
@@ -47,12 +48,28 @@ class VcsConnectionService
         $connection = OrganizationVcsConnection::query()->create([
             'organization_id' => $organization->id,
             'provider' => VcsProvider::Github,
+            'sync_schedule' => VcsSyncSchedule::Off,
             ...$attributes,
         ]);
 
         AuditLogger::logVcsConnectionCreated($connection, $actor);
 
         return $connection;
+    }
+
+    public function updateSyncSchedule(
+        OrganizationVcsConnection $connection,
+        VcsSyncSchedule $schedule,
+        User $actor,
+    ): OrganizationVcsConnection {
+        $connection->update([
+            'sync_schedule' => $schedule,
+        ]);
+
+        $fresh = $connection->fresh();
+        AuditLogger::logVcsConnectionUpdated($fresh, $actor);
+
+        return $fresh;
     }
 
     public function delete(OrganizationVcsConnection $connection, User $actor): void

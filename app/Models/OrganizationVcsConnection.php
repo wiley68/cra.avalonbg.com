@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\VcsAuthType;
 use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
+use App\Enums\VcsSyncSchedule;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $token
  * @property string|null $label
  * @property VcsConnectionStatus $status
+ * @property VcsSyncSchedule $sync_schedule
  * @property Carbon|null $last_verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -31,6 +33,7 @@ use Illuminate\Support\Carbon;
     'token',
     'label',
     'status',
+    'sync_schedule',
     'last_verified_at',
 ])]
 #[Hidden(['token'])]
@@ -43,6 +46,7 @@ class OrganizationVcsConnection extends Model
             'auth_type' => VcsAuthType::class,
             'token' => 'encrypted',
             'status' => VcsConnectionStatus::class,
+            'sync_schedule' => VcsSyncSchedule::class,
             'last_verified_at' => 'datetime',
         ];
     }

@@ -1,8 +1,8 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 20 юли 2026 г.  
-**Статус:** Active — Must + Should complete (GitHub PAT); Could pending  
+**Статус:** Active — Must + Should + scheduled sync Done; Could remaining (webhooks, GitLab, GitHub App)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
@@ -167,6 +167,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 - Evidence index показва type `integration_snapshot`
 - [`ProductReadinessService`](../app/Services/ProductReadinessService.php): gaps `no_repository_linked`, `ci_failing` (warn/fail)
 - Sync upsert-ва `vcs_import_suggestions` (version от releases, vulnerability от Dependabot); Accept/Dismiss от Product Edit
+- Scheduled sync: `organization_vcs_connections.sync_schedule` (`off`/`hourly`/`daily`); `php artisan vcs:sync-scheduled` hourly via scheduler
 
 ---
 
@@ -189,7 +190,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 ### Could
 
-10. Scheduled sync (hourly/daily)
+10. Scheduled sync (hourly/daily) — **Done** (2026-07-20)
 11. Webhooks за incremental updates
 12. GitLab PAT provider (втори adapter)
 13. GitHub App вместо/до PAT
@@ -246,6 +247,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.4    | 2026-07-20 | Could 10 Done: org-level scheduled sync (hourly/daily)                  |
 | 1.3    | 2026-07-20 | Should 8–9 Done: Dependabot + release → version suggestions (review)    |
 | 1.2    | 2026-07-20 | Must slices 1–7 Done (GitHub PAT sync + evidence + readiness + tests)   |
 | 1.1    | 2026-07-20 | Active / implementation-ready: GitHub PAT first, schema, routes, slices |

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\VcsSyncSchedule;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
+use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
 use App\Models\OrganizationVcsConnection;
 use App\Services\VcsConnectionService;
 use App\Support\Translations;
@@ -16,7 +18,8 @@ class IntegrationController extends Controller
 {
     public function __construct(
         private readonly VcsConnectionService $connections,
-    ) {}
+    ) {
+    }
 
     public function edit(Request $request): Response
     {
@@ -27,7 +30,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization) && ! $user->canViewProducts($organization)) {
+        if (!$user->canManageProducts($organization) && !$user->canViewProducts($organization)) {
             abort(403);
         }
 
@@ -35,12 +38,13 @@ class IntegrationController extends Controller
             ->where('organization_id', $organization->id)
             ->orderBy('provider')
             ->get()
-            ->map(fn (OrganizationVcsConnection $connection): array => [
+            ->map(fn(OrganizationVcsConnection $connection): array => [
                 'id' => $connection->id,
                 'provider' => $connection->provider->value,
                 'auth_type' => $connection->auth_type->value,
                 'label' => $connection->label,
                 'status' => $connection->status->value,
+                'sync_schedule' => $connection->sync_schedule->value,
                 'last_verified_at' => $connection->last_verified_at?->toIso8601String(),
                 'created_at' => $connection->created_at?->toIso8601String(),
             ]);
@@ -74,6 +78,24 @@ class IntegrationController extends Controller
         return back();
     }
 
+    public function updateSyncSchedule(
+        UpdateVcsConnectionSyncScheduleRequest $request,
+        OrganizationVcsConnection $connection,
+    ): RedirectResponse {
+        $this->connections->updateSyncSchedule(
+            connection: $connection,
+            schedule: $request->enum('sync_schedule', VcsSyncSchedule::class),
+            actor: $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.sync_schedule_updated'),
+        ]);
+
+        return back();
+    }
+
     public function destroy(Request $request, OrganizationVcsConnection $connection): RedirectResponse
     {
         $user = $request->user();
@@ -83,7 +105,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization)) {
+        if (!$user->canManageProducts($organization)) {
             abort(403);
         }
 

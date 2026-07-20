@@ -36,6 +36,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.edit');
     Route::post('settings/integrations/github', [IntegrationController::class, 'storeGithub'])
         ->name('settings.integrations.github.store');
+    Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
+        ->name('settings.integrations.sync-schedule.update');
     Route::delete('settings/integrations/{connection}', [IntegrationController::class, 'destroy'])
         ->name('settings.integrations.destroy');
 });
