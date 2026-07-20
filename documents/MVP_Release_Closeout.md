@@ -1,8 +1,8 @@
 # MVP Release Closeout
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 20 юли 2026 г.  
-**Статус:** Active — §20 + P1 Done; готов за формален MVP 0.1 exit → Phase 2.1  
+**Статус:** Closed — MVP 0.1 exited (2026-07-20) → Phase 2.1  
 **Родителски документ:** [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§11 MVP, §13 седмици 11–12, §20)
 
 > Цел: затваряне и валидация на MVP 0.1 преди старт на Втора фаза. Не въвежда нови големи модули.
@@ -48,7 +48,7 @@
 | 2   | Product register                   | Done                                              |
 | 3   | Scope/classification questionnaire | Done                                              |
 | 4   | Product versions                   | Done                                              |
-| 5   | Support periods                    | Done (CRUD); auto-известия — closeout backlog     |
+| 5   | Support periods                    | Done (CRUD + dashboard 180/90/30 buckets)         |
 | 6   | Requirements matrix                | Done                                              |
 | 7   | Controls                           | Done                                              |
 | 8   | Risk register                      | Done                                              |
@@ -118,15 +118,15 @@ MVP 0.1 се счита за готов, когато:
 
 1. Всички P0 точки от §4 са **Done**. — **Done**
 2. Всички §20 редове са **Done** (#3 чрез минимална task/vuln/evidence симулация). — **Done**
-3. Няма отворени P0 дефекти, които чупят основния flow (login → product → readiness/reporting).
-4. Feature тестовете за core модулите минават в CI / локално.
-5. Генералният план отбелязва MVP модулите като Done и сочи към Phase 2.1.
+3. Няма отворени P0 дефекти, които чупят основния flow (login → product → readiness/reporting). — **Done** (2026-07-20)
+4. Feature тестовете за core модулите минават в CI / локално. — **Done** (2026-07-20: `php artisan test` — 218 passed, 2 skipped)
+5. Генералният план отбелязва MVP модулите като Done и сочи към Phase 2.1. — **Done** (2026-07-20)
 
-Остава: формален MVP 0.1 exit → Phase 2.1 (P1 polish е завършен).
+**MVP 0.1 е официално exited** (2026-07-20).
 
 След exit:
 
-- започва планиране/имплементация по [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md);
+- активен план: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md);
 - не се стартира пълен AI / auditor portal / deployments преди GitHub/GitLab 2.1 scope.
 
 ---
@@ -141,7 +141,7 @@ MVP 0.1 се счита за готов, когато:
 5. Readiness gate + export           ✓
 6. Minimal incident-like task/vuln simulation ✓
 7. P1 items (support buckets, dashboard, thin docs outline) ✓
-8. Mark MVP 0.1 ready → Phase 2.1
+8. Mark MVP 0.1 ready → Phase 2.1   ✓
 ```
 
 ---
@@ -159,6 +159,8 @@ MVP 0.1 се счита за готов, когато:
 
 | Версия | Дата       | Промяна                                                                                               |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------- |
+| 1.4    | 2026-07-20 | Formal MVP 0.1 exit; feature tests OK (218 passed); → Phase 2.1                                       |
+| 1.3    | 2026-07-20 | P1 polish Done: support 180/90/30, dashboard actions, technical documentation outline                 |
 | 1.2    | 2026-07-20 | §20 #3 incident → Done (минимална task/vuln/evidence симулация)                                       |
 | 1.1    | 2026-07-20 | P0 валидация: продукти A/B, vuln+reporting, readiness, disclaimer → Done; #3 incident остава Deferred |
 | 1.0    | 2026-07-20 | Първоначален MVP Release Closeout план                                                                |
