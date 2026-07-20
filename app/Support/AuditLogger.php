@@ -6,6 +6,7 @@ use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
 use App\Models\Evidence;
+use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -481,6 +482,57 @@ class AuditLogger
             AuditEventType::ReportingExported,
             $vulnerability,
             $actor,
+        );
+    }
+
+    public static function logVcsConnectionCreated(OrganizationVcsConnection $connection, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsConnectionCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $connection->organization_id,
+            details: [
+                ['field' => 'connection_id', 'value' => (string) $connection->id],
+                ['field' => 'provider', 'value' => $connection->provider->value],
+                ['field' => 'auth_type', 'value' => $connection->auth_type->value],
+                ['field' => 'label', 'value' => $connection->label],
+            ],
+        );
+    }
+
+    public static function logVcsConnectionUpdated(OrganizationVcsConnection $connection, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsConnectionUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $connection->organization_id,
+            details: [
+                ['field' => 'connection_id', 'value' => (string) $connection->id],
+                ['field' => 'provider', 'value' => $connection->provider->value],
+                ['field' => 'auth_type', 'value' => $connection->auth_type->value],
+                ['field' => 'label', 'value' => $connection->label],
+            ],
+        );
+    }
+
+    public static function logVcsConnectionDeleted(OrganizationVcsConnection $connection, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::VcsConnectionDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $connection->organization_id,
+            details: [
+                ['field' => 'connection_id', 'value' => (string) $connection->id],
+                ['field' => 'provider', 'value' => $connection->provider->value],
+                ['field' => 'auth_type', 'value' => $connection->auth_type->value],
+                ['field' => 'label', 'value' => $connection->label],
+            ],
         );
     }
 

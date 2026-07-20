@@ -35,6 +35,9 @@ enum AuditEventType: string
     case ReportingMarkedSubmitted = 'reporting_marked_submitted';
     case ReportingExported = 'reporting_exported';
     case ReportingEscalationCreated = 'reporting_escalation_created';
+    case VcsConnectionCreated = 'vcs_connection_created';
+    case VcsConnectionUpdated = 'vcs_connection_updated';
+    case VcsConnectionDeleted = 'vcs_connection_deleted';
 
     public function label(): string
     {

@@ -1794,7 +1794,10 @@
             "reporting_rejected": "Reporting отхвърлен",
             "reporting_marked_submitted": "Reporting маркиран като подаден",
             "reporting_exported": "Експортиран reporting пакет",
-            "reporting_escalation_created": "Създадена ескалационна задача за reporting"
+            "reporting_escalation_created": "Създадена ескалационна задача за reporting",
+            "vcs_connection_created": "Създадена VCS връзка",
+            "vcs_connection_updated": "Обновена VCS връзка",
+            "vcs_connection_deleted": "Изтрита VCS връзка"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -1872,7 +1875,44 @@
             "confirm": "Изтрий организацията"
         },
         "security_title": "Настройки за сигурност",
-        "appearance_title": "Настройки за изглед"
+        "appearance_title": "Настройки за изглед",
+        "nav": {
+            "heading": "Настройки",
+            "description": "Управлявайте профила и настройките на акаунта",
+            "profile": "Профил",
+            "security": "Сигурност",
+            "appearance": "Изглед",
+            "integrations": "Интеграции"
+        },
+        "integrations": {
+            "title": "Интеграции",
+            "heading": "Интеграции",
+            "description": "Свържете GitHub, за да синхронизирате repository evidence към продуктите.",
+            "github": "GitHub",
+            "connect_github_title": "Свързване с GitHub",
+            "update_github_title": "Обновяване на GitHub токен",
+            "connect_github_description": "Използвайте personal access token с права за четене на хранилища. Токенът се съхранява криптиран и не се показва отново.",
+            "label": "Етикет",
+            "token": "Personal access token",
+            "token_placeholder": "ghp_…",
+            "token_help": "Необходими scope-ове: repo (или public_repo) за метаданни на private/public хранилища.",
+            "connect": "Свържи GitHub",
+            "update_token": "Обнови токена",
+            "disconnect": "Прекъсни",
+            "disconnect_confirm_title": "Прекъсване на GitHub?",
+            "disconnect_confirm": "Свързаните product repositories за тази връзка ще бъдат премахнати.",
+            "status": "Статус",
+            "last_verified": "Последна проверка",
+            "statuses": {
+                "active": "Активна",
+                "invalid": "Невалидна",
+                "revoked": "Отменена"
+            },
+            "github_connected": "GitHub връзката е запазена.",
+            "disconnected": "Интеграцията е прекъсната.",
+            "github_token_invalid": "GitHub отхвърли този токен. Проверете токена и опитайте отново.",
+            "no_access": "Нямате права да управлявате интеграции."
+        }
     },
     "appearance": {
         "label": "Изглед",

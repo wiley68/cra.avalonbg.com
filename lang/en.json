@@ -1787,7 +1787,17 @@
             "task_deleted": "Task deleted",
             "readiness_report_viewed": "Readiness report viewed",
             "readiness_report_exported": "Readiness report exported",
-            "compliance_passport_viewed": "Compliance passport viewed"
+            "compliance_passport_viewed": "Compliance passport viewed",
+            "reporting_draft_updated": "Reporting draft updated",
+            "reporting_submitted_for_approval": "Reporting submitted for approval",
+            "reporting_approved": "Reporting approved",
+            "reporting_rejected": "Reporting rejected",
+            "reporting_marked_submitted": "Reporting marked as submitted",
+            "reporting_exported": "Reporting package exported",
+            "reporting_escalation_created": "Reporting escalation task created",
+            "vcs_connection_created": "VCS connection created",
+            "vcs_connection_updated": "VCS connection updated",
+            "vcs_connection_deleted": "VCS connection deleted"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -1865,7 +1875,44 @@
             "confirm": "Delete organization"
         },
         "security_title": "Security settings",
-        "appearance_title": "Appearance settings"
+        "appearance_title": "Appearance settings",
+        "nav": {
+            "heading": "Settings",
+            "description": "Manage your profile and account settings",
+            "profile": "Profile",
+            "security": "Security",
+            "appearance": "Appearance",
+            "integrations": "Integrations"
+        },
+        "integrations": {
+            "title": "Integrations",
+            "heading": "Integrations",
+            "description": "Connect GitHub so products can sync repository evidence.",
+            "github": "GitHub",
+            "connect_github_title": "Connect GitHub",
+            "update_github_title": "Update GitHub token",
+            "connect_github_description": "Use a personal access token with read access to repositories. The token is stored encrypted and never shown again.",
+            "label": "Label",
+            "token": "Personal access token",
+            "token_placeholder": "ghp_…",
+            "token_help": "Required scopes: repo (or public_repo) for private/public repository metadata.",
+            "connect": "Connect GitHub",
+            "update_token": "Update token",
+            "disconnect": "Disconnect",
+            "disconnect_confirm_title": "Disconnect GitHub?",
+            "disconnect_confirm": "Linked product repositories for this connection will be removed.",
+            "status": "Status",
+            "last_verified": "Last verified",
+            "statuses": {
+                "active": "Active",
+                "invalid": "Invalid",
+                "revoked": "Revoked"
+            },
+            "github_connected": "GitHub connection saved.",
+            "disconnected": "Integration disconnected.",
+            "github_token_invalid": "GitHub rejected this token. Check the token and try again.",
+            "no_access": "You do not have permission to manage integrations."
+        }
     },
     "appearance": {
         "label": "Appearance",

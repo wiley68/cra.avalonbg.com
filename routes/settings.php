@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AppearanceController;
+use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -30,4 +31,11 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
 
     Route::get('settings/appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
     Route::patch('settings/appearance', [AppearanceController::class, 'update'])->name('appearance.update');
+
+    Route::get('settings/integrations', [IntegrationController::class, 'edit'])
+        ->name('settings.integrations.edit');
+    Route::post('settings/integrations/github', [IntegrationController::class, 'storeGithub'])
+        ->name('settings.integrations.github.store');
+    Route::delete('settings/integrations/{connection}', [IntegrationController::class, 'destroy'])
+        ->name('settings.integrations.destroy');
 });
