@@ -13,6 +13,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\VcsImportSuggestion;
 use App\Models\VcsSyncRun;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -611,6 +612,46 @@ class AuditLogger
                 ['field' => 'sync_run_id', 'value' => (string) $run->id],
                 ['field' => 'full_name', 'value' => $repository->full_name],
                 ['field' => 'error', 'value' => $error],
+            ],
+        );
+    }
+
+    public static function logVcsSuggestionAccepted(VcsImportSuggestion $suggestion, User $actor): void
+    {
+        $suggestion->loadMissing('product');
+
+        self::persist(
+            type: AuditEventType::VcsSuggestionAccepted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $suggestion->product->organization_id,
+            productId: $suggestion->product_id,
+            details: [
+                ['field' => 'suggestion_id', 'value' => (string) $suggestion->id],
+                ['field' => 'kind', 'value' => $suggestion->kind->value],
+                ['field' => 'external_id', 'value' => $suggestion->external_id],
+                ['field' => 'accepted_entity_type', 'value' => $suggestion->accepted_entity_type],
+                ['field' => 'accepted_entity_id', 'value' => (string) ($suggestion->accepted_entity_id ?? '')],
+            ],
+        );
+    }
+
+    public static function logVcsSuggestionDismissed(VcsImportSuggestion $suggestion, User $actor): void
+    {
+        $suggestion->loadMissing('product');
+
+        self::persist(
+            type: AuditEventType::VcsSuggestionDismissed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $suggestion->product->organization_id,
+            productId: $suggestion->product_id,
+            details: [
+                ['field' => 'suggestion_id', 'value' => (string) $suggestion->id],
+                ['field' => 'kind', 'value' => $suggestion->kind->value],
+                ['field' => 'external_id', 'value' => $suggestion->external_id],
             ],
         );
     }

@@ -17,6 +17,7 @@ class VcsSyncService
 {
     public function __construct(
         private readonly EvidenceService $evidence,
+        private readonly VcsImportSuggestionService $suggestions,
     ) {
     }
 
@@ -39,12 +40,15 @@ class VcsSyncService
             $tags = $provider->listTags($fullName);
             $releases = $provider->listReleases($fullName);
             $ci = $provider->defaultBranchCiStatus($fullName, $branch);
+            $alerts = $provider->listDependencyAlerts($fullName);
+            $suggestionStats = $this->suggestions->upsertFromSync($repository, $releases, $alerts);
 
             $summary = [
                 'full_name' => $fullName,
                 'default_branch' => $branch,
                 'tags_count' => count($tags),
                 'releases_count' => count($releases),
+                'alerts_count' => count($alerts),
                 'latest_tag' => $tags[0]['name'] ?? null,
                 'latest_release' => $releases[0]['tag_name'] ?? null,
                 'ci' => $ci,
@@ -52,6 +56,7 @@ class VcsSyncService
                 'releases' => array_slice($releases, 0, 10),
                 'synced_at' => now()->toIso8601String(),
                 'sync_run_id' => $run->id,
+                ...$suggestionStats,
             ];
 
             $snapshot = $this->evidence->createIntegrationSnapshot(

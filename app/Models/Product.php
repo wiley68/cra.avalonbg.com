@@ -184,6 +184,11 @@ class Product extends Model
         return $this->hasOne(ProductRepository::class);
     }
 
+    public function vcsImportSuggestions(): HasMany
+    {
+        return $this->hasMany(VcsImportSuggestion::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

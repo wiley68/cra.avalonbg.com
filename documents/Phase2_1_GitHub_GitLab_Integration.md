@@ -1,8 +1,8 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 20 юли 2026 г.  
-**Статус:** Active — Must complete (GitHub PAT); Should/Could pending  
+**Статус:** Active — Must + Should complete (GitHub PAT); Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
@@ -166,6 +166,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 - Evidence index показва type `integration_snapshot`
 - [`ProductReadinessService`](../app/Services/ProductReadinessService.php): gaps `no_repository_linked`, `ci_failing` (warn/fail)
+- Sync upsert-ва `vcs_import_suggestions` (version от releases, vulnerability от Dependabot); Accept/Dismiss от Product Edit
 
 ---
 
@@ -183,8 +184,8 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 ### Should
 
-8. Import Dependabot / vulnerability alerts като draft suggestions (не auto-create без review)
-9. Map GitHub release → `ProductVersion` suggestion
+8. Import Dependabot / vulnerability alerts като draft suggestions (не auto-create без review) — **Done** (2026-07-20)
+9. Map GitHub release → `ProductVersion` suggestion — **Done** (2026-07-20)
 
 ### Could
 
@@ -245,6 +246,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.3    | 2026-07-20 | Should 8–9 Done: Dependabot + release → version suggestions (review)    |
 | 1.2    | 2026-07-20 | Must slices 1–7 Done (GitHub PAT sync + evidence + readiness + tests)   |
 | 1.1    | 2026-07-20 | Active / implementation-ready: GitHub PAT first, schema, routes, slices |
 | 1.0    | 2026-07-20 | Първоначален Phase 2.1 план (еднопосочен sync)                          |

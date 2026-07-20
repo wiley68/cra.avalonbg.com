@@ -118,6 +118,7 @@ test('owner can sync repository tags releases and ci status', function () {
                 ],
             ],
         ], 200),
+        'api.github.com/repos/acme/widget/dependabot/alerts*' => Http::response([], 200),
     ]);
 
     $this->actingAs($owner)
@@ -192,13 +193,14 @@ test('successful sync only issues get requests to github', function () {
         'api.github.com/repos/acme/widget/actions/runs*' => Http::response([
             'workflow_runs' => [],
         ], 200),
+        'api.github.com/repos/acme/widget/dependabot/alerts*' => Http::response([], 200),
     ]);
 
     $this->actingAs($owner)
         ->post(route('products.repository.sync', $product))
         ->assertRedirect();
 
-    Http::assertSentCount(3);
+    Http::assertSentCount(4);
 
     Http::assertSent(function ($request) {
         return $request->method() === 'GET'
@@ -292,6 +294,7 @@ test('sync audit details do not include the pat token', function () {
         'api.github.com/repos/acme/widget/actions/runs*' => Http::response([
             'workflow_runs' => [],
         ], 200),
+        'api.github.com/repos/acme/widget/dependabot/alerts*' => Http::response([], 200),
     ]);
 
     $this->actingAs($owner)

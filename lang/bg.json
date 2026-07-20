@@ -573,7 +573,16 @@
             "invalid_format": "Въведете валидно GitHub хранилище като owner/repo или URL.",
             "not_found": "Хранилището не е намерено с свързания GitHub токен.",
             "fetch_failed": "Неуспешно зареждане на данни за хранилището от GitHub.",
-            "connection_unavailable": "Избраната GitHub връзка не е налична."
+            "connection_unavailable": "Избраната GitHub връзка не е налична.",
+            "suggestions": {
+                "title": "Предложения за импорт",
+                "kind_version": "Версия",
+                "kind_vulnerability": "Уязвимост",
+                "accept": "Приеми",
+                "dismiss": "Отхвърли",
+                "accepted": "Предложението е прието.",
+                "dismissed": "Предложението е отхвърлено."
+            }
         },
         "fields": {
             "product_line": "Продуктова линия",
@@ -1844,7 +1853,9 @@
             "vcs_repository_linked": "Свързано product хранилище",
             "vcs_repository_unlinked": "Премахната връзка към product хранилище",
             "vcs_sync_succeeded": "Успешен VCS sync",
-            "vcs_sync_failed": "Неуспешен VCS sync"
+            "vcs_sync_failed": "Неуспешен VCS sync",
+            "vcs_suggestion_accepted": "VCS предложение е прието",
+            "vcs_suggestion_dismissed": "VCS предложение е отхвърлено"
         },
         "event_sources": {
             "workspace": "Workspace",

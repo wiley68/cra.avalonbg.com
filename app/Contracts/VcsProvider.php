@@ -10,7 +10,7 @@ interface VcsProvider
     public function listTags(string $fullName): array;
 
     /**
-     * @return list<array{tag_name: string, name: string|null, published_at: string|null, html_url: string|null}>
+     * @return list<array{tag_name: string, name: string|null, body: string|null, published_at: string|null, html_url: string|null}>
      */
     public function listReleases(string $fullName): array;
 
@@ -18,4 +18,22 @@ interface VcsProvider
      * @return array{status: string, conclusion: string|null, workflow_name: string|null, html_url: string|null, head_sha: string|null}
      */
     public function defaultBranchCiStatus(string $fullName, string $defaultBranch): array;
+
+    /**
+     * Open Dependabot / dependency alerts. May return [] when unavailable (403/404).
+     *
+     * @return list<array{
+     *     external_id: string,
+     *     number: int|null,
+     *     ghsa_id: string|null,
+     *     cve_id: string|null,
+     *     summary: string,
+     *     severity: string|null,
+     *     package_name: string|null,
+     *     package_ecosystem: string|null,
+     *     html_url: string|null,
+     *     created_at: string|null
+     * }>
+     */
+    public function listDependencyAlerts(string $fullName): array;
 }

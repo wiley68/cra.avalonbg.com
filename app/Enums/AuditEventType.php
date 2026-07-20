@@ -42,6 +42,8 @@ enum AuditEventType: string
     case VcsRepositoryUnlinked = 'vcs_repository_unlinked';
     case VcsSyncSucceeded = 'vcs_sync_succeeded';
     case VcsSyncFailed = 'vcs_sync_failed';
+    case VcsSuggestionAccepted = 'vcs_suggestion_accepted';
+    case VcsSuggestionDismissed = 'vcs_suggestion_dismissed';
 
     public function label(): string
     {

@@ -40,6 +40,7 @@ use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductSupportPeriodController;
 use App\Http\Controllers\ProductVersionController;
+use App\Http\Controllers\ProductVcsImportSuggestionController;
 use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -82,6 +83,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.repository.sync');
         Route::delete('products/{product}/repository', [ProductRepositoryController::class, 'destroy'])
             ->name('products.repository.destroy');
+        Route::post(
+            'products/{product}/vcs-suggestions/{suggestion}/accept',
+            [ProductVcsImportSuggestionController::class, 'accept'],
+        )->name('products.vcs-suggestions.accept');
+        Route::post(
+            'products/{product}/vcs-suggestions/{suggestion}/dismiss',
+            [ProductVcsImportSuggestionController::class, 'dismiss'],
+        )->name('products.vcs-suggestions.dismiss');
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
             ->name('products.scope-assessment.preview');
         Route::get('products/{product}/scope-assessments/latest', [ProductScopeAssessmentController::class, 'show'])

@@ -2,12 +2,14 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    Check,
     ClipboardList,
     GitBranch,
     RefreshCw,
     Save,
     Tags,
     Trash2,
+    X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -39,6 +41,10 @@ import {
     store as storeRepository,
     sync as syncRepository,
 } from '@/routes/products/repository';
+import {
+    accept as acceptVcsSuggestion,
+    dismiss as dismissVcsSuggestion,
+} from '@/routes/products/vcs-suggestions';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 
 type Member = {
@@ -142,6 +148,19 @@ type VcsConnectionOption = {
     status: string;
 };
 
+type VcsImportSuggestionPayload = {
+    id: number;
+    kind: 'version' | 'vulnerability' | string;
+    external_id: string;
+    title: string;
+    summary: string | null;
+    html_url: string | null;
+    severity: string | null;
+    tag_name: string | null;
+    cve_id: string | null;
+    package_name: string | null;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: EditableProduct;
@@ -154,6 +173,7 @@ const props = defineProps<{
     openClassificationWizard?: boolean;
     repository?: ProductRepositoryPayload | null;
     vcs_connections?: VcsConnectionOption[];
+    vcs_suggestions?: VcsImportSuggestionPayload[];
 }>();
 
 const { t } = useTranslations();
@@ -169,6 +189,9 @@ const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 const showUnlinkRepositoryDialog = ref(false);
 const syncingRepository = ref(false);
+const suggestionActionId = ref<number | null>(null);
+
+const pendingSuggestions = computed(() => props.vcs_suggestions ?? []);
 
 const repositoryForm = useForm({
     connection_id:
@@ -210,6 +233,52 @@ const confirmUnlinkRepository = () => {
             repositoryForm.repository = '';
         },
     });
+};
+
+const acceptSuggestion = (suggestionId: number) => {
+    suggestionActionId.value = suggestionId;
+    router.post(
+        acceptVcsSuggestion.url({
+            product: props.product.id,
+            suggestion: suggestionId,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                suggestionActionId.value = null;
+            },
+        },
+    );
+};
+
+const dismissSuggestion = (suggestionId: number) => {
+    suggestionActionId.value = suggestionId;
+    router.post(
+        dismissVcsSuggestion.url({
+            product: props.product.id,
+            suggestion: suggestionId,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                suggestionActionId.value = null;
+            },
+        },
+    );
+};
+
+const suggestionKindLabel = (kind: string): string => {
+    if (kind === 'version') {
+        return t('products.repository.suggestions.kind_version');
+    }
+
+    if (kind === 'vulnerability') {
+        return t('products.repository.suggestions.kind_vulnerability');
+    }
+
+    return kind;
 };
 
 const ciLabel = (
@@ -1040,6 +1109,115 @@ const textareaClass =
                             {{ t('products.repository.unlink') }}
                         </Button>
                     </div>
+                </div>
+
+                <div
+                    v-if="pendingSuggestions.length > 0"
+                    class="space-y-3 border-t pt-3"
+                    data-test="vcs-suggestions"
+                >
+                    <h3 class="text-sm font-medium">
+                        {{ t('products.repository.suggestions.title') }}
+                        <span class="text-muted-foreground">
+                            ({{ pendingSuggestions.length }})
+                        </span>
+                    </h3>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="suggestion in pendingSuggestions"
+                            :key="suggestion.id"
+                            class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="rounded bg-muted px-1.5 py-0.5 text-xs font-medium"
+                                    >
+                                        {{
+                                            suggestionKindLabel(suggestion.kind)
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.severity"
+                                        class="text-xs text-muted-foreground uppercase"
+                                    >
+                                        {{ suggestion.severity }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.tag_name"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.tag_name }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.cve_id"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.cve_id }}
+                                    </span>
+                                </div>
+                                <p class="font-medium">
+                                    <a
+                                        v-if="suggestion.html_url"
+                                        :href="suggestion.html_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline-offset-4 hover:underline"
+                                    >
+                                        {{ suggestion.title }}
+                                    </a>
+                                    <span v-else>{{ suggestion.title }}</span>
+                                </p>
+                                <p
+                                    v-if="suggestion.summary"
+                                    class="line-clamp-2 text-sm text-muted-foreground"
+                                >
+                                    {{ suggestion.summary }}
+                                </p>
+                                <p
+                                    v-if="suggestion.package_name"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ suggestion.package_name }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        suggestionActionId === suggestion.id
+                                    "
+                                    data-test="accept-vcs-suggestion"
+                                    @click="acceptSuggestion(suggestion.id)"
+                                >
+                                    <Check class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.repository.suggestions.accept',
+                                        )
+                                    }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    :disabled="
+                                        suggestionActionId === suggestion.id
+                                    "
+                                    data-test="dismiss-vcs-suggestion"
+                                    @click="dismissSuggestion(suggestion.id)"
+                                >
+                                    <X class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.repository.suggestions.dismiss',
+                                        )
+                                    }}
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
 

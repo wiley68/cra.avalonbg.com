@@ -61,4 +61,10 @@ class ProductRepository extends Model
     {
         return $this->hasMany(VcsSyncRun::class, 'repository_id');
     }
+
+    /** @return HasMany<VcsImportSuggestion, $this> */
+    public function importSuggestions(): HasMany
+    {
+        return $this->hasMany(VcsImportSuggestion::class, 'repository_id');
+    }
 }
