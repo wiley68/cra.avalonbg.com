@@ -130,6 +130,32 @@ const warnCount = computed(
     () => props.report.gaps.filter((gap) => gap.status === 'warn').length,
 );
 
+const techDocsSection = computed(
+    () =>
+        props.report.sections.find(
+            (section) => section.key === 'technical_documentation',
+        ) ?? null,
+);
+
+const techDocsOutlineKeys = [
+    'identification',
+    'versions',
+    'support',
+    'risks',
+    'sbom',
+    'evidence',
+] as const;
+
+const techDocsOutline = computed(() => {
+    const metrics = techDocsSection.value?.metrics ?? {};
+
+    return techDocsOutlineKeys.map((key) => ({
+        key,
+        label: t(`products.passport.tech_docs.outline.${key}`),
+        done: Boolean(metrics[key]),
+    }));
+});
+
 const exportUrl = computed(() => readinessExport(props.product.id).url);
 const readinessUrl = computed(() => readinessShow(props.product.id).url);
 </script>
@@ -377,6 +403,50 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                     {{ t('products.passport.empty') }}
                 </p>
             </div>
+        </section>
+
+        <section class="space-y-3 rounded-lg border p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-lg font-semibold">
+                    {{ t('products.passport.tech_docs_title') }}
+                </h2>
+                <Badge
+                    v-if="techDocsSection"
+                    :variant="statusVariant(techDocsSection.status)"
+                >
+                    {{
+                        t(`products.readiness.status.${techDocsSection.status}`)
+                    }}
+                </Badge>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                {{ t('products.passport.tech_docs_intro') }}
+            </p>
+            <ul class="space-y-2 text-sm">
+                <li
+                    v-for="item in techDocsOutline"
+                    :key="item.key"
+                    class="flex items-start gap-2"
+                >
+                    <span
+                        class="mt-0.5 inline-block size-2 shrink-0 rounded-full"
+                        :class="
+                            item.done
+                                ? 'bg-emerald-500'
+                                : 'bg-muted-foreground/40'
+                        "
+                    />
+                    <span
+                        :class="
+                            item.done
+                                ? 'text-foreground'
+                                : 'text-muted-foreground'
+                        "
+                    >
+                        {{ item.label }}
+                    </span>
+                </li>
+            </ul>
         </section>
 
         <section class="space-y-3 rounded-lg border p-5">

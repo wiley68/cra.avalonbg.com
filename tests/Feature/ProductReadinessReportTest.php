@@ -103,9 +103,9 @@ test('owner can view readiness report with expected sections', function () {
     $this->actingAs($owner)
         ->get(route('products.readiness.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->component('products/readiness/Show')
-            ->has('report.sections', 15)
+            ->has('report.sections', 16)
             ->where('report.product.id', $product->id));
 
     expect(AuditLog::query()
@@ -153,7 +153,7 @@ test('unclassified product marks classification as fail with gap', function () {
     $this->actingAs($owner)
         ->get(route('products.readiness.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->where('report.sections.1.key', 'classification')
             ->where('report.sections.1.status', 'fail')
             ->has('report.gaps')

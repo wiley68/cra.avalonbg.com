@@ -518,6 +518,18 @@
             "support_title": "Support periods",
             "people_title": "Responsible persons",
             "sections_title": "Passport coverage",
+            "tech_docs_title": "Technical documentation outline",
+            "tech_docs_intro": "Checklist of core documentation areas derived from product data. This is not a full document workspace.",
+            "tech_docs": {
+                "outline": {
+                    "identification": "Product identification",
+                    "versions": "Version history",
+                    "support": "Support period statement",
+                    "risks": "Cybersecurity risk assessment",
+                    "sbom": "SBOM / component inventory",
+                    "evidence": "Supporting evidence records"
+                }
+            },
             "scope": "CRA applicability",
             "classification": "Classification",
             "empty": "Not set"
@@ -1538,7 +1550,8 @@
                 "tasks": "Tasks / corrective actions",
                 "responsible_persons": "Responsible persons",
                 "release": "Release status",
-                "reporting": "Reporting readiness"
+                "reporting": "Reporting readiness",
+                "technical_documentation": "Technical documentation"
             },
             "summaries": {
                 "identification": {
@@ -1570,6 +1583,7 @@
                 "support": {
                     "documented": "Structured support periods are in place.",
                     "partial": "Support periods need attention (ending soon or incomplete).",
+                    "ending_critical": "Support ends within 30 days or has ended.",
                     "missing": "Support period is not documented."
                 },
                 "requirements": {
@@ -1614,7 +1628,15 @@
                     "missing": "No product owner or security contact."
                 },
                 "release": {
-                    "not_available": "Releases module is not available yet."
+                    "not_available": "Releases module is not available yet.",
+                    "awaiting_approval": "Versions are waiting in security review or release candidate.",
+                    "has_releases": "At least one approved or released version exists.",
+                    "none": "No approved or released versions yet."
+                },
+                "technical_documentation": {
+                    "complete": "Core documentation outline areas are covered by product data.",
+                    "partial": "Some documentation outline areas are still incomplete.",
+                    "missing": "Too few documentation outline areas are covered."
                 },
                 "reporting": {
                     "deadlines_at_risk": "Vulnerability reporting deadlines need attention.",
@@ -1634,6 +1656,7 @@
                 "versions_draft": "Move a version beyond draft state.",
                 "support": "Document the product support period.",
                 "support_partial": "Review support periods ending soon or unsupported versions without deadlines.",
+                "support_ending_critical": "Support ends within 30 days — update periods or plan end-of-support communication.",
                 "support_periods_missing": "Add structured commercial and security support periods.",
                 "requirements": "Assess CRA requirements for this product.",
                 "requirements_partial": "Finish assessing remaining requirements.",
@@ -1649,6 +1672,8 @@
                 "evidence_review": "Review evidence marked as due.",
                 "tasks_overdue": "Complete overdue corrective tasks.",
                 "responsible_persons": "Assign a product owner or security contact.",
+                "release_awaiting": "Advance versions out of security review / release candidate.",
+                "technical_documentation": "Complete core documentation outline areas (identity, versions, support, risks, SBOM, evidence).",
                 "reporting": "Review vulnerability reporting deadlines."
             }
         },
@@ -1787,7 +1812,9 @@
             "products": "Products",
             "critical_vulnerabilities": "Critical vulnerabilities",
             "expired_evidence": "Expired evidence",
-            "open_tasks": "Open tasks"
+            "open_tasks": "Open tasks",
+            "risks": "Risks",
+            "overdue_reporting": "Overdue reporting"
         },
         "actions": {
             "manage_organizations": "Manage organizations",
@@ -1796,8 +1823,14 @@
             "products_without_risks": "Products without risk assessments",
             "critical_vulnerabilities": "Open critical vulnerabilities",
             "support_ending_soon": "Support periods ending within 90 days",
+            "support_ending_180": "Support periods ending within 180 days",
+            "support_ending_90": "Support periods ending within 90 days",
+            "support_ending_30": "Support periods ending within 30 days",
+            "support_ended": "Support periods that have ended",
             "expired_evidence": "Expired evidence records",
             "open_tasks": "Open corrective tasks",
+            "overdue_tasks": "Overdue corrective tasks",
+            "releases_awaiting_approval": "Versions awaiting security / release approval",
             "overdue_reporting": "Overdue vulnerability reporting deadlines"
         }
     },

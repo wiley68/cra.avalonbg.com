@@ -75,7 +75,7 @@ const severityClass = (severity: string): string => {
 
         <div
             v-if="dashboard.mode === 'organization'"
-            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
         >
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">
@@ -107,6 +107,22 @@ const severityClass = (severity: string): string => {
                 </p>
                 <p class="text-2xl font-semibold">
                     {{ dashboard.counts.open_tasks ?? 0 }}
+                </p>
+            </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.risks') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.risks ?? 0 }}
+                </p>
+            </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.overdue_reporting') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.overdue_reporting ?? 0 }}
                 </p>
             </div>
         </div>
