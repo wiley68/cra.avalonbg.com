@@ -72,11 +72,11 @@ test('owner can view compliance passport', function () {
     $this->actingAs($owner)
         ->get(route('products.passport.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->component('products/passport/Show')
             ->where('product.id', $product->id)
             ->where('product.manufacturer', 'Avalon')
-            ->has('report.sections', 16));
+            ->has('report.sections', 17));
 
     expect(AuditLog::query()
         ->where('event_type', AuditEventType::CompliancePassportViewed)

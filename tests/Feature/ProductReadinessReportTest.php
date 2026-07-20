@@ -8,10 +8,15 @@ use App\Enums\EvidenceType;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
+use App\Enums\VcsAuthType;
+use App\Enums\VcsConnectionStatus;
+use App\Enums\VcsProvider;
 use App\Models\AuditLog;
 use App\Models\Evidence;
 use App\Models\Organization;
+use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
+use App\Models\ProductRepository;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -103,9 +108,9 @@ test('owner can view readiness report with expected sections', function () {
     $this->actingAs($owner)
         ->get(route('products.readiness.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->component('products/readiness/Show')
-            ->has('report.sections', 16)
+            ->has('report.sections', 17)
             ->where('report.product.id', $product->id));
 
     expect(AuditLog::query()
@@ -153,11 +158,80 @@ test('unclassified product marks classification as fail with gap', function () {
     $this->actingAs($owner)
         ->get(route('products.readiness.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->where('report.sections.1.key', 'classification')
             ->where('report.sections.1.status', 'fail')
             ->has('report.gaps')
             ->where('report.gaps.0.section', 'classification'));
+});
+
+test('missing repository link adds readiness warn gap', function () {
+    [$organization, $owner] = makeReadinessOrgWithOwner();
+    $product = makeProductForReadiness($organization, $owner);
+
+    $this->actingAs($owner)
+        ->get(route('products.readiness.show', $product))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $props = $page->toArray()['props'];
+            $sections = collect($props['report']['sections']);
+            $gaps = collect($props['report']['gaps']);
+            $repository = $sections->firstWhere('key', 'repository');
+
+            expect($repository['status'])->toBe('warn')
+                ->and($repository['summary'])->toBe('not_linked')
+                ->and($gaps->contains(
+                    fn($gap) => $gap['message_key'] === 'products.readiness.gaps.no_repository_linked'
+                    && $gap['link'] === 'edit',
+                ))->toBeTrue();
+        });
+});
+
+test('failing repository ci marks readiness fail gap', function () {
+    [$organization, $owner] = makeReadinessOrgWithOwner();
+    $product = makeProductForReadiness($organization, $owner);
+
+    $connection = OrganizationVcsConnection::query()->create([
+        'organization_id' => $organization->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::Pat,
+        'token' => 'ghp_readiness',
+        'label' => 'GitHub',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    ProductRepository::query()->create([
+        'product_id' => $product->id,
+        'connection_id' => $connection->id,
+        'external_id' => '1',
+        'full_name' => 'acme/widget',
+        'remote_url' => 'https://github.com/acme/widget',
+        'default_branch' => 'main',
+        'last_synced_at' => now(),
+        'last_sync_summary' => [
+            'ci' => [
+                'status' => 'completed',
+                'conclusion' => 'failure',
+            ],
+        ],
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('products.readiness.show', $product))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $props = $page->toArray()['props'];
+            $sections = collect($props['report']['sections']);
+            $gaps = collect($props['report']['gaps']);
+            $repository = $sections->firstWhere('key', 'repository');
+
+            expect($repository['status'])->toBe('fail')
+                ->and($repository['summary'])->toBe('ci_failing')
+                ->and($gaps->contains(
+                    fn($gap) => $gap['message_key'] === 'products.readiness.gaps.ci_failing',
+                ))->toBeTrue();
+        });
 });
 
 test('expired evidence marks evidence section as fail', function () {

@@ -178,7 +178,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 3. Product ↔ repository link — **Done** (2026-07-20)
 4. Sync now: tags/releases + CI status + `vcs_sync_runs` — **Done** (2026-07-20)
 5. Evidence snapshot (JSON + hash) при успешен sync — **Done** (2026-07-20)
-6. Readiness gaps + i18n EN/BG
+6. Readiness gaps + i18n EN/BG — **Done** (2026-07-20)
 7. Feature tests с `Http::fake()`
 
 ### Should

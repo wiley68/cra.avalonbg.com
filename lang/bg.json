@@ -1585,7 +1585,8 @@
                 "responsible_persons": "Отговорни лица",
                 "release": "Статус на издания",
                 "reporting": "Готовност за докладване",
-                "technical_documentation": "Техническа документация"
+                "technical_documentation": "Техническа документация",
+                "repository": "Хранилище / VCS"
             },
             "summaries": {
                 "identification": {
@@ -1672,6 +1673,12 @@
                     "partial": "Част от областите в структурата на документацията са непълни.",
                     "missing": "Твърде малко области от структурата на документацията са покрити."
                 },
+                "repository": {
+                    "not_linked": "Няма свързано GitHub хранилище към този продукт.",
+                    "linked": "Има свързано хранилище.",
+                    "linked_synced": "Хранилището е свързано и е синхронизирано.",
+                    "ci_failing": "CI на default branch е неуспешен."
+                },
                 "reporting": {
                     "deadlines_at_risk": "Сроковете за докладване на уязвимости изискват внимание.",
                     "submissions_recorded": "Записано е поне едно подаване по reporting.",
@@ -1707,6 +1714,8 @@
                 "responsible_persons": "Назначете продуктов собственик или security контакт.",
                 "release_awaiting": "Придвижете версиите извън security review / release candidate.",
                 "technical_documentation": "Попълнете основните области от структурата на документацията (идентификация, версии, поддръжка, рискове, SBOM, evidence).",
+                "no_repository_linked": "Свържете GitHub хранилище от страницата за редакция на продукта.",
+                "ci_failing": "Поправете неуспешния CI на default branch на свързаното хранилище и синхронизирайте отново.",
                 "reporting": "Прегледайте сроковете за докладване на уязвимости.",
                 "support_periods_missing": "Добавете структурирани търговски и security периоди на поддръжка."
             }

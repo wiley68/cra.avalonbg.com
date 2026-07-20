@@ -1585,7 +1585,8 @@
                 "responsible_persons": "Responsible persons",
                 "release": "Release status",
                 "reporting": "Reporting readiness",
-                "technical_documentation": "Technical documentation"
+                "technical_documentation": "Technical documentation",
+                "repository": "Repository / VCS"
             },
             "summaries": {
                 "identification": {
@@ -1672,6 +1673,12 @@
                     "partial": "Some documentation outline areas are still incomplete.",
                     "missing": "Too few documentation outline areas are covered."
                 },
+                "repository": {
+                    "not_linked": "No GitHub repository is linked to this product.",
+                    "linked": "A repository is linked.",
+                    "linked_synced": "Repository is linked and has been synced.",
+                    "ci_failing": "CI on the default branch is failing."
+                },
                 "reporting": {
                     "deadlines_at_risk": "Vulnerability reporting deadlines need attention.",
                     "submissions_recorded": "At least one reporting submission is recorded.",
@@ -1708,6 +1715,8 @@
                 "responsible_persons": "Assign a product owner or security contact.",
                 "release_awaiting": "Advance versions out of security review / release candidate.",
                 "technical_documentation": "Complete core documentation outline areas (identity, versions, support, risks, SBOM, evidence).",
+                "no_repository_linked": "Link a GitHub repository on the product edit page.",
+                "ci_failing": "Fix failing CI on the linked repository default branch, then sync again.",
                 "reporting": "Review vulnerability reporting deadlines."
             }
         },
