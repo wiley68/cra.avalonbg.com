@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import RiskOptionInfoTooltip from '@/components/RiskOptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
@@ -19,7 +20,14 @@ type RequirementOption = {
     article_ref: string | null;
 };
 type ControlOption = { id: number; code: string; name: string };
-type RiskOption = { id: number; title: string };
+type RiskOption = {
+    id: number;
+    title: string;
+    asset: string | null;
+    threat: string | null;
+    weakness: string | null;
+    attack_scenario: string | null;
+};
 type VulnerabilityOption = {
     id: number;
     title: string;
@@ -49,8 +57,14 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.evidence.index_title', href: evidenceIndex(props.product.id) },
-    { titleKey: 'products.evidence.create_title', href: evidenceCreate(props.product.id) },
+    {
+        titleKey: 'products.evidence.index_title',
+        href: evidenceIndex(props.product.id),
+    },
+    {
+        titleKey: 'products.evidence.create_title',
+        href: evidenceCreate(props.product.id),
+    },
 ]);
 
 const textareaClass =
@@ -483,7 +497,8 @@ const toggleId = (
                                     )
                                 "
                             />
-                            <span>{{ risk.title }}</span>
+                            <span class="min-w-0 flex-1">{{ risk.title }}</span>
+                            <RiskOptionInfoTooltip :risk="risk" />
                         </label>
                     </div>
                 </div>

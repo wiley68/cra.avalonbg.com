@@ -327,17 +327,21 @@ class EvidenceController extends Controller
     }
 
     /**
-     * @return list<array{id: int, title: string}>
+     * @return list<array{id: int, title: string, asset: string|null, threat: string|null, weakness: string|null, attack_scenario: string|null}>
      */
     private function riskOptions(Product $product): array
     {
         return ProductRisk::query()
             ->where('product_id', $product->id)
             ->orderBy('title')
-            ->get(['id', 'title'])
+            ->get(['id', 'title', 'asset', 'threat', 'weakness', 'attack_scenario'])
             ->map(fn(ProductRisk $risk) => [
                 'id' => $risk->id,
                 'title' => $risk->title,
+                'asset' => $risk->asset,
+                'threat' => $risk->threat,
+                'weakness' => $risk->weakness,
+                'attack_scenario' => $risk->attack_scenario,
             ])
             ->all();
     }
