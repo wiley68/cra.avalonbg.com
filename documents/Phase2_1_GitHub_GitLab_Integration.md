@@ -1,8 +1,8 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.1  
+**Версия:** 1.2  
 **Дата:** 20 юли 2026 г.  
-**Статус:** Active — implementation-ready (след MVP 0.1 exit)  
+**Статус:** Active — Must complete (GitHub PAT); Should/Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
@@ -179,7 +179,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 4. Sync now: tags/releases + CI status + `vcs_sync_runs` — **Done** (2026-07-20)
 5. Evidence snapshot (JSON + hash) при успешен sync — **Done** (2026-07-20)
 6. Readiness gaps + i18n EN/BG — **Done** (2026-07-20)
-7. Feature tests с `Http::fake()`
+7. Feature tests с `Http::fake()` — **Done** (2026-07-20)
 
 ### Should
 
@@ -245,5 +245,6 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.2    | 2026-07-20 | Must slices 1–7 Done (GitHub PAT sync + evidence + readiness + tests)   |
 | 1.1    | 2026-07-20 | Active / implementation-ready: GitHub PAT first, schema, routes, slices |
 | 1.0    | 2026-07-20 | Първоначален Phase 2.1 план (еднопосочен sync)                          |

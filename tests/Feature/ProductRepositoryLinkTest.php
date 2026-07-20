@@ -81,7 +81,7 @@ test('product edit includes repository props', function () {
     $this->actingAs($owner)
         ->get(route('products.edit', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->component('products/Edit')
             ->where('repository', null)
             ->has('vcs_connections', 1));
@@ -189,4 +189,106 @@ test('owner can unlink repository', function () {
 
     expect(ProductRepository::query()->count())->toBe(0)
         ->and(AuditLog::query()->where('event_type', AuditEventType::VcsRepositoryUnlinked)->count())->toBe(1);
+});
+
+test('owner can relink repository to a different github repo', function () {
+    ['owner' => $owner, 'product' => $product, 'connection' => $connection] = makeProductRepositoryFixture();
+
+    ProductRepository::query()->create([
+        'product_id' => $product->id,
+        'connection_id' => $connection->id,
+        'external_id' => '1',
+        'full_name' => 'acme/old-widget',
+        'remote_url' => 'https://github.com/acme/old-widget',
+        'default_branch' => 'main',
+    ]);
+
+    Http::fake([
+        'api.github.com/repos/acme/new-widget' => Http::response([
+            'id' => 777,
+            'full_name' => 'acme/new-widget',
+            'html_url' => 'https://github.com/acme/new-widget',
+            'default_branch' => 'trunk',
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.repository.store', $product), [
+            'connection_id' => $connection->id,
+            'repository' => 'acme/new-widget',
+        ])
+        ->assertRedirect();
+
+    expect(ProductRepository::query()->count())->toBe(1)
+        ->and(ProductRepository::query()->first()->full_name)->toBe('acme/new-widget')
+        ->and(ProductRepository::query()->first()->external_id)->toBe('777')
+        ->and(ProductRepository::query()->first()->default_branch)->toBe('trunk')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::VcsRepositoryLinked)->count())->toBe(1);
+
+    Http::assertSent(fn($request) => $request->method() === 'GET'
+        && $request->url() === 'https://api.github.com/repos/acme/new-widget');
+});
+
+test('read-only user cannot link repository', function () {
+    ['organization' => $organization, 'product' => $product, 'connection' => $connection] = makeProductRepositoryFixture();
+
+    $viewer = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $role = Role::query()->where('slug', 'read_only')->firstOrFail();
+    $organization->users()->attach($viewer->id, [
+        'role_id' => $role->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Http::fake();
+
+    $this->actingAs($viewer)
+        ->post(route('products.repository.store', $product), [
+            'connection_id' => $connection->id,
+            'repository' => 'acme/widget',
+        ])
+        ->assertForbidden();
+
+    Http::assertNothingSent();
+    expect(ProductRepository::query()->count())->toBe(0);
+});
+
+test('cannot link using another organizations connection', function () {
+    ['owner' => $owner, 'product' => $product] = makeProductRepositoryFixture();
+
+    $otherOrg = Organization::query()->create([
+        'name' => 'Other Repo Org',
+        'slug' => 'other-repo-org',
+        'is_active' => true,
+    ]);
+
+    $foreignConnection = OrganizationVcsConnection::query()->create([
+        'organization_id' => $otherOrg->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::Pat,
+        'token' => 'ghp_foreign',
+        'label' => 'Foreign',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    Http::fake();
+
+    $this->actingAs($owner)
+        ->from(route('products.edit', $product))
+        ->post(route('products.repository.store', $product), [
+            'connection_id' => $foreignConnection->id,
+            'repository' => 'acme/widget',
+        ])
+        ->assertRedirect(route('products.edit', $product))
+        ->assertSessionHasErrors('connection_id');
+
+    Http::assertNothingSent();
+    expect(ProductRepository::query()->count())->toBe(0);
 });

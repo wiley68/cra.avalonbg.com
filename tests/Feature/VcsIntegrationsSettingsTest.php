@@ -161,3 +161,77 @@ test('updating existing github connection records update audit', function () {
         ->and(OrganizationVcsConnection::query()->first()->label)->toBe('Rotated')
         ->and(AuditLog::query()->where('event_type', AuditEventType::VcsConnectionUpdated)->count())->toBe(1);
 });
+
+test('github connect verification only uses get and sends bearer token', function () {
+    ['owner' => $owner] = makeIntegrationsFixture();
+
+    Http::fake([
+        'api.github.com/user' => Http::response(['login' => 'octocat'], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('settings.integrations.github.store'), [
+            'token' => 'ghp_verify_only_token',
+        ])
+        ->assertRedirect();
+
+    Http::assertSentCount(1);
+    Http::assertSent(fn($request) => $request->method() === 'GET'
+        && $request->url() === 'https://api.github.com/user'
+        && $request->hasHeader('Authorization', 'Bearer ghp_verify_only_token'));
+});
+
+test('read-only user cannot connect github', function () {
+    ['organization' => $organization] = makeIntegrationsFixture();
+
+    $viewer = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $role = Role::query()->where('slug', 'read_only')->firstOrFail();
+    $organization->users()->attach($viewer->id, [
+        'role_id' => $role->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Http::fake();
+
+    $this->actingAs($viewer)
+        ->post(route('settings.integrations.github.store'), [
+            'token' => 'ghp_should_not_connect',
+        ])
+        ->assertForbidden();
+
+    Http::assertNothingSent();
+    expect(OrganizationVcsConnection::query()->count())->toBe(0);
+});
+
+test('cannot disconnect another organizations connection', function () {
+    ['owner' => $owner] = makeIntegrationsFixture();
+
+    $otherOrg = Organization::query()->create([
+        'name' => 'Other Integrations Org',
+        'slug' => 'other-integrations-org',
+        'is_active' => true,
+    ]);
+
+    $foreign = OrganizationVcsConnection::query()->create([
+        'organization_id' => $otherOrg->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::Pat,
+        'token' => 'ghp_foreign_token',
+        'label' => 'Foreign',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('settings.integrations.destroy', $foreign))
+        ->assertNotFound();
+
+    expect(OrganizationVcsConnection::query()->whereKey($foreign->id)->exists())->toBeTrue();
+});
