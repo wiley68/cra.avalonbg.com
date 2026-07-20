@@ -55,4 +55,9 @@ class Organization extends Model
     {
         return $this->hasMany(Control::class);
     }
+
+    public function vcsConnections(): HasMany
+    {
+        return $this->hasMany(OrganizationVcsConnection::class);
+    }
 }

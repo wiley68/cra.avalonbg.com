@@ -89,49 +89,49 @@ Job: `SyncProductRepositoryJob` — за „Sync now“ и подготовка 
 
 ### `organization_vcs_connections`
 
-| Колона            | Тип                         | Бележки                          |
-| ----------------- | --------------------------- | -------------------------------- |
-| id                | bigint PK                   |                                  |
-| organization_id   | FK                          | tenant                           |
-| provider          | string                      | `github` \| `gitlab`             |
-| auth_type         | string                      | първо само `pat`                 |
-| token             | text (encrypted cast)       | PAT                              |
-| label             | string nullable             | потребителски етикет             |
-| status            | string                      | `active` \| `invalid` \| `revoked` |
-| last_verified_at  | timestamp nullable          |                                  |
-| timestamps        |                             |                                  |
+| Колона           | Тип                   | Бележки                            |
+| ---------------- | --------------------- | ---------------------------------- |
+| id               | bigint PK             |                                    |
+| organization_id  | FK                    | tenant                             |
+| provider         | string                | `github` \| `gitlab`               |
+| auth_type        | string                | първо само `pat`                   |
+| token            | text (encrypted cast) | PAT                                |
+| label            | string nullable       | потребителски етикет               |
+| status           | string                | `active` \| `invalid` \| `revoked` |
+| last_verified_at | timestamp nullable    |                                    |
+| timestamps       |                       |                                    |
 
 Unique: `(organization_id, provider)` за първия slice (една GitHub връзка на org).
 
 ### `product_repositories`
 
-| Колона            | Тип                    | Бележки                                      |
-| ----------------- | ---------------------- | -------------------------------------------- |
-| id                | bigint PK              |                                              |
-| product_id        | FK                     |                                              |
-| connection_id     | FK                     | → organization_vcs_connections               |
-| external_id       | string nullable        | GitHub `node_id` / numeric id                |
-| full_name         | string                 | `owner/repo`                                 |
-| remote_url        | string                 | HTML или clone URL                           |
-| default_branch    | string nullable        | от API                                       |
-| last_synced_at    | timestamp nullable     |                                              |
-| last_sync_summary | json nullable          | tags count, CI conclusion, error message     |
-| timestamps        |                        |                                              |
+| Колона            | Тип                | Бележки                                  |
+| ----------------- | ------------------ | ---------------------------------------- |
+| id                | bigint PK          |                                          |
+| product_id        | FK                 |                                          |
+| connection_id     | FK                 | → organization_vcs_connections           |
+| external_id       | string nullable    | GitHub `node_id` / numeric id            |
+| full_name         | string             | `owner/repo`                             |
+| remote_url        | string             | HTML или clone URL                       |
+| default_branch    | string nullable    | от API                                   |
+| last_synced_at    | timestamp nullable |                                          |
+| last_sync_summary | json nullable      | tags count, CI conclusion, error message |
+| timestamps        |                    |                                          |
 
 Unique: `(product_id)` — един primary repo на продукт в първия slice.
 
 ### `vcs_sync_runs`
 
-| Колона          | Тип                | Бележки                                      |
-| --------------- | ------------------ | -------------------------------------------- |
-| id              | bigint PK          |                                              |
-| repository_id   | FK                 | → product_repositories                       |
-| status          | string             | `pending` \| `running` \| `succeeded` \| `failed` |
-| triggered_by    | FK users nullable  |                                              |
-| started_at      | timestamp nullable |                                              |
-| finished_at     | timestamp nullable |                                              |
-| summary         | json nullable      | counts, CI status, error                     |
-| timestamps      |                    |                                              |
+| Колона        | Тип                | Бележки                                           |
+| ------------- | ------------------ | ------------------------------------------------- |
+| id            | bigint PK          |                                                   |
+| repository_id | FK                 | → product_repositories                            |
+| status        | string             | `pending` \| `running` \| `succeeded` \| `failed` |
+| triggered_by  | FK users nullable  |                                                   |
+| started_at    | timestamp nullable |                                                   |
+| finished_at   | timestamp nullable |                                                   |
+| summary       | json nullable      | counts, CI status, error                          |
+| timestamps    |                    |                                                   |
 
 ### Разширения в съществуващ код
 
@@ -148,9 +148,9 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 - Нов nav item в [`resources/js/layouts/settings/Layout.vue`](../resources/js/layouts/settings/Layout.vue)
 - Страница: `resources/js/pages/settings/Integrations.vue`
 - Routes в [`routes/settings.php`](../routes/settings.php):
-  - `GET settings/integrations` → show
-  - `POST settings/integrations/github` → store PAT
-  - `DELETE settings/integrations/{connection}` → disconnect
+    - `GET settings/integrations` → show
+    - `POST settings/integrations/github` → store PAT
+    - `DELETE settings/integrations/{connection}` → disconnect
 - Controller: `App\Http\Controllers\Settings\IntegrationController`
 - UI: shadcn Input/Button; Lucide `Github`, `Trash2`; без raw checkbox
 
@@ -158,8 +158,8 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 - Секция на Product Edit или отделен manage panel: link repo (`owner/repo` или URL) + Sync now + last sync status
 - Routes (org-scoped през `currentOrganization()`, nested under products):
-  - `POST/PUT/DELETE products/{product}/repository`
-  - `POST products/{product}/repository/sync`
+    - `POST/PUT/DELETE products/{product}/repository`
+    - `POST products/{product}/repository/sync`
 - Икони: `Github`, `RefreshCw`, `Save`
 
 ### Evidence / Readiness
@@ -173,7 +173,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 ### Must (първа итерация)
 
-1. Migrations + Eloquent models + encrypted token cast
+1. Migrations + Eloquent models + encrypted token cast — **Done** (2026-07-20)
 2. GitHub PAT connection UI (settings) + audit events
 3. Product ↔ repository link
 4. Sync now: tags/releases + CI status + `vcs_sync_runs`
