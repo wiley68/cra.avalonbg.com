@@ -17,105 +17,191 @@ use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardService
 {
+    private const OPEN_TASKS_PREVIEW_LIMIT = 3;
+
     /**
-     * @return array{
-     *     mode: string,
-     *     organization: array{id: int, name: string, slug: string}|null,
-     *     counts: array<string, int>,
-     *     actions: list<array{key: string, severity: string, title_key: string, count: int, href: string|null, product_id?: int|null}>
-     * }
+     * @return array<string, mixed>
      */
     public function build(User $user): array
     {
         if ($user->isPlatformAdmin() && $user->currentOrganization() === null) {
-            return [
-                'mode' => 'platform',
-                'organization' => null,
-                'counts' => [
-                    'organizations' => Organization::query()->count(),
-                    'products' => Product::query()->count(),
-                ],
-                'actions' => [
-                    [
-                        'key' => 'manage_organizations',
-                        'severity' => 'info',
-                        'title_key' => 'dashboard.actions.manage_organizations',
-                        'count' => Organization::query()->count(),
-                        'href' => route('admin.organizations.index'),
-                    ],
-                ],
-            ];
+            return $this->platformDashboard();
         }
 
         $organization = $user->currentOrganization();
 
         if ($organization === null) {
-            return [
-                'mode' => 'empty',
-                'organization' => null,
-                'counts' => [],
-                'actions' => [],
-            ];
+            return $this->emptyDashboard();
         }
 
+        return $this->organizationDashboard($organization);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function platformDashboard(): array
+    {
+        $organizationCount = Organization::query()->count();
+
+        return [
+            'mode' => 'platform',
+            'organization' => null,
+            'counts' => [
+                'organizations' => $organizationCount,
+                'products' => Product::query()->count(),
+            ],
+            'actions' => [
+                [
+                    'key' => 'manage_organizations',
+                    'severity' => 'info',
+                    'title_key' => 'dashboard.actions.manage_organizations',
+                    'count' => $organizationCount,
+                    'href' => route('admin.organizations.index'),
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function emptyDashboard(): array
+    {
+        return [
+            'mode' => 'empty',
+            'organization' => null,
+            'counts' => [],
+            'actions' => [],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function organizationDashboard(Organization $organization): array
+    {
+        /** @var Collection<int, int|string> $productIds */
         $productIds = Product::query()
             ->where('organization_id', $organization->id)
             ->pluck('id');
 
-        $actions = [];
+        $criticalVulns = $this->criticalVulnerabilityCount($productIds);
+        $expiredEvidence = $this->expiredEvidenceCount($productIds);
+        $openTasksAction = $this->openTasksAction($productIds);
 
-        $unclassified = Product::query()
+        $actions = array_values(array_filter([
+            $this->countAction(
+                'unclassified_products',
+                'warn',
+                $this->unclassifiedProductCount($organization),
+            ),
+            $this->countAction(
+                'products_without_support',
+                'warn',
+                $this->productsWithoutSupportCount($organization),
+            ),
+            $this->countAction(
+                'products_without_risks',
+                'warn',
+                $this->productsWithoutRisksCount($organization),
+            ),
+            $this->countAction(
+                'critical_vulnerabilities',
+                'fail',
+                $criticalVulns,
+            ),
+            $this->countAction(
+                'support_ending_soon',
+                'warn',
+                $this->supportEndingSoonCount($productIds),
+            ),
+            $this->countAction(
+                'expired_evidence',
+                'fail',
+                $expiredEvidence,
+            ),
+            $openTasksAction,
+            $this->countAction(
+                'overdue_reporting',
+                'fail',
+                $this->overdueReportingCount($productIds),
+            ),
+        ]));
+
+        return [
+            'mode' => 'organization',
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'slug' => $organization->slug,
+            ],
+            'counts' => [
+                'products' => $productIds->count(),
+                'open_tasks' => (int) ($openTasksAction['count'] ?? 0),
+                'critical_vulnerabilities' => $criticalVulns,
+                'expired_evidence' => $expiredEvidence,
+                'risks' => ProductRisk::query()->whereIn('product_id', $productIds)->count(),
+            ],
+            'actions' => $actions,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function countAction(string $key, string $severity, int $count): ?array
+    {
+        if ($count <= 0) {
+            return null;
+        }
+
+        return [
+            'key' => $key,
+            'severity' => $severity,
+            'title_key' => 'dashboard.actions.' . $key,
+            'count' => $count,
+            'href' => route('products.index'),
+        ];
+    }
+
+    private function unclassifiedProductCount(Organization $organization): int
+    {
+        return Product::query()
             ->where('organization_id', $organization->id)
             ->whereIn('classification_status', [
                 ClassificationStatus::Unclassified->value,
                 ClassificationStatus::UnderReview->value,
             ])
             ->count();
+    }
 
-        if ($unclassified > 0) {
-            $actions[] = [
-                'key' => 'unclassified_products',
-                'severity' => 'warn',
-                'title_key' => 'dashboard.actions.unclassified_products',
-                'count' => $unclassified,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $withoutSupport = Product::query()
+    private function productsWithoutSupportCount(Organization $organization): int
+    {
+        return Product::query()
             ->where('organization_id', $organization->id)
             ->whereDoesntHave('supportPeriods')
             ->count();
+    }
 
-        if ($withoutSupport > 0) {
-            $actions[] = [
-                'key' => 'products_without_support',
-                'severity' => 'warn',
-                'title_key' => 'dashboard.actions.products_without_support',
-                'count' => $withoutSupport,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $withoutRisks = Product::query()
+    private function productsWithoutRisksCount(Organization $organization): int
+    {
+        return Product::query()
             ->where('organization_id', $organization->id)
             ->whereDoesntHave('productRisks')
             ->count();
+    }
 
-        if ($withoutRisks > 0) {
-            $actions[] = [
-                'key' => 'products_without_risks',
-                'severity' => 'warn',
-                'title_key' => 'dashboard.actions.products_without_risks',
-                'count' => $withoutRisks,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $criticalVulns = ProductVulnerability::query()
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function criticalVulnerabilityCount(Collection $productIds): int
+    {
+        return ProductVulnerability::query()
             ->whereIn('product_id', $productIds)
             ->where('business_severity', VulnerabilityBusinessSeverity::Critical->value)
             ->whereNotIn('status', [
@@ -123,73 +209,93 @@ class DashboardService
                 VulnerabilityStatus::Rejected->value,
             ])
             ->count();
+    }
 
-        if ($criticalVulns > 0) {
-            $actions[] = [
-                'key' => 'critical_vulnerabilities',
-                'severity' => 'fail',
-                'title_key' => 'dashboard.actions.critical_vulnerabilities',
-                'count' => $criticalVulns,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $endingSupport = ProductSupportPeriod::query()
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function supportEndingSoonCount(Collection $productIds): int
+    {
+        return ProductSupportPeriod::query()
             ->whereIn('product_id', $productIds)
             ->where('start_basis', SupportPeriodStartBasis::ReleaseDate->value)
             ->with(['versions:id,release_date'])
             ->get()
             ->filter(
-                fn(ProductSupportPeriod $period) => $period->isActive() === true
+                fn(ProductSupportPeriod $period): bool => $period->isActive() === true
                 && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 90,
             )
             ->count();
+    }
 
-        if ($endingSupport > 0) {
-            $actions[] = [
-                'key' => 'support_ending_soon',
-                'severity' => 'warn',
-                'title_key' => 'dashboard.actions.support_ending_soon',
-                'count' => $endingSupport,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $expiredEvidence = Evidence::query()
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function expiredEvidenceCount(Collection $productIds): int
+    {
+        return Evidence::query()
             ->whereIn('product_id', $productIds)
             ->where('freshness_status', EvidenceFreshnessStatus::Expired->value)
             ->count();
+    }
 
-        if ($expiredEvidence > 0) {
-            $actions[] = [
-                'key' => 'expired_evidence',
-                'severity' => 'fail',
-                'title_key' => 'dashboard.actions.expired_evidence',
-                'count' => $expiredEvidence,
-                'href' => route('products.index'),
-            ];
-        }
-
-        $openTasks = Task::query()
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @return array<string, mixed>|null
+     */
+    private function openTasksAction(Collection $productIds): ?array
+    {
+        $openTasksQuery = Task::query()
             ->whereIn('product_id', $productIds)
             ->whereIn('status', [
                 TaskStatus::Open->value,
                 TaskStatus::InProgress->value,
                 TaskStatus::PendingApproval->value,
-            ])
-            ->count();
+            ]);
 
-        if ($openTasks > 0) {
-            $actions[] = [
-                'key' => 'open_tasks',
-                'severity' => 'info',
-                'title_key' => 'dashboard.actions.open_tasks',
-                'count' => $openTasks,
-                'href' => route('products.index'),
-            ];
+        $openTasks = (clone $openTasksQuery)->count();
+
+        if ($openTasks <= 0) {
+            return null;
         }
 
-        $overdueVulnDeadlines = ProductVulnerability::query()
+        $previewTasks = (clone $openTasksQuery)
+            ->orderByRaw('due_at is null')
+            ->orderBy('due_at')
+            ->orderBy('id')
+            ->limit(self::OPEN_TASKS_PREVIEW_LIMIT)
+            ->get(['id', 'title', 'product_id']);
+
+        $primaryProductId = $previewTasks->first()?->product_id;
+
+        return [
+            'key' => 'open_tasks',
+            'severity' => 'info',
+            'title_key' => 'dashboard.actions.open_tasks',
+            'count' => $openTasks,
+            'href' => $primaryProductId !== null
+                ? route('products.tasks.index', $primaryProductId)
+                : route('products.index'),
+            'items' => $previewTasks
+                ->map(fn(Task $task): array => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'href' => route('products.tasks.edit', [
+                        $task->product_id,
+                        $task->id,
+                    ]),
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function overdueReportingCount(Collection $productIds): int
+    {
+        return ProductVulnerability::query()
             ->whereIn('product_id', $productIds)
             ->whereNotNull('awareness_at')
             ->whereNotIn('status', [
@@ -203,32 +309,5 @@ class DashboardService
                 return $deadline !== null && $deadline->lt(Carbon::now());
             })
             ->count();
-
-        if ($overdueVulnDeadlines > 0) {
-            $actions[] = [
-                'key' => 'overdue_reporting',
-                'severity' => 'fail',
-                'title_key' => 'dashboard.actions.overdue_reporting',
-                'count' => $overdueVulnDeadlines,
-                'href' => route('products.index'),
-            ];
-        }
-
-        return [
-            'mode' => 'organization',
-            'organization' => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-                'slug' => $organization->slug,
-            ],
-            'counts' => [
-                'products' => $productIds->count(),
-                'open_tasks' => $openTasks,
-                'critical_vulnerabilities' => $criticalVulns,
-                'expired_evidence' => $expiredEvidence,
-                'risks' => ProductRisk::query()->whereIn('product_id', $productIds)->count(),
-            ],
-            'actions' => $actions,
-        ];
     }
 }

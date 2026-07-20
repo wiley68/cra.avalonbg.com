@@ -8,12 +8,19 @@ import { dashboard as dashboardRoute } from '@/routes';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as productsIndex } from '@/routes/products';
 
+type DashboardActionItem = {
+    id: number;
+    title: string;
+    href: string;
+};
+
 type DashboardAction = {
     key: string;
     severity: 'info' | 'warn' | 'fail';
     title_key: string;
     count: number;
     href: string | null;
+    items?: DashboardActionItem[];
 };
 
 type DashboardPayload = {
@@ -153,23 +160,42 @@ const severityClass = (severity: string): string => {
                 class="flex items-center justify-between gap-4 rounded-lg border p-4"
                 :class="severityClass(action.severity)"
             >
-                <div class="flex items-start gap-3">
+                <div class="flex min-w-0 flex-1 items-start gap-3">
                     <AlertTriangle
                         v-if="action.severity !== 'info'"
                         class="mt-0.5 h-5 w-5 shrink-0"
                     />
                     <Info v-else class="mt-0.5 h-5 w-5 shrink-0" />
-                    <div>
-                        <p class="font-medium">
-                            {{ t(action.title_key) }}
-                        </p>
-                        <p class="text-sm opacity-80">
-                            {{
-                                t('dashboard.count_label', {
-                                    count: String(action.count),
-                                })
-                            }}
-                        </p>
+                    <div class="min-w-0 space-y-2">
+                        <div>
+                            <p class="font-medium">
+                                {{ t(action.title_key) }}
+                            </p>
+                            <p class="text-sm opacity-80">
+                                {{
+                                    t('dashboard.count_label', {
+                                        count: String(action.count),
+                                    })
+                                }}
+                            </p>
+                        </div>
+                        <ul
+                            v-if="action.items?.length"
+                            class="space-y-1 text-sm"
+                        >
+                            <li
+                                v-for="item in action.items"
+                                :key="item.id"
+                                class="truncate"
+                            >
+                                <Link
+                                    :href="item.href"
+                                    class="underline underline-offset-2 hover:opacity-80"
+                                >
+                                    {{ item.title }}
+                                </Link>
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 <Button
@@ -177,6 +203,7 @@ const severityClass = (severity: string): string => {
                     as-child
                     size="sm"
                     variant="secondary"
+                    class="shrink-0"
                 >
                     <Link :href="action.href">{{ t('dashboard.open') }}</Link>
                 </Button>
