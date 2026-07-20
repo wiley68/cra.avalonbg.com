@@ -13,5 +13,6 @@ enum EvidenceType: string
     case Policy = 'policy';
     case Approval = 'approval';
     case ReleaseArtifact = 'release_artifact';
+    case IntegrationSnapshot = 'integration_snapshot';
     case Other = 'other';
 }

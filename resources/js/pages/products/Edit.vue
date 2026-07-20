@@ -124,6 +124,8 @@ type ProductRepositoryPayload = {
         latest_tag?: string | null;
         latest_release?: string | null;
         error?: string;
+        evidence_id?: number;
+        evidence_checksum_sha256?: string | null;
         ci?: {
             status?: string;
             conclusion?: string | null;
@@ -986,6 +988,29 @@ const textareaClass =
                                     >
                                         {{ t('products.repository.view_run') }}
                                     </a>
+                                </p>
+                                <p
+                                    v-if="
+                                        repository.last_sync_summary.evidence_id
+                                    "
+                                >
+                                    {{ t('products.repository.evidence') }}: #{{
+                                        repository.last_sync_summary.evidence_id
+                                    }}
+                                    <span
+                                        v-if="
+                                            repository.last_sync_summary
+                                                .evidence_checksum_sha256
+                                        "
+                                        class="font-mono text-xs"
+                                    >
+                                        ({{
+                                            repository.last_sync_summary.evidence_checksum_sha256.slice(
+                                                0,
+                                                12,
+                                            )
+                                        }}…)
+                                    </span>
                                 </p>
                             </template>
                         </div>

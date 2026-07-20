@@ -15,6 +15,11 @@ use Throwable;
 
 class VcsSyncService
 {
+    public function __construct(
+        private readonly EvidenceService $evidence,
+    ) {
+    }
+
     public function sync(ProductRepository $repository, ?User $actor = null): VcsSyncRun
     {
         $repository->loadMissing(['connection', 'product']);
@@ -45,7 +50,21 @@ class VcsSyncService
                 'ci' => $ci,
                 'tags' => array_slice($tags, 0, 10),
                 'releases' => array_slice($releases, 0, 10),
+                'synced_at' => now()->toIso8601String(),
+                'sync_run_id' => $run->id,
             ];
+
+            $snapshot = $this->evidence->createIntegrationSnapshot(
+                product: $repository->product,
+                snapshot: $summary,
+                title: 'VCS sync — ' . $fullName . ' — ' . now()->format('Y-m-d H:i'),
+                source: 'github:' . $fullName,
+                uploader: $actor,
+                notes: 'Auto-created from VCS sync run #' . $run->id,
+            );
+
+            $summary['evidence_id'] = $snapshot->id;
+            $summary['evidence_checksum_sha256'] = $snapshot->checksum_sha256;
 
             $repository->update([
                 'last_synced_at' => now(),
@@ -96,7 +115,7 @@ class VcsSyncService
 
         return match ($connection->provider) {
             VcsProviderEnum::Github => new GitHubPatProvider($connection->token),
-            default => throw new RuntimeException('Unsupported VCS provider: '.$connection->provider->value),
+            default => throw new RuntimeException('Unsupported VCS provider: ' . $connection->provider->value),
         };
     }
 }

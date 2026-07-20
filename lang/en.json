@@ -569,6 +569,7 @@
             "ci_unknown": "unknown",
             "view_run": "View run",
             "sync_error": "Sync error",
+            "evidence": "Evidence snapshot",
             "invalid_format": "Enter a valid GitHub repository as owner/repo or URL.",
             "not_found": "Repository not found with the connected GitHub token.",
             "fetch_failed": "Could not fetch repository details from GitHub.",
@@ -1452,6 +1453,7 @@
                 "policy": "Policy",
                 "approval": "Approval",
                 "release_artifact": "Release artifact",
+                "integration_snapshot": "Integration snapshot",
                 "other": "Other"
             },
             "confidentialities": {

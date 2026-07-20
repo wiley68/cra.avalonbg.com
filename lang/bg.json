@@ -569,6 +569,7 @@
             "ci_unknown": "неизвестен",
             "view_run": "Виж run",
             "sync_error": "Грешка при sync",
+            "evidence": "Evidence snapshot",
             "invalid_format": "Въведете валидно GitHub хранилище като owner/repo или URL.",
             "not_found": "Хранилището не е намерено с свързания GitHub токен.",
             "fetch_failed": "Неуспешно зареждане на данни за хранилището от GitHub.",
@@ -1452,6 +1453,7 @@
                 "policy": "Политика",
                 "approval": "Одобрение",
                 "release_artifact": "Release артефакт",
+                "integration_snapshot": "Интеграционен snapshot",
                 "other": "Друго"
             },
             "confidentialities": {

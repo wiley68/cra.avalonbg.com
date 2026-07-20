@@ -130,7 +130,7 @@ class EvidenceService
         array $riskIds,
         array $vulnerabilityIds,
     ): Evidence {
-        $evidence = DB::transaction(function () use ($product, $attributes, $file, $uploader, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
+        $evidence = DB::transaction(function () use ($product, $attributes, $file, $uploader, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds) {
             $this->assertLinksBelongToProduct($product, $controlIds, $riskIds, $vulnerabilityIds);
             $this->assertSupersedesBelongsToProduct($product, $attributes['supersedes_evidence_id'] ?? null);
 
@@ -169,6 +169,54 @@ class EvidenceService
     }
 
     /**
+     * @param  array<string, mixed>  $snapshot
+     */
+    public function createIntegrationSnapshot(
+        Product $product,
+        array $snapshot,
+        string $title,
+        string $source,
+        ?User $uploader = null,
+        ?string $notes = null,
+    ): Evidence {
+        $json = json_encode(
+            $snapshot,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+        );
+
+        if ($json === false) {
+            throw new \RuntimeException('Failed to encode integration snapshot JSON.');
+        }
+
+        $filename = 'vcs-sync-' . now()->format('Ymd-His') . '.json';
+        $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
+        Storage::disk('local')->put($storagePath, $json);
+
+        $evidence = Evidence::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'type' => EvidenceType::IntegrationSnapshot,
+            'title' => $title,
+            'source' => $source,
+            'owner_user_id' => $uploader?->id,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $json),
+            'confidentiality' => EvidenceConfidentiality::Internal,
+            'collected_at' => now(),
+            'freshness_status' => EvidenceFreshnessStatus::Current,
+            'uploaded_by' => $uploader?->id,
+            'notes' => $notes,
+        ]);
+
+        if ($uploader !== null) {
+            AuditLogger::logEvidenceCreated($evidence, $uploader);
+        }
+
+        return $evidence;
+    }
+
+    /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $requirementIds
      * @param  list<int>  $controlIds
@@ -184,7 +232,7 @@ class EvidenceService
         array $riskIds,
         array $vulnerabilityIds,
     ): Evidence {
-        $evidence = DB::transaction(function () use ($evidence, $attributes, $file, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds, ) {
+        $evidence = DB::transaction(function () use ($evidence, $attributes, $file, $requirementIds, $controlIds, $riskIds, $vulnerabilityIds) {
             $this->assertLinksBelongToProduct(
                 $evidence->product,
                 $controlIds,

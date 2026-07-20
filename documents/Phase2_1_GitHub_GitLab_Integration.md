@@ -177,7 +177,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 2. GitHub PAT connection UI (settings) + audit events — **Done** (2026-07-20)
 3. Product ↔ repository link — **Done** (2026-07-20)
 4. Sync now: tags/releases + CI status + `vcs_sync_runs` — **Done** (2026-07-20)
-5. Evidence snapshot (JSON + hash) при успешен sync
+5. Evidence snapshot (JSON + hash) при успешен sync — **Done** (2026-07-20)
 6. Readiness gaps + i18n EN/BG
 7. Feature tests с `Http::fake()`
 

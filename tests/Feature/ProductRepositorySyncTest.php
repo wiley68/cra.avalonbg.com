@@ -2,6 +2,7 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceType;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
@@ -10,6 +11,7 @@ use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
 use App\Enums\VcsSyncRunStatus;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
@@ -20,6 +22,7 @@ use App\Models\VcsSyncRun;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -87,6 +90,8 @@ function makeSyncFixture(): array
 }
 
 test('owner can sync repository tags releases and ci status', function () {
+    Storage::fake('local');
+
     ['owner' => $owner, 'product' => $product, 'repository' => $repository] = makeSyncFixture();
 
     Http::fake([
@@ -110,7 +115,7 @@ test('owner can sync repository tags releases and ci status', function () {
                     'name' => 'CI',
                     'html_url' => 'https://github.com/acme/widget/actions/runs/1',
                     'head_sha' => 'abc123',
-                ]
+                ],
             ],
         ], 200),
     ]);
@@ -121,17 +126,29 @@ test('owner can sync repository tags releases and ci status', function () {
 
     $repository->refresh();
     $run = VcsSyncRun::query()->first();
+    $evidence = Evidence::query()->first();
 
     expect($run)->not->toBeNull()
+        ->and($run->summary['error'] ?? null)->toBeNull()
         ->and($run->status)->toBe(VcsSyncRunStatus::Succeeded)
         ->and($run->triggered_by)->toBe($owner->id)
         ->and($run->summary['tags_count'])->toBe(2)
         ->and($run->summary['releases_count'])->toBe(1)
         ->and($run->summary['latest_tag'])->toBe('v1.2.0')
         ->and($run->summary['ci']['conclusion'])->toBe('success')
+        ->and($run->summary['evidence_id'])->toBe($evidence->id)
         ->and($repository->last_synced_at)->not->toBeNull()
         ->and($repository->last_sync_summary['tags_count'])->toBe(2)
         ->and(AuditLog::query()->where('event_type', AuditEventType::VcsSyncSucceeded)->count())->toBe(1);
+
+    expect($evidence)->not->toBeNull()
+        ->and($evidence->type)->toBe(EvidenceType::IntegrationSnapshot)
+        ->and($evidence->product_id)->toBe($product->id)
+        ->and($evidence->source)->toBe('github:acme/widget')
+        ->and($evidence->checksum_sha256)->toBe(hash('sha256', Storage::disk('local')->get($evidence->storage_path)))
+        ->and(AuditLog::query()->where('event_type', AuditEventType::EvidenceCreated)->count())->toBe(1);
+
+    expect(Storage::disk('local')->exists($evidence->storage_path))->toBeTrue();
 });
 
 test('failed sync is recorded and audited', function () {
@@ -151,7 +168,8 @@ test('failed sync is recorded and audited', function () {
     expect($run->status)->toBe(VcsSyncRunStatus::Failed)
         ->and($run->summary['error'])->toContain('Failed to list GitHub tags')
         ->and($repository->last_sync_summary['error'])->toContain('Failed to list GitHub tags')
-        ->and(AuditLog::query()->where('event_type', AuditEventType::VcsSyncFailed)->count())->toBe(1);
+        ->and(AuditLog::query()->where('event_type', AuditEventType::VcsSyncFailed)->count())->toBe(1)
+        ->and(Evidence::query()->count())->toBe(0);
 });
 
 test('sync without linked repository returns not found', function () {
