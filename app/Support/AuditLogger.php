@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
+use App\Models\PatchCampaign;
 use App\Models\ProductDeployment;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
@@ -276,6 +277,79 @@ class AuditLogger
                 ['field' => 'deployment_id', 'value' => (string) $deployment->id],
                 ['field' => 'customer_id', 'value' => (string) $deployment->customer_id],
                 ['field' => 'environment', 'value' => $deployment->environment->value],
+            ],
+        );
+    }
+
+    public static function logPatchCampaignCreated(PatchCampaign $campaign, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::PatchCampaignCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
+                ['field' => 'status', 'value' => $campaign->status->value],
+                ['field' => 'target_version_id', 'value' => (string) $campaign->target_version_id],
+            ],
+        );
+    }
+
+    public static function logPatchCampaignUpdated(PatchCampaign $campaign, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::PatchCampaignUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
+                ['field' => 'status', 'value' => $campaign->status->value],
+                ['field' => 'target_version_id', 'value' => (string) $campaign->target_version_id],
+            ],
+        );
+    }
+
+    public static function logPatchCampaignActivated(
+        PatchCampaign $campaign,
+        User $actor,
+        int $targetsSeeded,
+    ): void {
+        self::persist(
+            type: AuditEventType::PatchCampaignActivated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
+                ['field' => 'target_version_id', 'value' => (string) $campaign->target_version_id],
+                ['field' => 'targets_seeded', 'value' => (string) $targetsSeeded],
+            ],
+        );
+    }
+
+    public static function logPatchCampaignDeleted(PatchCampaign $campaign, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::PatchCampaignDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
             ],
         );
     }

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductComponentApiController;
 use App\Http\Controllers\Api\ProductControlApiController;
 use App\Http\Controllers\Api\ProductDeploymentApiController;
+use App\Http\Controllers\Api\PatchCampaignApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\ProductSupportPeriodApiController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProductControlController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDeploymentController;
+use App\Http\Controllers\PatchCampaignController;
 use App\Http\Controllers\ProductReadinessController;
 use App\Http\Controllers\ProductRepositoryController;
 use App\Http\Controllers\ProductRequirementController;
@@ -197,6 +199,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.deployments', ProductDeploymentController::class)
             ->except(['show'])
             ->scoped();
+        Route::post('products/{product}/campaigns/{campaign}/activate', [PatchCampaignController::class, 'activate'])
+            ->name('products.campaigns.activate')
+            ->scopeBindings();
+        Route::resource('products.campaigns', PatchCampaignController::class)
+            ->scoped();
 
         Route::prefix('internal-api')->name('internal.')->group(function () {
             Route::get('users', [UserApiController::class, 'index'])
@@ -213,6 +220,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.support-periods.index');
             Route::get('products/{product}/deployments', [ProductDeploymentApiController::class, 'index'])
                 ->name('products.deployments.index');
+            Route::get('products/{product}/campaigns', [PatchCampaignApiController::class, 'index'])
+                ->name('products.campaigns.index');
             Route::get('products/{product}/requirements', [ProductRequirementApiController::class, 'index'])
                 ->name('products.requirements.index');
             Route::get('products/{product}/controls', [ProductControlApiController::class, 'index'])

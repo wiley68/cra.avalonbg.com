@@ -7,6 +7,7 @@
         "role": "Role",
         "flags": "Flags",
         "edit": "Edit",
+        "view": "View",
         "back": "Back",
         "create": "Create",
         "save": "Save changes",
@@ -509,6 +510,7 @@
         "versions_link": "Versions",
         "support_periods_link": "Support periods",
         "deployments_link": "Customer deployments",
+        "campaigns_link": "Patch campaigns",
         "requirements_link": "Requirements",
         "controls_link": "Controls",
         "risks_link": "Risks",
@@ -527,6 +529,9 @@
             },
             "deployments": {
                 "description": "Customer installations by environment"
+            },
+            "campaigns": {
+                "description": "Patch rollout tracking for customer deployments"
             },
             "requirements": {
                 "description": "CRA requirements and applicability"
@@ -878,6 +883,70 @@
                 "production": "Production",
                 "staging": "Staging",
                 "other": "Other"
+            }
+        },
+        "campaigns": {
+            "index_title": "Patch campaigns",
+            "title": "Patch campaigns",
+            "subtitle": "Track customer update rollout for this product",
+            "create": "New campaign",
+            "create_title": "Create patch campaign",
+            "edit_title": "Edit patch campaign",
+            "create_and_activate": "Create and activate",
+            "save_draft": "Save draft",
+            "activate": "Activate",
+            "created": "Campaign created as draft.",
+            "updated": "Campaign updated.",
+            "activated": "Campaign activated and matching deployments attached.",
+            "deleted": "Campaign deleted.",
+            "confirm_delete": "Delete this draft campaign?",
+            "confirm_activate_title": "Activate campaign",
+            "confirm_activate": "Activate this campaign and attach all deployments that are not yet on the target version?",
+            "search_placeholder": "Search by title, status or version...",
+            "version_placeholder": "Select target version",
+            "vulnerability_none": "None",
+            "only_draft": "Only draft campaigns can be changed.",
+            "version_invalid": "Selected version is not valid for this product.",
+            "vulnerability_invalid": "Selected vulnerability is not valid for this product.",
+            "seed_hint": "On activate, deployments with no version or a different version than the target are attached as pending targets.",
+            "targets_title": "Targets",
+            "targets_draft_hint": "Targets are attached when the campaign is activated.",
+            "targets_empty": "No matching deployments were attached (all are already on the target version).",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "target_version": "Target version",
+                "targets": "Targets",
+                "started_at": "Started",
+                "customer": "Customer",
+                "environment": "Environment",
+                "current_version": "Current version"
+            },
+            "fields": {
+                "title": "Title",
+                "target_version": "Target version",
+                "vulnerability": "Linked vulnerability",
+                "notes": "Notes",
+                "started_at": "Started"
+            },
+            "help": {
+                "title": "Short name for this rollout campaign.",
+                "target_version": "Customers should move to this product version.",
+                "vulnerability": "Optional link to the vulnerability that triggered this campaign."
+            },
+            "statuses": {
+                "draft": "Draft",
+                "active": "Active",
+                "completed": "Completed",
+                "cancelled": "Cancelled"
+            },
+            "target_statuses": {
+                "pending": "Pending",
+                "notified": "Notified",
+                "acknowledged": "Acknowledged",
+                "updated": "Updated",
+                "excepted": "Excepted"
             }
         },
         "scope_wizard": {
@@ -1927,6 +1996,10 @@
             "deployment_created": "Deployment created",
             "deployment_updated": "Deployment updated",
             "deployment_deleted": "Deployment deleted",
+            "patch_campaign_created": "Patch campaign created",
+            "patch_campaign_updated": "Patch campaign updated",
+            "patch_campaign_activated": "Patch campaign activated",
+            "patch_campaign_deleted": "Patch campaign deleted",
             "risk_created": "Risk created",
             "risk_updated": "Risk updated",
             "risk_deleted": "Risk deleted",

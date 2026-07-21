@@ -22,6 +22,10 @@ enum AuditEventType: string
     case DeploymentCreated = 'deployment_created';
     case DeploymentUpdated = 'deployment_updated';
     case DeploymentDeleted = 'deployment_deleted';
+    case PatchCampaignCreated = 'patch_campaign_created';
+    case PatchCampaignUpdated = 'patch_campaign_updated';
+    case PatchCampaignActivated = 'patch_campaign_activated';
+    case PatchCampaignDeleted = 'patch_campaign_deleted';
     case RiskCreated = 'risk_created';
     case RiskUpdated = 'risk_updated';
     case RiskDeleted = 'risk_deleted';

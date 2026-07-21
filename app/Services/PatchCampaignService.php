@@ -1,0 +1,370 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\PatchCampaignStatus;
+use App\Enums\PatchCampaignTargetStatus;
+use App\Models\PatchCampaign;
+use App\Models\PatchCampaignTarget;
+use App\Models\Product;
+use App\Models\ProductDeployment;
+use App\Models\ProductVersion;
+use App\Models\ProductVulnerability;
+use App\Models\User;
+use App\Support\AuditLogger;
+use App\Support\Translations;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class PatchCampaignService
+{
+    /**
+     * @return LengthAwarePaginator<int, array{
+     *     id: int,
+     *     title: string,
+     *     status: string,
+     *     target_version_id: int,
+     *     target_version_number: string|null,
+     *     product_vulnerability_id: int|null,
+     *     vulnerability_title: string|null,
+     *     targets_count: int,
+     *     started_at: string|null,
+     *     completed_at: string|null,
+     *     created_at: string|null
+     * }>
+     */
+    public function paginate(
+        Product $product,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'id',
+        string $sortOrder = 'desc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = PatchCampaign::query()
+            ->where('patch_campaigns.product_id', $product->id)
+            ->leftJoin(
+                'product_versions',
+                'product_versions.id',
+                '=',
+                'patch_campaigns.target_version_id',
+            )
+            ->leftJoin(
+                'product_vulnerabilities',
+                'product_vulnerabilities.id',
+                '=',
+                'patch_campaigns.product_vulnerability_id',
+            )
+            ->withCount('targets')
+            ->select('patch_campaigns.*')
+            ->with(['targetVersion', 'productVulnerability']);
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('patch_campaigns.title', 'like', "%{$search}%")
+                    ->orWhere('patch_campaigns.status', 'like', "%{$search}%")
+                    ->orWhere('patch_campaigns.notes', 'like', "%{$search}%")
+                    ->orWhere('product_versions.version_number', 'like', "%{$search}%")
+                    ->orWhere('product_vulnerabilities.title', 'like', "%{$search}%");
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('patch_campaigns.id', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'title' => 'patch_campaigns.title',
+            'status' => 'patch_campaigns.status',
+            'target_version_number' => 'product_versions.version_number',
+            'started_at' => 'patch_campaigns.started_at',
+            'targets_count' => 'targets_count',
+            default => 'patch_campaigns.id',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(PatchCampaign $campaign) => $this->listItemPayload($campaign));
+    }
+
+    /**
+     * @param  array{
+     *     title: string,
+     *     target_version_id: int,
+     *     product_vulnerability_id?: int|null,
+     *     notes?: string|null,
+     *     activate?: bool
+     * }  $attributes
+     */
+    public function create(Product $product, array $attributes, User $actor): PatchCampaign
+    {
+        $this->assertTargetVersionBelongsToProduct($product, (int) $attributes['target_version_id']);
+        $this->assertVulnerabilityBelongsToProduct(
+            $product,
+            isset($attributes['product_vulnerability_id'])
+            ? (int) $attributes['product_vulnerability_id']
+            : null,
+        );
+
+        $campaign = PatchCampaign::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'target_version_id' => $attributes['target_version_id'],
+            'product_vulnerability_id' => $attributes['product_vulnerability_id'] ?? null,
+            'title' => $attributes['title'],
+            'status' => PatchCampaignStatus::Draft,
+            'notes' => $attributes['notes'] ?? null,
+            'created_by' => $actor->id,
+        ]);
+
+        AuditLogger::logPatchCampaignCreated(
+            $campaign->loadMissing(['targetVersion', 'product']),
+            $actor,
+        );
+
+        if (!empty($attributes['activate'])) {
+            return $this->activate($campaign, $actor);
+        }
+
+        return $campaign;
+    }
+
+    /**
+     * @param  array{
+     *     title: string,
+     *     target_version_id: int,
+     *     product_vulnerability_id?: int|null,
+     *     notes?: string|null
+     * }  $attributes
+     */
+    public function update(PatchCampaign $campaign, array $attributes, User $actor): PatchCampaign
+    {
+        $this->assertDraft($campaign);
+
+        $product = $campaign->product()->firstOrFail();
+        $this->assertTargetVersionBelongsToProduct($product, (int) $attributes['target_version_id']);
+        $this->assertVulnerabilityBelongsToProduct(
+            $product,
+            isset($attributes['product_vulnerability_id'])
+            ? (int) $attributes['product_vulnerability_id']
+            : null,
+        );
+
+        $campaign->update([
+            'title' => $attributes['title'],
+            'target_version_id' => $attributes['target_version_id'],
+            'product_vulnerability_id' => $attributes['product_vulnerability_id'] ?? null,
+            'notes' => $attributes['notes'] ?? null,
+        ]);
+
+        $fresh = $campaign->fresh(['targetVersion', 'product']);
+        AuditLogger::logPatchCampaignUpdated($fresh, $actor);
+
+        return $fresh;
+    }
+
+    public function activate(PatchCampaign $campaign, User $actor): PatchCampaign
+    {
+        $this->assertDraft($campaign);
+
+        return DB::transaction(function () use ($campaign, $actor): PatchCampaign {
+            $deploymentIds = $this->matchingDeploymentIds(
+                $campaign->product_id,
+                $campaign->target_version_id,
+            );
+
+            $now = now();
+
+            foreach ($deploymentIds as $deploymentId) {
+                PatchCampaignTarget::query()->create([
+                    'campaign_id' => $campaign->id,
+                    'deployment_id' => $deploymentId,
+                    'status' => PatchCampaignTargetStatus::Pending,
+                ]);
+            }
+
+            $campaign->update([
+                'status' => PatchCampaignStatus::Active,
+                'started_at' => $now,
+            ]);
+
+            $fresh = $campaign->fresh(['targetVersion', 'product', 'targets']);
+            AuditLogger::logPatchCampaignActivated($fresh, $actor, count($deploymentIds));
+
+            return $fresh;
+        });
+    }
+
+    public function delete(PatchCampaign $campaign, User $actor): void
+    {
+        $this->assertDraft($campaign);
+
+        $campaign->loadMissing(['targetVersion', 'product']);
+        AuditLogger::logPatchCampaignDeleted($campaign, $actor);
+        $campaign->delete();
+    }
+
+    /**
+     * Deployments for the product where version is null or not the campaign target.
+     *
+     * @return list<int>
+     */
+    public function matchingDeploymentIds(int $productId, int $targetVersionId): array
+    {
+        return ProductDeployment::query()
+            ->where('product_id', $productId)
+            ->where(function ($query) use ($targetVersionId): void {
+                $query
+                    ->whereNull('product_version_id')
+                    ->orWhere('product_version_id', '!=', $targetVersionId);
+            })
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     title: string,
+     *     status: string,
+     *     target_version_id: int,
+     *     target_version_number: string|null,
+     *     product_vulnerability_id: int|null,
+     *     vulnerability_title: string|null,
+     *     notes: string|null,
+     *     started_at: string|null,
+     *     completed_at: string|null,
+     *     created_by: int|null,
+     *     targets: list<array{
+     *         id: int,
+     *         deployment_id: int,
+     *         customer_name: string,
+     *         environment: string,
+     *         version_number: string|null,
+     *         status: string,
+     *         notified_at: string|null,
+     *         acknowledged_at: string|null,
+     *         confirmed_at: string|null,
+     *         notification_note: string|null
+     *     }>
+     * }
+     */
+    public function showPayload(PatchCampaign $campaign): array
+    {
+        $campaign->loadMissing([
+            'targetVersion',
+            'productVulnerability',
+            'targets.deployment.customer',
+            'targets.deployment.productVersion',
+        ]);
+
+        return [
+            'id' => $campaign->id,
+            'title' => $campaign->title,
+            'status' => $campaign->status->value,
+            'target_version_id' => $campaign->target_version_id,
+            'target_version_number' => $campaign->targetVersion?->version_number,
+            'product_vulnerability_id' => $campaign->product_vulnerability_id,
+            'vulnerability_title' => $campaign->productVulnerability?->title,
+            'notes' => $campaign->notes,
+            'started_at' => $campaign->started_at?->toIso8601String(),
+            'completed_at' => $campaign->completed_at?->toIso8601String(),
+            'created_by' => $campaign->created_by,
+            'targets' => $campaign->targets
+                ->sortBy('id')
+                ->values()
+                ->map(fn(PatchCampaignTarget $target) => [
+                    'id' => $target->id,
+                    'deployment_id' => $target->deployment_id,
+                    'customer_name' => $target->deployment?->customer?->name ?? '',
+                    'environment' => $target->deployment?->environment->value ?? '',
+                    'version_number' => $target->deployment?->productVersion?->version_number,
+                    'status' => $target->status->value,
+                    'notified_at' => $target->notified_at?->toIso8601String(),
+                    'acknowledged_at' => $target->acknowledged_at?->toIso8601String(),
+                    'confirmed_at' => $target->confirmed_at?->toIso8601String(),
+                    'notification_note' => $target->notification_note,
+                ])
+                ->all(),
+        ];
+    }
+
+    private function assertDraft(PatchCampaign $campaign): void
+    {
+        if ($campaign->status !== PatchCampaignStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.campaigns.only_draft')],
+            ]);
+        }
+    }
+
+    private function assertTargetVersionBelongsToProduct(Product $product, int $versionId): void
+    {
+        $exists = ProductVersion::query()
+            ->whereKey($versionId)
+            ->where('product_id', $product->id)
+            ->exists();
+
+        if (!$exists) {
+            throw ValidationException::withMessages([
+                'target_version_id' => [Translations::get('products.campaigns.version_invalid')],
+            ]);
+        }
+    }
+
+    private function assertVulnerabilityBelongsToProduct(Product $product, ?int $vulnerabilityId): void
+    {
+        if ($vulnerabilityId === null) {
+            return;
+        }
+
+        $exists = ProductVulnerability::query()
+            ->whereKey($vulnerabilityId)
+            ->where('product_id', $product->id)
+            ->exists();
+
+        if (!$exists) {
+            throw ValidationException::withMessages([
+                'product_vulnerability_id' => [Translations::get('products.campaigns.vulnerability_invalid')],
+            ]);
+        }
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     title: string,
+     *     status: string,
+     *     target_version_id: int,
+     *     target_version_number: string|null,
+     *     product_vulnerability_id: int|null,
+     *     vulnerability_title: string|null,
+     *     targets_count: int,
+     *     started_at: string|null,
+     *     completed_at: string|null,
+     *     created_at: string|null
+     * }
+     */
+    private function listItemPayload(PatchCampaign $campaign): array
+    {
+        return [
+            'id' => $campaign->id,
+            'title' => $campaign->title,
+            'status' => $campaign->status->value,
+            'target_version_id' => $campaign->target_version_id,
+            'target_version_number' => $campaign->targetVersion?->version_number,
+            'product_vulnerability_id' => $campaign->product_vulnerability_id,
+            'vulnerability_title' => $campaign->productVulnerability?->title,
+            'targets_count' => (int) ($campaign->targets_count ?? $campaign->targets()->count()),
+            'started_at' => $campaign->started_at?->toIso8601String(),
+            'completed_at' => $campaign->completed_at?->toIso8601String(),
+            'created_at' => $campaign->created_at?->toIso8601String(),
+        ];
+    }
+}

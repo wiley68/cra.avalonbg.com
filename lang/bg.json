@@ -7,6 +7,7 @@
         "role": "Роля",
         "flags": "Флагове",
         "edit": "Редакция",
+        "view": "Преглед",
         "back": "Назад",
         "create": "Създай",
         "save": "Запази промените",
@@ -509,6 +510,7 @@
         "versions_link": "Версии",
         "support_periods_link": "Периоди на поддръжка",
         "deployments_link": "Клиентски deployments",
+        "campaigns_link": "Patch кампании",
         "requirements_link": "Изисквания",
         "controls_link": "Контроли",
         "risks_link": "Рискове",
@@ -527,6 +529,9 @@
             },
             "deployments": {
                 "description": "Клиентски инсталации по environment"
+            },
+            "campaigns": {
+                "description": "Проследяване на patch rollout към клиентски deployments"
             },
             "requirements": {
                 "description": "CRA изисквания и приложимост"
@@ -878,6 +883,70 @@
                 "production": "Production",
                 "staging": "Staging",
                 "other": "Друг"
+            }
+        },
+        "campaigns": {
+            "index_title": "Patch кампании",
+            "title": "Patch кампании",
+            "subtitle": "Проследяване на update rollout към клиенти за този продукт",
+            "create": "Нова кампания",
+            "create_title": "Създай patch кампания",
+            "edit_title": "Редакция на patch кампания",
+            "create_and_activate": "Създай и активирай",
+            "save_draft": "Запази като draft",
+            "activate": "Активирай",
+            "created": "Кампанията е създадена като draft.",
+            "updated": "Кампанията е обновена.",
+            "activated": "Кампанията е активирана и съвпадащите deployments са прикачени.",
+            "deleted": "Кампанията е изтрита.",
+            "confirm_delete": "Да се изтрие ли този draft на кампания?",
+            "confirm_activate_title": "Активиране на кампания",
+            "confirm_activate": "Да се активира ли кампанията и да се прикачат всички deployments, които още не са на целевата версия?",
+            "search_placeholder": "Търсене по заглавие, статус или версия...",
+            "version_placeholder": "Изберете целева версия",
+            "vulnerability_none": "Няма",
+            "only_draft": "Само draft кампании могат да се променят.",
+            "version_invalid": "Избраната версия не е валидна за този продукт.",
+            "vulnerability_invalid": "Избраната уязвимост не е валидна за този продукт.",
+            "seed_hint": "При активиране се прикачат deployments без версия или с версия, различна от целевата, като pending targets.",
+            "targets_title": "Targets",
+            "targets_draft_hint": "Targets се прикачват при активиране на кампанията.",
+            "targets_empty": "Няма прикачени deployments (всички вече са на целевата версия).",
+            "columns": {
+                "id": "ID",
+                "title": "Заглавие",
+                "status": "Статус",
+                "target_version": "Целева версия",
+                "targets": "Targets",
+                "started_at": "Стартирана",
+                "customer": "Клиент",
+                "environment": "Environment",
+                "current_version": "Текуща версия"
+            },
+            "fields": {
+                "title": "Заглавие",
+                "target_version": "Целева версия",
+                "vulnerability": "Свързана уязвимост",
+                "notes": "Бележки",
+                "started_at": "Стартирана"
+            },
+            "help": {
+                "title": "Кратко име на тази rollout кампания.",
+                "target_version": "Клиентите трябва да преминат към тази версия на продукта.",
+                "vulnerability": "Опционална връзка към уязвимостта, която е задействала кампанията."
+            },
+            "statuses": {
+                "draft": "Draft",
+                "active": "Active",
+                "completed": "Completed",
+                "cancelled": "Cancelled"
+            },
+            "target_statuses": {
+                "pending": "Pending",
+                "notified": "Notified",
+                "acknowledged": "Acknowledged",
+                "updated": "Updated",
+                "excepted": "Excepted"
             }
         },
         "scope_wizard": {
@@ -1927,6 +1996,10 @@
             "deployment_created": "Създаден deployment",
             "deployment_updated": "Обновен deployment",
             "deployment_deleted": "Изтрит deployment",
+            "patch_campaign_created": "Създадена patch кампания",
+            "patch_campaign_updated": "Обновена patch кампания",
+            "patch_campaign_activated": "Активирана patch кампания",
+            "patch_campaign_deleted": "Изтрита patch кампания",
             "risk_created": "Създаден риск",
             "risk_updated": "Обновен риск",
             "risk_deleted": "Изтрит риск",

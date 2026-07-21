@@ -194,6 +194,14 @@ class Product extends Model
         return $this->hasMany(PatchCampaign::class);
     }
 
+    /**
+     * Alias for nested route model binding (`products.campaigns`).
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->patchCampaigns();
+    }
+
     public function vcsImportSuggestions(): HasMany
     {
         return $this->hasMany(VcsImportSuggestion::class);

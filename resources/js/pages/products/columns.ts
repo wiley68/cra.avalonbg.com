@@ -8,11 +8,13 @@ import {
     GitBranch,
     IdCard,
     ListChecks,
+    Megaphone,
     Server,
     Shield,
     ShieldAlert,
 } from '@lucide/vue';
 import type { LucideIcon } from '@lucide/vue';
+import { index as campaignsIndex } from '@/routes/products/campaigns';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as deploymentsIndex } from '@/routes/products/deployments';
@@ -43,6 +45,7 @@ export type ProductModuleKey =
     | 'versions'
     | 'support_periods'
     | 'deployments'
+    | 'campaigns'
     | 'requirements'
     | 'controls'
     | 'risks'
@@ -97,6 +100,14 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.deployments.description',
         icon: Server,
         href: (productId) => deploymentsIndex(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
+        key: 'campaigns',
+        labelKey: 'products.campaigns_link',
+        descriptionKey: 'products.modules.campaigns.description',
+        icon: Megaphone,
+        href: (productId) => campaignsIndex(productId).url,
         canViewFlag: 'can_view_products',
     },
     {
