@@ -346,6 +346,23 @@ class AuditLogger
         );
     }
 
+    public static function logOrgPolicyExported(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+                ['field' => 'policy_type', 'value' => $policy->policy_type->value],
+                ['field' => 'version_label', 'value' => $policy->version_label],
+            ],
+        );
+    }
+
     public static function logDeploymentCreated(ProductDeployment $deployment, User $actor): void
     {
         self::persist(

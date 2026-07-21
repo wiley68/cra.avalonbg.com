@@ -10,10 +10,14 @@ use App\Models\Organization;
 use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Services\OrgPolicyService;
+use App\Support\AuditLogger;
 use App\Support\Translations;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -265,6 +269,46 @@ class OrgPolicyController extends Controller
         $locale = $organization->resolvedLocale();
 
         return response()->json($this->policies->templatePayload($type, $locale));
+    }
+
+    public function export(OrgPolicy $org_policy): HttpResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPolicyInOrganization($org_policy, $organization);
+        $this->authorize('view', [$org_policy, $organization]);
+
+        $org_policy->loadMissing(['approver:id,name']);
+
+        AuditLogger::logOrgPolicyExported($org_policy, request()->user());
+
+        $slug = Str::slug($org_policy->title) ?: 'policy';
+        $filename = sprintf(
+            'policy-%s-%s-%s.pdf',
+            $slug,
+            Str::slug($org_policy->version_label) ?: 'version',
+            now()->format('Y-m-d'),
+        );
+
+        $bodyHtml = Str::markdown($org_policy->body, [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+
+        return Pdf::loadView('pdf.org-policy', [
+            'organization' => $this->organizationPayload($organization),
+            'policy' => [
+                'title' => $org_policy->title,
+                'policy_type' => $org_policy->policy_type->value,
+                'status' => $org_policy->status->value,
+                'version_label' => $org_policy->version_label,
+                'approved_at' => $org_policy->approved_at?->toIso8601String(),
+                'approved_by_name' => $org_policy->approver?->name,
+                'body_html' => $bodyHtml,
+            ],
+            'generated_at' => now()->toIso8601String(),
+        ])
+            ->setPaper('a4')
+            ->stream($filename);
     }
 
     private function currentOrganization(): Organization

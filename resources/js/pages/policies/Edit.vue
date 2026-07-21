@@ -4,6 +4,7 @@ import {
     Archive,
     ArrowLeft,
     CheckCircle2,
+    FileDown,
     FileUp,
     Pencil,
     Save,
@@ -37,6 +38,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import {
     approve as approvePolicy,
     edit as policiesEdit,
+    exportMethod as exportPolicy,
     index as policiesIndex,
     publishEvidence,
     retire as retirePolicy,
@@ -167,6 +169,8 @@ const evidenceHref = computed(() => {
     }).url;
 });
 
+const exportUrl = computed(() => exportPolicy(props.policy.id).url);
+
 const reviewTaskHref = computed(() => {
     if (!props.reviewTask) {
         return null;
@@ -246,12 +250,20 @@ const doPublishEvidence = () => {
                     {{ policy.version_label }}
                 </p>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="policiesIndex()">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button as-child variant="outline">
+                    <a :href="exportUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('policies.export') }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="policiesIndex()">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <div

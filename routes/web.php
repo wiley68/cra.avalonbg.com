@@ -98,6 +98,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('policies.retire');
         Route::post('policies/{org_policy}/publish-evidence', [OrgPolicyController::class, 'publishEvidence'])
             ->name('policies.publish-evidence');
+        Route::get('policies/{org_policy}/export', [OrgPolicyController::class, 'export'])
+            ->name('policies.export');
         Route::resource('policies', OrgPolicyController::class)
             ->except(['show'])
             ->parameters(['policies' => 'org_policy']);

@@ -469,3 +469,33 @@ test('viewer cannot publish policy as evidence', function () {
         ])
         ->assertForbidden();
 });
+
+test('policy export streams pdf and writes audit log', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+    $viewer = makePoliciesOrgViewer($organization);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support export policy',
+        'status' => PolicyStatus::Approved,
+        'version_label' => '1.0',
+        'body' => "# Support\n\nWe support products for **24 months**.",
+        'approved_at' => now(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $response = $this->actingAs($viewer)
+        ->get(route('policies.export', $policy))
+        ->assertOk();
+
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->headers->get('content-disposition'))->toContain('inline');
+    expect($response->headers->get('content-disposition'))->toContain('.pdf');
+    expect($response->getContent())->toStartWith('%PDF');
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::OrgPolicyExported->value)
+        ->where('organization_id', $organization->id)
+        ->exists())->toBeTrue();
+});

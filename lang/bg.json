@@ -537,6 +537,12 @@
         "submit_assignee_invalid": "Избраният assignee не е член на тази организация.",
         "review_task_title": "Преглед на политика: :title (:version)",
         "review_task_description": "Организационна политика чака одобрение.\nТип: :type\nЗаглавие: :title\nВерсия: :version",
+        "export": "Експорт PDF",
+        "pdf": {
+            "generated_at": "Генериран на",
+            "disclaimer": "Този експорт е моментна снимка на организационна политика за вътрешен или одиторски преглед. Не е регулаторно подаване.",
+            "body_title": "Текст на политиката"
+        },
         "statuses": {
             "draft": "Чернова",
             "under_review": "В преглед",
@@ -2217,6 +2223,7 @@
             "org_policy_approved": "Одобрена организационна политика",
             "org_policy_retired": "Оттеглена организационна политика",
             "org_policy_published_evidence": "Организационна политика публикувана като evidence",
+            "org_policy_exported": "Организационна политика експортирана като PDF",
             "deployment_created": "Създадена клиентска инсталация",
             "deployment_updated": "Обновена клиентска инсталация",
             "deployment_deleted": "Изтрита клиентска инсталация",

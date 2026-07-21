@@ -537,6 +537,12 @@
         "submit_assignee_invalid": "Selected assignee is not a member of this organization.",
         "review_task_title": "Review policy: :title (:version)",
         "review_task_description": "Organizational policy awaiting approval.\nType: :type\nTitle: :title\nVersion: :version",
+        "export": "Export PDF",
+        "pdf": {
+            "generated_at": "Generated at",
+            "disclaimer": "This export is an organizational policy snapshot for internal or auditor review. It is not a regulatory filing.",
+            "body_title": "Policy text"
+        },
         "statuses": {
             "draft": "Draft",
             "under_review": "Under review",
@@ -2217,6 +2223,7 @@
             "org_policy_approved": "Organization policy approved",
             "org_policy_retired": "Organization policy retired",
             "org_policy_published_evidence": "Organization policy published as evidence",
+            "org_policy_exported": "Organization policy exported as PDF",
             "deployment_created": "Deployment created",
             "deployment_updated": "Deployment updated",
             "deployment_deleted": "Deployment deleted",
