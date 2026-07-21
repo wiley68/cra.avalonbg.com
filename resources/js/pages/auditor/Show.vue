@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Pencil, Plus, Trash2 } from '@lucide/vue';
+import { ArrowLeft, FileDown, Pencil, Plus, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -20,6 +20,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { index as auditorIndex } from '@/routes/auditor';
 import {
     edit as packagesEdit,
+    exportMethod as packagesExport,
     show as packagesShow,
 } from '@/routes/auditor/packages';
 import {
@@ -296,6 +297,8 @@ const personLabel = (person: Person): string => {
     return `${person.name} (${person.email})`;
 };
 
+const exportUrl = computed(() => packagesExport(props.package.id).url);
+
 const submitCreate = () => {
     createForm.post(findingsStore(props.package.id).url, {
         preserveScroll: true,
@@ -392,6 +395,12 @@ const doDeleteFinding = () => {
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('auditor.export.button') }}
+                    </a>
                 </Button>
                 <Button v-if="canManage" as-child variant="outline">
                     <Link :href="packagesEdit(package.id)">

@@ -125,6 +125,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('auditor.packages.share');
         Route::post('auditor/packages/{package}/close', [AuditorReviewPackageController::class, 'close'])
             ->name('auditor.packages.close');
+        Route::get('auditor/packages/{package}/export', [AuditorReviewPackageController::class, 'export'])
+            ->name('auditor.packages.export');
         Route::post('auditor/packages/{package}/findings', [AuditorFindingController::class, 'store'])
             ->name('auditor.packages.findings.store');
         Route::put('auditor/packages/{package}/findings/{finding}', [AuditorFindingController::class, 'update'])

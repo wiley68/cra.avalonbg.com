@@ -455,6 +455,13 @@
         "open_review": "Open review",
         "manage_package": "Manage package",
         "no_package_evidence": "No evidence was included in this package.",
+        "export": {
+            "button": "Export ZIP",
+            "generated_at": "Generated at",
+            "disclaimer": "This export is a point-in-time snapshot of the review package: passport summary, readiness, findings and selected evidence files. It is not a legal compliance certificate.",
+            "evidence_readme": "Evidence files included in this package (when a file was uploaded) are stored under the evidence/ folder. Metadata is listed in review-package.pdf.",
+            "file_included": "File in ZIP"
+        },
         "created": "Review package created.",
         "updated": "Review package updated.",
         "deleted": "Review package deleted.",
@@ -2337,6 +2344,7 @@
             "auditor_package_deleted": "Auditor review package deleted",
             "auditor_package_shared": "Auditor review package shared",
             "auditor_package_closed": "Auditor review package closed",
+            "auditor_package_exported": "Auditor review package exported",
             "auditor_finding_created": "Auditor finding created",
             "auditor_finding_updated": "Auditor finding updated",
             "auditor_finding_deleted": "Auditor finding deleted",

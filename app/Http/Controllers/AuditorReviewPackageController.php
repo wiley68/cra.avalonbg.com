@@ -14,6 +14,7 @@ use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\AuditorFindingService;
+use App\Services\AuditorReviewPackageExportService;
 use App\Services\AuditorReviewPackageService;
 use App\Services\ProductReadinessService;
 use App\Support\Translations;
@@ -22,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AuditorReviewPackageController extends Controller
 {
@@ -29,6 +31,7 @@ class AuditorReviewPackageController extends Controller
         private readonly AuditorReviewPackageService $packages,
         private readonly AuditorFindingService $findings,
         private readonly ProductReadinessService $readiness,
+        private readonly AuditorReviewPackageExportService $exports,
     ) {
     }
 
@@ -237,6 +240,15 @@ class AuditorReviewPackageController extends Controller
         ]);
 
         return redirect()->route('auditor.packages.edit', $package);
+    }
+
+    public function export(AuditorReviewPackage $package): BinaryFileResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPackageInOrganization($package, $organization);
+        $this->authorize('view', [$package, $organization]);
+
+        return $this->exports->downloadZip($package, $organization, request()->user());
     }
 
     private function currentOrganization(): Organization

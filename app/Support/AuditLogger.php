@@ -447,6 +447,23 @@ class AuditLogger
         );
     }
 
+    public static function logAuditorPackageExported(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'format', 'value' => 'zip'],
+            ],
+        );
+    }
+
     public static function logAuditorFindingCreated(AuditorFinding $finding, User $actor): void
     {
         $package = $finding->package;

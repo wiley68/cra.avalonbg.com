@@ -455,6 +455,13 @@
         "open_review": "Отвори преглед",
         "manage_package": "Управление на пакет",
         "no_package_evidence": "В този пакет няма включени evidence записи.",
+        "export": {
+            "button": "Експорт ZIP",
+            "generated_at": "Генериран на",
+            "disclaimer": "Този експорт е моментна снимка на пакета за преглед: passport резюме, readiness, findings и избрани evidence файлове. Не е правен сертификат за compliance.",
+            "evidence_readme": "Evidence файловете в този пакет (когато има качен файл) са в папка evidence/. Метаданните са в review-package.pdf.",
+            "file_included": "Файл в ZIP"
+        },
         "created": "Пакетът за преглед е създаден.",
         "updated": "Пакетът за преглед е обновен.",
         "deleted": "Пакетът за преглед е изтрит.",
@@ -2337,6 +2344,7 @@
             "auditor_package_deleted": "Изтрит одиторски пакет за преглед",
             "auditor_package_shared": "Споделен одиторски пакет за преглед",
             "auditor_package_closed": "Затворен одиторски пакет за преглед",
+            "auditor_package_exported": "Експортиран одиторски пакет за преглед",
             "auditor_finding_created": "Създаден одиторски finding",
             "auditor_finding_updated": "Обновен одиторски finding",
             "auditor_finding_deleted": "Изтрит одиторски finding",
