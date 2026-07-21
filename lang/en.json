@@ -1780,6 +1780,7 @@
                 "risks": "Risk status",
                 "sbom": "SBOM / components",
                 "vulnerabilities": "Vulnerabilities",
+                "deployments": "Customer deployments",
                 "evidence": "Evidence completeness",
                 "tasks": "Tasks / corrective actions",
                 "responsible_persons": "Responsible persons",
@@ -1846,6 +1847,11 @@
                     "open": "Open vulnerabilities are tracked.",
                     "clear": "No open vulnerabilities."
                 },
+                "deployments": {
+                    "unresolved_high": "Active patch campaign still has high-criticality installations not updated.",
+                    "campaigns_clear": "Active patch campaigns have no unresolved high-criticality targets.",
+                    "no_active_campaign": "No active patch campaign for customer installations."
+                },
                 "evidence": {
                     "none": "No evidence recorded.",
                     "expired": "Expired or invalid evidence present.",
@@ -1908,6 +1914,7 @@
                 "sbom": "Import an SBOM or add components.",
                 "vulnerabilities_overdue": "Address overdue vulnerability reporting deadlines.",
                 "vulnerabilities_critical": "Treat open critical vulnerabilities.",
+                "unresolved_exposed_deployments": "Active patch campaign still has high-criticality customer installations that are not updated or excepted.",
                 "evidence": "Add compliance evidence for this product.",
                 "evidence_expired": "Replace or renew expired evidence.",
                 "evidence_review": "Review evidence marked as due.",

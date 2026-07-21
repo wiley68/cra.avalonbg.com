@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Enums\ClassificationStatus;
+use App\Enums\CustomerCriticality;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\PatchCampaignStatus;
+use App\Enums\PatchCampaignTargetStatus;
 use App\Enums\ProductRiskStatus;
 use App\Enums\ProductVersionState;
 use App\Enums\RequirementApplicabilityStatus;
@@ -13,6 +16,8 @@ use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
+use App\Models\PatchCampaign;
+use App\Models\PatchCampaignTarget;
 use App\Models\Product;
 use App\Models\ProductComponent;
 use App\Models\ProductControl;
@@ -134,6 +139,7 @@ class ProductReadinessService
             $this->risksSection($product),
             $this->sbomSection($product),
             $this->vulnerabilitiesSection($product),
+            $this->deploymentsSection($product),
             $this->evidenceSection($product),
             $this->technicalDocumentationSection($product),
             $this->repositorySection($product),
@@ -635,6 +641,68 @@ class ProductReadinessService
             'status' => 'pass',
             'summary' => $counts['open'] > 0 ? 'open' : 'clear',
             'metrics' => $counts,
+        ];
+    }
+
+    /**
+     * Active patch campaigns with high-criticality targets still unresolved (not updated/excepted).
+     *
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function deploymentsSection(Product $product): array
+    {
+        $activeCampaigns = PatchCampaign::query()
+            ->where('product_id', $product->id)
+            ->where('status', PatchCampaignStatus::Active)
+            ->count();
+
+        $unresolvedHigh = PatchCampaignTarget::query()
+            ->whereHas(
+                'campaign',
+                fn($query) => $query
+                    ->where('product_id', $product->id)
+                    ->where('status', PatchCampaignStatus::Active),
+            )
+            ->whereNotIn('status', [
+                PatchCampaignTargetStatus::Updated,
+                PatchCampaignTargetStatus::Excepted,
+            ])
+            ->whereHas(
+                'deployment.customer',
+                fn($query) => $query->where('criticality', CustomerCriticality::High),
+            )
+            ->count();
+
+        $metrics = [
+            'active_campaigns' => $activeCampaigns,
+            'unresolved_high_criticality' => $unresolvedHigh,
+        ];
+
+        if ($unresolvedHigh > 0) {
+            return [
+                'key' => 'deployments',
+                'status' => 'warn',
+                'summary' => 'unresolved_high',
+                'gap_key' => 'products.readiness.gaps.unresolved_exposed_deployments',
+                'link' => 'campaigns',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($activeCampaigns > 0) {
+            return [
+                'key' => 'deployments',
+                'status' => 'pass',
+                'summary' => 'campaigns_clear',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'deployments',
+            'status' => 'pass',
+            'summary' => 'no_active_campaign',
+            'metrics' => $metrics,
         ];
     }
 

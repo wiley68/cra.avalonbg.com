@@ -110,7 +110,7 @@ test('owner can view readiness report with expected sections', function () {
         ->assertOk()
         ->assertInertia(fn($page) => $page
             ->component('products/readiness/Show')
-            ->has('report.sections', 17)
+            ->has('report.sections', 18)
             ->where('report.product.id', $product->id));
 
     expect(AuditLog::query()

@@ -76,7 +76,7 @@ test('owner can view compliance passport', function () {
             ->component('products/passport/Show')
             ->where('product.id', $product->id)
             ->where('product.manufacturer', 'Avalon')
-            ->has('report.sections', 17));
+            ->has('report.sections', 18));
 
     expect(AuditLog::query()
         ->where('event_type', AuditEventType::CompliancePassportViewed)

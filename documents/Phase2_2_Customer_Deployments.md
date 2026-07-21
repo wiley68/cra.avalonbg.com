@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.10  
+**Версия:** 1.11  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must complete; Should 8–9 Done; Should 10–11 / Could pending  
+**Статус:** Active — Must complete; Should 8–10 Done; Should 11 / Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -224,7 +224,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 8. Campaign completion when all targets `updated` \| `excepted` — **Done** (2026-07-21)
 9. Affected-customer export (XLSX) от campaign — **Done** (2026-07-21)
-10. Readiness gap за unresolved exposed deployments (active campaign)
+10. Readiness gap за unresolved exposed deployments (active campaign) — **Done** (2026-07-21)
 11. Optional link campaign ↔ vulnerability на Product Vulnerability show
 
 ### Could
@@ -286,6 +286,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.11   | 2026-07-21 | Should 10 Done: readiness gap `unresolved_exposed_deployments` при active campaign с non-updated/excepted high-criticality targets                          |
 | 1.10   | 2026-07-21 | Should 9 Done: affected-customer XLSX export от campaign (първоначално CSV; сменено на XLSX)                                                                |
 | 1.9    | 2026-07-21 | Should 8 Done: auto-complete campaign when all targets updated/excepted (incl. empty seed)                                                                  |
 | 1.8    | 2026-07-21 | Must 7 Done: i18n EN/BG + ясно разграничение delivery model vs customer installations; Must slice complete                                                  |
