@@ -6,6 +6,7 @@ use App\Enums\PolicyStatus;
 use App\Enums\PolicyType;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
+use App\Models\Product;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\PolicyTemplates;
@@ -16,6 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrgPolicyService
 {
+    public function __construct(
+        private readonly EvidenceService $evidence,
+    ) {
+    }
     /**
      * @return LengthAwarePaginator<int, array{
      *     id: int,
@@ -215,6 +220,38 @@ class OrgPolicyService
         AuditLogger::logOrgPolicyRetired($fresh, $actor);
 
         return $fresh;
+    }
+
+    public function publishEvidence(OrgPolicy $policy, Product $product, User $actor): OrgPolicy
+    {
+        if ($policy->status !== PolicyStatus::Approved) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('policies.only_approved_publish')],
+            ]);
+        }
+
+        if ($policy->evidence_id !== null) {
+            throw ValidationException::withMessages([
+                'evidence_id' => [Translations::get('policies.already_published')],
+            ]);
+        }
+
+        if ($product->organization_id !== $policy->organization_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('policies.publish_product_invalid')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($policy, $product, $actor): OrgPolicy {
+            $evidence = $this->evidence->createFromOrgPolicy($product, $policy, $actor);
+
+            $policy->update(['evidence_id' => $evidence->id]);
+
+            $fresh = $policy->fresh(['evidence']);
+            AuditLogger::logOrgPolicyPublishedEvidence($fresh, $evidence, $actor);
+
+            return $fresh;
+        });
     }
 
     /**

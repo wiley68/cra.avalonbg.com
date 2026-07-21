@@ -36,6 +36,7 @@ enum AuditEventType: string
     case OrgPolicySubmitted = 'org_policy_submitted';
     case OrgPolicyApproved = 'org_policy_approved';
     case OrgPolicyRetired = 'org_policy_retired';
+    case OrgPolicyPublishedEvidence = 'org_policy_published_evidence';
     case RiskCreated = 'risk_created';
     case RiskUpdated = 'risk_updated';
     case RiskDeleted = 'risk_deleted';

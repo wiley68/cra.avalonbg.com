@@ -454,6 +454,7 @@
         "submitted": "Policy submitted for review.",
         "approved": "Policy approved.",
         "retired": "Policy retired.",
+        "published_evidence": "Policy published as product evidence.",
         "confirm_delete": "Delete this draft or under-review policy?",
         "confirm_retire_title": "Retire policy",
         "confirm_retire": "Retire this approved policy? A newer version can supersede it later.",
@@ -461,11 +462,20 @@
         "submit_review": "Submit for review",
         "approve": "Approve",
         "retire": "Retire",
+        "publish_evidence": "Publish as evidence",
+        "publish_evidence_title": "Publish policy as evidence",
+        "publish_evidence_help": "Creates a product evidence record (type: policy) with this policy Markdown body.",
+        "publish_no_products": "Create a product first, then publish this policy as evidence for it.",
+        "select_product": "Select a product",
+        "view_evidence": "View evidence",
         "supersedes_none": "None",
         "cannot_delete_approved": "Approved policies cannot be deleted. Retire them instead.",
         "only_draft_submit": "Only draft policies can be submitted for review.",
         "only_under_review_approve": "Only policies under review can be approved.",
         "only_approved_retire": "Only approved policies can be retired.",
+        "only_approved_publish": "Only approved policies can be published as evidence.",
+        "already_published": "This policy is already linked to evidence.",
+        "publish_product_invalid": "Selected product is not valid for this organization.",
         "only_editable_draft_or_review": "Only draft or under-review policies can be edited.",
         "supersedes_invalid": "Selected previous version is not valid for this policy type.",
         "columns": {
@@ -484,14 +494,17 @@
             "notes": "Internal notes",
             "use_template": "Start from template",
             "supersedes": "Supersedes",
-            "approved_at": "Approved at"
+            "approved_at": "Approved at",
+            "product": "Product",
+            "evidence": "Evidence"
         },
         "help": {
             "policy_type": "Choose the organizational policy category.",
             "title": "Short display name for this policy version.",
             "version_label": "Human-readable version label (e.g. 1.0 or 2026-07).",
             "use_template": "Prefill title and Markdown body from a starter template for this type.",
-            "body": "Write the policy in Markdown. Approved policies become read-only."
+            "body": "Write the policy in Markdown. Approved policies become read-only.",
+            "product_id": "Evidence is product-scoped; choose which product register receives this policy document."
         },
         "types": {
             "vulnerability_disclosure": "Vulnerability disclosure",
@@ -2179,6 +2192,7 @@
             "org_policy_submitted": "Organization policy submitted for review",
             "org_policy_approved": "Organization policy approved",
             "org_policy_retired": "Organization policy retired",
+            "org_policy_published_evidence": "Organization policy published as evidence",
             "deployment_created": "Deployment created",
             "deployment_updated": "Deployment updated",
             "deployment_deleted": "Deployment deleted",

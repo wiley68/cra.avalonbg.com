@@ -7,11 +7,13 @@ use App\Enums\EvidenceFreshnessStatus;
 use App\Enums\EvidenceType;
 use App\Models\Control;
 use App\Models\Evidence;
+use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -212,6 +214,47 @@ class EvidenceService
         if ($uploader !== null) {
             AuditLogger::logEvidenceCreated($evidence, $uploader);
         }
+
+        return $evidence;
+    }
+
+    /**
+     * Persist an approved org policy as Markdown evidence (type=policy) on a product.
+     */
+    public function createFromOrgPolicy(Product $product, OrgPolicy $policy, User $uploader): Evidence
+    {
+        if ($product->organization_id !== $policy->organization_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('policies.publish_product_invalid')],
+            ]);
+        }
+
+        $safeVersion = preg_replace('/[^A-Za-z0-9._-]+/', '-', $policy->version_label) ?: '1';
+        $filename = sprintf('policy-%s-v%s.md', $policy->policy_type->value, $safeVersion);
+        $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
+        $body = $policy->body;
+
+        Storage::disk('local')->put($storagePath, $body);
+
+        $evidence = Evidence::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'type' => EvidenceType::Policy,
+            'title' => $policy->title . ' (' . $policy->version_label . ')',
+            'source' => 'org_policy:' . $policy->id,
+            'owner_user_id' => $uploader->id,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $body),
+            'confidentiality' => EvidenceConfidentiality::Internal,
+            'collected_at' => $policy->approved_at ?? now(),
+            'freshness_status' => EvidenceFreshnessStatus::Current,
+            'uploaded_by' => $uploader->id,
+            'notes' => 'Published from organization policy library (type: '
+                . $policy->policy_type->value . ').',
+        ]);
+
+        AuditLogger::logEvidenceCreated($evidence, $uploader);
 
         return $evidence;
     }

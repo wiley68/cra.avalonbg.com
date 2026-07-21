@@ -1,15 +1,23 @@
 <?php
 
 use App\Enums\AuditEventType;
+use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceType;
+use App\Enums\LicensingModel;
 use App\Enums\PolicyStatus;
 use App\Enums\PolicyType;
+use App\Enums\ProductType;
+use App\Enums\ScopeStatus;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -226,4 +234,133 @@ test('template endpoint returns starter content', function () {
         ->assertOk()
         ->assertJsonPath('version_label', '1.0')
         ->assertJsonFragment(['title' => 'Third-party component policy']);
+});
+
+test('approved policy can be published as product evidence', function () {
+    Storage::fake('local');
+
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Policy Evidence Product',
+        'slug' => 'policy-evidence-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::VulnerabilityDisclosure,
+        'title' => 'CVD Policy',
+        'status' => PolicyStatus::Approved,
+        'version_label' => '1.0',
+        'body' => "# CVD\n\nDisclose responsibly.",
+        'approved_at' => now(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('policies.publish-evidence', $policy), [
+            'product_id' => $product->id,
+        ])
+        ->assertRedirect(route('policies.edit', $policy));
+
+    $policy->refresh();
+
+    expect($policy->evidence_id)->not->toBeNull();
+
+    $evidence = Evidence::query()->findOrFail($policy->evidence_id);
+
+    expect($evidence->product_id)->toBe($product->id)
+        ->and($evidence->type)->toBe(EvidenceType::Policy)
+        ->and($evidence->source)->toBe('org_policy:' . $policy->id)
+        ->and($evidence->source_filename)->toContain('policy-vulnerability_disclosure')
+        ->and(Storage::disk('local')->get($evidence->storage_path))->toBe($policy->body);
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::OrgPolicyPublishedEvidence->value)
+        ->exists())->toBeTrue();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::EvidenceCreated->value)
+        ->exists())->toBeTrue();
+
+    $this->actingAs($owner)
+        ->post(route('policies.publish-evidence', $policy), [
+            'product_id' => $product->id,
+        ])
+        ->assertSessionHasErrors('evidence_id');
+});
+
+test('draft policy cannot be published as evidence', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Draft Publish Product',
+        'slug' => 'draft-publish-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Update,
+        'title' => 'Update draft',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '0.1',
+        'body' => 'Draft body',
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('policies.publish-evidence', $policy), [
+            'product_id' => $product->id,
+        ])
+        ->assertSessionHasErrors('status');
+});
+
+test('viewer cannot publish policy as evidence', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+    $viewer = makePoliciesOrgViewer($organization);
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Viewer Publish Product',
+        'slug' => 'viewer-publish-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::IncidentResponse,
+        'title' => 'IR approved',
+        'status' => PolicyStatus::Approved,
+        'version_label' => '1.0',
+        'body' => 'IR body',
+        'approved_at' => now(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('policies.publish-evidence', $policy), [
+            'product_id' => $product->id,
+        ])
+        ->assertForbidden();
 });

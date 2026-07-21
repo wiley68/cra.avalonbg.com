@@ -8,6 +8,7 @@ use App\Http\Requests\StoreOrgPolicyRequest;
 use App\Http\Requests\UpdateOrgPolicyRequest;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
+use App\Models\Product;
 use App\Services\OrgPolicyService;
 use App\Support\Translations;
 use Illuminate\Http\JsonResponse;
@@ -81,12 +82,17 @@ class OrgPolicyController extends Controller
         $this->assertPolicyInOrganization($org_policy, $organization);
         $this->authorize('view', [$org_policy, $organization]);
 
-        $org_policy->loadMissing(['approver:id,name', 'supersedes:id,title,version_label,status']);
+        $org_policy->loadMissing([
+            'approver:id,name',
+            'supersedes:id,title,version_label,status',
+            'evidence:id,product_id,title',
+        ]);
 
         return Inertia::render('policies/Edit', [
             'organization' => $this->organizationPayload($organization),
             'policy' => $this->detailPayload($org_policy),
             'options' => $this->enumOptions(),
+            'productOptions' => $this->productOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
@@ -179,6 +185,34 @@ class OrgPolicyController extends Controller
         return redirect()->route('policies.edit', $org_policy);
     }
 
+    public function publishEvidence(Request $request, OrgPolicy $org_policy): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPolicyInOrganization($org_policy, $organization);
+        $this->authorize('update', [$org_policy, $organization]);
+
+        $validated = $request->validate([
+            'product_id' => [
+                'required',
+                'integer',
+                Rule::exists('products', 'id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+        ]);
+
+        $product = Product::query()->findOrFail($validated['product_id']);
+
+        $this->policies->publishEvidence($org_policy, $product, $request->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('policies.published_evidence'),
+        ]);
+
+        return redirect()->route('policies.edit', $org_policy);
+    }
+
     public function template(Request $request): JsonResponse
     {
         $organization = $this->currentOrganization();
@@ -236,6 +270,22 @@ class OrgPolicyController extends Controller
     }
 
     /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function productOptions(Organization $organization): array
+    {
+        return Product::query()
+            ->where('organization_id', $organization->id)
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn(Product $product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+            ])
+            ->all();
+    }
+
+    /**
      * @return list<array{id: int, title: string, policy_type: string, version_label: string, status: string}>
      */
     private function supersedeOptions(Organization $organization): array
@@ -275,6 +325,9 @@ class OrgPolicyController extends Controller
             'approved_at' => $org_policy->approved_at?->toIso8601String(),
             'approved_by_name' => $org_policy->approver?->name,
             'is_editable' => $org_policy->isEditable(),
+            'evidence_id' => $org_policy->evidence_id,
+            'evidence_product_id' => $org_policy->evidence?->product_id,
+            'evidence_title' => $org_policy->evidence?->title,
         ];
     }
 }

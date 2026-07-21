@@ -96,6 +96,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('policies.approve');
         Route::post('policies/{org_policy}/retire', [OrgPolicyController::class, 'retire'])
             ->name('policies.retire');
+        Route::post('policies/{org_policy}/publish-evidence', [OrgPolicyController::class, 'publishEvidence'])
+            ->name('policies.publish-evidence');
         Route::resource('policies', OrgPolicyController::class)
             ->except(['show'])
             ->parameters(['policies' => 'org_policy']);

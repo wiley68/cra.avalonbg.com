@@ -1,24 +1,53 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, CheckCircle2, Save, Send, Archive } from '@lucide/vue';
-import { computed } from 'vue';
+import {
+    Archive,
+    ArrowLeft,
+    CheckCircle2,
+    FileUp,
+    Pencil,
+    Save,
+    Send,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     approve as approvePolicy,
     edit as policiesEdit,
     index as policiesIndex,
+    publishEvidence,
     retire as retirePolicy,
     submitReview,
     update,
 } from '@/routes/policies';
-import { ref } from 'vue';
+import { edit as editEvidence } from '@/routes/products/evidence';
+
+type ProductOption = {
+    id: number;
+    name: string;
+};
 
 type PolicyDetail = {
     id: number;
@@ -33,11 +62,15 @@ type PolicyDetail = {
     approved_at: string | null;
     approved_by_name: string | null;
     is_editable: boolean;
+    evidence_id: number | null;
+    evidence_product_id: number | null;
+    evidence_title: string | null;
 };
 
 const props = defineProps<{
     policy: PolicyDetail;
     canManage: boolean;
+    productOptions: ProductOption[];
 }>();
 
 const { t } = useTranslations();
@@ -58,6 +91,13 @@ const form = useForm({
 });
 
 const showRetireDialog = ref(false);
+const showPublishDialog = ref(false);
+
+const publishForm = useForm({
+    product_id: props.productOptions[0]?.id
+        ? String(props.productOptions[0].id)
+        : '',
+});
 
 const typeLabel = computed(() => {
     const key = `policies.types.${props.policy.policy_type}`;
@@ -82,6 +122,25 @@ const canApprove = computed(
 const canRetire = computed(
     () => props.canManage && props.policy.status === 'approved',
 );
+const canPublish = computed(
+    () =>
+        props.canManage &&
+        props.policy.status === 'approved' &&
+        props.policy.evidence_id === null,
+);
+const evidenceHref = computed(() => {
+    if (
+        props.policy.evidence_id === null ||
+        props.policy.evidence_product_id === null
+    ) {
+        return null;
+    }
+
+    return editEvidence({
+        product: props.policy.evidence_product_id,
+        evidence: props.policy.evidence_id,
+    }).url;
+});
 
 const submit = () => {
     form.put(update(props.policy.id).url);
@@ -110,6 +169,22 @@ const doRetire = () => {
         {},
         { preserveScroll: true },
     );
+};
+
+const openPublishDialog = () => {
+    if (!publishForm.product_id && props.productOptions[0] !== undefined) {
+        publishForm.product_id = String(props.productOptions[0].id);
+    }
+    showPublishDialog.value = true;
+};
+
+const doPublishEvidence = () => {
+    publishForm.post(publishEvidence(props.policy.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showPublishDialog.value = false;
+        },
+    });
 };
 
 const textareaClass =
@@ -159,6 +234,21 @@ const textareaClass =
             >
                 <CheckCircle2 class="h-4 w-4" />
                 {{ t('policies.approve') }}
+            </Button>
+            <Button
+                v-if="canPublish"
+                type="button"
+                variant="outline"
+                @click="openPublishDialog"
+            >
+                <FileUp class="h-4 w-4" />
+                {{ t('policies.publish_evidence') }}
+            </Button>
+            <Button v-if="evidenceHref" as-child variant="outline">
+                <Link :href="evidenceHref">
+                    <Pencil class="h-4 w-4" />
+                    {{ t('policies.view_evidence') }}
+                </Link>
             </Button>
             <Button
                 v-if="canRetire"
@@ -223,6 +313,14 @@ const textareaClass =
                     </span>
                 </div>
 
+                <div
+                    v-if="policy.evidence_title"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('policies.fields.evidence') }}:
+                    {{ policy.evidence_title }}
+                </div>
+
                 <div class="grid gap-2">
                     <FieldLabel
                         html-for="body"
@@ -271,5 +369,94 @@ const textareaClass =
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
         />
+
+        <Dialog
+            :open="showPublishDialog"
+            @update:open="
+                (open) => {
+                    if (!open) {
+                        showPublishDialog = false;
+                    }
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t('policies.publish_evidence_title') }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{ t('policies.publish_evidence_help') }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form class="space-y-4" @submit.prevent="doPublishEvidence">
+                    <div
+                        v-if="productOptions.length === 0"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('policies.publish_no_products') }}
+                    </div>
+
+                    <div v-else class="grid min-w-0 gap-2">
+                        <FieldLabel
+                            html-for="product_id"
+                            :help="t('policies.help.product_id')"
+                            required
+                        >
+                            {{ t('policies.fields.product') }}
+                        </FieldLabel>
+                        <Select v-model="publishForm.product_id">
+                            <SelectTrigger
+                                id="product_id"
+                                class="w-full max-w-full min-w-0 overflow-hidden *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:truncate"
+                            >
+                                <SelectValue
+                                    :placeholder="t('policies.select_product')"
+                                />
+                            </SelectTrigger>
+                            <SelectContent
+                                class="w-(--reka-select-trigger-width) max-w-(--reka-select-trigger-width)"
+                            >
+                                <SelectItem
+                                    v-for="product in productOptions"
+                                    :key="product.id"
+                                    :value="String(product.id)"
+                                    class="max-w-full"
+                                >
+                                    <span
+                                        class="block truncate"
+                                        :title="product.name"
+                                    >
+                                        {{ product.name }}
+                                    </span>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="publishForm.errors.product_id" />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="showPublishDialog = false"
+                        >
+                            {{ t('common.cancel') }}
+                        </Button>
+                        <Button
+                            type="submit"
+                            :disabled="
+                                publishForm.processing ||
+                                productOptions.length === 0
+                            "
+                        >
+                            <FileUp class="h-4 w-4" />
+                            {{ t('policies.publish_evidence') }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

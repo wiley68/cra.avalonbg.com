@@ -41,6 +41,7 @@ const { t } = useTranslations();
                 <TooltipTrigger as-child>
                     <button
                         type="button"
+                        tabindex="-1"
                         class="inline-flex shrink-0 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                         :aria-label="t('common.field_help')"
                     >
