@@ -39,6 +39,12 @@
             "next_page": "Към следваща страница",
             "last_page": "Към последна страница"
         },
+        "import": {
+            "invalid_file": "Каченият файл не може да бъде прочетен.",
+            "missing_header": "CSV файлът трябва да има ред с заглавия.",
+            "empty_file": "CSV файлът няма редове с данни.",
+            "row_failed": "Този ред не може да бъде импортиран."
+        },
         "select": "Изберете…"
     },
     "welcome": {
@@ -406,20 +412,33 @@
             "primary_contact": "Основен контакт",
             "criticality": "Критичност",
             "notes": "Бележки",
-            "is_active": "Активен"
+            "is_active": "Активен",
+            "file": "CSV файл"
         },
         "help": {
             "name": "Показвано име на клиентската организация.",
             "external_ref": "Опционален CRM или номер на договор.",
             "primary_contact": "Име или имейл за оперативен контакт.",
             "criticality": "Колко критичен е клиентът за приоритет на пачове и известия.",
-            "is_active": "Неактивните клиенти остават в историята, но по-късно ще са скрити от подразбиращи се избори."
+            "is_active": "Неактивните клиенти остават в историята, но по-късно ще са скрити от подразбиращи се избори.",
+            "file": "UTF-8 CSV със запетая. Първият ред трябва да съдържа заглавия на колоните."
         },
         "criticalities": {
             "low": "Ниска",
             "medium": "Средна",
             "high": "Висока"
-        }
+        },
+        "import": "Импорт CSV",
+        "import_title": "Импорт на клиенти",
+        "import_subtitle": "Масово създаване или обновяване на клиенти от CSV файл",
+        "import_submit": "Импорт CSV",
+        "download_template": "Изтегли CSV шаблон",
+        "columns_hint": "Задължителна колона: name. Опционални: external_ref, primary_contact, criticality (low|medium|high), notes, is_active (1/0). Съществуващите редове се съпоставят по external_ref или name.",
+        "completed": "Импортът приключи: :created създадени, :updated обновени, :skipped пропуснати, :errors грешки по редове.",
+        "all_rows_failed": "Нито един ред не беше импортиран. Проверете формата и стойностите в CSV.",
+        "missing_name_column": "CSV трябва да включва колона name.",
+        "missing_name": "Името на клиента е задължително.",
+        "invalid_criticality": "Criticality трябва да е low, medium или high."
     },
     "controls": {
         "index_title": "Библиотека контроли",
@@ -873,12 +892,27 @@
                 "internet_exposure": "Интернет експозиция",
                 "custom_modifications": "Персонални модификации",
                 "end_of_support_exception": "Изключение при край на поддръжка",
-                "notes": "Бележки"
+                "notes": "Бележки",
+                "file": "CSV файл"
             },
             "help": {
                 "customer": "Организацията, която поддържа тази инсталация.",
-                "environment": "Една инсталационна линия на клиент и среда (продукция, подготовка, друга). Различно от полето „Модел на доставка на продукта“."
+                "environment": "Една инсталационна линия на клиент и среда (продукция, подготовка, друга). Различно от полето „Модел на доставка на продукта“.",
+                "file": "UTF-8 CSV със запетая. Клиентите трябва вече да съществуват, освен ако не са импортирани отделно."
             },
+            "import": "Импорт CSV",
+            "import_title": "Импорт на клиентски инсталации",
+            "import_subtitle": "Масово създаване или обновяване на инсталации за този продукт от CSV",
+            "import_submit": "Импорт CSV",
+            "download_template": "Изтегли CSV шаблон",
+            "columns_hint": "Задължителни: customer_name или customer_external_ref, environment. Опционални: version_number, installation_date, internet_exposure, update_channel, last_confirmed_at, custom_modifications, end_of_support_exception, notes.",
+            "completed": "Импортът приключи: :created създадени, :updated обновени, :skipped пропуснати, :errors грешки по редове.",
+            "all_rows_failed": "Нито един ред не беше импортиран. Проверете формата и стойностите в CSV.",
+            "missing_columns": "CSV трябва да включва environment и customer_name или customer_external_ref.",
+            "missing_environment": "Environment е задължително.",
+            "invalid_environment": "Environment трябва да е production, staging или other.",
+            "invalid_version": "Номерът на версията не съществува за този продукт.",
+            "customer_not_found": "Клиентът не е намерен в тази организация.",
             "environments": {
                 "production": "Продукция",
                 "staging": "Подготовка",

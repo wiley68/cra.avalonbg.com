@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeploymentEnvironment;
+use App\Http\Requests\ImportProductDeploymentsCsvRequest;
 use App\Http\Requests\StoreProductDeploymentRequest;
 use App\Http\Requests\UpdateProductDeploymentRequest;
 use App\Models\Customer;
@@ -10,16 +11,19 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductDeployment;
 use App\Models\ProductVersion;
+use App\Services\ProductDeploymentCsvImportService;
 use App\Services\ProductDeploymentService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductDeploymentController extends Controller
 {
     public function __construct(
         private readonly ProductDeploymentService $deployments,
+        private readonly ProductDeploymentCsvImportService $imports,
     ) {
     }
 
@@ -126,6 +130,88 @@ class ProductDeploymentController extends Controller
         ]);
 
         return redirect()->route('products.deployments.index', $product);
+    }
+
+    public function importForm(Product $product): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('update', [$product, $organization]);
+
+        return Inertia::render('products/deployments/Import', [
+            'organization' => $this->organizationPayload($organization),
+            'product' => $this->productSummary($product),
+        ]);
+    }
+
+    public function import(ImportProductDeploymentsCsvRequest $request, Product $product): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+
+        $result = $this->imports->import(
+            $product,
+            $request->file('file'),
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.deployments.import.completed', [
+                'created' => (string) $result['created'],
+                'updated' => (string) $result['updated'],
+                'skipped' => (string) $result['skipped'],
+                'errors' => (string) count($result['errors']),
+            ]),
+        ]);
+
+        if ($result['errors'] !== []) {
+            Inertia::flash('import_errors', $result['errors']);
+        }
+
+        return redirect()->route('products.deployments.index', $product);
+    }
+
+    public function importTemplate(Product $product): StreamedResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('update', [$product, $organization]);
+
+        $headers = [
+            'customer_name',
+            'customer_external_ref',
+            'environment',
+            'version_number',
+            'installation_date',
+            'internet_exposure',
+            'update_channel',
+            'last_confirmed_at',
+            'custom_modifications',
+            'end_of_support_exception',
+            'notes',
+        ];
+
+        return response()->streamDownload(function () use ($headers): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            fputcsv($handle, [
+                'Acme Corp',
+                'CRM-1001',
+                'production',
+                '1.0.0',
+                '2026-01-15',
+                '1',
+                'stable',
+                '2026-01-20',
+                '0',
+                '0',
+                'Primary site',
+            ]);
+            fclose($handle);
+        }, 'deployments-import-template.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     /**

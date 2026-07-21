@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { Plus, Upload } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -10,7 +10,12 @@ import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
-import { create, destroy, index as customersIndex } from '@/routes/customers';
+import {
+    create,
+    destroy,
+    importMethod as customersImport,
+    index as customersIndex,
+} from '@/routes/customers';
 import { index as customersApiIndex } from '@/routes/internal/customers';
 import {
     createCustomerColumnTitleMap,
@@ -146,12 +151,26 @@ onMounted(() => {
                 </p>
             </div>
 
-            <Button v-if="canManage" as-child>
-                <Link :href="create()" class="inline-flex items-center gap-2">
-                    <Plus class="h-4 w-4" />
-                    {{ t('customers.create') }}
-                </Link>
-            </Button>
+            <div v-if="canManage" class="flex flex-wrap items-center gap-2">
+                <Button as-child variant="outline">
+                    <Link
+                        :href="customersImport()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Upload class="h-4 w-4" />
+                        {{ t('customers.import') }}
+                    </Link>
+                </Button>
+                <Button as-child>
+                    <Link
+                        :href="create()"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('customers.create') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <DataTable

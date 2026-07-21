@@ -78,6 +78,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('controls/refresh-starter', [ControlController::class, 'refreshStarter'])
             ->name('controls.refresh-starter');
         Route::resource('controls', ControlController::class)->except(['show']);
+        Route::get('customers/import/template', [CustomerController::class, 'importTemplate'])
+            ->name('customers.import.template');
+        Route::get('customers/import', [CustomerController::class, 'importForm'])
+            ->name('customers.import');
+        Route::post('customers/import', [CustomerController::class, 'import'])
+            ->name('customers.import.store');
         Route::resource('customers', CustomerController::class)->except(['show']);
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
@@ -196,6 +202,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->parameters(['support-periods' => 'support_period'])
             ->scoped();
+        Route::get('products/{product}/deployments/import/template', [ProductDeploymentController::class, 'importTemplate'])
+            ->name('products.deployments.import.template');
+        Route::get('products/{product}/deployments/import', [ProductDeploymentController::class, 'importForm'])
+            ->name('products.deployments.import');
+        Route::post('products/{product}/deployments/import', [ProductDeploymentController::class, 'import'])
+            ->name('products.deployments.import.store');
         Route::resource('products.deployments', ProductDeploymentController::class)
             ->except(['show'])
             ->scoped();

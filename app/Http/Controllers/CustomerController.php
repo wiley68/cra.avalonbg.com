@@ -3,20 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CustomerCriticality;
+use App\Http\Requests\ImportCustomersCsvRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\Organization;
+use App\Services\CustomerCsvImportService;
 use App\Services\CustomerService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CustomerController extends Controller
 {
     public function __construct(
         private readonly CustomerService $customers,
+        private readonly CustomerCsvImportService $imports,
     ) {
     }
 
@@ -129,6 +133,74 @@ class CustomerController extends Controller
         ]);
 
         return redirect()->route('customers.index');
+    }
+
+    public function importForm(): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('create', [Customer::class, $organization]);
+
+        return Inertia::render('customers/Import', [
+            'organization' => $this->organizationPayload($organization),
+        ]);
+    }
+
+    public function import(ImportCustomersCsvRequest $request): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+
+        $result = $this->imports->import(
+            $organization,
+            $request->file('file'),
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('customers.import.completed', [
+                'created' => (string) $result['created'],
+                'updated' => (string) $result['updated'],
+                'skipped' => (string) $result['skipped'],
+                'errors' => (string) count($result['errors']),
+            ]),
+        ]);
+
+        if ($result['errors'] !== []) {
+            Inertia::flash('import_errors', $result['errors']);
+        }
+
+        return redirect()->route('customers.index');
+    }
+
+    public function importTemplate(): StreamedResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('create', [Customer::class, $organization]);
+
+        $headers = [
+            'name',
+            'external_ref',
+            'primary_contact',
+            'criticality',
+            'notes',
+            'is_active',
+        ];
+
+        return response()->streamDownload(function () use ($headers): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+            fputcsv($handle, [
+                'Acme Corp',
+                'CRM-1001',
+                'ops@acme.example',
+                'high',
+                'Tier-1 customer',
+                '1',
+            ]);
+            fclose($handle);
+        }, 'customers-import-template.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     private function currentOrganization(): Organization

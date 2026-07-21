@@ -39,6 +39,12 @@
             "next_page": "Go to next page",
             "last_page": "Go to last page"
         },
+        "import": {
+            "invalid_file": "Could not read the uploaded file.",
+            "missing_header": "The CSV file must include a header row.",
+            "empty_file": "The CSV file has no data rows.",
+            "row_failed": "This row could not be imported."
+        },
         "select": "Select…"
     },
     "welcome": {
@@ -406,20 +412,33 @@
             "primary_contact": "Primary contact",
             "criticality": "Criticality",
             "notes": "Notes",
-            "is_active": "Active"
+            "is_active": "Active",
+            "file": "CSV file"
         },
         "help": {
             "name": "Display name for this customer organization.",
             "external_ref": "Optional CRM or contract identifier.",
             "primary_contact": "Name or email for operational contact.",
             "criticality": "How critical this customer is for patch and notification priority.",
-            "is_active": "Inactive customers stay in history but are hidden from default pickers later."
+            "is_active": "Inactive customers stay in history but are hidden from default pickers later.",
+            "file": "UTF-8 CSV with comma separator. First row must be column headers."
         },
         "criticalities": {
             "low": "Low",
             "medium": "Medium",
             "high": "High"
-        }
+        },
+        "import": "Import CSV",
+        "import_title": "Import customers",
+        "import_subtitle": "Bulk create or update customers from a CSV file",
+        "import_submit": "Import CSV",
+        "download_template": "Download CSV template",
+        "columns_hint": "Required column: name. Optional: external_ref, primary_contact, criticality (low|medium|high), notes, is_active (1/0). Existing rows match by external_ref or name.",
+        "completed": "Import finished: :created created, :updated updated, :skipped skipped, :errors row errors.",
+        "all_rows_failed": "No rows could be imported. Check the CSV format and values.",
+        "missing_name_column": "The CSV must include a name column.",
+        "missing_name": "Customer name is required.",
+        "invalid_criticality": "Criticality must be low, medium, or high."
     },
     "controls": {
         "index_title": "Controls library",
@@ -873,12 +892,27 @@
                 "internet_exposure": "Internet exposure",
                 "custom_modifications": "Custom modifications",
                 "end_of_support_exception": "End-of-support exception",
-                "notes": "Notes"
+                "notes": "Notes",
+                "file": "CSV file"
             },
             "help": {
                 "customer": "Organization that runs this installation.",
-                "environment": "One installation line per customer and environment (production, staging, other). Distinct from the product delivery model field."
+                "environment": "One installation line per customer and environment (production, staging, other). Distinct from the product delivery model field.",
+                "file": "UTF-8 CSV with comma separator. Customers must already exist unless imported separately."
             },
+            "import": "Import CSV",
+            "import_title": "Import customer installations",
+            "import_subtitle": "Bulk create or update installations for this product from CSV",
+            "import_submit": "Import CSV",
+            "download_template": "Download CSV template",
+            "columns_hint": "Required: customer_name or customer_external_ref, environment. Optional: version_number, installation_date, internet_exposure, update_channel, last_confirmed_at, custom_modifications, end_of_support_exception, notes.",
+            "completed": "Import finished: :created created, :updated updated, :skipped skipped, :errors row errors.",
+            "all_rows_failed": "No rows could be imported. Check the CSV format and values.",
+            "missing_columns": "The CSV must include environment and customer_name or customer_external_ref.",
+            "missing_environment": "Environment is required.",
+            "invalid_environment": "Environment must be production, staging, or other.",
+            "invalid_version": "Version number does not exist for this product.",
+            "customer_not_found": "Customer was not found in this organization.",
             "environments": {
                 "production": "Production",
                 "staging": "Staging",

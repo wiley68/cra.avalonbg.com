@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Plus } from '@lucide/vue';
+import { ArrowLeft, Plus, Upload } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -16,6 +16,7 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     create,
     destroy,
+    importMethod as deploymentsImport,
     index as deploymentsIndex,
 } from '@/routes/products/deployments';
 import {
@@ -179,6 +180,15 @@ onMounted(() => {
                     <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button v-if="canManage" as-child variant="outline">
+                    <Link
+                        :href="deploymentsImport(product.id)"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Upload class="h-4 w-4" />
+                        {{ t('products.deployments.import') }}
                     </Link>
                 </Button>
                 <Button v-if="canManage" as-child>

@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.13  
+**Версия:** 1.14  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must + Should complete; Could 12 Done; Could 13–15 pending  
+**Статус:** Active — Must + Should complete; Could 12–13 Done; Could 14–15 pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -190,11 +190,13 @@ Unique: `(campaign_id, deployment_id)`.
 
 - Sidebar top-level + `GET /customers` — DataTable index
 - `GET/POST /customers/create`, `GET/PUT/DELETE /customers/{customer}`
+- `GET/POST /customers/import` — CSV bulk create/update customers (+ template download)
 - Internal API: `GET /internal-api/customers` (mirror controls)
 
 ### Deployments (product-scoped)
 
 - Product module: `GET /products/{product}/deployments` (+ create/edit)
+- `GET/POST /products/{product}/deployments/import` — CSV bulk create/update installations (+ template download)
 - Link customer + version + environment; edit confirmation fields
 - Internal API: `GET /internal-api/products/{product}/deployments`
 
@@ -232,7 +234,7 @@ Unique: `(campaign_id, deployment_id)`.
 ### Could
 
 12. Email notification stub (Mailables + queued job; provider config later) — **Done** (2026-07-21)
-13. Bulk import customers/deployments (CSV)
+13. Bulk import customers/deployments (CSV) — **Done** (2026-07-21)
 14. Support-period cross-check: list deployments on unsupported versions
 15. Append-only notification event log per target (ако Must полетата не стигат)
 
@@ -244,7 +246,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 **Should** — campaign completion rules, XLSX export, readiness gap, vulnerability link.
 
-**Could** — email stub Done; CSV import, EOS cross-check, multi-event notification log pending.
+**Could** — email stub + CSV import Done; EOS cross-check, multi-event notification log pending.
 
 ---
 
@@ -288,6 +290,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.14   | 2026-07-21 | Could 13 Done: CSV bulk import за customers и product deployments (+ template download)                                                                     |
 | 1.13   | 2026-07-21 | Could 12 Done: email notification stub (Mailable + queued job + campaign Notify CTA; `CRA_CUSTOMER_NOTIFICATIONS_ENABLED`)                                  |
 | 1.12   | 2026-07-21 | Should 11 Done: bidirectional campaign ↔ vulnerability link (vuln Edit секция + create preselect + campaign Show link)                                      |
 | 1.11   | 2026-07-21 | Should 10 Done: readiness gap `unresolved_exposed_deployments` при active campaign с non-updated/excepted high-criticality targets                          |
