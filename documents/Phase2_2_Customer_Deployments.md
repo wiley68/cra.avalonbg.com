@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.6  
+**Версия:** 1.7  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must 1–5 Done; Must 6–7 pending  
+**Статус:** Active — Must 1–6 Done; Must 7 pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -214,7 +214,7 @@ Unique: `(campaign_id, deployment_id)`.
 3. Product deployments CRUD (link customer/version/env) + audit — **Done** (2026-07-21)
 4. Patch campaign create (draft → active) + auto-attach matching deployments (§5 правило) — **Done** (2026-07-21)
 5. Target status updates (note + timestamps; при `updated` sync deployment version) + audit — **Done** (2026-07-21)
-6. Feature tests (Pest) за CRUD + campaign flow + view-only forbidden manage
+6. Feature tests (Pest) за CRUD + campaign flow + view-only forbidden manage — **Done** (2026-07-21)
 7. i18n EN/BG (вкл. разграничение deployment model vs customer deployments)
 
 ### Should
@@ -283,6 +283,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.7    | 2026-07-21 | Must 6 Done: E2E campaign flow + view-only forbidden manage tests                                                                                           |
 | 1.6    | 2026-07-21 | Must 5 Done: target status updates + deployment version sync + audit                                                                                        |
 | 1.5    | 2026-07-21 | Must 4 Done: Patch campaign create/activate + auto-seed targets                                                                                             |
 | 1.4    | 2026-07-21 | Must 3 Done: Product deployments CRUD (DataTable + audit)                                                                                                   |
