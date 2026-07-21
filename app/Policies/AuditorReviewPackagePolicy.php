@@ -16,8 +16,19 @@ class AuditorReviewPackagePolicy
 
     public function view(User $user, AuditorReviewPackage $package, Organization $organization): bool
     {
-        return $package->organization_id === $organization->id
-            && $user->canViewProducts($organization);
+        if (
+            $package->organization_id !== $organization->id
+            || !$user->canViewProducts($organization)
+        ) {
+            return false;
+        }
+
+        // Draft packages stay owner/manager-only until shared with auditors.
+        if ($package->status === AuditorReviewPackageStatus::Draft) {
+            return $user->canManageProducts($organization);
+        }
+
+        return true;
     }
 
     public function create(User $user, Organization $organization): bool

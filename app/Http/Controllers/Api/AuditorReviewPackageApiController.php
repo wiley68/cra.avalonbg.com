@@ -37,6 +37,15 @@ class AuditorReviewPackageApiController extends Controller
             ? AuditorReviewPackageStatus::from($validated['status'])
             : null;
 
+        $user = $request->user();
+        $includeDrafts = $user !== null && $user->canManageProducts($organization);
+
+        // Non-managers cannot request draft-only listings.
+        if (!$includeDrafts && $status === AuditorReviewPackageStatus::Draft) {
+            $status = null;
+            $includeDrafts = false;
+        }
+
         $paginator = $this->packages->paginate(
             $organization,
             (int) ($validated['per_page'] ?? 10),
@@ -46,6 +55,7 @@ class AuditorReviewPackageApiController extends Controller
             trim((string) ($validated['search'] ?? '')),
             isset($validated['product_id']) ? (int) $validated['product_id'] : null,
             $status,
+            $includeDrafts,
         );
 
         return response()->json($paginator);

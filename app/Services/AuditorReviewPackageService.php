@@ -39,11 +39,16 @@ class AuditorReviewPackageService
         string $search = '',
         ?int $productId = null,
         ?AuditorReviewPackageStatus $status = null,
+        bool $includeDrafts = true,
     ): LengthAwarePaginator {
         $query = AuditorReviewPackage::query()
             ->where('organization_id', $organization->id)
             ->with(['product:id,name'])
             ->withCount(['evidence', 'findings']);
+
+        if (!$includeDrafts) {
+            $query->where('status', '!=', AuditorReviewPackageStatus::Draft->value);
+        }
 
         if ($productId !== null) {
             $query->where('product_id', $productId);

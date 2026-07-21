@@ -284,7 +284,8 @@ test('viewer can list packages but cannot manage', function () {
         'organization_id' => $organization->id,
         'product_id' => $product->id,
         'title' => 'Visible package',
-        'status' => AuditorReviewPackageStatus::Draft,
+        'status' => AuditorReviewPackageStatus::Shared,
+        'shared_at' => now(),
         'created_by' => $owner->id,
     ]);
 
@@ -292,6 +293,10 @@ test('viewer can list packages but cannot manage', function () {
         ->get(route('auditor.index'))
         ->assertOk()
         ->assertInertia(fn($page) => $page->where('canManage', false));
+
+    $this->actingAs($viewer)
+        ->get(route('auditor.packages.show', $package))
+        ->assertOk();
 
     $this->actingAs($viewer)
         ->get(route('auditor.packages.edit', $package))
