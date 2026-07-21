@@ -292,3 +292,40 @@ test('cannot link using another organizations connection', function () {
     Http::assertNothingSent();
     expect(ProductRepository::query()->count())->toBe(0);
 });
+
+test('owner can link repository using github app installation token', function () {
+    ['owner' => $owner, 'product' => $product, 'connection' => $connection] = makeProductRepositoryFixture();
+
+    $connection->update([
+        'auth_type' => VcsAuthType::GithubApp,
+        'token' => null,
+        'github_app_id' => '100',
+        'github_installation_id' => '200',
+        'github_private_key' => makeGithubAppPrivateKeyPem(),
+    ]);
+
+    Http::fake([
+        'api.github.com/app/installations/200/access_tokens' => Http::response(['token' => 'ghs_link_token'], 201),
+        'api.github.com/repos/acme/widget' => Http::response([
+            'id' => 7,
+            'full_name' => 'acme/widget',
+            'html_url' => 'https://github.com/acme/widget',
+            'default_branch' => 'main',
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.repository.store', $product), [
+            'connection_id' => $connection->id,
+            'repository' => 'acme/widget',
+        ])
+        ->assertRedirect();
+
+    expect(ProductRepository::query()->first()?->full_name)->toBe('acme/widget');
+
+    Http::assertSent(fn($request) => $request->method() === 'POST'
+        && $request->url() === 'https://api.github.com/app/installations/200/access_tokens');
+    Http::assertSent(fn($request) => $request->method() === 'GET'
+        && $request->url() === 'https://api.github.com/repos/acme/widget'
+        && $request->hasHeader('Authorization', 'Bearer ghs_link_token'));
+});

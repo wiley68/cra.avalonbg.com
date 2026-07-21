@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Enums\VcsSyncSchedule;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
@@ -46,6 +47,9 @@ class IntegrationController extends Controller
                 'label' => $connection->label,
                 'status' => $connection->status->value,
                 'sync_schedule' => $connection->sync_schedule->value,
+                'github_app_id' => $connection->github_app_id,
+                'github_installation_id' => $connection->github_installation_id,
+                'has_github_private_key' => filled($connection->github_private_key),
                 'webhook_configured' => filled($connection->webhook_secret),
                 'webhook_url' => route('api.webhooks.github', $connection),
                 'last_verified_at' => $connection->last_verified_at?->toIso8601String(),
@@ -71,6 +75,33 @@ class IntegrationController extends Controller
             organization: $organization,
             actor: $request->user(),
             token: $request->string('token')->toString(),
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.github_connected'),
+        ]);
+
+        return back();
+    }
+
+    public function storeGithubApp(StoreGithubAppVcsConnectionRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->connections->storeGithubApp(
+            organization: $organization,
+            actor: $request->user(),
+            appId: $request->string('github_app_id')->toString(),
+            installationId: $request->string('github_installation_id')->toString(),
+            privateKey: $request->filled('github_private_key')
+            ? $request->string('github_private_key')->toString()
+            : null,
             label: $request->input('label'),
         );
 

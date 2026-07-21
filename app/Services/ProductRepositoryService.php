@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\VcsAuthType;
 use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
 use App\Models\ProductRepository;
 use App\Models\User;
+use App\Services\Vcs\GitHubAppTokenService;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +17,11 @@ use Illuminate\Validation\ValidationException;
 
 class ProductRepositoryService
 {
+    public function __construct(
+        private readonly GitHubAppTokenService $githubAppTokens,
+    ) {
+    }
+
     public function link(
         Product $product,
         OrganizationVcsConnection $connection,
@@ -142,7 +149,12 @@ class ProductRepositoryService
      */
     private function fetchGithubRepository(OrganizationVcsConnection $connection, string $fullName): array
     {
-        $response = Http::withToken($connection->token)
+        $accessToken = match ($connection->auth_type) {
+            VcsAuthType::GithubApp => $this->githubAppTokens->installationAccessToken($connection),
+            default => (string) $connection->token,
+        };
+
+        $response = Http::withToken($accessToken)
             ->acceptJson()
             ->withHeaders([
                 'X-GitHub-Api-Version' => '2022-11-28',

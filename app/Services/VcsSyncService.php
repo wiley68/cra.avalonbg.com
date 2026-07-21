@@ -3,11 +3,14 @@
 namespace App\Services;
 
 use App\Contracts\VcsProvider;
+use App\Enums\VcsAuthType;
 use App\Enums\VcsProvider as VcsProviderEnum;
 use App\Enums\VcsSyncRunStatus;
+use App\Models\OrganizationVcsConnection;
 use App\Models\ProductRepository;
 use App\Models\User;
 use App\Models\VcsSyncRun;
+use App\Services\Vcs\GitHubAppTokenService;
 use App\Services\Vcs\GitHubPatProvider;
 use App\Services\Vcs\GitLabPatProvider;
 use App\Support\AuditLogger;
@@ -19,6 +22,7 @@ class VcsSyncService
     public function __construct(
         private readonly EvidenceService $evidence,
         private readonly VcsImportSuggestionService $suggestions,
+        private readonly GitHubAppTokenService $githubAppTokens,
     ) {
     }
 
@@ -120,9 +124,17 @@ class VcsSyncService
         }
 
         return match ($connection->provider) {
-            VcsProviderEnum::Github => new GitHubPatProvider($connection->token),
-            VcsProviderEnum::Gitlab => new GitLabPatProvider($connection->token),
+            VcsProviderEnum::Github => new GitHubPatProvider($this->githubAccessToken($connection)),
+            VcsProviderEnum::Gitlab => new GitLabPatProvider((string) $connection->token),
             default => throw new RuntimeException('Unsupported VCS provider: ' . $connection->provider->value),
+        };
+    }
+
+    private function githubAccessToken(OrganizationVcsConnection $connection): string
+    {
+        return match ($connection->auth_type) {
+            VcsAuthType::GithubApp => $this->githubAppTokens->installationAccessToken($connection),
+            VcsAuthType::Pat => (string) $connection->token,
         };
     }
 }

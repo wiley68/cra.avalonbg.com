@@ -1,8 +1,8 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.6  
+**Версия:** 1.7  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must + Should + schedule + webhooks + GitLab PAT Done; Could remaining (GitHub App)  
+**Статус:** Active — Phase 2.1 Must + Should + Could (schedule, webhooks, GitLab PAT, GitHub App) Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
@@ -10,7 +10,7 @@
 
 > **Ограничение от MVP (§11):** пълна двупосочна GitHub синхронизация **не** влиза в първата версия. Phase 2.1 е **еднопосочен** import/sync (provider → CRA Workspace).
 
-> **Решение за първи slice:** **GitHub + PAT** (encrypted at rest). GitLab PAT и GitHub App остават следващи slices след стабилен sync.
+> **Решение за auth:** GitHub **PAT** или **GitHub App** (App ID + Installation ID + encrypted PEM); GitLab **PAT**.
 
 ---
 
@@ -89,17 +89,20 @@ Job: `SyncProductRepositoryJob` — за „Sync now“ и подготовка 
 
 ### `organization_vcs_connections`
 
-| Колона           | Тип                   | Бележки                            |
-| ---------------- | --------------------- | ---------------------------------- |
-| id               | bigint PK             |                                    |
-| organization_id  | FK                    | tenant                             |
-| provider         | string                | `github` \| `gitlab`               |
-| auth_type        | string                | първо само `pat`                   |
-| token            | text (encrypted cast) | PAT                                |
-| label            | string nullable       | потребителски етикет               |
-| status           | string                | `active` \| `invalid` \| `revoked` |
-| last_verified_at | timestamp nullable    |                                    |
-| timestamps       |                       |                                    |
+| Колона                 | Тип                       | Бележки                            |
+| ---------------------- | ------------------------- | ---------------------------------- |
+| id                     | bigint PK                 |                                    |
+| organization_id        | FK                        | tenant                             |
+| provider               | string                    | `github` \| `gitlab`               |
+| auth_type              | string                    | `pat` \| `github_app` (GitHub)     |
+| token                  | text nullable (encrypted) | PAT; null при `github_app`         |
+| github_app_id          | string nullable           | GitHub App ID                      |
+| github_installation_id | string nullable           | Installation ID                    |
+| github_private_key     | text nullable (encrypted) | PEM private key                    |
+| label                  | string nullable           | потребителски етикет               |
+| status                 | string                    | `active` \| `invalid` \| `revoked` |
+| last_verified_at       | timestamp nullable        |                                    |
+| timestamps             |                           |                                    |
 
 Unique: `(organization_id, provider)` за първия slice (една GitHub връзка на org).
 
@@ -195,7 +198,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 10. Scheduled sync (hourly/daily) — **Done** (2026-07-20)
 11. Webhooks за incremental updates — **Done** (2026-07-20)
 12. GitLab PAT provider (втори adapter) — **Done** (2026-07-21)
-13. GitHub App вместо/до PAT
+13. GitHub App вместо/до PAT — **Done** (2026-07-21)
 
 ---
 

@@ -32,6 +32,12 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->trimStrings(except: [
+            'current_password',
+            'password',
+            'password_confirmation',
+            'github_private_key',
+        ]);
         $middleware->alias([
             'password.changed' => EnsurePasswordIsChanged::class,
             'password.confirm' => RequirePasswordConfirmation::class,

@@ -309,3 +309,45 @@ test('sync audit details do not include the pat token', function () {
         ->and(json_encode($audit->details))->not->toContain('ghp_sync_token')
         ->and($audit->description)->not->toContain('ghp_sync_token');
 });
+
+test('sync with github app mints installation token then reads api', function () {
+    Storage::fake('local');
+
+    ['owner' => $owner, 'product' => $product, 'repository' => $repository] = makeSyncFixture();
+
+    $repository->connection->update([
+        'auth_type' => VcsAuthType::GithubApp,
+        'token' => null,
+        'github_app_id' => '300',
+        'github_installation_id' => '400',
+        'github_private_key' => makeGithubAppPrivateKeyPem(),
+    ]);
+
+    Http::fake([
+        'api.github.com/app/installations/400/access_tokens' => Http::response(['token' => 'ghs_sync_token'], 201),
+        'api.github.com/repos/acme/widget/tags*' => Http::response([
+            ['name' => 'v9.0.0', 'commit' => ['sha' => 'zzz']],
+        ], 200),
+        'api.github.com/repos/acme/widget/releases*' => Http::response([], 200),
+        'api.github.com/repos/acme/widget/actions/runs*' => Http::response([
+            'workflow_runs' => [],
+        ], 200),
+        'api.github.com/repos/acme/widget/dependabot/alerts*' => Http::response([], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.repository.sync', $product))
+        ->assertRedirect();
+
+    $run = VcsSyncRun::query()->latest('id')->first();
+
+    expect($run)->not->toBeNull()
+        ->and($run->status)->toBe(VcsSyncRunStatus::Succeeded)
+        ->and($run->summary['latest_tag'])->toBe('v9.0.0');
+
+    Http::assertSent(fn($request) => $request->method() === 'POST'
+        && str_contains($request->url(), '/app/installations/400/access_tokens'));
+    Http::assertSent(fn($request) => $request->method() === 'GET'
+        && str_contains($request->url(), 'api.github.com/repos/acme/widget/tags')
+        && $request->hasHeader('Authorization', 'Bearer ghs_sync_token'));
+});

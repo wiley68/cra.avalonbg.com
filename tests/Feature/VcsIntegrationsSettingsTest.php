@@ -235,3 +235,174 @@ test('cannot disconnect another organizations connection', function () {
 
     expect(OrganizationVcsConnection::query()->whereKey($foreign->id)->exists())->toBeTrue();
 });
+
+test('owner can connect github app and audit omits private key', function () {
+    ['organization' => $organization, 'owner' => $owner] = makeIntegrationsFixture();
+
+    $pem = makeGithubAppPrivateKeyPem();
+
+    Http::fake([
+        'api.github.com/app/installations/4242/access_tokens' => Http::response(['token' => 'ghs_install_token'], 201),
+        'api.github.com/installation/repositories*' => Http::response([
+            'total_count' => 0,
+            'repositories' => [],
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('settings.integrations.github.app.store'), [
+            'github_app_id' => '12345',
+            'github_installation_id' => '4242',
+            'github_private_key' => $pem,
+            'label' => 'Org App',
+        ])
+        ->assertRedirect();
+
+    $connection = OrganizationVcsConnection::query()->first();
+
+    expect($connection)->not->toBeNull()
+        ->and($connection->organization_id)->toBe($organization->id)
+        ->and($connection->provider)->toBe(VcsProvider::Github)
+        ->and($connection->auth_type)->toBe(VcsAuthType::GithubApp)
+        ->and($connection->token)->toBeNull()
+        ->and($connection->github_app_id)->toBe('12345')
+        ->and($connection->github_installation_id)->toBe('4242')
+        ->and($connection->github_private_key)->toBe($pem)
+        ->and($connection->label)->toBe('Org App')
+        ->and($connection->toArray())->not->toHaveKey('github_private_key');
+
+    $description = AuditLog::query()->where('event_type', AuditEventType::VcsConnectionCreated)->value('description');
+    expect($description)->not->toContain('BEGIN PRIVATE KEY')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::VcsConnectionCreated)->count())->toBe(1);
+});
+
+test('invalid github app credentials are rejected', function () {
+    ['owner' => $owner] = makeIntegrationsFixture();
+
+    Http::fake([
+        'api.github.com/app/installations/*/access_tokens' => Http::response(['message' => 'Not Found'], 404),
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('settings.integrations.edit'))
+        ->post(route('settings.integrations.github.app.store'), [
+            'github_app_id' => '999',
+            'github_installation_id' => '1',
+            'github_private_key' => makeGithubAppPrivateKeyPem(),
+        ])
+        ->assertRedirect(route('settings.integrations.edit'))
+        ->assertSessionHasErrors('github_installation_id');
+
+    expect(OrganizationVcsConnection::query()->count())->toBe(0);
+});
+
+test('switching from pat to github app clears token', function () {
+    ['organization' => $organization, 'owner' => $owner] = makeIntegrationsFixture();
+
+    OrganizationVcsConnection::query()->create([
+        'organization_id' => $organization->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::Pat,
+        'token' => 'ghp_old_pat',
+        'label' => 'GitHub',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    $pem = makeGithubAppPrivateKeyPem();
+
+    Http::fake([
+        'api.github.com/app/installations/77/access_tokens' => Http::response(['token' => 'ghs_install_token'], 201),
+        'api.github.com/installation/repositories*' => Http::response([
+            'total_count' => 0,
+            'repositories' => [],
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('settings.integrations.github.app.store'), [
+            'github_app_id' => '55',
+            'github_installation_id' => '77',
+            'github_private_key' => $pem,
+        ])
+        ->assertRedirect();
+
+    $connection = OrganizationVcsConnection::query()->first();
+
+    expect(OrganizationVcsConnection::query()->count())->toBe(1)
+        ->and($connection->auth_type)->toBe(VcsAuthType::GithubApp)
+        ->and($connection->token)->toBeNull()
+        ->and($connection->github_app_id)->toBe('55')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::VcsConnectionUpdated)->count())->toBe(1);
+});
+
+test('updating github app can reuse existing private key', function () {
+    ['organization' => $organization, 'owner' => $owner] = makeIntegrationsFixture();
+
+    $pem = makeGithubAppPrivateKeyPem();
+
+    OrganizationVcsConnection::query()->create([
+        'organization_id' => $organization->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::GithubApp,
+        'token' => null,
+        'github_app_id' => '10',
+        'github_installation_id' => '20',
+        'github_private_key' => $pem,
+        'label' => 'App',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    Http::fake([
+        'api.github.com/app/installations/21/access_tokens' => Http::response(['token' => 'ghs_install_token'], 201),
+        'api.github.com/installation/repositories*' => Http::response([
+            'total_count' => 0,
+            'repositories' => [],
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('settings.integrations.github.app.store'), [
+            'github_app_id' => '10',
+            'github_installation_id' => '21',
+            'label' => 'App rotated install',
+        ])
+        ->assertRedirect();
+
+    $connection = OrganizationVcsConnection::query()->first();
+
+    expect($connection->github_installation_id)->toBe('21')
+        ->and($connection->github_private_key)->toBe($pem)
+        ->and($connection->label)->toBe('App rotated install');
+});
+
+test('integrations page exposes github app ids without private key', function () {
+    ['organization' => $organization, 'owner' => $owner] = makeIntegrationsFixture();
+
+    OrganizationVcsConnection::query()->create([
+        'organization_id' => $organization->id,
+        'provider' => VcsProvider::Github,
+        'auth_type' => VcsAuthType::GithubApp,
+        'token' => null,
+        'github_app_id' => '111',
+        'github_installation_id' => '222',
+        'github_private_key' => makeGithubAppPrivateKeyPem(),
+        'label' => 'App',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('settings.integrations.edit'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('settings/Integrations')
+            ->has('connections', 1)
+            ->where('connections.0.auth_type', 'github_app')
+            ->where('connections.0.github_app_id', '111')
+            ->where('connections.0.github_installation_id', '222')
+            ->where('connections.0.has_github_private_key', true)
+            ->missing('connections.0.github_private_key')
+            ->missing('connections.0.token'));
+});

@@ -28,6 +28,8 @@ class AuditLogger
         'password_confirmation',
         'current_password',
         'token',
+        'github_private_key',
+        'private_key',
         'recovery_code',
         'code',
         'otp',

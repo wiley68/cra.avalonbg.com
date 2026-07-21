@@ -36,6 +36,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.edit');
     Route::post('settings/integrations/github', [IntegrationController::class, 'storeGithub'])
         ->name('settings.integrations.github.store');
+    Route::post('settings/integrations/github/app', [IntegrationController::class, 'storeGithubApp'])
+        ->name('settings.integrations.github.app.store');
     Route::post('settings/integrations/gitlab', [IntegrationController::class, 'storeGitlab'])
         ->name('settings.integrations.gitlab.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])

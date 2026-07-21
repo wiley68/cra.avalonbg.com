@@ -29,6 +29,9 @@ type VcsConnection = {
     label: string | null;
     status: string;
     sync_schedule: 'off' | 'hourly' | 'daily' | string;
+    github_app_id?: string | null;
+    github_installation_id?: string | null;
+    has_github_private_key?: boolean;
     webhook_configured: boolean;
     webhook_url: string;
     last_verified_at: string | null;
@@ -51,6 +54,15 @@ const githubForm = useForm({
     token: '',
     label: 'GitHub',
 });
+
+const githubAppForm = useForm({
+    github_app_id: '',
+    github_installation_id: '',
+    github_private_key: '',
+    label: 'GitHub App',
+});
+
+const githubAuthMethod = ref<'pat' | 'github_app'>('pat');
 
 const gitlabForm = useForm({
     token: '',
@@ -114,6 +126,17 @@ watch(
     githubConnection,
     (connection) => {
         scheduleForm.sync_schedule = connection?.sync_schedule ?? 'off';
+
+        if (connection?.auth_type === 'github_app') {
+            githubAuthMethod.value = 'github_app';
+            githubAppForm.github_app_id = connection.github_app_id ?? '';
+            githubAppForm.github_installation_id =
+                connection.github_installation_id ?? '';
+            githubAppForm.label = connection.label ?? 'GitHub App';
+        } else if (connection) {
+            githubAuthMethod.value = 'pat';
+            githubForm.label = connection.label ?? 'GitHub';
+        }
     },
     { immediate: true },
 );
@@ -130,6 +153,13 @@ const connectGithub = () => {
     githubForm.post(IntegrationController.storeGithub.url(), {
         preserveScroll: true,
         onSuccess: () => githubForm.reset('token'),
+    });
+};
+
+const connectGithubApp = () => {
+    githubAppForm.post(IntegrationController.storeGithubApp.url(), {
+        preserveScroll: true,
+        onSuccess: () => githubAppForm.reset('github_private_key'),
     });
 };
 
@@ -279,6 +309,16 @@ const confirmDisconnect = () => {
                                 {{
                                     t(
                                         `settings.integrations.statuses.${githubConnection.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t('settings.integrations.auth_type_label')
+                                }}:
+                                {{
+                                    t(
+                                        `settings.integrations.auth_methods.${githubConnection.auth_type}`,
                                     )
                                 }}
                             </p>
@@ -515,7 +555,54 @@ const confirmDisconnect = () => {
                         "
                     />
 
-                    <form class="space-y-6" @submit.prevent="connectGithub">
+                    <div class="grid gap-2">
+                        <Label for="github_auth_method">{{
+                            t('settings.integrations.auth_method')
+                        }}</Label>
+                        <Select
+                            :model-value="githubAuthMethod"
+                            @update:model-value="
+                                (value) => {
+                                    if (
+                                        value === 'pat' ||
+                                        value === 'github_app'
+                                    ) {
+                                        githubAuthMethod = value;
+                                    }
+                                }
+                            "
+                        >
+                            <SelectTrigger
+                                id="github_auth_method"
+                                class="w-full max-w-xs"
+                                data-test="github-auth-method-select"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pat">
+                                    {{
+                                        t(
+                                            'settings.integrations.auth_methods.pat',
+                                        )
+                                    }}
+                                </SelectItem>
+                                <SelectItem value="github_app">
+                                    {{
+                                        t(
+                                            'settings.integrations.auth_methods.github_app',
+                                        )
+                                    }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <form
+                        v-if="githubAuthMethod === 'pat'"
+                        class="space-y-6"
+                        @submit.prevent="connectGithub"
+                    >
                         <div class="grid gap-2">
                             <Label for="label">{{
                                 t('settings.integrations.label')
@@ -556,9 +643,146 @@ const confirmDisconnect = () => {
                         >
                             <Save class="h-4 w-4" />
                             {{
-                                githubConnection
+                                githubConnection?.auth_type === 'pat'
                                     ? t('settings.integrations.update_token')
                                     : t('settings.integrations.connect')
+                            }}
+                        </Button>
+                    </form>
+
+                    <form
+                        v-else
+                        class="space-y-6"
+                        @submit.prevent="connectGithubApp"
+                    >
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('settings.integrations.github_app_help') }}
+                        </p>
+
+                        <div class="grid gap-2">
+                            <Label for="github_app_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="github_app_label"
+                                v-model="githubAppForm.label"
+                                class="mt-1 block w-full"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.auth_methods.github_app',
+                                    )
+                                "
+                            />
+                            <InputError :message="githubAppForm.errors.label" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="github_app_id">{{
+                                t('settings.integrations.github_app_id')
+                            }}</Label>
+                            <Input
+                                id="github_app_id"
+                                v-model="githubAppForm.github_app_id"
+                                class="mt-1 block w-full"
+                                required
+                                data-test="github-app-id"
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.github_app_id_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="githubAppForm.errors.github_app_id"
+                            />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="github_installation_id">{{
+                                t(
+                                    'settings.integrations.github_installation_id',
+                                )
+                            }}</Label>
+                            <Input
+                                id="github_installation_id"
+                                v-model="githubAppForm.github_installation_id"
+                                class="mt-1 block w-full"
+                                required
+                                data-test="github-installation-id"
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.github_installation_id_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="
+                                    githubAppForm.errors.github_installation_id
+                                "
+                            />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="github_private_key">{{
+                                t('settings.integrations.github_private_key')
+                            }}</Label>
+                            <textarea
+                                id="github_private_key"
+                                v-model="githubAppForm.github_private_key"
+                                rows="6"
+                                class="mt-1 flex w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.github_private_key_placeholder',
+                                    )
+                                "
+                                :required="
+                                    !(
+                                        githubConnection?.auth_type ===
+                                            'github_app' &&
+                                        githubConnection.has_github_private_key
+                                    )
+                                "
+                                data-test="github-private-key"
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    githubConnection?.auth_type ===
+                                        'github_app' &&
+                                    githubConnection.has_github_private_key
+                                        ? t(
+                                              'settings.integrations.github_private_key_optional_help',
+                                          )
+                                        : t(
+                                              'settings.integrations.github_private_key_help',
+                                          )
+                                }}
+                            </p>
+                            <InputError
+                                :message="
+                                    githubAppForm.errors.github_private_key
+                                "
+                            />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            :disabled="githubAppForm.processing"
+                            data-test="connect-github-app-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                githubConnection?.auth_type === 'github_app'
+                                    ? t(
+                                          'settings.integrations.update_github_app',
+                                      )
+                                    : t(
+                                          'settings.integrations.connect_github_app',
+                                      )
                             }}
                         </Button>
                     </form>

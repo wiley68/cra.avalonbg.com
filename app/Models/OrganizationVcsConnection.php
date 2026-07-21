@@ -18,7 +18,10 @@ use Illuminate\Support\Carbon;
  * @property int $organization_id
  * @property VcsProvider $provider
  * @property VcsAuthType $auth_type
- * @property string $token
+ * @property string|null $token
+ * @property string|null $github_app_id
+ * @property string|null $github_installation_id
+ * @property string|null $github_private_key
  * @property string|null $label
  * @property VcsConnectionStatus $status
  * @property VcsSyncSchedule $sync_schedule
@@ -32,13 +35,16 @@ use Illuminate\Support\Carbon;
     'provider',
     'auth_type',
     'token',
+    'github_app_id',
+    'github_installation_id',
+    'github_private_key',
     'label',
     'status',
     'sync_schedule',
     'webhook_secret',
     'last_verified_at',
 ])]
-#[Hidden(['token', 'webhook_secret'])]
+#[Hidden(['token', 'webhook_secret', 'github_private_key'])]
 class OrganizationVcsConnection extends Model
 {
     protected function casts(): array
@@ -47,6 +53,7 @@ class OrganizationVcsConnection extends Model
             'provider' => VcsProvider::class,
             'auth_type' => VcsAuthType::class,
             'token' => 'encrypted',
+            'github_private_key' => 'encrypted',
             'webhook_secret' => 'encrypted',
             'status' => VcsConnectionStatus::class,
             'sync_schedule' => VcsSyncSchedule::class,

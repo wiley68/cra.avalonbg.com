@@ -15,7 +15,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    // ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -44,7 +44,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function makeGithubAppPrivateKeyPem(): string
 {
-    // ..
+    $pem = file_get_contents(dirname(__DIR__) . '/tests/Fixtures/github_app_test_private_key.pem');
+
+    if ($pem === false || trim($pem) === '') {
+        throw new RuntimeException('Missing tests/Fixtures/github_app_test_private_key.pem');
+    }
+
+    return trim($pem) . "\n";
 }

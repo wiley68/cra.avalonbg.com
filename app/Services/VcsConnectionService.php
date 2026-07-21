@@ -9,6 +9,7 @@ use App\Enums\VcsSyncSchedule;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\User;
+use App\Services\Vcs\GitHubAppTokenService;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Support\Facades\Http;
@@ -17,6 +18,11 @@ use Illuminate\Validation\ValidationException;
 
 class VcsConnectionService
 {
+    public function __construct(
+        private readonly GitHubAppTokenService $githubAppTokens,
+    ) {
+    }
+
     public function storeGithubPat(
         Organization $organization,
         User $actor,
@@ -30,6 +36,7 @@ class VcsConnectionService
             token: $token,
             label: $label ?: 'GitHub',
             verify: fn(string $value) => $this->verifyGithubPat($value),
+            clearGithubApp: true,
         );
     }
 
@@ -46,7 +53,71 @@ class VcsConnectionService
             token: $token,
             label: $label ?: 'GitLab',
             verify: fn(string $value) => $this->verifyGitlabPat($value),
+            clearGithubApp: false,
         );
+    }
+
+    public function storeGithubApp(
+        Organization $organization,
+        User $actor,
+        string $appId,
+        string $installationId,
+        ?string $privateKey,
+        ?string $label = null,
+    ): OrganizationVcsConnection {
+        $existing = OrganizationVcsConnection::query()
+            ->where('organization_id', $organization->id)
+            ->where('provider', VcsProvider::Github)
+            ->first();
+
+        $resolvedPrivateKey = $privateKey;
+
+        if (
+            !filled($resolvedPrivateKey)
+            && $existing !== null
+            && $existing->auth_type === VcsAuthType::GithubApp
+            && filled($existing->github_private_key)
+        ) {
+            $resolvedPrivateKey = $existing->github_private_key;
+        }
+
+        if (!filled($resolvedPrivateKey)) {
+            throw ValidationException::withMessages([
+                'github_private_key' => [Translations::get('settings.integrations.github_app_private_key_required')],
+            ]);
+        }
+
+        $this->githubAppTokens->verify($appId, $installationId, $resolvedPrivateKey);
+
+        $attributes = [
+            'auth_type' => VcsAuthType::GithubApp,
+            'token' => null,
+            'github_app_id' => $appId,
+            'github_installation_id' => $installationId,
+            'github_private_key' => $resolvedPrivateKey,
+            'label' => $label ?: 'GitHub App',
+            'status' => VcsConnectionStatus::Active,
+            'last_verified_at' => now(),
+        ];
+
+        if ($existing !== null) {
+            $existing->update($attributes);
+            $connection = $existing->fresh();
+            AuditLogger::logVcsConnectionUpdated($connection, $actor);
+
+            return $connection;
+        }
+
+        $connection = OrganizationVcsConnection::query()->create([
+            'organization_id' => $organization->id,
+            'provider' => VcsProvider::Github,
+            'sync_schedule' => VcsSyncSchedule::Off,
+            ...$attributes,
+        ]);
+
+        AuditLogger::logVcsConnectionCreated($connection, $actor);
+
+        return $connection;
     }
 
     /**
@@ -59,6 +130,7 @@ class VcsConnectionService
         string $token,
         string $label,
         callable $verify,
+        bool $clearGithubApp,
     ): OrganizationVcsConnection {
         $verify($token);
 
@@ -74,6 +146,12 @@ class VcsConnectionService
             'status' => VcsConnectionStatus::Active,
             'last_verified_at' => now(),
         ];
+
+        if ($clearGithubApp) {
+            $attributes['github_app_id'] = null;
+            $attributes['github_installation_id'] = null;
+            $attributes['github_private_key'] = null;
+        }
 
         if ($existing !== null) {
             $existing->update($attributes);
