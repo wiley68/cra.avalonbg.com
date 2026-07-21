@@ -18,6 +18,7 @@ use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatchCampaignController extends Controller
 {
@@ -204,6 +205,16 @@ class PatchCampaignController extends Controller
         ]);
 
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
+    }
+
+    public function export(Product $product, PatchCampaign $campaign): StreamedResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertCampaignBelongsToProduct($product, $campaign);
+        $this->authorize('view', [$product, $organization]);
+
+        return $this->campaigns->exportAffectedCustomersXlsx($campaign, request()->user());
     }
 
     public function destroy(Product $product, PatchCampaign $campaign): RedirectResponse

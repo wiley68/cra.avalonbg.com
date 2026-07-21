@@ -900,6 +900,25 @@
             "activated": "Campaign activated and matching installations attached.",
             "completed": "Campaign completed — all targets are updated or excepted.",
             "completed_empty": "Campaign completed — no installations needed an update.",
+            "export_xlsx": "Export Excel",
+            "export": {
+                "sheet_title": "Affected customers",
+                "columns": {
+                    "customer_name": "Customer",
+                    "external_ref": "External ref",
+                    "primary_contact": "Primary contact",
+                    "criticality": "Criticality",
+                    "environment": "Environment",
+                    "current_version": "Current version",
+                    "target_version": "Target version",
+                    "status": "Status",
+                    "notified_at": "Notified at",
+                    "acknowledged_at": "Acknowledged at",
+                    "confirmed_at": "Confirmed at",
+                    "notification_note": "Notification note",
+                    "internet_exposure": "Internet exposure"
+                }
+            },
             "deleted": "Campaign deleted.",
             "confirm_delete": "Delete this draft campaign?",
             "confirm_activate_title": "Activate campaign",
@@ -2010,6 +2029,7 @@
             "patch_campaign_updated": "Patch campaign updated",
             "patch_campaign_activated": "Patch campaign activated",
             "patch_campaign_completed": "Patch campaign completed",
+            "patch_campaign_exported": "Patch campaign exported",
             "patch_campaign_deleted": "Patch campaign deleted",
             "campaign_target_updated": "Campaign target updated",
             "risk_created": "Risk created",

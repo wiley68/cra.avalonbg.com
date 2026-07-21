@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.9  
+**Версия:** 1.10  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must complete; Should 8 Done; Should 9–11 / Could pending  
+**Статус:** Active — Must complete; Should 8–9 Done; Should 10–11 / Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -203,6 +203,7 @@ Unique: `(campaign_id, deployment_id)`.
 - `GET /products/{product}/campaigns` — index
 - Create: select target version (+ optional `product_vulnerability_id`), seed targets per правилото в §5
 - Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted)
+- Export: `GET /products/{product}/campaigns/{campaign}/export` — XLSX of affected installations
 - Internal API: `GET /internal-api/products/{product}/campaigns` (+ targets nested или separate)
 
 ---
@@ -222,7 +223,7 @@ Unique: `(campaign_id, deployment_id)`.
 ### Should
 
 8. Campaign completion when all targets `updated` \| `excepted` — **Done** (2026-07-21)
-9. Affected-customer export (CSV) от campaign
+9. Affected-customer export (XLSX) от campaign — **Done** (2026-07-21)
 10. Readiness gap за unresolved exposed deployments (active campaign)
 11. Optional link campaign ↔ vulnerability на Product Vulnerability show
 
@@ -239,7 +240,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 **Must** — customers + deployments + manual patch campaign tracking (без outbound messaging).
 
-**Should** — campaign completion rules, CSV export, readiness gap, vulnerability link.
+**Should** — campaign completion rules, XLSX export, readiness gap, vulnerability link.
 
 **Could** — email stub, CSV import, EOS cross-check, multi-event notification log.
 
@@ -285,6 +286,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.10   | 2026-07-21 | Should 9 Done: affected-customer XLSX export от campaign (първоначално CSV; сменено на XLSX)                                                                |
 | 1.9    | 2026-07-21 | Should 8 Done: auto-complete campaign when all targets updated/excepted (incl. empty seed)                                                                  |
 | 1.8    | 2026-07-21 | Must 7 Done: i18n EN/BG + ясно разграничение delivery model vs customer installations; Must slice complete                                                  |
 | 1.7    | 2026-07-21 | Must 6 Done: E2E campaign flow + view-only forbidden manage tests                                                                                           |

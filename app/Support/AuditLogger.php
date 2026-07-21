@@ -356,6 +356,26 @@ class AuditLogger
         );
     }
 
+    public static function logPatchCampaignExported(
+        PatchCampaign $campaign,
+        User $actor,
+        int $rowCount,
+    ): void {
+        self::persist(
+            type: AuditEventType::PatchCampaignExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
+                ['field' => 'row_count', 'value' => (string) $rowCount],
+            ],
+        );
+    }
+
     public static function logPatchCampaignDeleted(PatchCampaign $campaign, User $actor): void
     {
         self::persist(

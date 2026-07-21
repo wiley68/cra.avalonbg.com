@@ -16,6 +16,10 @@ use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatchCampaignService
 {
@@ -448,6 +452,87 @@ class PatchCampaignService
                 'product_vulnerability_id' => [Translations::get('products.campaigns.vulnerability_invalid')],
             ]);
         }
+    }
+
+    /**
+     * Stream an XLSX of campaign targets (affected customer installations).
+     */
+    public function exportAffectedCustomersXlsx(PatchCampaign $campaign, User $actor): StreamedResponse
+    {
+        $campaign->loadMissing([
+            'targetVersion',
+            'targets.deployment.customer',
+            'targets.deployment.productVersion',
+        ]);
+
+        $headers = [
+            Translations::get('products.campaigns.export.columns.customer_name'),
+            Translations::get('products.campaigns.export.columns.external_ref'),
+            Translations::get('products.campaigns.export.columns.primary_contact'),
+            Translations::get('products.campaigns.export.columns.criticality'),
+            Translations::get('products.campaigns.export.columns.environment'),
+            Translations::get('products.campaigns.export.columns.current_version'),
+            Translations::get('products.campaigns.export.columns.target_version'),
+            Translations::get('products.campaigns.export.columns.status'),
+            Translations::get('products.campaigns.export.columns.notified_at'),
+            Translations::get('products.campaigns.export.columns.acknowledged_at'),
+            Translations::get('products.campaigns.export.columns.confirmed_at'),
+            Translations::get('products.campaigns.export.columns.notification_note'),
+            Translations::get('products.campaigns.export.columns.internet_exposure'),
+        ];
+
+        $dataRows = $campaign->targets
+            ->sortBy('id')
+            ->values()
+            ->map(function (PatchCampaignTarget $target) use ($campaign): array {
+                $deployment = $target->deployment;
+                $customer = $deployment?->customer;
+
+                return [
+                    $customer?->name ?? '',
+                    $customer?->external_ref ?? '',
+                    $customer?->primary_contact ?? '',
+                    $customer?->criticality?->value ?? '',
+                    $deployment?->environment->value ?? '',
+                    $deployment?->productVersion?->version_number ?? '',
+                    $campaign->targetVersion?->version_number ?? '',
+                    $target->status->value,
+                    $target->notified_at?->format('d.m.Y H:i') ?? '',
+                    $target->acknowledged_at?->format('d.m.Y H:i') ?? '',
+                    $target->confirmed_at?->format('d.m.Y H:i') ?? '',
+                    $target->notification_note ?? '',
+                    $deployment?->internet_exposure
+                    ? Translations::get('common.yes')
+                    : Translations::get('common.no'),
+                ];
+            })
+            ->all();
+
+        AuditLogger::logPatchCampaignExported($campaign, $actor, count($dataRows));
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle(Translations::get('products.campaigns.export.sheet_title'));
+        $sheet->fromArray(array_merge([$headers], $dataRows), null, 'A1');
+        $sheet->getStyle('A1:M1')->getFont()->setBold(true);
+        $sheet->getStyle('A:M')->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+
+        foreach (range('A', 'M') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $filename = sprintf(
+            'campaign-%d-affected-customers-%s.xlsx',
+            $campaign->id,
+            now()->format('Y-m-d'),
+        );
+
+        return response()->streamDownload(function () use ($spreadsheet): void {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /**

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Pencil, Play, Trash2 } from '@lucide/vue';
+import { ArrowLeft, FileDown, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
@@ -28,6 +28,7 @@ import {
     activate as activateCampaign,
     destroy,
     edit as editCampaign,
+    exportMethod as exportCampaign,
     index as campaignsIndex,
     show as campaignsShow,
 } from '@/routes/products/campaigns';
@@ -113,6 +114,14 @@ const selectedTarget = ref<CampaignTarget | null>(null);
 const isDraft = computed(() => props.campaign.status === 'draft');
 const isActive = computed(() => props.campaign.status === 'active');
 const canUpdateTargets = computed(() => props.canManage && isActive.value);
+
+const exportUrl = computed(
+    () =>
+        exportCampaign({
+            product: props.product.id,
+            campaign: props.campaign.id,
+        }).url,
+);
 
 const statusForm = useForm({
     status: 'notified' as string,
@@ -237,6 +246,12 @@ const textareaClass =
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.campaigns.export_xlsx') }}
+                    </a>
                 </Button>
                 <template v-if="canManage && isDraft">
                     <Button as-child variant="outline">

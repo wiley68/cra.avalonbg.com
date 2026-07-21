@@ -900,6 +900,25 @@
             "activated": "Кампанията е активирана и съвпадащите инсталации са прикачени.",
             "completed": "Кампанията е завършена — всички цели са обновени или с изключение.",
             "completed_empty": "Кампанията е завършена — няма инсталации, които да изискват обновяване.",
+            "export_xlsx": "Експорт Excel",
+            "export": {
+                "sheet_title": "Засегнати клиенти",
+                "columns": {
+                    "customer_name": "Клиент",
+                    "external_ref": "Външна реф.",
+                    "primary_contact": "Основен контакт",
+                    "criticality": "Критичност",
+                    "environment": "Среда",
+                    "current_version": "Текуща версия",
+                    "target_version": "Целева версия",
+                    "status": "Статус",
+                    "notified_at": "Уведомен на",
+                    "acknowledged_at": "Потвърден на",
+                    "confirmed_at": "Потвърдена дата",
+                    "notification_note": "Бележка за уведомяване",
+                    "internet_exposure": "Интернет експозиция"
+                }
+            },
             "deleted": "Кампанията е изтрита.",
             "confirm_delete": "Да се изтрие ли тази чернова на кампания?",
             "confirm_activate_title": "Активиране на кампания",
@@ -2010,6 +2029,7 @@
             "patch_campaign_updated": "Обновена кампания за пачове",
             "patch_campaign_activated": "Активирана кампания за пачове",
             "patch_campaign_completed": "Завършена кампания за пачове",
+            "patch_campaign_exported": "Експортирана кампания за пачове",
             "patch_campaign_deleted": "Изтрита кампания за пачове",
             "campaign_target_updated": "Обновена цел на кампания",
             "risk_created": "Създаден риск",
