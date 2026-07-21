@@ -23,17 +23,54 @@ class VcsConnectionService
         string $token,
         ?string $label = null,
     ): OrganizationVcsConnection {
-        $this->verifyGithubPat($token);
+        return $this->storePat(
+            organization: $organization,
+            actor: $actor,
+            provider: VcsProvider::Github,
+            token: $token,
+            label: $label ?: 'GitHub',
+            verify: fn(string $value) => $this->verifyGithubPat($value),
+        );
+    }
+
+    public function storeGitlabPat(
+        Organization $organization,
+        User $actor,
+        string $token,
+        ?string $label = null,
+    ): OrganizationVcsConnection {
+        return $this->storePat(
+            organization: $organization,
+            actor: $actor,
+            provider: VcsProvider::Gitlab,
+            token: $token,
+            label: $label ?: 'GitLab',
+            verify: fn(string $value) => $this->verifyGitlabPat($value),
+        );
+    }
+
+    /**
+     * @param  callable(string): void  $verify
+     */
+    private function storePat(
+        Organization $organization,
+        User $actor,
+        VcsProvider $provider,
+        string $token,
+        string $label,
+        callable $verify,
+    ): OrganizationVcsConnection {
+        $verify($token);
 
         $existing = OrganizationVcsConnection::query()
             ->where('organization_id', $organization->id)
-            ->where('provider', VcsProvider::Github)
+            ->where('provider', $provider)
             ->first();
 
         $attributes = [
             'auth_type' => VcsAuthType::Pat,
             'token' => $token,
-            'label' => $label ?: 'GitHub',
+            'label' => $label,
             'status' => VcsConnectionStatus::Active,
             'last_verified_at' => now(),
         ];
@@ -48,7 +85,7 @@ class VcsConnectionService
 
         $connection = OrganizationVcsConnection::query()->create([
             'organization_id' => $organization->id,
-            'provider' => VcsProvider::Github,
+            'provider' => $provider,
             'sync_schedule' => VcsSyncSchedule::Off,
             ...$attributes,
         ]);
@@ -110,6 +147,24 @@ class VcsConnectionService
 
         throw ValidationException::withMessages([
             'token' => [Translations::get('settings.integrations.github_token_invalid')],
+        ]);
+    }
+
+    private function verifyGitlabPat(string $token): void
+    {
+        $response = Http::withHeaders([
+            'PRIVATE-TOKEN' => $token,
+            'User-Agent' => 'CRA-Compliance-Workspace',
+        ])
+            ->acceptJson()
+            ->get('https://gitlab.com/api/v4/user');
+
+        if ($response->successful()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'token' => [Translations::get('settings.integrations.gitlab_token_invalid')],
         ]);
     }
 }

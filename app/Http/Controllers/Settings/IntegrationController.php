@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Enums\VcsSyncSchedule;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
+use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
 use App\Models\OrganizationVcsConnection;
 use App\Services\VcsConnectionService;
@@ -76,6 +77,29 @@ class IntegrationController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('settings.integrations.github_connected'),
+        ]);
+
+        return back();
+    }
+
+    public function storeGitlab(StoreGitlabVcsConnectionRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->connections->storeGitlabPat(
+            organization: $organization,
+            actor: $request->user(),
+            token: $request->string('token')->toString(),
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.gitlab_connected'),
         ]);
 
         return back();

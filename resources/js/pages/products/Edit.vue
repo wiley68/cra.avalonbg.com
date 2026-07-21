@@ -1255,7 +1255,9 @@ const textareaClass =
                             >
                                 {{
                                     connection.label ||
-                                    t('settings.integrations.github')
+                                    t(
+                                        `settings.integrations.${connection.provider}`,
+                                    )
                                 }}
                             </option>
                         </select>

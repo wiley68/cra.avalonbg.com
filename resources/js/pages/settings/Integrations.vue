@@ -51,7 +51,16 @@ const githubForm = useForm({
     label: 'GitHub',
 });
 
+const gitlabForm = useForm({
+    token: '',
+    label: 'GitLab',
+});
+
 const scheduleForm = useForm({
+    sync_schedule: 'off',
+});
+
+const gitlabScheduleForm = useForm({
     sync_schedule: 'off',
 });
 
@@ -73,10 +82,22 @@ const githubConnection = computed(() =>
     props.connections.find((connection) => connection.provider === 'github'),
 );
 
+const gitlabConnection = computed(() =>
+    props.connections.find((connection) => connection.provider === 'gitlab'),
+);
+
 watch(
     githubConnection,
     (connection) => {
         scheduleForm.sync_schedule = connection?.sync_schedule ?? 'off';
+    },
+    { immediate: true },
+);
+
+watch(
+    gitlabConnection,
+    (connection) => {
+        gitlabScheduleForm.sync_schedule = connection?.sync_schedule ?? 'off';
     },
     { immediate: true },
 );
@@ -88,6 +109,13 @@ const connectGithub = () => {
     });
 };
 
+const connectGitlab = () => {
+    gitlabForm.post(IntegrationController.storeGitlab.url(), {
+        preserveScroll: true,
+        onSuccess: () => gitlabForm.reset('token'),
+    });
+};
+
 const saveSyncSchedule = () => {
     if (!githubConnection.value) {
         return;
@@ -95,6 +123,19 @@ const saveSyncSchedule = () => {
 
     scheduleForm.put(
         IntegrationController.updateSyncSchedule.url(githubConnection.value.id),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const saveGitlabSyncSchedule = () => {
+    if (!gitlabConnection.value) {
+        return;
+    }
+
+    gitlabScheduleForm.put(
+        IntegrationController.updateSyncSchedule.url(gitlabConnection.value.id),
         {
             preserveScroll: true,
         },
@@ -394,6 +435,130 @@ const confirmDisconnect = () => {
             </div>
         </div>
 
+        <div v-if="gitlabConnection" class="space-y-4 rounded-lg border p-4">
+            <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 font-medium">
+                        <GitBranch class="h-4 w-4" />
+                        {{
+                            gitlabConnection.label ||
+                            t('settings.integrations.gitlab')
+                        }}
+                    </div>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('settings.integrations.status') }}:
+                        {{
+                            t(
+                                `settings.integrations.statuses.${gitlabConnection.status}`,
+                            )
+                        }}
+                    </p>
+                    <p
+                        v-if="gitlabConnection.last_verified_at"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.last_verified') }}:
+                        {{
+                            new Date(
+                                gitlabConnection.last_verified_at,
+                            ).toLocaleString()
+                        }}
+                    </p>
+                </div>
+                <Button
+                    v-if="canManage"
+                    type="button"
+                    variant="destructive"
+                    @click="disconnectId = gitlabConnection.id"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('settings.integrations.disconnect') }}
+                </Button>
+            </div>
+
+            <form
+                v-if="canManage"
+                class="space-y-3 border-t pt-4"
+                @submit.prevent="saveGitlabSyncSchedule"
+            >
+                <div class="grid gap-2">
+                    <Label for="gitlab_sync_schedule">{{
+                        t('settings.integrations.sync_schedule')
+                    }}</Label>
+                    <Select
+                        :model-value="gitlabScheduleForm.sync_schedule"
+                        @update:model-value="
+                            (value) => {
+                                if (typeof value === 'string') {
+                                    gitlabScheduleForm.sync_schedule = value;
+                                }
+                            }
+                        "
+                    >
+                        <SelectTrigger
+                            id="gitlab_sync_schedule"
+                            class="w-full max-w-xs"
+                            data-test="gitlab-sync-schedule-select"
+                        >
+                            <SelectValue
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.sync_schedule_placeholder',
+                                    )
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="off">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.off',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem value="hourly">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.hourly',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem value="daily">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedules.daily',
+                                    )
+                                }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('settings.integrations.sync_schedule_help') }}
+                    </p>
+                    <InputError
+                        :message="gitlabScheduleForm.errors.sync_schedule"
+                    />
+                </div>
+                <Button
+                    type="submit"
+                    variant="outline"
+                    :disabled="gitlabScheduleForm.processing"
+                    data-test="save-gitlab-sync-schedule-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{ t('settings.integrations.save_sync_schedule') }}
+                </Button>
+            </form>
+            <p v-else class="border-t pt-4 text-sm text-muted-foreground">
+                {{ t('settings.integrations.sync_schedule') }}:
+                {{
+                    t(
+                        `settings.integrations.sync_schedules.${gitlabConnection.sync_schedule}`,
+                    )
+                }}
+            </p>
+        </div>
+
         <div v-if="canManage" class="space-y-6">
             <Heading
                 variant="small"
@@ -456,7 +621,72 @@ const confirmDisconnect = () => {
             </form>
         </div>
 
-        <p v-else-if="!githubConnection" class="text-sm text-muted-foreground">
+        <div v-if="canManage" class="space-y-6">
+            <Heading
+                variant="small"
+                :title="
+                    gitlabConnection
+                        ? t('settings.integrations.update_gitlab_title')
+                        : t('settings.integrations.connect_gitlab_title')
+                "
+                :description="
+                    t('settings.integrations.connect_gitlab_description')
+                "
+            />
+
+            <form class="space-y-6" @submit.prevent="connectGitlab">
+                <div class="grid gap-2">
+                    <Label for="gitlab_label">{{
+                        t('settings.integrations.label')
+                    }}</Label>
+                    <Input
+                        id="gitlab_label"
+                        v-model="gitlabForm.label"
+                        class="mt-1 block w-full"
+                        :placeholder="t('settings.integrations.gitlab')"
+                    />
+                    <InputError :message="gitlabForm.errors.label" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="gitlab_token">{{
+                        t('settings.integrations.token')
+                    }}</Label>
+                    <PasswordInput
+                        id="gitlab_token"
+                        v-model="gitlabForm.token"
+                        class="mt-1 block w-full"
+                        autocomplete="off"
+                        :placeholder="
+                            t('settings.integrations.gitlab_token_placeholder')
+                        "
+                        required
+                    />
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('settings.integrations.gitlab_token_help') }}
+                    </p>
+                    <InputError :message="gitlabForm.errors.token" />
+                </div>
+
+                <Button
+                    type="submit"
+                    :disabled="gitlabForm.processing"
+                    data-test="connect-gitlab-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{
+                        gitlabConnection
+                            ? t('settings.integrations.update_token')
+                            : t('settings.integrations.connect_gitlab')
+                    }}
+                </Button>
+            </form>
+        </div>
+
+        <p
+            v-else-if="!githubConnection && !gitlabConnection"
+            class="text-sm text-muted-foreground"
+        >
             {{ t('settings.integrations.no_access') }}
         </p>
     </div>

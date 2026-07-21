@@ -130,7 +130,8 @@ class ProductRepositoryController extends Controller
     {
         return OrganizationVcsConnection::query()
             ->where('organization_id', $organization->id)
-            ->where('provider', VcsProvider::Github)
+            ->whereIn('provider', [VcsProvider::Github, VcsProvider::Gitlab])
+            ->orderBy('provider')
             ->orderBy('label')
             ->get()
             ->map(fn(OrganizationVcsConnection $connection): array => [

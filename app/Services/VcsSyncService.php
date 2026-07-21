@@ -9,6 +9,7 @@ use App\Models\ProductRepository;
 use App\Models\User;
 use App\Models\VcsSyncRun;
 use App\Services\Vcs\GitHubPatProvider;
+use App\Services\Vcs\GitLabPatProvider;
 use App\Support\AuditLogger;
 use RuntimeException;
 use Throwable;
@@ -63,7 +64,7 @@ class VcsSyncService
                 product: $repository->product,
                 snapshot: $summary,
                 title: 'VCS sync — ' . $fullName . ' — ' . now()->format('Y-m-d H:i'),
-                source: 'github:' . $fullName,
+                source: $repository->connection->provider->value . ':' . $fullName,
                 uploader: $actor,
                 notes: 'Auto-created from VCS sync run #' . $run->id,
             );
@@ -120,6 +121,7 @@ class VcsSyncService
 
         return match ($connection->provider) {
             VcsProviderEnum::Github => new GitHubPatProvider($connection->token),
+            VcsProviderEnum::Gitlab => new GitLabPatProvider($connection->token),
             default => throw new RuntimeException('Unsupported VCS provider: ' . $connection->provider->value),
         };
     }

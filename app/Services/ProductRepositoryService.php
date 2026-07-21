@@ -26,7 +26,7 @@ class ProductRepositoryService
         }
 
         if (
-            $connection->provider !== VcsProvider::Github
+            !in_array($connection->provider, [VcsProvider::Github, VcsProvider::Gitlab], true)
             || $connection->status !== VcsConnectionStatus::Active
         ) {
             throw ValidationException::withMessages([
@@ -34,8 +34,14 @@ class ProductRepositoryService
             ]);
         }
 
-        $fullName = $this->normalizeFullName($repositoryInput);
-        $remote = $this->fetchGithubRepository($connection, $fullName);
+        $fullName = $this->normalizeFullName($repositoryInput, $connection->provider);
+        $remote = match ($connection->provider) {
+            VcsProvider::Github => $this->fetchGithubRepository($connection, $fullName),
+            VcsProvider::Gitlab => $this->fetchGitlabRepository($connection, $fullName),
+            default => throw ValidationException::withMessages([
+                'connection_id' => [Translations::get('products.repository.connection_unavailable')],
+            ]),
+        };
 
         $existing = $product->repository;
         $attributes = [
@@ -92,9 +98,27 @@ class ProductRepositoryService
         ];
     }
 
-    public function normalizeFullName(string $input): string
+    public function normalizeFullName(string $input, VcsProvider $provider = VcsProvider::Github): string
     {
         $value = trim($input);
+
+        if ($provider === VcsProvider::Gitlab) {
+            if (preg_match('~^https?://(?:www\.)?gitlab\.com/(.+?)(?:\.git)?/?$~i', $value, $matches) === 1) {
+                return $this->cleanPath($matches[1]);
+            }
+
+            if (preg_match('~^git@gitlab\.com:(.+?)(?:\.git)?$~i', $value, $matches) === 1) {
+                return $this->cleanPath($matches[1]);
+            }
+
+            if (preg_match('~^[\w.-]+(?:/[\w.-]+)+$~', $value) === 1) {
+                return $this->cleanPath($value);
+            }
+
+            throw ValidationException::withMessages([
+                'repository' => [Translations::get('products.repository.invalid_format')],
+            ]);
+        }
 
         if (preg_match('~^https?://(?:www\.)?github\.com/([^/]+)/([^/?#]+)~i', $value, $matches) === 1) {
             return $this->cleanOwnerRepo($matches[1], $matches[2]);
@@ -151,10 +175,55 @@ class ProductRepositoryService
         ];
     }
 
+    /**
+     * @return array{external_id: string, full_name: string, remote_url: string, default_branch: string|null}
+     */
+    private function fetchGitlabRepository(OrganizationVcsConnection $connection, string $fullName): array
+    {
+        $response = Http::withHeaders([
+            'PRIVATE-TOKEN' => $connection->token,
+            'User-Agent' => 'CRA-Compliance-Workspace',
+        ])
+            ->acceptJson()
+            ->get('https://gitlab.com/api/v4/projects/' . rawurlencode($fullName));
+
+        if ($response->status() === 404) {
+            throw ValidationException::withMessages([
+                'repository' => [Translations::get('products.repository.not_found')],
+            ]);
+        }
+
+        if (!$response->successful()) {
+            throw ValidationException::withMessages([
+                'repository' => [Translations::get('products.repository.fetch_failed')],
+            ]);
+        }
+
+        /** @var array{id?: int|string, path_with_namespace?: string, web_url?: string, default_branch?: string} $data */
+        $data = $response->json();
+
+        $resolvedFullName = $data['path_with_namespace'] ?? $fullName;
+
+        return [
+            'external_id' => isset($data['id']) ? (string) $data['id'] : '',
+            'full_name' => $resolvedFullName,
+            'remote_url' => $data['web_url'] ?? ('https://gitlab.com/' . $resolvedFullName),
+            'default_branch' => $data['default_branch'] ?? null,
+        ];
+    }
+
     private function cleanOwnerRepo(string $owner, string $repo): string
     {
         $repo = preg_replace('/\.git$/i', '', $repo) ?? $repo;
 
         return $owner . '/' . $repo;
+    }
+
+    private function cleanPath(string $path): string
+    {
+        $path = trim($path, '/');
+        $path = preg_replace('/\.git$/i', '', $path) ?? $path;
+
+        return $path;
     }
 }

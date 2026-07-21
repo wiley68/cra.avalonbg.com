@@ -1,8 +1,8 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.5  
-**Дата:** 20 юли 2026 г.  
-**Статус:** Active — Must + Should + schedule + webhooks Done; Could remaining (GitLab, GitHub App)  
+**Версия:** 1.6  
+**Дата:** 21 юли 2026 г.  
+**Статус:** Active — Must + Should + schedule + webhooks + GitLab PAT Done; Could remaining (GitHub App)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
@@ -169,6 +169,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 - Sync upsert-ва `vcs_import_suggestions` (version от releases, vulnerability от Dependabot); Accept/Dismiss от Product Edit
 - Scheduled sync: `organization_vcs_connections.sync_schedule` (`off`/`hourly`/`daily`); `php artisan vcs:sync-scheduled` hourly via scheduler
 - Webhooks: `POST /api/webhooks/github/{connection}` (HMAC `X-Hub-Signature-256`); Settings показва URL + rotate secret; events → `SyncProductRepositoryJob`
+- GitLab PAT: `GitLabPatProvider` (tags/releases/pipelines + soft-fail vulnerability findings); Settings connect/update; product link/sync
 
 ---
 
@@ -193,7 +194,7 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 10. Scheduled sync (hourly/daily) — **Done** (2026-07-20)
 11. Webhooks за incremental updates — **Done** (2026-07-20)
-12. GitLab PAT provider (втори adapter)
+12. GitLab PAT provider (втори adapter) — **Done** (2026-07-21)
 13. GitHub App вместо/до PAT
 
 ---
@@ -248,6 +249,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.6    | 2026-07-21 | Could 12 Done: GitLab PAT provider (connect/link/sync)                  |
 | 1.5    | 2026-07-20 | Could 11 Done: GitHub webhooks (HMAC + queue sync)                      |
 | 1.4    | 2026-07-20 | Could 10 Done: org-level scheduled sync (hourly/daily)                  |
 | 1.3    | 2026-07-20 | Should 8–9 Done: Dependabot + release → version suggestions (review)    |
