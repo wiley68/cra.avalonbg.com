@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, FileDown, Pencil, Play, Trash2 } from '@lucide/vue';
+import { ArrowLeft, FileDown, Mail, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
@@ -30,6 +30,7 @@ import {
     edit as editCampaign,
     exportMethod as exportCampaign,
     index as campaignsIndex,
+    notify as notifyCampaign,
     show as campaignsShow,
 } from '@/routes/products/campaigns';
 import { update as updateTarget } from '@/routes/products/campaigns/targets';
@@ -109,6 +110,7 @@ usePageBreadcrumbs(() => [
 
 const showDeleteDialog = ref(false);
 const showActivateDialog = ref(false);
+const showNotifyDialog = ref(false);
 const showStatusDialog = ref(false);
 const selectedTarget = ref<CampaignTarget | null>(null);
 
@@ -211,6 +213,18 @@ const confirmActivate = (): void => {
     );
 };
 
+const confirmNotify = (): void => {
+    showNotifyDialog.value = false;
+    router.post(
+        notifyCampaign({
+            product: props.product.id,
+            campaign: props.campaign.id,
+        }).url,
+        {},
+        { preserveScroll: true },
+    );
+};
+
 const confirmDelete = (): void => {
     showDeleteDialog.value = false;
     router.delete(
@@ -253,6 +267,14 @@ const textareaClass =
                         <FileDown class="h-4 w-4" />
                         {{ t('products.campaigns.export_xlsx') }}
                     </a>
+                </Button>
+                <Button
+                    v-if="canManage && isActive"
+                    variant="outline"
+                    @click="showNotifyDialog = true"
+                >
+                    <Mail class="h-4 w-4" />
+                    {{ t('products.campaigns.queue_notifications') }}
                 </Button>
                 <template v-if="canManage && isDraft">
                     <Button as-child variant="outline">
@@ -554,6 +576,16 @@ const textareaClass =
             :confirm-label="t('products.campaigns.activate')"
             @confirm="confirmActivate"
             @cancel="showActivateDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showNotifyDialog"
+            :title="t('products.campaigns.confirm_notify_title')"
+            :description="t('products.campaigns.confirm_notify')"
+            variant="default"
+            :confirm-label="t('products.campaigns.queue_notifications')"
+            @confirm="confirmNotify"
+            @cancel="showNotifyDialog = false"
         />
     </div>
 </template>

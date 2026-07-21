@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\PatchCampaignStatus;
 use App\Enums\PatchCampaignTargetStatus;
+use App\Jobs\SendPatchCampaignCustomerNotificationJob;
 use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
 use App\Models\Product;
@@ -12,6 +13,7 @@ use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\CustomerContactEmail;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -315,6 +317,58 @@ class PatchCampaignService
             $campaign->fresh(['targetVersion', 'product']),
             $actor,
         );
+    }
+
+    /**
+     * Queue stub email notifications for pending targets that have a contact email.
+     *
+     * @return array{queued: int, skipped_no_email: int}
+     */
+    public function queueCustomerNotifications(PatchCampaign $campaign, User $actor): array
+    {
+        $this->assertActive($campaign);
+
+        if (!config('customer_notifications.enabled')) {
+            throw ValidationException::withMessages([
+                'notifications' => [Translations::get('products.campaigns.notifications_disabled')],
+            ]);
+        }
+
+        $campaign->loadMissing(['targets.deployment.customer']);
+
+        $queued = 0;
+        $skippedNoEmail = 0;
+
+        foreach ($campaign->targets as $target) {
+            if ($target->status !== PatchCampaignTargetStatus::Pending) {
+                continue;
+            }
+
+            $email = CustomerContactEmail::extract(
+                $target->deployment?->customer?->primary_contact,
+            );
+
+            if ($email === null) {
+                $skippedNoEmail++;
+
+                continue;
+            }
+
+            SendPatchCampaignCustomerNotificationJob::dispatch($target->id, $actor->id);
+            $queued++;
+        }
+
+        AuditLogger::logPatchCampaignNotificationsQueued(
+            $campaign->fresh(['targetVersion', 'product']),
+            $actor,
+            $queued,
+            $skippedNoEmail,
+        );
+
+        return [
+            'queued' => $queued,
+            'skipped_no_email' => $skippedNoEmail,
+        ];
     }
 
     /**

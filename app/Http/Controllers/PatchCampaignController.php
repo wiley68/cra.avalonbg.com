@@ -185,6 +185,26 @@ class PatchCampaignController extends Controller
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
     }
 
+    public function notify(Product $product, PatchCampaign $campaign): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertCampaignBelongsToProduct($product, $campaign);
+        $this->authorize('update', [$product, $organization]);
+
+        $result = $this->campaigns->queueCustomerNotifications($campaign, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.campaigns.notifications_queued', [
+                'queued' => (string) $result['queued'],
+                'skipped' => (string) $result['skipped_no_email'],
+            ]),
+        ]);
+
+        return redirect()->route('products.campaigns.show', [$product, $campaign]);
+    }
+
     public function updateTarget(
         UpdatePatchCampaignTargetRequest $request,
         Product $product,

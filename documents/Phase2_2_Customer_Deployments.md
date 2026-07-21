@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.12  
+**Версия:** 1.13  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must + Should complete; Could pending  
+**Статус:** Active — Must + Should complete; Could 12 Done; Could 13–15 pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -203,6 +203,7 @@ Unique: `(campaign_id, deployment_id)`.
 - `GET /products/{product}/campaigns` — index
 - Create: select target version (+ optional `product_vulnerability_id`), seed targets per правилото в §5
 - Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted); link към vulnerability Edit когато е свързана
+- Notify stub: `POST /products/{product}/campaigns/{campaign}/notify` — queue email Mailable за pending targets с contact email
 - Vulnerability Edit: списък свързани patch campaigns + CTA „Start patch campaign“ (preselect vulnerability)
 - Export: `GET /products/{product}/campaigns/{campaign}/export` — XLSX of affected installations
 - Internal API: `GET /internal-api/products/{product}/campaigns` (+ targets nested или separate)
@@ -230,7 +231,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 ### Could
 
-12. Email notification stub (Mailables + queued job; provider config later)
+12. Email notification stub (Mailables + queued job; provider config later) — **Done** (2026-07-21)
 13. Bulk import customers/deployments (CSV)
 14. Support-period cross-check: list deployments on unsupported versions
 15. Append-only notification event log per target (ако Must полетата не стигат)
@@ -243,7 +244,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 **Should** — campaign completion rules, XLSX export, readiness gap, vulnerability link.
 
-**Could** — email stub, CSV import, EOS cross-check, multi-event notification log.
+**Could** — email stub Done; CSV import, EOS cross-check, multi-event notification log pending.
 
 ---
 
@@ -287,6 +288,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.13   | 2026-07-21 | Could 12 Done: email notification stub (Mailable + queued job + campaign Notify CTA; `CRA_CUSTOMER_NOTIFICATIONS_ENABLED`)                                  |
 | 1.12   | 2026-07-21 | Should 11 Done: bidirectional campaign ↔ vulnerability link (vuln Edit секция + create preselect + campaign Show link)                                      |
 | 1.11   | 2026-07-21 | Should 10 Done: readiness gap `unresolved_exposed_deployments` при active campaign с non-updated/excepted high-criticality targets                          |
 | 1.10   | 2026-07-21 | Should 9 Done: affected-customer XLSX export от campaign (първоначално CSV; сменено на XLSX)                                                                |

@@ -901,6 +901,12 @@
             "completed": "Кампанията е завършена — всички цели са обновени или с изключение.",
             "completed_empty": "Кампанията е завършена — няма инсталации, които да изискват обновяване.",
             "export_xlsx": "Експорт Excel",
+            "queue_notifications": "Опашка за email известия",
+            "notifications_queued": "Поставени в опашка :queued email известия; пропуснати :skipped без контакт email.",
+            "notifications_disabled": "Email известията към клиенти са изключени.",
+            "notification_email_stub_note": "Изпратено email известие (stub) до :email",
+            "confirm_notify_title": "Опашка за email известия",
+            "confirm_notify": "Да се поставят в опашка stub email известия за pending цели с контакт email? Целите без email се пропускат. Доставката ползва конфигурирания mailer (credentials за provider по-късно).",
             "export": {
                 "sheet_title": "Засегнати клиенти",
                 "columns": {
@@ -2041,6 +2047,7 @@
             "patch_campaign_activated": "Активирана кампания за пачове",
             "patch_campaign_completed": "Завършена кампания за пачове",
             "patch_campaign_exported": "Експортирана кампания за пачове",
+            "patch_campaign_notifications_queued": "Поставени в опашка email известия за кампания",
             "patch_campaign_deleted": "Изтрита кампания за пачове",
             "campaign_target_updated": "Обновена цел на кампания",
             "risk_created": "Създаден риск",

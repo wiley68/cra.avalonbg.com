@@ -376,6 +376,28 @@ class AuditLogger
         );
     }
 
+    public static function logPatchCampaignNotificationsQueued(
+        PatchCampaign $campaign,
+        User $actor,
+        int $queued,
+        int $skippedNoEmail,
+    ): void {
+        self::persist(
+            type: AuditEventType::PatchCampaignNotificationsQueued,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $campaign->organization_id,
+            productId: $campaign->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $campaign->id],
+                ['field' => 'title', 'value' => $campaign->title],
+                ['field' => 'queued', 'value' => (string) $queued],
+                ['field' => 'skipped_no_email', 'value' => (string) $skippedNoEmail],
+            ],
+        );
+    }
+
     public static function logPatchCampaignDeleted(PatchCampaign $campaign, User $actor): void
     {
         self::persist(

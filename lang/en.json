@@ -901,6 +901,12 @@
             "completed": "Campaign completed — all targets are updated or excepted.",
             "completed_empty": "Campaign completed — no installations needed an update.",
             "export_xlsx": "Export Excel",
+            "queue_notifications": "Queue email notifications",
+            "notifications_queued": "Queued :queued email notification(s); skipped :skipped without contact email.",
+            "notifications_disabled": "Customer email notifications are disabled.",
+            "notification_email_stub_note": "Email notification sent (stub) to :email",
+            "confirm_notify_title": "Queue email notifications",
+            "confirm_notify": "Queue stub email notifications for pending targets that have a contact email? Targets without an email are skipped. Delivery uses the configured mailer (provider credentials later).",
             "export": {
                 "sheet_title": "Affected customers",
                 "columns": {
@@ -2041,6 +2047,7 @@
             "patch_campaign_activated": "Patch campaign activated",
             "patch_campaign_completed": "Patch campaign completed",
             "patch_campaign_exported": "Patch campaign exported",
+            "patch_campaign_notifications_queued": "Patch campaign email notifications queued",
             "patch_campaign_deleted": "Patch campaign deleted",
             "campaign_target_updated": "Campaign target updated",
             "risk_created": "Risk created",
