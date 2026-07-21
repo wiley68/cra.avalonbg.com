@@ -23,6 +23,7 @@ const props = defineProps<{
         risks: SubjectOption[];
         vulnerabilities: SubjectOption[];
         evidence: SubjectOption[];
+        org_policies: SubjectOption[];
     };
     options: {
         statuses: string[];
@@ -37,8 +38,14 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.tasks.index_title', href: productTasksIndex(props.product.id) },
-    { titleKey: 'products.tasks.create_title', href: productTasksCreate(props.product.id) },
+    {
+        titleKey: 'products.tasks.index_title',
+        href: productTasksIndex(props.product.id),
+    },
+    {
+        titleKey: 'products.tasks.create_title',
+        href: productTasksCreate(props.product.id),
+    },
 ]);
 
 const form = useForm({
@@ -64,6 +71,10 @@ const subjectOptions = computed((): SubjectOption[] => {
 
     if (form.subject_type === 'evidence') {
         return props.subjects.evidence;
+    }
+
+    if (form.subject_type === 'org_policy') {
+        return props.subjects.org_policies;
     }
 
     return [];

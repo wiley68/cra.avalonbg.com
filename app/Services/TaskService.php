@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TaskApprovalStatus;
 use App\Enums\TaskStatus;
 use App\Models\Evidence;
+use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -28,6 +29,7 @@ class TaskService
             'risk' => ProductRisk::class,
             'vulnerability' => ProductVulnerability::class,
             'evidence' => Evidence::class,
+            'org_policy' => OrgPolicy::class,
         ];
     }
 
@@ -285,6 +287,8 @@ class TaskService
                 ?? $task->subject->cve_id
                 ?? ('#' . $task->subject->id),
                 $task->subject instanceof Evidence => $task->subject->title,
+                $task->subject instanceof OrgPolicy => $task->subject->title
+                . ' (' . $task->subject->version_label . ')',
                 default => '#' . $task->subject_id,
             };
         }
@@ -343,6 +347,10 @@ class TaskService
             Evidence::class => Evidence::query()
                 ->where('id', $id)
                 ->where('product_id', $product->id)
+                ->exists(),
+            OrgPolicy::class => OrgPolicy::query()
+                ->where('id', $id)
+                ->where('organization_id', $product->organization_id)
                 ->exists(),
             default => throw new InvalidArgumentException('Unsupported subject class.'),
         };

@@ -260,7 +260,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 #### Could
 
 10. Markdown preview + diff between versions — **Done** (2026-07-21)
-11. Approval task integration (submit review → Task)
+11. Approval task integration (submit review → Task) — **Done** (2026-07-21)
 12. PDF export per policy
 
 ### 2.3B Auditor portal
@@ -364,11 +364,12 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                             |
-| ------ | ---------- | ------------------------------------------------------------------- |
-| 1.5    | 2026-07-21 | Could 10: Markdown preview + diff between policy versions           |
-| 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI        |
-| 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)        |
-| 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`      |
-| 1.1    | 2026-07-21 | 2.3A Must Done: policy library CRUD + lifecycle + templates + tests |
-| 1.0    | 2026-07-21 | Първоначален план; fixed order A → B → C                            |
+| Версия | Дата       | Промяна                                                               |
+| ------ | ---------- | --------------------------------------------------------------------- |
+| 1.6    | 2026-07-21 | Could 11: submit-for-review creates product Task (org_policy subject) |
+| 1.5    | 2026-07-21 | Could 10: Markdown preview + diff between policy versions             |
+| 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI          |
+| 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)          |
+| 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`        |
+| 1.1    | 2026-07-21 | 2.3A Must Done: policy library CRUD + lifecycle + templates + tests   |
+| 1.0    | 2026-07-21 | Първоначален план; fixed order A → B → C                              |

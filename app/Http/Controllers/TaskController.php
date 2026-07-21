@@ -10,6 +10,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Evidence;
 use App\Models\Organization;
+use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -292,7 +293,8 @@ class TaskController extends Controller
      * @return array{
      *     risks: list<array{id: int, label: string}>,
      *     vulnerabilities: list<array{id: int, label: string}>,
-     *     evidence: list<array{id: int, label: string}>
+     *     evidence: list<array{id: int, label: string}>,
+     *     org_policies: list<array{id: int, label: string}>
      * }
      */
     private function subjectOptions(Product $product): array
@@ -325,6 +327,16 @@ class TaskController extends Controller
                 ->map(fn(Evidence $evidence) => [
                     'id' => $evidence->id,
                     'label' => $evidence->title,
+                ])
+                ->all(),
+            'org_policies' => OrgPolicy::query()
+                ->where('organization_id', $product->organization_id)
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(['id', 'title', 'version_label', 'policy_type'])
+                ->map(fn(OrgPolicy $policy) => [
+                    'id' => $policy->id,
+                    'label' => "{$policy->title} ({$policy->version_label})",
                 ])
                 ->all(),
         ];

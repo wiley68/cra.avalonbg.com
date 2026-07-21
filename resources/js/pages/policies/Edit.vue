@@ -44,10 +44,23 @@ import {
     update,
 } from '@/routes/policies';
 import { edit as editEvidence } from '@/routes/products/evidence';
+import { edit as editTask } from '@/routes/products/tasks';
 
 type ProductOption = {
     id: number;
     name: string;
+};
+
+type MemberOption = {
+    id: number;
+    name: string;
+};
+
+type ReviewTask = {
+    id: number;
+    product_id: number;
+    title: string;
+    status: string;
 };
 
 type PolicyDetail = {
@@ -73,6 +86,8 @@ const props = defineProps<{
     policy: PolicyDetail;
     canManage: boolean;
     productOptions: ProductOption[];
+    memberOptions: MemberOption[];
+    reviewTask: ReviewTask | null;
 }>();
 
 const { t } = useTranslations();
@@ -94,11 +109,19 @@ const form = useForm({
 
 const showRetireDialog = ref(false);
 const showPublishDialog = ref(false);
+const showSubmitDialog = ref(false);
 
 const publishForm = useForm({
     product_id: props.productOptions[0]?.id
         ? String(props.productOptions[0].id)
         : '',
+});
+
+const submitForm = useForm({
+    product_id: props.productOptions[0]?.id
+        ? String(props.productOptions[0].id)
+        : '',
+    assignee_user_id: '',
 });
 
 const typeLabel = computed(() => {
@@ -144,16 +167,35 @@ const evidenceHref = computed(() => {
     }).url;
 });
 
+const reviewTaskHref = computed(() => {
+    if (!props.reviewTask) {
+        return null;
+    }
+
+    return editTask({
+        product: props.reviewTask.product_id,
+        task: props.reviewTask.id,
+    }).url;
+});
+
 const submit = () => {
     form.put(update(props.policy.id).url);
 };
 
+const openSubmitDialog = () => {
+    if (!submitForm.product_id && props.productOptions[0] !== undefined) {
+        submitForm.product_id = String(props.productOptions[0].id);
+    }
+    showSubmitDialog.value = true;
+};
+
 const doSubmitReview = () => {
-    router.post(
-        submitReview(props.policy.id).url,
-        {},
-        { preserveScroll: true },
-    );
+    submitForm.post(submitReview(props.policy.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showSubmitDialog.value = false;
+        },
+    });
 };
 
 const doApprove = () => {
@@ -220,10 +262,16 @@ const doPublishEvidence = () => {
                 v-if="canSubmit"
                 type="button"
                 variant="outline"
-                @click="doSubmitReview"
+                @click="openSubmitDialog"
             >
                 <Send class="h-4 w-4" />
                 {{ t('policies.submit_review') }}
+            </Button>
+            <Button v-if="reviewTaskHref" as-child variant="outline">
+                <Link :href="reviewTaskHref">
+                    <Pencil class="h-4 w-4" />
+                    {{ t('policies.view_review_task') }}
+                </Link>
             </Button>
             <Button
                 v-if="canApprove"
@@ -360,6 +408,134 @@ const doPublishEvidence = () => {
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
         />
+
+        <Dialog
+            :open="showSubmitDialog"
+            @update:open="
+                (open) => {
+                    if (!open) {
+                        showSubmitDialog = false;
+                    }
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t('policies.submit_review_title') }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{ t('policies.submit_review_help') }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form class="space-y-4" @submit.prevent="doSubmitReview">
+                    <div
+                        v-if="productOptions.length === 0"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('policies.submit_no_products') }}
+                    </div>
+
+                    <template v-else>
+                        <div class="grid min-w-0 gap-2">
+                            <FieldLabel
+                                html-for="submit_product_id"
+                                :help="t('policies.help.submit_product_id')"
+                                required
+                            >
+                                {{ t('policies.fields.product') }}
+                            </FieldLabel>
+                            <Select v-model="submitForm.product_id">
+                                <SelectTrigger
+                                    id="submit_product_id"
+                                    class="w-full max-w-full min-w-0 overflow-hidden *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:truncate"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t('policies.select_product')
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent
+                                    class="w-(--reka-select-trigger-width) max-w-(--reka-select-trigger-width)"
+                                >
+                                    <SelectItem
+                                        v-for="product in productOptions"
+                                        :key="product.id"
+                                        :value="String(product.id)"
+                                        class="max-w-full"
+                                    >
+                                        <span
+                                            class="block truncate"
+                                            :title="product.name"
+                                        >
+                                            {{ product.name }}
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                :message="submitForm.errors.product_id"
+                            />
+                        </div>
+
+                        <div class="grid min-w-0 gap-2">
+                            <FieldLabel
+                                html-for="assignee_user_id"
+                                :help="t('policies.help.assignee_user_id')"
+                            >
+                                {{ t('policies.fields.assignee') }}
+                            </FieldLabel>
+                            <Select v-model="submitForm.assignee_user_id">
+                                <SelectTrigger
+                                    id="assignee_user_id"
+                                    class="w-full"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t('policies.select_assignee')
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="member in memberOptions"
+                                        :key="member.id"
+                                        :value="String(member.id)"
+                                    >
+                                        {{ member.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                :message="submitForm.errors.assignee_user_id"
+                            />
+                        </div>
+                    </template>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="showSubmitDialog = false"
+                        >
+                            {{ t('common.cancel') }}
+                        </Button>
+                        <Button
+                            type="submit"
+                            :disabled="
+                                submitForm.processing ||
+                                productOptions.length === 0
+                            "
+                        >
+                            <Send class="h-4 w-4" />
+                            {{ t('policies.submit_review') }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         <Dialog
             :open="showPublishDialog"

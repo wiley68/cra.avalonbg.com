@@ -496,7 +496,8 @@
             "supersedes": "Supersedes",
             "approved_at": "Approved at",
             "product": "Product",
-            "evidence": "Evidence"
+            "evidence": "Evidence",
+            "assignee": "Review assignee"
         },
         "help": {
             "policy_type": "Choose the organizational policy category.",
@@ -504,7 +505,9 @@
             "version_label": "Human-readable version label (e.g. 1.0 or 2026-07).",
             "use_template": "Prefill title and Markdown body from a starter template for this type.",
             "body": "Write the policy in Markdown. Approved policies become read-only.",
-            "product_id": "Evidence is product-scoped; choose which product register receives this policy document."
+            "product_id": "Evidence is product-scoped; choose which product register receives this policy document.",
+            "submit_product_id": "Tasks are product-scoped; choose which product board receives the review task.",
+            "assignee_user_id": "Optional reviewer. Defaults to you if left empty."
         },
         "types": {
             "vulnerability_disclosure": "Vulnerability disclosure",
@@ -525,6 +528,15 @@
         "diff_unchanged": "No differences between this version and the previous one.",
         "diff_previous": "Previous version",
         "diff_current": "Current version",
+        "submit_review_title": "Submit policy for review",
+        "submit_review_help": "Creates an open product task so a reviewer can approve this policy.",
+        "submit_no_products": "Create a product first, then submit this policy for review.",
+        "select_assignee": "Select assignee (optional)",
+        "view_review_task": "View review task",
+        "submit_product_invalid": "Selected product is not valid for this organization.",
+        "submit_assignee_invalid": "Selected assignee is not a member of this organization.",
+        "review_task_title": "Review policy: :title (:version)",
+        "review_task_description": "Organizational policy awaiting approval.\nType: :type\nTitle: :title\nVersion: :version",
         "statuses": {
             "draft": "Draft",
             "under_review": "Under review",
@@ -1873,7 +1885,7 @@
                 "priority": "Relative urgency of the task.",
                 "assignee": "Organization member responsible for completing the task.",
                 "due_at": "Optional target completion date.",
-                "subject_type": "Optional related risk, vulnerability, or evidence.",
+                "subject_type": "Optional related risk, vulnerability, evidence, or organization policy.",
                 "subject_id": "Specific record this task is about.",
                 "approval_status": "Whether approval is required or already pending.",
                 "approval_comment": "Optional note recorded with approve or reject."
@@ -1899,7 +1911,8 @@
             "subject_types": {
                 "risk": "Risk",
                 "vulnerability": "Vulnerability",
-                "evidence": "Evidence"
+                "evidence": "Evidence",
+                "org_policy": "Organization policy"
             }
         },
         "readiness": {

@@ -8,12 +8,14 @@ use App\Enums\PolicyStatus;
 use App\Enums\PolicyType;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
+use App\Enums\TaskStatus;
 use App\Models\AuditLog;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -113,6 +115,19 @@ test('owner can create policy from template and audit is recorded', function () 
 test('lifecycle submit approve retires previous approved of same type', function () {
     ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
 
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Policy Review Product',
+        'slug' => 'policy-review-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
     $previous = OrgPolicy::query()->create([
         'organization_id' => $organization->id,
         'policy_type' => PolicyType::Support,
@@ -135,10 +150,22 @@ test('lifecycle submit approve retires previous approved of same type', function
     ]);
 
     $this->actingAs($owner)
-        ->post(route('policies.submit-review', $draft))
+        ->post(route('policies.submit-review', $draft), [
+            'product_id' => $product->id,
+        ])
         ->assertRedirect();
 
     expect($draft->fresh()->status)->toBe(PolicyStatus::UnderReview);
+
+    $reviewTask = Task::query()
+        ->where('product_id', $product->id)
+        ->where('subject_type', OrgPolicy::class)
+        ->where('subject_id', $draft->id)
+        ->first();
+
+    expect($reviewTask)->not->toBeNull()
+        ->and($reviewTask->status)->toBe(TaskStatus::Open)
+        ->and($reviewTask->assignee_user_id)->toBe($owner->id);
 
     $this->actingAs($owner)
         ->post(route('policies.approve', $draft))
@@ -146,7 +173,8 @@ test('lifecycle submit approve retires previous approved of same type', function
 
     expect($draft->fresh()->status)->toBe(PolicyStatus::Approved)
         ->and($draft->fresh()->approved_by)->toBe($owner->id)
-        ->and($previous->fresh()->status)->toBe(PolicyStatus::Retired);
+        ->and($previous->fresh()->status)->toBe(PolicyStatus::Retired)
+        ->and($reviewTask->fresh()->status)->toBe(TaskStatus::Completed);
 });
 
 test('viewer can list policies but cannot create or change lifecycle', function () {

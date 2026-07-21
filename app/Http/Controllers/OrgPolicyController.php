@@ -104,6 +104,8 @@ class OrgPolicyController extends Controller
             'policy' => $this->detailPayload($org_policy),
             'options' => $this->enumOptions(),
             'productOptions' => $this->productOptions($organization),
+            'memberOptions' => $this->memberOptions($organization),
+            'reviewTask' => $this->policies->openReviewTaskPayload($org_policy),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
@@ -148,13 +150,39 @@ class OrgPolicyController extends Controller
         return redirect()->route('policies.index');
     }
 
-    public function submitReview(OrgPolicy $org_policy): RedirectResponse
+    public function submitReview(Request $request, OrgPolicy $org_policy): RedirectResponse
     {
         $organization = $this->currentOrganization();
         $this->assertPolicyInOrganization($org_policy, $organization);
         $this->authorize('update', [$org_policy, $organization]);
 
-        $this->policies->submitForReview($org_policy, request()->user());
+        $validated = $request->validate([
+            'product_id' => [
+                'required',
+                'integer',
+                Rule::exists('products', 'id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+            'assignee_user_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('organization_user', 'user_id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+        ]);
+
+        $product = Product::query()->findOrFail($validated['product_id']);
+
+        $this->policies->submitForReview(
+            $org_policy,
+            $request->user(),
+            $product,
+            isset($validated['assignee_user_id'])
+            ? (int) $validated['assignee_user_id']
+            : null,
+        );
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -292,6 +320,21 @@ class OrgPolicyController extends Controller
             ->map(fn(Product $product) => [
                 'id' => $product->id,
                 'name' => $product->name,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function memberOptions(Organization $organization): array
+    {
+        return $organization->users()
+            ->orderBy('name')
+            ->get(['users.id', 'users.name'])
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
             ])
             ->all();
     }

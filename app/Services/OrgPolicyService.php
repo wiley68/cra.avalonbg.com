@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Enums\PolicyStatus;
 use App\Enums\PolicyType;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
 use App\Models\Product;
+use App\Models\Task;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\PolicyTemplates;
@@ -19,6 +22,7 @@ class OrgPolicyService
 {
     public function __construct(
         private readonly EvidenceService $evidence,
+        private readonly TaskService $tasks,
     ) {
     }
     /**
@@ -166,19 +170,66 @@ class OrgPolicyService
         $policy->delete();
     }
 
-    public function submitForReview(OrgPolicy $policy, User $actor): OrgPolicy
-    {
+    public function submitForReview(
+        OrgPolicy $policy,
+        User $actor,
+        Product $product,
+        ?int $assigneeUserId = null,
+    ): OrgPolicy {
         if ($policy->status !== PolicyStatus::Draft) {
             throw ValidationException::withMessages([
                 'status' => [Translations::get('policies.only_draft_submit')],
             ]);
         }
 
-        $policy->update(['status' => PolicyStatus::UnderReview]);
-        $fresh = $policy->fresh();
-        AuditLogger::logOrgPolicySubmitted($fresh, $actor);
+        if ($product->organization_id !== $policy->organization_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('policies.submit_product_invalid')],
+            ]);
+        }
 
-        return $fresh;
+        if ($assigneeUserId !== null) {
+            $assigneeBelongs = Organization::query()
+                ->whereKey($policy->organization_id)
+                ->whereHas(
+                    'users',
+                    fn($query) => $query->where('users.id', $assigneeUserId),
+                )
+                ->exists();
+
+            if (!$assigneeBelongs) {
+                throw ValidationException::withMessages([
+                    'assignee_user_id' => [Translations::get('policies.submit_assignee_invalid')],
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($policy, $actor, $product, $assigneeUserId): OrgPolicy {
+            $policy->update(['status' => PolicyStatus::UnderReview]);
+            $fresh = $policy->fresh();
+
+            $this->tasks->create($product, [
+                'title' => Translations::get('policies.review_task_title', [
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                ]),
+                'description' => Translations::get('policies.review_task_description', [
+                    'type' => $fresh->policy_type->value,
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                ]),
+                'status' => TaskStatus::Open,
+                'priority' => TaskPriority::Medium,
+                'assignee_user_id' => $assigneeUserId ?? $actor->id,
+                'due_at' => now()->addDays(7),
+                'subject_type' => 'org_policy',
+                'subject_id' => $fresh->id,
+            ], $actor);
+
+            AuditLogger::logOrgPolicySubmitted($fresh, $actor);
+
+            return $fresh;
+        });
     }
 
     public function approve(OrgPolicy $policy, User $actor): OrgPolicy
@@ -205,6 +256,8 @@ class OrgPolicyService
                 'approved_by' => $actor->id,
             ]);
 
+            $this->completeOpenReviewTasks($policy);
+
             $fresh = $policy->fresh(['approver']);
             AuditLogger::logOrgPolicyApproved($fresh, $actor);
 
@@ -225,6 +278,49 @@ class OrgPolicyService
         AuditLogger::logOrgPolicyRetired($fresh, $actor);
 
         return $fresh;
+    }
+
+    private function completeOpenReviewTasks(OrgPolicy $policy): void
+    {
+        Task::query()
+            ->where('subject_type', OrgPolicy::class)
+            ->where('subject_id', $policy->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->update([
+                'status' => TaskStatus::Completed->value,
+            ]);
+    }
+
+    /**
+     * @return array{id: int, product_id: int, title: string, status: string}|null
+     */
+    public function openReviewTaskPayload(OrgPolicy $policy): ?array
+    {
+        $task = Task::query()
+            ->where('subject_type', OrgPolicy::class)
+            ->where('subject_id', $policy->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->latest('id')
+            ->first(['id', 'product_id', 'title', 'status']);
+
+        if ($task === null) {
+            return null;
+        }
+
+        return [
+            'id' => $task->id,
+            'product_id' => $task->product_id,
+            'title' => $task->title,
+            'status' => $task->status->value,
+        ];
     }
 
     public function publishEvidence(OrgPolicy $policy, Product $product, User $actor): OrgPolicy
