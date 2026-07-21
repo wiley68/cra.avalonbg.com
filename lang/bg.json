@@ -906,6 +906,11 @@
             "version_placeholder": "Изберете целева версия",
             "vulnerability_none": "Няма",
             "only_draft": "Само draft кампании могат да се променят.",
+            "only_active_targets": "Статус на target може да се обновява само при active кампании.",
+            "target_updated": "Статусът на target е обновен.",
+            "update_target_status": "Обнови статус",
+            "notification_note_placeholder": "напр. изпратен email на contact@example.com / ticket #123",
+            "updated_sync_hint": "При статус updated потвърдената версия на deployment ще се синхронизира с целевата версия на кампанията.",
             "version_invalid": "Избраната версия не е валидна за този продукт.",
             "vulnerability_invalid": "Избраната уязвимост не е валидна за този продукт.",
             "seed_hint": "При активиране се прикачат deployments без версия или с версия, различна от целевата, като pending targets.",
@@ -921,14 +926,16 @@
                 "started_at": "Стартирана",
                 "customer": "Клиент",
                 "environment": "Environment",
-                "current_version": "Текуща версия"
+                "current_version": "Текуща версия",
+                "note": "Бележка"
             },
             "fields": {
                 "title": "Заглавие",
                 "target_version": "Целева версия",
                 "vulnerability": "Свързана уязвимост",
                 "notes": "Бележки",
-                "started_at": "Стартирана"
+                "started_at": "Стартирана",
+                "notification_note": "Бележка за уведомяване"
             },
             "help": {
                 "title": "Кратко име на тази rollout кампания.",
@@ -2000,6 +2007,7 @@
             "patch_campaign_updated": "Обновена patch кампания",
             "patch_campaign_activated": "Активирана patch кампания",
             "patch_campaign_deleted": "Изтрита patch кампания",
+            "campaign_target_updated": "Обновен campaign target",
             "risk_created": "Създаден риск",
             "risk_updated": "Обновен риск",
             "risk_deleted": "Изтрит риск",

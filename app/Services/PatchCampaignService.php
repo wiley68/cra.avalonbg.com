@@ -209,6 +209,69 @@ class PatchCampaignService
     }
 
     /**
+     * @param  array{
+     *     status: PatchCampaignTargetStatus,
+     *     notification_note?: string|null
+     * }  $attributes
+     */
+    public function updateTargetStatus(
+        PatchCampaign $campaign,
+        PatchCampaignTarget $target,
+        array $attributes,
+        User $actor,
+    ): PatchCampaignTarget {
+        $this->assertActive($campaign);
+
+        if ($target->campaign_id !== $campaign->id) {
+            abort(404);
+        }
+
+        $status = $attributes['status'];
+        $previousStatus = $target->status->value;
+        $now = now();
+
+        $updates = [
+            'status' => $status,
+        ];
+
+        if (array_key_exists('notification_note', $attributes)) {
+            $updates['notification_note'] = $attributes['notification_note'];
+        }
+
+        if ($status === PatchCampaignTargetStatus::Notified) {
+            $updates['notified_at'] = $target->notified_at ?? $now;
+        }
+
+        if ($status === PatchCampaignTargetStatus::Acknowledged) {
+            $updates['acknowledged_at'] = $target->acknowledged_at ?? $now;
+        }
+
+        if (
+            $status === PatchCampaignTargetStatus::Updated
+            || $status === PatchCampaignTargetStatus::Excepted
+        ) {
+            $updates['confirmed_at'] = $now;
+        }
+
+        return DB::transaction(function () use ($campaign, $target, $updates, $status, $actor, $previousStatus, $now, ): PatchCampaignTarget {
+            $target->update($updates);
+
+            if ($status === PatchCampaignTargetStatus::Updated) {
+                $deployment = $target->deployment()->firstOrFail();
+                $deployment->update([
+                    'product_version_id' => $campaign->target_version_id,
+                    'last_confirmed_at' => $now,
+                ]);
+            }
+
+            $fresh = $target->fresh(['deployment.customer', 'deployment.productVersion', 'campaign']);
+            AuditLogger::logCampaignTargetUpdated($fresh, $actor, $previousStatus);
+
+            return $fresh;
+        });
+    }
+
+    /**
      * Deployments for the product where version is null or not the campaign target.
      *
      * @return list<int>
@@ -300,6 +363,15 @@ class PatchCampaignService
         if ($campaign->status !== PatchCampaignStatus::Draft) {
             throw ValidationException::withMessages([
                 'status' => [Translations::get('products.campaigns.only_draft')],
+            ]);
+        }
+    }
+
+    private function assertActive(PatchCampaign $campaign): void
+    {
+        if ($campaign->status !== PatchCampaignStatus::Active) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.campaigns.only_active_targets')],
             ]);
         }
     }

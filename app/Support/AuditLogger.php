@@ -10,6 +10,7 @@ use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
 use App\Models\PatchCampaign;
+use App\Models\PatchCampaignTarget;
 use App\Models\ProductDeployment;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
@@ -350,6 +351,30 @@ class AuditLogger
             details: [
                 ['field' => 'campaign_id', 'value' => (string) $campaign->id],
                 ['field' => 'title', 'value' => $campaign->title],
+            ],
+        );
+    }
+
+    public static function logCampaignTargetUpdated(
+        PatchCampaignTarget $target,
+        User $actor,
+        string $previousStatus,
+    ): void {
+        $target->loadMissing(['campaign', 'deployment']);
+
+        self::persist(
+            type: AuditEventType::CampaignTargetUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $target->campaign?->organization_id,
+            productId: $target->campaign?->product_id,
+            details: [
+                ['field' => 'campaign_id', 'value' => (string) $target->campaign_id],
+                ['field' => 'target_id', 'value' => (string) $target->id],
+                ['field' => 'deployment_id', 'value' => (string) $target->deployment_id],
+                ['field' => 'previous_status', 'value' => $previousStatus],
+                ['field' => 'status', 'value' => $target->status->value],
             ],
         );
     }

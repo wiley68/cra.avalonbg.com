@@ -202,6 +202,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('products/{product}/campaigns/{campaign}/activate', [PatchCampaignController::class, 'activate'])
             ->name('products.campaigns.activate')
             ->scopeBindings();
+        Route::put(
+            'products/{product}/campaigns/{campaign}/targets/{target}',
+            [PatchCampaignController::class, 'updateTarget'],
+        )
+            ->name('products.campaigns.targets.update')
+            ->scopeBindings();
         Route::resource('products.campaigns', PatchCampaignController::class)
             ->scoped();
 

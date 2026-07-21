@@ -906,6 +906,11 @@
             "version_placeholder": "Select target version",
             "vulnerability_none": "None",
             "only_draft": "Only draft campaigns can be changed.",
+            "only_active_targets": "Target status can only be updated on active campaigns.",
+            "target_updated": "Target status updated.",
+            "update_target_status": "Update status",
+            "notification_note_placeholder": "e.g. emailed contact@example.com / ticket #123",
+            "updated_sync_hint": "Marking as updated will set the deployment confirmed version to this campaign’s target version.",
             "version_invalid": "Selected version is not valid for this product.",
             "vulnerability_invalid": "Selected vulnerability is not valid for this product.",
             "seed_hint": "On activate, deployments with no version or a different version than the target are attached as pending targets.",
@@ -921,14 +926,16 @@
                 "started_at": "Started",
                 "customer": "Customer",
                 "environment": "Environment",
-                "current_version": "Current version"
+                "current_version": "Current version",
+                "note": "Note"
             },
             "fields": {
                 "title": "Title",
                 "target_version": "Target version",
                 "vulnerability": "Linked vulnerability",
                 "notes": "Notes",
-                "started_at": "Started"
+                "started_at": "Started",
+                "notification_note": "Notification note"
             },
             "help": {
                 "title": "Short name for this rollout campaign.",
@@ -2000,6 +2007,7 @@
             "patch_campaign_updated": "Patch campaign updated",
             "patch_campaign_activated": "Patch campaign activated",
             "patch_campaign_deleted": "Patch campaign deleted",
+            "campaign_target_updated": "Campaign target updated",
             "risk_created": "Risk created",
             "risk_updated": "Risk updated",
             "risk_deleted": "Risk deleted",

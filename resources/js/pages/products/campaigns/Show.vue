@@ -1,9 +1,26 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Pencil, Play, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
@@ -14,6 +31,7 @@ import {
     index as campaignsIndex,
     show as campaignsShow,
 } from '@/routes/products/campaigns';
+import { update as updateTarget } from '@/routes/products/campaigns/targets';
 
 type OrganizationSummary = {
     id: number;
@@ -55,6 +73,13 @@ type CampaignDetail = {
     targets: CampaignTarget[];
 };
 
+const actionableStatuses = [
+    'notified',
+    'acknowledged',
+    'updated',
+    'excepted',
+] as const;
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
@@ -82,8 +107,17 @@ usePageBreadcrumbs(() => [
 
 const showDeleteDialog = ref(false);
 const showActivateDialog = ref(false);
+const showStatusDialog = ref(false);
+const selectedTarget = ref<CampaignTarget | null>(null);
 
 const isDraft = computed(() => props.campaign.status === 'draft');
+const isActive = computed(() => props.campaign.status === 'active');
+const canUpdateTargets = computed(() => props.canManage && isActive.value);
+
+const statusForm = useForm({
+    status: 'notified' as string,
+    notification_note: '',
+});
 
 const statusLabel = (value: string): string => {
     const key = `products.campaigns.statuses.${value}`;
@@ -114,6 +148,49 @@ const formatDate = (value: string | null): string => {
     return new Date(value).toLocaleString();
 };
 
+const openStatusDialog = (target: CampaignTarget): void => {
+    selectedTarget.value = target;
+    statusForm.status = actionableStatuses.includes(
+        target.status as (typeof actionableStatuses)[number],
+    )
+        ? target.status
+        : 'notified';
+    statusForm.notification_note = target.notification_note ?? '';
+    statusForm.clearErrors();
+    showStatusDialog.value = true;
+};
+
+const closeStatusDialog = (): void => {
+    showStatusDialog.value = false;
+    selectedTarget.value = null;
+    statusForm.reset();
+};
+
+const submitStatusUpdate = (): void => {
+    if (selectedTarget.value === null) {
+        return;
+    }
+
+    statusForm
+        .transform((data) => ({
+            ...data,
+            notification_note: data.notification_note || null,
+        }))
+        .put(
+            updateTarget({
+                product: props.product.id,
+                campaign: props.campaign.id,
+                target: selectedTarget.value.id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeStatusDialog();
+                },
+            },
+        );
+};
+
 const confirmActivate = (): void => {
     showActivateDialog.value = false;
     router.post(
@@ -133,6 +210,9 @@ const confirmDelete = (): void => {
         }).url,
     );
 };
+
+const textareaClass =
+    'border-input bg-background flex w-full rounded-md border px-3 py-2 text-sm';
 </script>
 
 <template>
@@ -259,6 +339,15 @@ const confirmDelete = (): void => {
                             <th class="px-4 py-2 font-medium">
                                 {{ t('products.campaigns.columns.status') }}
                             </th>
+                            <th class="px-4 py-2 font-medium">
+                                {{ t('products.campaigns.columns.note') }}
+                            </th>
+                            <th
+                                v-if="canUpdateTargets"
+                                class="px-4 py-2 font-medium"
+                            >
+                                {{ t('common.actions') }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -277,13 +366,140 @@ const confirmDelete = (): void => {
                                 {{ target.version_number ?? '—' }}
                             </td>
                             <td class="px-4 py-2">
-                                {{ targetStatusLabel(target.status) }}
+                                <div>
+                                    {{ targetStatusLabel(target.status) }}
+                                </div>
+                                <div
+                                    v-if="target.confirmed_at"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ formatDate(target.confirmed_at) }}
+                                </div>
+                                <div
+                                    v-else-if="target.acknowledged_at"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ formatDate(target.acknowledged_at) }}
+                                </div>
+                                <div
+                                    v-else-if="target.notified_at"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ formatDate(target.notified_at) }}
+                                </div>
+                            </td>
+                            <td
+                                class="max-w-xs truncate px-4 py-2 text-muted-foreground"
+                            >
+                                {{ target.notification_note ?? '—' }}
+                            </td>
+                            <td v-if="canUpdateTargets" class="px-4 py-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    @click="openStatusDialog(target)"
+                                >
+                                    {{
+                                        t(
+                                            'products.campaigns.update_target_status',
+                                        )
+                                    }}
+                                </Button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <Dialog
+            :open="showStatusDialog"
+            @update:open="
+                (open) => {
+                    if (!open) {
+                        closeStatusDialog();
+                    }
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t('products.campaigns.update_target_status') }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        <span v-if="selectedTarget">
+                            {{ selectedTarget.customer_name }}
+                            ·
+                            {{ environmentLabel(selectedTarget.environment) }}
+                        </span>
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form class="space-y-4" @submit.prevent="submitStatusUpdate">
+                    <div class="grid gap-2">
+                        <Label for="target_status">{{
+                            t('products.campaigns.columns.status')
+                        }}</Label>
+                        <Select v-model="statusForm.status">
+                            <SelectTrigger id="target_status" class="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="value in actionableStatuses"
+                                    :key="value"
+                                    :value="value"
+                                >
+                                    {{ targetStatusLabel(value) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="statusForm.errors.status" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="notification_note">{{
+                            t('products.campaigns.fields.notification_note')
+                        }}</Label>
+                        <textarea
+                            id="notification_note"
+                            v-model="statusForm.notification_note"
+                            rows="3"
+                            :class="textareaClass"
+                            :placeholder="
+                                t(
+                                    'products.campaigns.notification_note_placeholder',
+                                )
+                            "
+                        />
+                        <InputError
+                            :message="statusForm.errors.notification_note"
+                        />
+                    </div>
+
+                    <p
+                        v-if="statusForm.status === 'updated'"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('products.campaigns.updated_sync_hint') }}
+                    </p>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="closeStatusDialog"
+                        >
+                            {{ t('common.cancel') }}
+                        </Button>
+                        <Button type="submit" :disabled="statusForm.processing">
+                            {{ t('common.save') }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         <AppAlertDialog
             v-model:open="showDeleteDialog"

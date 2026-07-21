@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePatchCampaignRequest;
 use App\Http\Requests\UpdatePatchCampaignRequest;
+use App\Http\Requests\UpdatePatchCampaignTargetRequest;
 use App\Enums\PatchCampaignStatus;
+use App\Enums\PatchCampaignTargetStatus;
 use App\Models\Organization;
 use App\Models\PatchCampaign;
+use App\Models\PatchCampaignTarget;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
@@ -157,6 +160,37 @@ class PatchCampaignController extends Controller
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
     }
 
+    public function updateTarget(
+        UpdatePatchCampaignTargetRequest $request,
+        Product $product,
+        PatchCampaign $campaign,
+        PatchCampaignTarget $target,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertCampaignBelongsToProduct($product, $campaign);
+        $this->assertTargetBelongsToCampaign($campaign, $target);
+
+        $this->campaigns->updateTargetStatus(
+            $campaign,
+            $target,
+            [
+                'status' => PatchCampaignTargetStatus::from(
+                    $request->string('status')->toString(),
+                ),
+                'notification_note' => $request->input('notification_note'),
+            ],
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.campaigns.target_updated'),
+        ]);
+
+        return redirect()->route('products.campaigns.show', [$product, $campaign]);
+    }
+
     public function destroy(Product $product, PatchCampaign $campaign): RedirectResponse
     {
         $organization = $this->currentOrganization();
@@ -223,6 +257,13 @@ class PatchCampaignController extends Controller
     private function assertCampaignBelongsToProduct(Product $product, PatchCampaign $campaign): void
     {
         if ($campaign->product_id !== $product->id) {
+            abort(404);
+        }
+    }
+
+    private function assertTargetBelongsToCampaign(PatchCampaign $campaign, PatchCampaignTarget $target): void
+    {
+        if ($target->campaign_id !== $campaign->id) {
             abort(404);
         }
     }
