@@ -257,7 +257,9 @@ class PatchCampaignService
             $target->update($updates);
 
             if ($status === PatchCampaignTargetStatus::Updated) {
-                $deployment = $target->deployment()->firstOrFail();
+                $deployment = ProductDeployment::query()
+                    ->whereKey($target->deployment_id)
+                    ->firstOrFail();
                 $deployment->update([
                     'product_version_id' => $campaign->target_version_id,
                     'last_confirmed_at' => $now,

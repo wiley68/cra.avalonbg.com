@@ -19,6 +19,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $notification_note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read PatchCampaign|null $campaign
+ * @property-read ProductDeployment|null $deployment
  */
 #[Fillable([
     'campaign_id',
@@ -41,11 +43,13 @@ class PatchCampaignTarget extends Model
         ];
     }
 
+    /** @return BelongsTo<PatchCampaign, $this> */
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(PatchCampaign::class, 'campaign_id');
     }
 
+    /** @return BelongsTo<ProductDeployment, $this> */
     public function deployment(): BelongsTo
     {
         return $this->belongsTo(ProductDeployment::class, 'deployment_id');
