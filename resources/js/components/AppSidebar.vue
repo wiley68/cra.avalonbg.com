@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Building2,
+    ClipboardCheck,
     HardDriveDownload,
     History,
     LayoutGrid,
@@ -39,6 +40,7 @@ import type { NavItem } from '@/types';
 import { index as controlsIndex } from '@/routes/controls';
 import { index as customersIndex } from '@/routes/customers';
 import { index as policiesIndex } from '@/routes/policies';
+import { index as auditorIndex } from '@/routes/auditor';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -88,6 +90,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.policies'),
             href: policiesIndex(),
             icon: ScrollText,
+        });
+        items.push({
+            title: t('nav.auditor'),
+            href: auditorIndex(),
+            icon: ClipboardCheck,
         });
     }
 

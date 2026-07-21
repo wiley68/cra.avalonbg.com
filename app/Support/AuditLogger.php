@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
+use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Evidence;
@@ -359,6 +360,88 @@ class AuditLogger
                 ['field' => 'title', 'value' => $policy->title],
                 ['field' => 'policy_type', 'value' => $policy->policy_type->value],
                 ['field' => 'version_label', 'value' => $policy->version_label],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageCreated(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'product_id', 'value' => (string) $package->product_id],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageUpdated(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'status', 'value' => $package->status->value],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageDeleted(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageShared(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageShared,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageClosed(AuditorReviewPackage $package, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::AuditorPackageClosed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
             ],
         );
     }

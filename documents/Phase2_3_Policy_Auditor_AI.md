@@ -268,7 +268,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 #### Must
 
 1. Migrations + models (`AuditorReviewPackage`, `AuditorFinding`, pivot) — **Done** (2026-07-21)
-2. Package CRUD (owner) + share/close — **Pending**
+2. Package CRUD (owner) + share/close — **Done** (2026-07-21)
 3. Read-only review page (passport + readiness + evidence list) — **Pending**
 4. Findings CRUD (auditor) + owner remediation status — **Pending**
 5. Export package PDF/ZIP — **Pending**
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.9    | 2026-07-21 | 2.3B Must 2: package CRUD + share/close + owner UI + tests            |
 | 1.8    | 2026-07-21 | 2.3B Must 1: auditor review packages + findings schema/models         |
 | 1.7    | 2026-07-21 | Could 12: PDF export per organization policy                          |
 | 1.6    | 2026-07-21 | Could 11: submit-for-review creates product Task (org_policy subject) |

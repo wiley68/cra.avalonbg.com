@@ -24,8 +24,10 @@ use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\OrgPolicyApiController;
+use App\Http\Controllers\Api\AuditorReviewPackageApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\AuditorReviewPackageController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
@@ -103,6 +105,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('policies', OrgPolicyController::class)
             ->except(['show'])
             ->parameters(['policies' => 'org_policy']);
+
+        Route::get('auditor', [AuditorReviewPackageController::class, 'index'])
+            ->name('auditor.index');
+        Route::get('auditor/packages/create', [AuditorReviewPackageController::class, 'create'])
+            ->name('auditor.packages.create');
+        Route::post('auditor/packages', [AuditorReviewPackageController::class, 'store'])
+            ->name('auditor.packages.store');
+        Route::get('auditor/packages/{package}/edit', [AuditorReviewPackageController::class, 'edit'])
+            ->name('auditor.packages.edit');
+        Route::put('auditor/packages/{package}', [AuditorReviewPackageController::class, 'update'])
+            ->name('auditor.packages.update');
+        Route::delete('auditor/packages/{package}', [AuditorReviewPackageController::class, 'destroy'])
+            ->name('auditor.packages.destroy');
+        Route::post('auditor/packages/{package}/share', [AuditorReviewPackageController::class, 'share'])
+            ->name('auditor.packages.share');
+        Route::post('auditor/packages/{package}/close', [AuditorReviewPackageController::class, 'close'])
+            ->name('auditor.packages.close');
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
@@ -258,6 +277,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('customers.index');
             Route::get('policies', [OrgPolicyApiController::class, 'index'])
                 ->name('policies.index');
+            Route::get('auditor/packages', [AuditorReviewPackageApiController::class, 'index'])
+                ->name('auditor.packages.index');
             Route::get('products', [ProductApiController::class, 'index'])
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])
