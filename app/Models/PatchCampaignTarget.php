@@ -6,6 +6,7 @@ use App\Enums\PatchCampaignTargetStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read PatchCampaign|null $campaign
  * @property-read ProductDeployment|null $deployment
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, PatchCampaignTargetNotificationEvent> $notificationEvents
  */
 #[Fillable([
     'campaign_id',
@@ -53,5 +55,14 @@ class PatchCampaignTarget extends Model
     public function deployment(): BelongsTo
     {
         return $this->belongsTo(ProductDeployment::class, 'deployment_id');
+    }
+
+    /** @return HasMany<PatchCampaignTargetNotificationEvent, $this> */
+    public function notificationEvents(): HasMany
+    {
+        return $this->hasMany(
+            PatchCampaignTargetNotificationEvent::class,
+            'patch_campaign_target_id',
+        );
     }
 }

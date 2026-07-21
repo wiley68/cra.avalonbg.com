@@ -1024,6 +1024,20 @@
                 "acknowledged": "Acknowledged",
                 "updated": "Updated",
                 "excepted": "Excepted"
+            },
+            "notification_log": "Log",
+            "notification_log_title": "Notification log",
+            "notification_log_empty": "No notification events recorded for this target yet.",
+            "notification_events": {
+                "types": {
+                    "status_changed": "Status change",
+                    "email_queued": "Email queued",
+                    "email_sent": "Email sent"
+                },
+                "channels": {
+                    "manual": "Manual",
+                    "email": "Email"
+                }
             }
         },
         "scope_wizard": {

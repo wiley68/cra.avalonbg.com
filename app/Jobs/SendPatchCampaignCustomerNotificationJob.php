@@ -2,10 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Enums\PatchCampaignTargetNotificationChannel;
+use App\Enums\PatchCampaignTargetNotificationEventType;
 use App\Enums\PatchCampaignTargetStatus;
 use App\Mail\PatchCampaignCustomerNotification;
 use App\Models\PatchCampaignTarget;
 use App\Models\User;
+use App\Services\PatchCampaignTargetNotificationLogService;
 use App\Support\AuditLogger;
 use App\Support\CustomerContactEmail;
 use App\Support\Translations;
@@ -78,6 +81,17 @@ class SendPatchCampaignCustomerNotificationJob implements ShouldQueue
         $actor = $this->actorUserId !== null
             ? User::query()->find($this->actorUserId)
             : null;
+
+        app(PatchCampaignTargetNotificationLogService::class)->record(
+            $target->fresh(),
+            PatchCampaignTargetNotificationEventType::EmailSent,
+            PatchCampaignTargetNotificationChannel::Email,
+            $actor,
+            $previousStatus,
+            PatchCampaignTargetStatus::Notified->value,
+            $note,
+            $email,
+        );
 
         if ($actor !== null) {
             AuditLogger::logCampaignTargetUpdated(

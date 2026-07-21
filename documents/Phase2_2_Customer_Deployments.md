@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.15  
+**Версия:** 1.16  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must + Should complete; Could 12–14 Done; Could 15 pending  
+**Статус:** Active — Must + Should complete; Could 12–15 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -205,7 +205,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 - `GET /products/{product}/campaigns` — index
 - Create: select target version (+ optional `product_vulnerability_id`), seed targets per правилото в §5
-- Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted); link към vulnerability Edit когато е свързана
+- Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted); append-only notification event log per target; link към vulnerability Edit когато е свързана
 - Notify stub: `POST /products/{product}/campaigns/{campaign}/notify` — queue email Mailable за pending targets с contact email
 - Vulnerability Edit: списък свързани patch campaigns + CTA „Start patch campaign“ (preselect vulnerability)
 - Export: `GET /products/{product}/campaigns/{campaign}/export` — XLSX of affected installations
@@ -237,7 +237,7 @@ Unique: `(campaign_id, deployment_id)`.
 12. Email notification stub (Mailables + queued job; provider config later) — **Done** (2026-07-21)
 13. Bulk import customers/deployments (CSV) — **Done** (2026-07-21)
 14. Support-period cross-check: list deployments on unsupported versions — **Done** (2026-07-21)
-15. Append-only notification event log per target (ако Must полетата не стигат)
+15. Append-only notification event log per target (ако Must полетата не стигат) — **Done** (2026-07-21)
 
 ---
 
@@ -247,7 +247,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 **Should** — campaign completion rules, XLSX export, readiness gap, vulnerability link.
 
-**Could** — email stub + CSV import + EOS cross-check Done; multi-event notification log pending.
+**Could** — email stub + CSV import + EOS cross-check + notification event log Done.
 
 ---
 
@@ -291,6 +291,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.16   | 2026-07-21 | Could 15 Done: append-only notification event log per campaign target (+ campaign Show log UI)                                                              |
 | 1.15   | 2026-07-21 | Could 14 Done: support-period cross-check — unsupported installations list (+ readiness gap + API filter)                                                   |
 | 1.14   | 2026-07-21 | Could 13 Done: CSV bulk import за customers и product deployments (+ template download)                                                                     |
 | 1.13   | 2026-07-21 | Could 12 Done: email notification stub (Mailable + queued job + campaign Notify CTA; `CRA_CUSTOMER_NOTIFICATIONS_ENABLED`)                                  |

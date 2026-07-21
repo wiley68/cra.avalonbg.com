@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, FileDown, Mail, Pencil, Play, Trash2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    FileDown,
+    History,
+    Mail,
+    Pencil,
+    Play,
+    Trash2,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import InputError from '@/components/InputError.vue';
@@ -48,6 +56,18 @@ type ProductSummary = {
     slug: string;
 };
 
+type NotificationEvent = {
+    id: number;
+    event_type: string;
+    channel: string;
+    status_before: string | null;
+    status_after: string | null;
+    body: string | null;
+    recipient: string | null;
+    created_by: string | null;
+    created_at: string;
+};
+
 type CampaignTarget = {
     id: number;
     deployment_id: number;
@@ -59,6 +79,7 @@ type CampaignTarget = {
     acknowledged_at: string | null;
     confirmed_at: string | null;
     notification_note: string | null;
+    notification_events: NotificationEvent[];
 };
 
 type CampaignDetail = {
@@ -112,6 +133,7 @@ const showDeleteDialog = ref(false);
 const showActivateDialog = ref(false);
 const showNotifyDialog = ref(false);
 const showStatusDialog = ref(false);
+const showLogDialog = ref(false);
 const selectedTarget = ref<CampaignTarget | null>(null);
 
 const isDraft = computed(() => props.campaign.status === 'draft');
@@ -160,7 +182,52 @@ const formatDate = (value: string | null): string => {
     return new Date(value).toLocaleString();
 };
 
+const eventTypeLabel = (value: string): string => {
+    const key = `products.campaigns.notification_events.types.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const eventChannelLabel = (value: string): string => {
+    const key = `products.campaigns.notification_events.channels.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const eventSummary = (event: NotificationEvent): string => {
+    if (
+        event.status_before &&
+        event.status_after &&
+        event.status_before !== event.status_after
+    ) {
+        return `${targetStatusLabel(event.status_before)} → ${targetStatusLabel(event.status_after)}`;
+    }
+
+    if (event.status_after) {
+        return targetStatusLabel(event.status_after);
+    }
+
+    return eventTypeLabel(event.event_type);
+};
+
+const openLogDialog = (target: CampaignTarget): void => {
+    showStatusDialog.value = false;
+    selectedTarget.value = target;
+    showLogDialog.value = true;
+};
+
+const closeLogDialog = (): void => {
+    showLogDialog.value = false;
+
+    if (!showStatusDialog.value) {
+        selectedTarget.value = null;
+    }
+};
+
 const openStatusDialog = (target: CampaignTarget): void => {
+    showLogDialog.value = false;
     selectedTarget.value = target;
     statusForm.status = actionableStatuses.includes(
         target.status as (typeof actionableStatuses)[number],
@@ -174,7 +241,11 @@ const openStatusDialog = (target: CampaignTarget): void => {
 
 const closeStatusDialog = (): void => {
     showStatusDialog.value = false;
-    selectedTarget.value = null;
+
+    if (!showLogDialog.value) {
+        selectedTarget.value = null;
+    }
+
     statusForm.reset();
 };
 
@@ -401,10 +472,7 @@ const textareaClass =
                             <th class="px-4 py-2 font-medium">
                                 {{ t('products.campaigns.columns.note') }}
                             </th>
-                            <th
-                                v-if="canUpdateTargets"
-                                class="px-4 py-2 font-medium"
-                            >
+                            <th class="px-4 py-2 font-medium">
                                 {{ t('common.actions') }}
                             </th>
                         </tr>
@@ -452,18 +520,45 @@ const textareaClass =
                             >
                                 {{ target.notification_note ?? '—' }}
                             </td>
-                            <td v-if="canUpdateTargets" class="px-4 py-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    @click="openStatusDialog(target)"
-                                >
-                                    {{
-                                        t(
-                                            'products.campaigns.update_target_status',
-                                        )
-                                    }}
-                                </Button>
+                            <td class="px-4 py-2">
+                                <div class="flex flex-wrap gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        @click="openLogDialog(target)"
+                                    >
+                                        <History class="h-4 w-4" />
+                                        {{
+                                            t(
+                                                'products.campaigns.notification_log',
+                                            )
+                                        }}
+                                        <span
+                                            v-if="
+                                                target.notification_events
+                                                    .length > 0
+                                            "
+                                            class="text-muted-foreground"
+                                        >
+                                            ({{
+                                                target.notification_events
+                                                    .length
+                                            }})
+                                        </span>
+                                    </Button>
+                                    <Button
+                                        v-if="canUpdateTargets"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="openStatusDialog(target)"
+                                    >
+                                        {{
+                                            t(
+                                                'products.campaigns.update_target_status',
+                                            )
+                                        }}
+                                    </Button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -557,6 +652,96 @@ const textareaClass =
                         </Button>
                     </DialogFooter>
                 </form>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog
+            :open="showLogDialog"
+            @update:open="
+                (open) => {
+                    if (!open) {
+                        closeLogDialog();
+                    }
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t('products.campaigns.notification_log_title') }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        <span v-if="selectedTarget">
+                            {{ selectedTarget.customer_name }}
+                            ·
+                            {{ environmentLabel(selectedTarget.environment) }}
+                        </span>
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div
+                    v-if="
+                        selectedTarget &&
+                        selectedTarget.notification_events.length === 0
+                    "
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('products.campaigns.notification_log_empty') }}
+                </div>
+
+                <div
+                    v-else-if="selectedTarget"
+                    class="max-h-80 space-y-3 overflow-y-auto"
+                >
+                    <div
+                        v-for="event in selectedTarget.notification_events"
+                        :key="event.id"
+                        class="rounded-md border px-3 py-2 text-sm"
+                    >
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-2"
+                        >
+                            <span class="font-medium">
+                                {{ eventSummary(event) }}
+                            </span>
+                            <span class="text-xs text-muted-foreground">
+                                {{ formatDate(event.created_at) }}
+                            </span>
+                        </div>
+                        <div
+                            class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground"
+                        >
+                            <span>
+                                {{ eventTypeLabel(event.event_type) }}
+                            </span>
+                            <span>
+                                {{ eventChannelLabel(event.channel) }}
+                            </span>
+                            <span v-if="event.recipient">
+                                {{ event.recipient }}
+                            </span>
+                            <span v-if="event.created_by">
+                                {{ event.created_by }}
+                            </span>
+                        </div>
+                        <p
+                            v-if="event.body"
+                            class="mt-2 whitespace-pre-wrap text-muted-foreground"
+                        >
+                            {{ event.body }}
+                        </p>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="closeLogDialog"
+                    >
+                        {{ t('common.close') }}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
 

@@ -1024,6 +1024,20 @@
                 "acknowledged": "Потвърдена",
                 "updated": "Обновена",
                 "excepted": "С изключение"
+            },
+            "notification_log": "Дневник",
+            "notification_log_title": "Дневник на известия",
+            "notification_log_empty": "Все още няма записани събития за известия за тази цел.",
+            "notification_events": {
+                "types": {
+                    "status_changed": "Промяна на статус",
+                    "email_queued": "Email в опашка",
+                    "email_sent": "Email изпратен"
+                },
+                "channels": {
+                    "manual": "Ръчно",
+                    "email": "Email"
+                }
             }
         },
         "scope_wizard": {

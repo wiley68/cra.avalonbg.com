@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\PatchCampaignStatus;
+use App\Enums\PatchCampaignTargetNotificationChannel;
+use App\Enums\PatchCampaignTargetNotificationEventType;
 use App\Enums\PatchCampaignTargetStatus;
 use App\Jobs\SendPatchCampaignCustomerNotificationJob;
 use App\Models\PatchCampaign;
@@ -25,6 +27,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PatchCampaignService
 {
+    public function __construct(
+        private readonly PatchCampaignTargetNotificationLogService $notificationLog,
+    ) {
+    }
+
     /**
      * @return LengthAwarePaginator<int, array{
      *     id: int,
@@ -276,6 +283,16 @@ class PatchCampaignService
             $fresh = $target->fresh(['deployment.customer', 'deployment.productVersion', 'campaign']);
             AuditLogger::logCampaignTargetUpdated($fresh, $actor, $previousStatus);
 
+            $this->notificationLog->record(
+                $fresh,
+                PatchCampaignTargetNotificationEventType::StatusChanged,
+                PatchCampaignTargetNotificationChannel::Manual,
+                $actor,
+                $previousStatus,
+                $status->value,
+                $updates['notification_note'] ?? null,
+            );
+
             if (
                 $status === PatchCampaignTargetStatus::Updated
                 || $status === PatchCampaignTargetStatus::Excepted
@@ -355,6 +372,18 @@ class PatchCampaignService
             }
 
             SendPatchCampaignCustomerNotificationJob::dispatch($target->id, $actor->id);
+
+            $this->notificationLog->record(
+                $target,
+                PatchCampaignTargetNotificationEventType::EmailQueued,
+                PatchCampaignTargetNotificationChannel::Email,
+                $actor,
+                $target->status->value,
+                PatchCampaignTargetStatus::Notified->value,
+                null,
+                $email,
+            );
+
             $queued++;
         }
 
@@ -414,7 +443,18 @@ class PatchCampaignService
      *         notified_at: string|null,
      *         acknowledged_at: string|null,
      *         confirmed_at: string|null,
-     *         notification_note: string|null
+     *         notification_note: string|null,
+     *         notification_events: list<array{
+     *             id: int,
+     *             event_type: string,
+     *             channel: string,
+     *             status_before: string|null,
+     *             status_after: string|null,
+     *             body: string|null,
+     *             recipient: string|null,
+     *             created_by: string|null,
+     *             created_at: string
+     *         }>
      *     }>
      * }
      */
@@ -425,6 +465,7 @@ class PatchCampaignService
             'productVulnerability',
             'targets.deployment.customer',
             'targets.deployment.productVersion',
+            'targets.notificationEvents.creator',
         ]);
 
         return [
@@ -453,6 +494,7 @@ class PatchCampaignService
                     'acknowledged_at' => $target->acknowledged_at?->toIso8601String(),
                     'confirmed_at' => $target->confirmed_at?->toIso8601String(),
                     'notification_note' => $target->notification_note,
+                    'notification_events' => $this->notificationLog->payloadForTarget($target),
                 ])
                 ->all(),
         ];
