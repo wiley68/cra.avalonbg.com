@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/settings/integrations';
@@ -84,6 +85,29 @@ const githubConnection = computed(() =>
 
 const gitlabConnection = computed(() =>
     props.connections.find((connection) => connection.provider === 'gitlab'),
+);
+
+const defaultTab = (): 'github' | 'gitlab' => {
+    if (props.revealed_webhook_secret) {
+        return 'github';
+    }
+
+    if (!githubConnection.value && gitlabConnection.value) {
+        return 'gitlab';
+    }
+
+    return 'github';
+};
+
+const activeTab = ref<'github' | 'gitlab'>(defaultTab());
+
+watch(
+    () => props.revealed_webhook_secret,
+    (secret) => {
+        if (secret) {
+            activeTab.value = 'github';
+        }
+    },
 );
 
 watch(
@@ -215,478 +239,557 @@ const confirmDisconnect = () => {
 
     <h1 class="sr-only">{{ t('settings.integrations.title') }}</h1>
 
-    <div class="space-y-10">
+    <div class="space-y-6">
         <Heading
             variant="small"
             :title="t('settings.integrations.heading')"
             :description="t('settings.integrations.description')"
         />
 
-        <div v-if="githubConnection" class="space-y-4 rounded-lg border p-4">
-            <div class="flex items-start justify-between gap-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2 font-medium">
-                        <GitBranch class="h-4 w-4" />
-                        {{
-                            githubConnection.label ||
-                            t('settings.integrations.github')
-                        }}
-                    </div>
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.status') }}:
-                        {{
-                            t(
-                                `settings.integrations.statuses.${githubConnection.status}`,
-                            )
-                        }}
-                    </p>
-                    <p
-                        v-if="githubConnection.last_verified_at"
-                        class="text-sm text-muted-foreground"
-                    >
-                        {{ t('settings.integrations.last_verified') }}:
-                        {{
-                            new Date(
-                                githubConnection.last_verified_at,
-                            ).toLocaleString()
-                        }}
-                    </p>
-                </div>
-                <Button
-                    v-if="canManage"
-                    type="button"
-                    variant="destructive"
-                    @click="disconnectId = githubConnection.id"
-                >
-                    <Trash2 class="h-4 w-4" />
-                    {{ t('settings.integrations.disconnect') }}
-                </Button>
-            </div>
-
-            <form
-                v-if="canManage"
-                class="space-y-3 border-t pt-4"
-                @submit.prevent="saveSyncSchedule"
-            >
-                <div class="grid gap-2">
-                    <Label for="sync_schedule">{{
-                        t('settings.integrations.sync_schedule')
-                    }}</Label>
-                    <Select
-                        :model-value="scheduleForm.sync_schedule"
-                        @update:model-value="
-                            (value) => {
-                                if (typeof value === 'string') {
-                                    scheduleForm.sync_schedule = value;
-                                }
-                            }
-                        "
-                    >
-                        <SelectTrigger
-                            id="sync_schedule"
-                            class="w-full max-w-xs"
-                            data-test="sync-schedule-select"
-                        >
-                            <SelectValue
-                                :placeholder="
-                                    t(
-                                        'settings.integrations.sync_schedule_placeholder',
-                                    )
-                                "
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="off">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.off',
-                                    )
-                                }}
-                            </SelectItem>
-                            <SelectItem value="hourly">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.hourly',
-                                    )
-                                }}
-                            </SelectItem>
-                            <SelectItem value="daily">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.daily',
-                                    )
-                                }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.sync_schedule_help') }}
-                    </p>
-                    <InputError :message="scheduleForm.errors.sync_schedule" />
-                </div>
-                <Button
-                    type="submit"
-                    variant="outline"
-                    :disabled="scheduleForm.processing"
-                    data-test="save-sync-schedule-button"
-                >
-                    <Save class="h-4 w-4" />
-                    {{ t('settings.integrations.save_sync_schedule') }}
-                </Button>
-            </form>
-            <p v-else class="border-t pt-4 text-sm text-muted-foreground">
-                {{ t('settings.integrations.sync_schedule') }}:
-                {{
-                    t(
-                        `settings.integrations.sync_schedules.${githubConnection.sync_schedule}`,
-                    )
-                }}
-            </p>
-
-            <div class="space-y-3 border-t pt-4">
-                <h3 class="text-sm font-medium">
-                    {{ t('settings.integrations.webhook_title') }}
-                </h3>
-                <p class="text-sm text-muted-foreground">
-                    {{ t('settings.integrations.webhook_help') }}
-                </p>
-                <div class="grid gap-2">
-                    <Label>{{ t('settings.integrations.webhook_url') }}</Label>
-                    <div class="flex flex-col gap-2 sm:flex-row">
-                        <Input
-                            :model-value="githubConnection.webhook_url"
-                            readonly
-                            class="font-mono text-xs"
-                            data-test="webhook-url"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="copyWebhookUrl"
-                        >
-                            <Copy class="h-4 w-4" />
-                            {{
-                                copyFeedback === 'url'
-                                    ? t('settings.integrations.copied')
-                                    : t('settings.integrations.copy')
-                            }}
-                        </Button>
-                    </div>
-                </div>
-                <p class="text-sm text-muted-foreground">
-                    {{ t('settings.integrations.webhook_status') }}:
-                    {{
-                        githubConnection.webhook_configured
-                            ? t('settings.integrations.webhook_configured')
-                            : t('settings.integrations.webhook_not_configured')
-                    }}
-                </p>
-                <div
-                    v-if="revealed_webhook_secret"
-                    class="grid gap-2 rounded-md border border-dashed p-3"
-                >
-                    <Label>{{
-                        t('settings.integrations.webhook_secret_once')
-                    }}</Label>
-                    <div class="flex flex-col gap-2 sm:flex-row">
-                        <Input
-                            :model-value="revealed_webhook_secret"
-                            readonly
-                            class="font-mono text-xs"
-                            data-test="webhook-secret-revealed"
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="copyRevealedWebhookSecret"
-                        >
-                            <Copy class="h-4 w-4" />
-                            {{
-                                copyFeedback === 'secret'
-                                    ? t('settings.integrations.copied')
-                                    : t('settings.integrations.copy')
-                            }}
-                        </Button>
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                        {{
-                            t('settings.integrations.webhook_secret_once_help')
-                        }}
-                    </p>
-                </div>
-                <Button
-                    v-if="canManage"
-                    type="button"
-                    variant="outline"
-                    :disabled="rotatingWebhook"
-                    data-test="rotate-webhook-secret-button"
-                    @click="rotateWebhookSecret"
-                >
-                    <RefreshCw
-                        class="h-4 w-4"
-                        :class="{ 'animate-spin': rotatingWebhook }"
-                    />
-                    {{
-                        githubConnection.webhook_configured
-                            ? t('settings.integrations.rotate_webhook_secret')
-                            : t('settings.integrations.generate_webhook_secret')
-                    }}
-                </Button>
-            </div>
-        </div>
-
-        <div v-if="gitlabConnection" class="space-y-4 rounded-lg border p-4">
-            <div class="flex items-start justify-between gap-4">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2 font-medium">
-                        <GitBranch class="h-4 w-4" />
-                        {{
-                            gitlabConnection.label ||
-                            t('settings.integrations.gitlab')
-                        }}
-                    </div>
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.status') }}:
-                        {{
-                            t(
-                                `settings.integrations.statuses.${gitlabConnection.status}`,
-                            )
-                        }}
-                    </p>
-                    <p
-                        v-if="gitlabConnection.last_verified_at"
-                        class="text-sm text-muted-foreground"
-                    >
-                        {{ t('settings.integrations.last_verified') }}:
-                        {{
-                            new Date(
-                                gitlabConnection.last_verified_at,
-                            ).toLocaleString()
-                        }}
-                    </p>
-                </div>
-                <Button
-                    v-if="canManage"
-                    type="button"
-                    variant="destructive"
-                    @click="disconnectId = gitlabConnection.id"
-                >
-                    <Trash2 class="h-4 w-4" />
-                    {{ t('settings.integrations.disconnect') }}
-                </Button>
-            </div>
-
-            <form
-                v-if="canManage"
-                class="space-y-3 border-t pt-4"
-                @submit.prevent="saveGitlabSyncSchedule"
-            >
-                <div class="grid gap-2">
-                    <Label for="gitlab_sync_schedule">{{
-                        t('settings.integrations.sync_schedule')
-                    }}</Label>
-                    <Select
-                        :model-value="gitlabScheduleForm.sync_schedule"
-                        @update:model-value="
-                            (value) => {
-                                if (typeof value === 'string') {
-                                    gitlabScheduleForm.sync_schedule = value;
-                                }
-                            }
-                        "
-                    >
-                        <SelectTrigger
-                            id="gitlab_sync_schedule"
-                            class="w-full max-w-xs"
-                            data-test="gitlab-sync-schedule-select"
-                        >
-                            <SelectValue
-                                :placeholder="
-                                    t(
-                                        'settings.integrations.sync_schedule_placeholder',
-                                    )
-                                "
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="off">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.off',
-                                    )
-                                }}
-                            </SelectItem>
-                            <SelectItem value="hourly">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.hourly',
-                                    )
-                                }}
-                            </SelectItem>
-                            <SelectItem value="daily">
-                                {{
-                                    t(
-                                        'settings.integrations.sync_schedules.daily',
-                                    )
-                                }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.sync_schedule_help') }}
-                    </p>
-                    <InputError
-                        :message="gitlabScheduleForm.errors.sync_schedule"
-                    />
-                </div>
-                <Button
-                    type="submit"
-                    variant="outline"
-                    :disabled="gitlabScheduleForm.processing"
-                    data-test="save-gitlab-sync-schedule-button"
-                >
-                    <Save class="h-4 w-4" />
-                    {{ t('settings.integrations.save_sync_schedule') }}
-                </Button>
-            </form>
-            <p v-else class="border-t pt-4 text-sm text-muted-foreground">
-                {{ t('settings.integrations.sync_schedule') }}:
-                {{
-                    t(
-                        `settings.integrations.sync_schedules.${gitlabConnection.sync_schedule}`,
-                    )
-                }}
-            </p>
-        </div>
-
-        <div v-if="canManage" class="space-y-6">
-            <Heading
-                variant="small"
-                :title="
-                    githubConnection
-                        ? t('settings.integrations.update_github_title')
-                        : t('settings.integrations.connect_github_title')
-                "
-                :description="
-                    t('settings.integrations.connect_github_description')
-                "
-            />
-
-            <form class="space-y-6" @submit.prevent="connectGithub">
-                <div class="grid gap-2">
-                    <Label for="label">{{
-                        t('settings.integrations.label')
-                    }}</Label>
-                    <Input
-                        id="label"
-                        v-model="githubForm.label"
-                        class="mt-1 block w-full"
-                        :placeholder="t('settings.integrations.github')"
-                    />
-                    <InputError :message="githubForm.errors.label" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="token">{{
-                        t('settings.integrations.token')
-                    }}</Label>
-                    <PasswordInput
-                        id="token"
-                        v-model="githubForm.token"
-                        class="mt-1 block w-full"
-                        autocomplete="off"
-                        :placeholder="
-                            t('settings.integrations.token_placeholder')
-                        "
-                        required
-                    />
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.token_help') }}
-                    </p>
-                    <InputError :message="githubForm.errors.token" />
-                </div>
-
-                <Button
-                    type="submit"
-                    :disabled="githubForm.processing"
-                    data-test="connect-github-button"
-                >
-                    <Save class="h-4 w-4" />
-                    {{
-                        githubConnection
-                            ? t('settings.integrations.update_token')
-                            : t('settings.integrations.connect')
-                    }}
-                </Button>
-            </form>
-        </div>
-
-        <div v-if="canManage" class="space-y-6">
-            <Heading
-                variant="small"
-                :title="
-                    gitlabConnection
-                        ? t('settings.integrations.update_gitlab_title')
-                        : t('settings.integrations.connect_gitlab_title')
-                "
-                :description="
-                    t('settings.integrations.connect_gitlab_description')
-                "
-            />
-
-            <form class="space-y-6" @submit.prevent="connectGitlab">
-                <div class="grid gap-2">
-                    <Label for="gitlab_label">{{
-                        t('settings.integrations.label')
-                    }}</Label>
-                    <Input
-                        id="gitlab_label"
-                        v-model="gitlabForm.label"
-                        class="mt-1 block w-full"
-                        :placeholder="t('settings.integrations.gitlab')"
-                    />
-                    <InputError :message="gitlabForm.errors.label" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="gitlab_token">{{
-                        t('settings.integrations.token')
-                    }}</Label>
-                    <PasswordInput
-                        id="gitlab_token"
-                        v-model="gitlabForm.token"
-                        class="mt-1 block w-full"
-                        autocomplete="off"
-                        :placeholder="
-                            t('settings.integrations.gitlab_token_placeholder')
-                        "
-                        required
-                    />
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('settings.integrations.gitlab_token_help') }}
-                    </p>
-                    <InputError :message="gitlabForm.errors.token" />
-                </div>
-
-                <Button
-                    type="submit"
-                    :disabled="gitlabForm.processing"
-                    data-test="connect-gitlab-button"
-                >
-                    <Save class="h-4 w-4" />
-                    {{
-                        gitlabConnection
-                            ? t('settings.integrations.update_token')
-                            : t('settings.integrations.connect_gitlab')
-                    }}
-                </Button>
-            </form>
-        </div>
-
-        <p
-            v-else-if="!githubConnection && !gitlabConnection"
-            class="text-sm text-muted-foreground"
+        <Tabs
+            v-if="canManage || githubConnection || gitlabConnection"
+            v-model="activeTab"
+            class="gap-6"
         >
+            <TabsList class="w-full sm:w-fit" data-test="integrations-tabs">
+                <TabsTrigger value="github" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.github') }}
+                </TabsTrigger>
+                <TabsTrigger value="gitlab" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.gitlab') }}
+                </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="github" class="space-y-6">
+                <div
+                    v-if="githubConnection"
+                    class="space-y-4 rounded-lg border p-4"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 font-medium">
+                                <GitBranch class="h-4 w-4" />
+                                {{
+                                    githubConnection.label ||
+                                    t('settings.integrations.github')
+                                }}
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.status') }}:
+                                {{
+                                    t(
+                                        `settings.integrations.statuses.${githubConnection.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="githubConnection.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        githubConnection.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            @click="disconnectId = githubConnection.id"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+
+                    <form
+                        v-if="canManage"
+                        class="space-y-3 border-t pt-4"
+                        @submit.prevent="saveSyncSchedule"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="sync_schedule">{{
+                                t('settings.integrations.sync_schedule')
+                            }}</Label>
+                            <Select
+                                :model-value="scheduleForm.sync_schedule"
+                                @update:model-value="
+                                    (value) => {
+                                        if (typeof value === 'string') {
+                                            scheduleForm.sync_schedule = value;
+                                        }
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="sync_schedule"
+                                    class="w-full max-w-xs"
+                                    data-test="sync-schedule-select"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t(
+                                                'settings.integrations.sync_schedule_placeholder',
+                                            )
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="off">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.off',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="hourly">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.hourly',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="daily">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.daily',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedule_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="scheduleForm.errors.sync_schedule"
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            :disabled="scheduleForm.processing"
+                            data-test="save-sync-schedule-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('settings.integrations.save_sync_schedule') }}
+                        </Button>
+                    </form>
+                    <p
+                        v-else
+                        class="border-t pt-4 text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.sync_schedule') }}:
+                        {{
+                            t(
+                                `settings.integrations.sync_schedules.${githubConnection.sync_schedule}`,
+                            )
+                        }}
+                    </p>
+
+                    <div class="space-y-3 border-t pt-4">
+                        <h3 class="text-sm font-medium">
+                            {{ t('settings.integrations.webhook_title') }}
+                        </h3>
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('settings.integrations.webhook_help') }}
+                        </p>
+                        <div class="grid gap-2">
+                            <Label>{{
+                                t('settings.integrations.webhook_url')
+                            }}</Label>
+                            <div class="flex flex-col gap-2 sm:flex-row">
+                                <Input
+                                    :model-value="githubConnection.webhook_url"
+                                    readonly
+                                    class="font-mono text-xs"
+                                    data-test="webhook-url"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    @click="copyWebhookUrl"
+                                >
+                                    <Copy class="h-4 w-4" />
+                                    {{
+                                        copyFeedback === 'url'
+                                            ? t('settings.integrations.copied')
+                                            : t('settings.integrations.copy')
+                                    }}
+                                </Button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('settings.integrations.webhook_status') }}:
+                            {{
+                                githubConnection.webhook_configured
+                                    ? t(
+                                          'settings.integrations.webhook_configured',
+                                      )
+                                    : t(
+                                          'settings.integrations.webhook_not_configured',
+                                      )
+                            }}
+                        </p>
+                        <div
+                            v-if="revealed_webhook_secret"
+                            class="grid gap-2 rounded-md border border-dashed p-3"
+                        >
+                            <Label>{{
+                                t('settings.integrations.webhook_secret_once')
+                            }}</Label>
+                            <div class="flex flex-col gap-2 sm:flex-row">
+                                <Input
+                                    :model-value="revealed_webhook_secret"
+                                    readonly
+                                    class="font-mono text-xs"
+                                    data-test="webhook-secret-revealed"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    @click="copyRevealedWebhookSecret"
+                                >
+                                    <Copy class="h-4 w-4" />
+                                    {{
+                                        copyFeedback === 'secret'
+                                            ? t('settings.integrations.copied')
+                                            : t('settings.integrations.copy')
+                                    }}
+                                </Button>
+                            </div>
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.webhook_secret_once_help',
+                                    )
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="outline"
+                            :disabled="rotatingWebhook"
+                            data-test="rotate-webhook-secret-button"
+                            @click="rotateWebhookSecret"
+                        >
+                            <RefreshCw
+                                class="h-4 w-4"
+                                :class="{ 'animate-spin': rotatingWebhook }"
+                            />
+                            {{
+                                githubConnection.webhook_configured
+                                    ? t(
+                                          'settings.integrations.rotate_webhook_secret',
+                                      )
+                                    : t(
+                                          'settings.integrations.generate_webhook_secret',
+                                      )
+                            }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-if="canManage" class="space-y-6">
+                    <Heading
+                        variant="small"
+                        :title="
+                            githubConnection
+                                ? t('settings.integrations.update_github_title')
+                                : t(
+                                      'settings.integrations.connect_github_title',
+                                  )
+                        "
+                        :description="
+                            t(
+                                'settings.integrations.connect_github_description',
+                            )
+                        "
+                    />
+
+                    <form class="space-y-6" @submit.prevent="connectGithub">
+                        <div class="grid gap-2">
+                            <Label for="label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="label"
+                                v-model="githubForm.label"
+                                class="mt-1 block w-full"
+                                :placeholder="t('settings.integrations.github')"
+                            />
+                            <InputError :message="githubForm.errors.label" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="token">{{
+                                t('settings.integrations.token')
+                            }}</Label>
+                            <PasswordInput
+                                id="token"
+                                v-model="githubForm.token"
+                                class="mt-1 block w-full"
+                                autocomplete="off"
+                                :placeholder="
+                                    t('settings.integrations.token_placeholder')
+                                "
+                                required
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.token_help') }}
+                            </p>
+                            <InputError :message="githubForm.errors.token" />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            :disabled="githubForm.processing"
+                            data-test="connect-github-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                githubConnection
+                                    ? t('settings.integrations.update_token')
+                                    : t('settings.integrations.connect')
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!githubConnection"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+
+            <TabsContent value="gitlab" class="space-y-6">
+                <div
+                    v-if="gitlabConnection"
+                    class="space-y-4 rounded-lg border p-4"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 font-medium">
+                                <GitBranch class="h-4 w-4" />
+                                {{
+                                    gitlabConnection.label ||
+                                    t('settings.integrations.gitlab')
+                                }}
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.status') }}:
+                                {{
+                                    t(
+                                        `settings.integrations.statuses.${gitlabConnection.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="gitlabConnection.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        gitlabConnection.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            @click="disconnectId = gitlabConnection.id"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+
+                    <form
+                        v-if="canManage"
+                        class="space-y-3 border-t pt-4"
+                        @submit.prevent="saveGitlabSyncSchedule"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="gitlab_sync_schedule">{{
+                                t('settings.integrations.sync_schedule')
+                            }}</Label>
+                            <Select
+                                :model-value="gitlabScheduleForm.sync_schedule"
+                                @update:model-value="
+                                    (value) => {
+                                        if (typeof value === 'string') {
+                                            gitlabScheduleForm.sync_schedule =
+                                                value;
+                                        }
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="gitlab_sync_schedule"
+                                    class="w-full max-w-xs"
+                                    data-test="gitlab-sync-schedule-select"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t(
+                                                'settings.integrations.sync_schedule_placeholder',
+                                            )
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="off">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.off',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="hourly">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.hourly',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="daily">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.daily',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.sync_schedule_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="
+                                    gitlabScheduleForm.errors.sync_schedule
+                                "
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            :disabled="gitlabScheduleForm.processing"
+                            data-test="save-gitlab-sync-schedule-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('settings.integrations.save_sync_schedule') }}
+                        </Button>
+                    </form>
+                    <p
+                        v-else
+                        class="border-t pt-4 text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.sync_schedule') }}:
+                        {{
+                            t(
+                                `settings.integrations.sync_schedules.${gitlabConnection.sync_schedule}`,
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div v-if="canManage" class="space-y-6">
+                    <Heading
+                        variant="small"
+                        :title="
+                            gitlabConnection
+                                ? t('settings.integrations.update_gitlab_title')
+                                : t(
+                                      'settings.integrations.connect_gitlab_title',
+                                  )
+                        "
+                        :description="
+                            t(
+                                'settings.integrations.connect_gitlab_description',
+                            )
+                        "
+                    />
+
+                    <form class="space-y-6" @submit.prevent="connectGitlab">
+                        <div class="grid gap-2">
+                            <Label for="gitlab_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="gitlab_label"
+                                v-model="gitlabForm.label"
+                                class="mt-1 block w-full"
+                                :placeholder="t('settings.integrations.gitlab')"
+                            />
+                            <InputError :message="gitlabForm.errors.label" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="gitlab_token">{{
+                                t('settings.integrations.token')
+                            }}</Label>
+                            <PasswordInput
+                                id="gitlab_token"
+                                v-model="gitlabForm.token"
+                                class="mt-1 block w-full"
+                                autocomplete="off"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.gitlab_token_placeholder',
+                                    )
+                                "
+                                required
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t('settings.integrations.gitlab_token_help')
+                                }}
+                            </p>
+                            <InputError :message="gitlabForm.errors.token" />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            :disabled="gitlabForm.processing"
+                            data-test="connect-gitlab-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                gitlabConnection
+                                    ? t('settings.integrations.update_token')
+                                    : t('settings.integrations.connect_gitlab')
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!gitlabConnection"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+        </Tabs>
+
+        <p v-else class="text-sm text-muted-foreground">
             {{ t('settings.integrations.no_access') }}
         </p>
     </div>

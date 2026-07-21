@@ -1979,6 +1979,7 @@
             "github_token_invalid": "GitHub rejected this token. Check the token and try again.",
             "gitlab_token_invalid": "GitLab rejected this token. Check the token and try again.",
             "no_access": "You do not have permission to manage integrations.",
+            "provider_not_connected": "This provider is not connected yet.",
             "sync_schedule": "Scheduled sync",
             "sync_schedule_placeholder": "Select frequency",
             "sync_schedule_help": "Applies to all product repositories linked through this connection. The scheduler runs hourly and syncs only when due.",
