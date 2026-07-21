@@ -508,6 +508,7 @@
         "empty": "No products found.",
         "versions_link": "Versions",
         "support_periods_link": "Support periods",
+        "deployments_link": "Customer deployments",
         "requirements_link": "Requirements",
         "controls_link": "Controls",
         "risks_link": "Risks",
@@ -523,6 +524,9 @@
             },
             "support_periods": {
                 "description": "Support windows and policy"
+            },
+            "deployments": {
+                "description": "Customer installations by environment"
             },
             "requirements": {
                 "description": "CRA requirements and applicability"
@@ -828,6 +832,52 @@
                 "basis": "Describe the criteria and facts used to determine the length of the support period. For Commercial, state the licensing and contractual terms. For Security, state the expected lifecycle, product purpose, user expectations, and applicable regulatory requirements.",
                 "exceptions_notes": "Describe any agreed deviations from the standard support period for specific customers, versions, or installations. If there are none, state \"No customer exceptions\".",
                 "versions": "Product versions covered by this support period."
+            }
+        },
+        "deployments": {
+            "index_title": "Customer deployments",
+            "title": "Customer deployments",
+            "subtitle": "Installations of this product at customer sites",
+            "create": "Add deployment",
+            "create_title": "Create deployment",
+            "edit_title": "Edit deployment",
+            "created": "Deployment created.",
+            "updated": "Deployment updated.",
+            "deleted": "Deployment deleted.",
+            "confirm_delete": "Delete this customer deployment?",
+            "search_placeholder": "Search by customer, environment or version...",
+            "customer_placeholder": "Select customer",
+            "version_none": "Not set",
+            "environment_taken": "This customer already has a deployment for this environment.",
+            "customer_invalid": "Selected customer is not valid for this organization.",
+            "columns": {
+                "id": "ID",
+                "customer": "Customer",
+                "version": "Version",
+                "environment": "Environment",
+                "installation_date": "Installed",
+                "internet_exposure": "Internet"
+            },
+            "fields": {
+                "customer": "Customer",
+                "environment": "Environment",
+                "version": "Confirmed version",
+                "installation_date": "Installation date",
+                "last_confirmed_at": "Last confirmed",
+                "update_channel": "Update channel",
+                "internet_exposure": "Internet exposure",
+                "custom_modifications": "Custom modifications",
+                "end_of_support_exception": "End-of-support exception",
+                "notes": "Notes"
+            },
+            "help": {
+                "customer": "Organization that runs this installation.",
+                "environment": "One deployment line per customer and environment (production, staging, other)."
+            },
+            "environments": {
+                "production": "Production",
+                "staging": "Staging",
+                "other": "Other"
             }
         },
         "scope_wizard": {
@@ -1874,6 +1924,9 @@
             "customer_created": "Customer created",
             "customer_updated": "Customer updated",
             "customer_deleted": "Customer deleted",
+            "deployment_created": "Deployment created",
+            "deployment_updated": "Deployment updated",
+            "deployment_deleted": "Deployment deleted",
             "risk_created": "Risk created",
             "risk_updated": "Risk updated",
             "risk_deleted": "Risk deleted",

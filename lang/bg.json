@@ -508,6 +508,7 @@
         "empty": "Няма намерени продукти.",
         "versions_link": "Версии",
         "support_periods_link": "Периоди на поддръжка",
+        "deployments_link": "Клиентски deployments",
         "requirements_link": "Изисквания",
         "controls_link": "Контроли",
         "risks_link": "Рискове",
@@ -523,6 +524,9 @@
             },
             "support_periods": {
                 "description": "Периоди и политика за поддръжка"
+            },
+            "deployments": {
+                "description": "Клиентски инсталации по environment"
             },
             "requirements": {
                 "description": "CRA изисквания и приложимост"
@@ -828,6 +832,52 @@
                 "basis": "Опишете критериите и фактите, въз основа на които е определена продължителността на support period. За Commercial посочете лицензионните и договорните условия. За Security посочете очаквания жизнен цикъл, предназначението на продукта, потребителските очаквания и приложимите регулаторни изисквания.",
                 "exceptions_notes": "Опишете всички договорени отклонения от стандартния support period за конкретни клиенти, версии или инсталации. Ако няма такива, посочете „Няма клиентски изключения“.",
                 "versions": "Версии на продукта, покрити от този период."
+            }
+        },
+        "deployments": {
+            "index_title": "Клиентски deployments",
+            "title": "Клиентски deployments",
+            "subtitle": "Инсталации на продукта при клиенти",
+            "create": "Добави deployment",
+            "create_title": "Създай deployment",
+            "edit_title": "Редакция на deployment",
+            "created": "Deployment е създаден.",
+            "updated": "Deployment е обновен.",
+            "deleted": "Deployment е изтрит.",
+            "confirm_delete": "Да се изтрие ли този клиентски deployment?",
+            "search_placeholder": "Търсене по клиент, environment или версия...",
+            "customer_placeholder": "Изберете клиент",
+            "version_none": "Не е зададена",
+            "environment_taken": "Този клиент вече има deployment за този environment.",
+            "customer_invalid": "Избраният клиент не е валиден за тази организация.",
+            "columns": {
+                "id": "ID",
+                "customer": "Клиент",
+                "version": "Версия",
+                "environment": "Environment",
+                "installation_date": "Инсталиран",
+                "internet_exposure": "Интернет"
+            },
+            "fields": {
+                "customer": "Клиент",
+                "environment": "Environment",
+                "version": "Потвърдена версия",
+                "installation_date": "Дата на инсталация",
+                "last_confirmed_at": "Последно потвърждение",
+                "update_channel": "Канал за update",
+                "internet_exposure": "Интернет експозиция",
+                "custom_modifications": "Персонални модификации",
+                "end_of_support_exception": "Изключение при край на поддръжка",
+                "notes": "Бележки"
+            },
+            "help": {
+                "customer": "Организацията, която поддържа тази инсталация.",
+                "environment": "Една deployment линия на клиент и environment (production, staging, other)."
+            },
+            "environments": {
+                "production": "Production",
+                "staging": "Staging",
+                "other": "Друг"
             }
         },
         "scope_wizard": {
@@ -1874,6 +1924,9 @@
             "customer_created": "Създаден клиент",
             "customer_updated": "Обновен клиент",
             "customer_deleted": "Изтрит клиент",
+            "deployment_created": "Създаден deployment",
+            "deployment_updated": "Обновен deployment",
+            "deployment_deleted": "Изтрит deployment",
             "risk_created": "Създаден риск",
             "risk_updated": "Обновен риск",
             "risk_deleted": "Изтрит риск",

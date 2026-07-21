@@ -8,12 +8,14 @@ import {
     GitBranch,
     IdCard,
     ListChecks,
+    Server,
     Shield,
     ShieldAlert,
 } from '@lucide/vue';
 import type { LucideIcon } from '@lucide/vue';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
+import { index as deploymentsIndex } from '@/routes/products/deployments';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
 import { show as productPassportShow } from '@/routes/products/passport';
 import { show as productReadinessShow } from '@/routes/products/readiness';
@@ -40,6 +42,7 @@ export type ProductListItem = {
 export type ProductModuleKey =
     | 'versions'
     | 'support_periods'
+    | 'deployments'
     | 'requirements'
     | 'controls'
     | 'risks'
@@ -86,6 +89,14 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.support_periods.description',
         icon: CalendarRange,
         href: (productId) => supportPeriodsIndex(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
+        key: 'deployments',
+        labelKey: 'products.deployments_link',
+        descriptionKey: 'products.modules.deployments.description',
+        icon: Server,
+        href: (productId) => deploymentsIndex(productId).url,
         canViewFlag: 'can_view_products',
     },
     {

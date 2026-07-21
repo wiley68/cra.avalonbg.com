@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must 1–2 Done; Must 3–7 pending  
+**Статус:** Active — Must 1–3 Done; Must 4–7 pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -211,7 +211,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 1. Migrations + models + enums (customer criticality, deployment env, campaign/target status) — **Done** (2026-07-21)
 2. Customer CRUD (Inertia + server-side DataTable API) + audit — **Done** (2026-07-21)
-3. Product deployments CRUD (link customer/version/env) + audit
+3. Product deployments CRUD (link customer/version/env) + audit — **Done** (2026-07-21)
 4. Patch campaign create (draft → active) + auto-attach matching deployments (§5 правило)
 5. Target status updates (note + timestamps; при `updated` sync deployment version) + audit
 6. Feature tests (Pest) за CRUD + campaign flow + view-only forbidden manage
@@ -283,6 +283,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.4    | 2026-07-21 | Must 3 Done: Product deployments CRUD (DataTable + audit)                                                                                                   |
 | 1.3    | 2026-07-21 | Must 2 Done: Customer CRUD (DataTable + audit)                                                                                                              |
 | 1.2    | 2026-07-21 | Must 1 Done: migrations + models + enums                                                                                                                    |
 | 1.1    | 2026-07-21 | Review fixes: `product_vulnerability_id`; махнат `updated_at_status`; nav фиксиран; seed + version-sync правила; AC за viewer; naming vs `deployment_model` |

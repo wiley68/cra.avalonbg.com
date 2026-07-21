@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -224,6 +225,57 @@ class AuditLogger
             details: [
                 ['field' => 'customer_id', 'value' => (string) $customer->id],
                 ['field' => 'name', 'value' => $customer->name],
+            ],
+        );
+    }
+
+    public static function logDeploymentCreated(ProductDeployment $deployment, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::DeploymentCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $deployment->organization_id,
+            productId: $deployment->product_id,
+            details: [
+                ['field' => 'deployment_id', 'value' => (string) $deployment->id],
+                ['field' => 'customer_id', 'value' => (string) $deployment->customer_id],
+                ['field' => 'environment', 'value' => $deployment->environment->value],
+            ],
+        );
+    }
+
+    public static function logDeploymentUpdated(ProductDeployment $deployment, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::DeploymentUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $deployment->organization_id,
+            productId: $deployment->product_id,
+            details: [
+                ['field' => 'deployment_id', 'value' => (string) $deployment->id],
+                ['field' => 'customer_id', 'value' => (string) $deployment->customer_id],
+                ['field' => 'environment', 'value' => $deployment->environment->value],
+            ],
+        );
+    }
+
+    public static function logDeploymentDeleted(ProductDeployment $deployment, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::DeploymentDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $deployment->organization_id,
+            productId: $deployment->product_id,
+            details: [
+                ['field' => 'deployment_id', 'value' => (string) $deployment->id],
+                ['field' => 'customer_id', 'value' => (string) $deployment->customer_id],
+                ['field' => 'environment', 'value' => $deployment->environment->value],
             ],
         );
     }
