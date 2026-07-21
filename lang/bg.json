@@ -370,12 +370,55 @@
         "organizations": "Организации",
         "users": "Потребители",
         "products": "Продукти",
+        "customers": "Клиенти",
         "controls": "Контроли",
         "logs": "Журнали",
         "audit": "Одит",
         "requirements_catalogue": "Каталог изисквания",
         "settings": "Настройки",
         "logout": "Изход"
+    },
+    "customers": {
+        "index_title": "Клиенти",
+        "title": "Клиенти",
+        "subtitle": "Организации и контакти, които ползват вашите продукти",
+        "create": "Създай клиент",
+        "create_title": "Създаване на клиент",
+        "edit_title": "Редакция на клиент",
+        "created": "Клиентът е създаден.",
+        "updated": "Клиентът е обновен.",
+        "deleted": "Клиентът е изтрит.",
+        "confirm_delete": "Да се изтрие ли този клиент окончателно? Свързаните deployments също ще бъдат премахнати.",
+        "search_placeholder": "Търсене по име, контакт или референция...",
+        "active": "Активен",
+        "inactive": "Неактивен",
+        "columns": {
+            "id": "ID",
+            "external_ref": "Външна реф.",
+            "primary_contact": "Основен контакт",
+            "criticality": "Критичност",
+            "status": "Статус",
+            "deployments": "Deployments"
+        },
+        "fields": {
+            "external_ref": "Външна референция",
+            "primary_contact": "Основен контакт",
+            "criticality": "Критичност",
+            "notes": "Бележки",
+            "is_active": "Активен"
+        },
+        "help": {
+            "name": "Показвано име на клиентската организация.",
+            "external_ref": "Опционален CRM или номер на договор.",
+            "primary_contact": "Име или имейл за оперативен контакт.",
+            "criticality": "Колко критичен е клиентът за приоритет на patch и известия.",
+            "is_active": "Неактивните клиенти остават в историята, но по-късно ще са скрити от подразбиращи се избори."
+        },
+        "criticalities": {
+            "low": "Ниска",
+            "medium": "Средна",
+            "high": "Висока"
+        }
     },
     "controls": {
         "index_title": "Библиотека контроли",
@@ -1828,6 +1871,9 @@
             "product_created": "Създаден продукт",
             "product_updated": "Обновен продукт",
             "product_deleted": "Изтрит продукт",
+            "customer_created": "Създаден клиент",
+            "customer_updated": "Обновен клиент",
+            "customer_deleted": "Изтрит клиент",
             "risk_created": "Създаден риск",
             "risk_updated": "Обновен риск",
             "risk_deleted": "Изтрит риск",

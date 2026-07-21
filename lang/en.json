@@ -370,12 +370,55 @@
         "organizations": "Organizations",
         "users": "Users",
         "products": "Products",
+        "customers": "Customers",
         "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
         "requirements_catalogue": "Requirements catalogue",
         "settings": "Settings",
         "logout": "Log out"
+    },
+    "customers": {
+        "index_title": "Customers",
+        "title": "Customers",
+        "subtitle": "Organizations and contacts that run your products",
+        "create": "Create customer",
+        "create_title": "Create customer",
+        "edit_title": "Edit customer",
+        "created": "Customer created.",
+        "updated": "Customer updated.",
+        "deleted": "Customer deleted.",
+        "confirm_delete": "Delete this customer permanently? Linked deployments will also be removed.",
+        "search_placeholder": "Search by name, contact or reference...",
+        "active": "Active",
+        "inactive": "Inactive",
+        "columns": {
+            "id": "ID",
+            "external_ref": "External ref",
+            "primary_contact": "Primary contact",
+            "criticality": "Criticality",
+            "status": "Status",
+            "deployments": "Deployments"
+        },
+        "fields": {
+            "external_ref": "External reference",
+            "primary_contact": "Primary contact",
+            "criticality": "Criticality",
+            "notes": "Notes",
+            "is_active": "Active"
+        },
+        "help": {
+            "name": "Display name for this customer organization.",
+            "external_ref": "Optional CRM or contract identifier.",
+            "primary_contact": "Name or email for operational contact.",
+            "criticality": "How critical this customer is for patch and notification priority.",
+            "is_active": "Inactive customers stay in history but are hidden from default pickers later."
+        },
+        "criticalities": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High"
+        }
     },
     "controls": {
         "index_title": "Controls library",
@@ -1828,6 +1871,9 @@
             "product_created": "Product created",
             "product_updated": "Product updated",
             "product_deleted": "Product deleted",
+            "customer_created": "Customer created",
+            "customer_updated": "Customer updated",
+            "customer_deleted": "Customer deleted",
             "risk_created": "Risk created",
             "risk_updated": "Risk updated",
             "risk_deleted": "Risk deleted",

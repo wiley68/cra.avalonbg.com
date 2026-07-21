@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
+use App\Models\Customer;
 use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
@@ -175,6 +176,54 @@ class AuditLogger
                 ['field' => 'product_id', 'value' => (string) $product->id],
                 ['field' => 'name', 'value' => $product->name],
                 ['field' => 'slug', 'value' => $product->slug],
+            ],
+        );
+    }
+
+    public static function logCustomerCreated(Customer $customer, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::CustomerCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $customer->organization_id,
+            details: [
+                ['field' => 'customer_id', 'value' => (string) $customer->id],
+                ['field' => 'name', 'value' => $customer->name],
+                ['field' => 'criticality', 'value' => $customer->criticality->value],
+            ],
+        );
+    }
+
+    public static function logCustomerUpdated(Customer $customer, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::CustomerUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $customer->organization_id,
+            details: [
+                ['field' => 'customer_id', 'value' => (string) $customer->id],
+                ['field' => 'name', 'value' => $customer->name],
+                ['field' => 'criticality', 'value' => $customer->criticality->value],
+                ['field' => 'is_active', 'value' => $customer->is_active ? '1' : '0'],
+            ],
+        );
+    }
+
+    public static function logCustomerDeleted(Customer $customer, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::CustomerDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $customer->organization_id,
+            details: [
+                ['field' => 'customer_id', 'value' => (string) $customer->id],
+                ['field' => 'name', 'value' => $customer->name],
             ],
         );
     }

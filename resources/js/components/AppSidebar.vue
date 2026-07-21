@@ -37,6 +37,7 @@ import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 import { index as controlsIndex } from '@/routes/controls';
+import { index as customersIndex } from '@/routes/customers';
 
 const page = usePage();
 const { t } = useTranslations();
@@ -76,6 +77,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.products'),
             href: productsIndex(),
             icon: Package,
+        });
+        items.push({
+            title: t('nav.customers'),
+            href: customersIndex(),
+            icon: Users,
         });
     }
 

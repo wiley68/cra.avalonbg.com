@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\OrganizationUserApiController;
 use App\Http\Controllers\Api\Admin\RequirementApiController;
 use App\Http\Controllers\Api\AuditLogApiController;
 use App\Http\Controllers\Api\ControlApiController;
+use App\Http\Controllers\Api\CustomerApiController;
 use App\Http\Controllers\Api\EvidenceApiController;
 use App\Http\Controllers\Api\ProductApiController;
 use App\Http\Controllers\Api\ProductComponentApiController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\LocaleController;
@@ -72,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('controls/refresh-starter', [ControlController::class, 'refreshStarter'])
             ->name('controls.refresh-starter');
         Route::resource('controls', ControlController::class)->except(['show']);
+        Route::resource('customers', CustomerController::class)->except(['show']);
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
@@ -195,6 +198,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('users.index');
             Route::get('controls', [ControlApiController::class, 'index'])
                 ->name('controls.index');
+            Route::get('customers', [CustomerApiController::class, 'index'])
+                ->name('customers.index');
             Route::get('products', [ProductApiController::class, 'index'])
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])

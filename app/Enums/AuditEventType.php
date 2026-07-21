@@ -16,6 +16,9 @@ enum AuditEventType: string
     case ProductCreated = 'product_created';
     case ProductUpdated = 'product_updated';
     case ProductDeleted = 'product_deleted';
+    case CustomerCreated = 'customer_created';
+    case CustomerUpdated = 'customer_updated';
+    case CustomerDeleted = 'customer_deleted';
     case RiskCreated = 'risk_created';
     case RiskUpdated = 'risk_updated';
     case RiskDeleted = 'risk_deleted';
