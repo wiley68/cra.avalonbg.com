@@ -10,6 +10,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
@@ -129,6 +130,16 @@ class Evidence extends Model
     public function vulnerabilities(): MorphToMany
     {
         return $this->morphedByMany(ProductVulnerability::class, 'linkable', 'evidence_links')->withTimestamps();
+    }
+
+    public function auditorReviewPackages(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            AuditorReviewPackage::class,
+            'auditor_review_package_evidence',
+            'evidence_id',
+            'package_id',
+        )->withTimestamps();
     }
 
     public function refreshFreshness(): EvidenceFreshnessStatus

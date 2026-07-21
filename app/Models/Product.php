@@ -207,6 +207,11 @@ class Product extends Model
         return $this->hasMany(VcsImportSuggestion::class);
     }
 
+    public function auditorReviewPackages(): HasMany
+    {
+        return $this->hasMany(AuditorReviewPackage::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');
