@@ -46,11 +46,26 @@ class PatchCampaignController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('update', [$product, $organization]);
 
+        $preselectedVulnerabilityId = request()->filled('product_vulnerability_id')
+            ? request()->integer('product_vulnerability_id')
+            : null;
+
+        if ($preselectedVulnerabilityId !== null) {
+            $exists = $product->vulnerabilities()
+                ->whereKey($preselectedVulnerabilityId)
+                ->exists();
+
+            if (!$exists) {
+                $preselectedVulnerabilityId = null;
+            }
+        }
+
         return Inertia::render('products/campaigns/Create', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productSummary($product),
             'versions' => $this->versionOptions($product),
             'vulnerabilities' => $this->vulnerabilityOptions($product),
+            'preselected_vulnerability_id' => $preselectedVulnerabilityId,
         ]);
     }
 

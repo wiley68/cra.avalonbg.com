@@ -1395,6 +1395,10 @@
             "deadline_24h": "24h deadline",
             "deadline_72h": "72h deadline",
             "no_components": "No components in the inventory yet.",
+            "patch_campaigns_title": "Patch campaigns",
+            "patch_campaigns_subtitle": "Customer rollout campaigns linked to this vulnerability",
+            "patch_campaigns_empty": "No patch campaigns are linked yet.",
+            "start_patch_campaign": "Start patch campaign",
             "columns": {
                 "id": "ID",
                 "title": "Title",

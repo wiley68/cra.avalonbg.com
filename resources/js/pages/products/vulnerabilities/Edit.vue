@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Plus, Save, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import {
+    create as campaignsCreate,
+    show as campaignsShow,
+} from '@/routes/products/campaigns';
 import {
     destroy as destroyProductVulnerability,
     index as productVulnerabilitiesIndex,
@@ -27,6 +32,14 @@ type ComponentOption = {
     version_number: string | null;
 };
 type ProductSummary = { id: number; name: string; slug: string };
+type PatchCampaignSummary = {
+    id: number;
+    title: string;
+    status: string;
+    target_version_number: string | null;
+    started_at: string | null;
+    completed_at: string | null;
+};
 type VulnerabilityDetail = {
     id: number;
     title: string;
@@ -54,6 +67,7 @@ type VulnerabilityDetail = {
     deadline_72h: string | null;
     overdue_24h: boolean;
     overdue_72h: boolean;
+    patch_campaigns: PatchCampaignSummary[];
 };
 
 const props = defineProps<{
@@ -69,6 +83,7 @@ const props = defineProps<{
         exploitation_statuses: string[];
     };
     canManage: boolean;
+    canManageCampaigns: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -177,6 +192,19 @@ const enumLabel = (group: string, value: string): string => {
 
     return translated === key ? value : translated;
 };
+
+const campaignStatusLabel = (value: string): string => {
+    const key = `products.campaigns.statuses.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const startCampaignUrl = computed(() =>
+    campaignsCreate.url(props.product.id, {
+        query: { product_vulnerability_id: props.vulnerability.id },
+    }),
+);
 
 const toggleId = (
     field: 'component_ids' | 'affected_version_ids' | 'fixed_version_ids',

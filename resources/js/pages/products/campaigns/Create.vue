@@ -50,6 +50,7 @@ const props = defineProps<{
     product: ProductSummary;
     versions: VersionOption[];
     vulnerabilities: VulnerabilityOption[];
+    preselected_vulnerability_id?: number | null;
 }>();
 
 const { t } = useTranslations();
@@ -70,7 +71,8 @@ usePageBreadcrumbs(() => [
 const form = useForm({
     title: '',
     target_version_id: '' as number | '',
-    product_vulnerability_id: '' as number | '',
+    product_vulnerability_id: (props.preselected_vulnerability_id ?? '') as
+        number | '',
     notes: '',
     activate: false,
 });

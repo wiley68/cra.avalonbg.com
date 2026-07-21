@@ -33,6 +33,7 @@ import {
     show as campaignsShow,
 } from '@/routes/products/campaigns';
 import { update as updateTarget } from '@/routes/products/campaigns/targets';
+import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 
 type OrganizationSummary = {
     id: number;
@@ -296,7 +297,20 @@ const textareaClass =
                     {{ t('products.campaigns.fields.vulnerability') }}
                 </p>
                 <p class="font-medium">
-                    {{ campaign.vulnerability_title ?? '—' }}
+                    <Link
+                        v-if="campaign.product_vulnerability_id"
+                        :href="
+                            editProductVulnerability({
+                                product: product.id,
+                                vulnerability:
+                                    campaign.product_vulnerability_id,
+                            })
+                        "
+                        class="text-primary underline-offset-4 hover:underline"
+                    >
+                        {{ campaign.vulnerability_title ?? '—' }}
+                    </Link>
+                    <template v-else>—</template>
                 </p>
             </div>
             <div>

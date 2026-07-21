@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.11  
+**Версия:** 1.12  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must complete; Should 8–10 Done; Should 11 / Could pending  
+**Статус:** Active — Must + Should complete; Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -202,7 +202,8 @@ Unique: `(campaign_id, deployment_id)`.
 
 - `GET /products/{product}/campaigns` — index
 - Create: select target version (+ optional `product_vulnerability_id`), seed targets per правилото в §5
-- Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted)
+- Campaign detail: targets table + status actions (notified / acknowledged / updated / excepted); link към vulnerability Edit когато е свързана
+- Vulnerability Edit: списък свързани patch campaigns + CTA „Start patch campaign“ (preselect vulnerability)
 - Export: `GET /products/{product}/campaigns/{campaign}/export` — XLSX of affected installations
 - Internal API: `GET /internal-api/products/{product}/campaigns` (+ targets nested или separate)
 
@@ -225,7 +226,7 @@ Unique: `(campaign_id, deployment_id)`.
 8. Campaign completion when all targets `updated` \| `excepted` — **Done** (2026-07-21)
 9. Affected-customer export (XLSX) от campaign — **Done** (2026-07-21)
 10. Readiness gap за unresolved exposed deployments (active campaign) — **Done** (2026-07-21)
-11. Optional link campaign ↔ vulnerability на Product Vulnerability show
+11. Optional link campaign ↔ vulnerability на Product Vulnerability show — **Done** (2026-07-21)
 
 ### Could
 
@@ -286,6 +287,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.12   | 2026-07-21 | Should 11 Done: bidirectional campaign ↔ vulnerability link (vuln Edit секция + create preselect + campaign Show link)                                      |
 | 1.11   | 2026-07-21 | Should 10 Done: readiness gap `unresolved_exposed_deployments` при active campaign с non-updated/excepted high-criticality targets                          |
 | 1.10   | 2026-07-21 | Should 9 Done: affected-customer XLSX export от campaign (първоначално CSV; сменено на XLSX)                                                                |
 | 1.9    | 2026-07-21 | Should 8 Done: auto-complete campaign when all targets updated/excepted (incl. empty seed)                                                                  |

@@ -1395,6 +1395,10 @@
             "deadline_24h": "Срок 24ч",
             "deadline_72h": "Срок 72ч",
             "no_components": "Все още няма компоненти в инвентара.",
+            "patch_campaigns_title": "Кампании за пачове",
+            "patch_campaigns_subtitle": "Клиентски rollout кампании, свързани с тази уязвимост",
+            "patch_campaigns_empty": "Все още няма свързани кампании за пачове.",
+            "start_patch_campaign": "Стартирай кампания за пачове",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
