@@ -24,6 +24,7 @@ import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 import { show as passportShow } from '@/routes/products/passport';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
+import { index as policiesIndex } from '@/routes/policies';
 import { index as productsIndex } from '@/routes/products';
 import { show as readinessShow } from '@/routes/products/readiness';
 
@@ -140,6 +141,8 @@ const resolveLink = (link: string | null): string | null => {
             return productEvidenceIndex(id).url;
         case 'tasks':
             return productTasksIndex(id).url;
+        case 'policies':
+            return policiesIndex().url;
         default:
             return null;
     }

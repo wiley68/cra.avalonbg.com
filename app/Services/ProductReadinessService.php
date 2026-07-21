@@ -7,6 +7,8 @@ use App\Enums\CustomerCriticality;
 use App\Enums\EvidenceFreshnessStatus;
 use App\Enums\PatchCampaignStatus;
 use App\Enums\PatchCampaignTargetStatus;
+use App\Enums\PolicyStatus;
+use App\Enums\PolicyType;
 use App\Enums\ProductRiskStatus;
 use App\Enums\ProductVersionState;
 use App\Enums\RequirementApplicabilityStatus;
@@ -18,6 +20,7 @@ use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
 use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
+use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductComponent;
 use App\Models\ProductControl;
@@ -139,6 +142,7 @@ class ProductReadinessService
             $this->scopeSection($product),
             $this->versionsSection($product),
             $this->supportSection($product),
+            $this->policiesSection($product),
             $this->requirementsSection($product),
             $this->controlsSection($product),
             $this->risksSection($product),
@@ -465,6 +469,74 @@ class ProductReadinessService
             'summary' => 'missing',
             'gap_key' => 'products.readiness.gaps.support',
             'link' => 'support-periods',
+        ];
+    }
+
+    /**
+     * Org-level policy library: required types must have an approved document.
+     *
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function policiesSection(Product $product): array
+    {
+        $requiredTypes = PolicyType::cases();
+        $requiredCount = count($requiredTypes);
+
+        $approvedTypeValues = OrgPolicy::query()
+            ->where('organization_id', $product->organization_id)
+            ->where('status', PolicyStatus::Approved)
+            ->pluck('policy_type')
+            ->map(fn(PolicyType|string $type) => $type instanceof PolicyType ? $type->value : $type)
+            ->unique()
+            ->values()
+            ->all();
+
+        $missingCount = 0;
+        foreach ($requiredTypes as $type) {
+            if (!in_array($type->value, $approvedTypeValues, true)) {
+                $missingCount++;
+            }
+        }
+
+        $underReviewCount = OrgPolicy::query()
+            ->where('organization_id', $product->organization_id)
+            ->where('status', PolicyStatus::UnderReview)
+            ->count();
+
+        $metrics = [
+            'required_types' => $requiredCount,
+            'approved_types' => count($approvedTypeValues),
+            'missing_types' => $missingCount,
+            'under_review' => $underReviewCount,
+        ];
+
+        if ($missingCount > 0) {
+            return [
+                'key' => 'policies',
+                'status' => 'fail',
+                'summary' => 'missing',
+                'gap_key' => 'products.readiness.gaps.policies_missing',
+                'link' => 'policies',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($underReviewCount > 0) {
+            return [
+                'key' => 'policies',
+                'status' => 'warn',
+                'summary' => 'review_due',
+                'gap_key' => 'products.readiness.gaps.policies_review_due',
+                'link' => 'policies',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'policies',
+            'status' => 'pass',
+            'summary' => 'complete',
+            'metrics' => $metrics,
         ];
     }
 
