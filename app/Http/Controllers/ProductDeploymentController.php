@@ -37,6 +37,20 @@ class ProductDeploymentController extends Controller
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productSummary($product),
             'canManage' => request()->user()->canManageProducts($organization),
+            'unsupportedCount' => $this->deployments->countOnUnsupportedVersions($product),
+        ]);
+    }
+
+    public function unsupported(Product $product): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('view', [$product, $organization]);
+
+        return Inertia::render('products/deployments/Unsupported', [
+            'organization' => $this->organizationPayload($organization),
+            'product' => $this->productSummary($product),
+            'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
 

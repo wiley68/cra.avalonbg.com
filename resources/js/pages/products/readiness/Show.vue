@@ -9,6 +9,10 @@ import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct } from '@/routes/products';
 import { index as campaignsIndex } from '@/routes/products/campaigns';
+import {
+    index as deploymentsIndex,
+    unsupported as deploymentsUnsupported,
+} from '@/routes/products/deployments';
 import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
@@ -130,6 +134,8 @@ const resolveLink = (link: string | null): string | null => {
             return productVulnerabilitiesIndex(id).url;
         case 'campaigns':
             return campaignsIndex(id).url;
+        case 'deployments-unsupported':
+            return deploymentsUnsupported(id).url;
         case 'evidence':
             return productEvidenceIndex(id).url;
         case 'tasks':

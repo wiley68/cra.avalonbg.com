@@ -880,7 +880,9 @@
                 "version": "Version",
                 "environment": "Environment",
                 "installation_date": "Installed",
-                "internet_exposure": "Internet"
+                "internet_exposure": "Internet",
+                "support_status": "Version support",
+                "security_support_deadline": "Security until"
             },
             "fields": {
                 "customer": "Customer",
@@ -913,6 +915,12 @@
             "invalid_environment": "Environment must be production, staging, or other.",
             "invalid_version": "Version number does not exist for this product.",
             "customer_not_found": "Customer was not found in this organization.",
+            "unsupported_title": "Unsupported installations",
+            "unsupported_subtitle": "Customer installations on versions without active support",
+            "unsupported_hint": "Lists installations whose confirmed version is marked unsupported or past its security support deadline. Installations with a documented end-of-support exception are excluded.",
+            "unsupported_link": "Unsupported installations",
+            "unsupported_search_placeholder": "Search unsupported installations...",
+            "view_all": "All installations",
             "environments": {
                 "production": "Production",
                 "staging": "Staging",
@@ -1894,7 +1902,8 @@
                 "deployments": {
                     "unresolved_high": "Active patch campaign still has high-criticality installations not updated.",
                     "campaigns_clear": "Active patch campaigns have no unresolved high-criticality targets.",
-                    "no_active_campaign": "No active patch campaign for customer installations."
+                    "no_active_campaign": "No active patch campaign for customer installations.",
+                    "unsupported_versions": "Customer installations remain on unsupported or expired versions."
                 },
                 "evidence": {
                     "none": "No evidence recorded.",
@@ -1959,6 +1968,7 @@
                 "vulnerabilities_overdue": "Address overdue vulnerability reporting deadlines.",
                 "vulnerabilities_critical": "Treat open critical vulnerabilities.",
                 "unresolved_exposed_deployments": "Active patch campaign still has high-criticality customer installations that are not updated or excepted.",
+                "unsupported_deployments": "Customer installations remain on unsupported versions or past security support deadlines.",
                 "evidence": "Add compliance evidence for this product.",
                 "evidence_expired": "Replace or renew expired evidence.",
                 "evidence_review": "Review evidence marked as due.",

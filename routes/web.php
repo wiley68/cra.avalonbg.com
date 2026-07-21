@@ -208,6 +208,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.deployments.import');
         Route::post('products/{product}/deployments/import', [ProductDeploymentController::class, 'import'])
             ->name('products.deployments.import.store');
+        Route::get('products/{product}/deployments/unsupported', [ProductDeploymentController::class, 'unsupported'])
+            ->name('products.deployments.unsupported');
         Route::resource('products.deployments', ProductDeploymentController::class)
             ->except(['show'])
             ->scoped();

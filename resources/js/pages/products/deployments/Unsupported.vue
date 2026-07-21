@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, AlertTriangle, Plus, Upload } from '@lucide/vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { ArrowLeft } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
-import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
@@ -13,18 +12,12 @@ import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as deploymentsApiIndex } from '@/routes/internal/products/deployments';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as deploymentsIndex } from '@/routes/products/deployments';
 import {
-    create,
-    destroy,
-    importMethod as deploymentsImport,
-    index as deploymentsIndex,
-    unsupported as deploymentsUnsupported,
-} from '@/routes/products/deployments';
-import {
-    createDeploymentColumnTitleMap,
-    createDeploymentColumns,
-    type ProductDeploymentListItem,
-} from './columns';
+    createUnsupportedDeploymentColumnTitleMap,
+    createUnsupportedDeploymentColumns,
+    type UnsupportedDeploymentListItem,
+} from './unsupportedColumns';
 
 type OrganizationSummary = {
     id: number;
@@ -42,7 +35,6 @@ const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
     canManage: boolean;
-    unsupportedCount: number;
 }>();
 
 const { t } = useTranslations();
@@ -54,14 +46,15 @@ usePageBreadcrumbs(() => [
         titleKey: 'products.deployments.index_title',
         href: deploymentsIndex(props.product.id),
     },
+    {
+        titleKey: 'products.deployments.unsupported_title',
+        href: deploymentsIndex(props.product.id),
+    },
 ]);
 const { backHref } = useProductModuleBack(props.product.id);
 
-const showDeleteDialog = ref(false);
-const deploymentToDelete = ref<number | null>(null);
-
 const { rows, pagination, loading, search, fetch } =
-    useApiTable<ProductDeploymentListItem>({
+    useApiTable<UnsupportedDeploymentListItem>({
         endpoint: deploymentsApiIndex(props.product.id).url,
         initial: {
             page: 1,
@@ -70,6 +63,9 @@ const { rows, pagination, loading, search, fetch } =
             descending: true,
             search: '',
         },
+        getExtraParams: () => ({
+            unsupported_only: '1',
+        }),
         onError: (message) => {
             toast.error(message);
         },
@@ -84,60 +80,17 @@ const totalPages = computed(() =>
     ),
 );
 
-const columnTitleMap = computed(() => createDeploymentColumnTitleMap(t));
-
-const requestDeleteDeployment = (deploymentId: number): void => {
-    deploymentToDelete.value = deploymentId;
-    showDeleteDialog.value = true;
-};
+const columnTitleMap = computed(() =>
+    createUnsupportedDeploymentColumnTitleMap(t),
+);
 
 const columns = computed(() =>
-    createDeploymentColumns({
+    createUnsupportedDeploymentColumns({
         t,
         productId: props.product.id,
         canManage: props.canManage,
-        onDelete: requestDeleteDeployment,
     }),
 );
-
-const cancelDelete = (): void => {
-    deploymentToDelete.value = null;
-    showDeleteDialog.value = false;
-};
-
-const confirmDelete = (): void => {
-    if (deploymentToDelete.value === null) {
-        return;
-    }
-
-    const deploymentId = deploymentToDelete.value;
-    deploymentToDelete.value = null;
-    showDeleteDialog.value = false;
-
-    router.delete(
-        destroy({
-            product: props.product.id,
-            deployment: deploymentId,
-        }).url,
-        {
-            preserveScroll: true,
-            onSuccess: async () => {
-                rows.value = rows.value.filter(
-                    (row) => row.id !== deploymentId,
-                );
-                pagination.value.rowsNumber = Math.max(
-                    0,
-                    pagination.value.rowsNumber - 1,
-                );
-
-                if (rows.value.length === 0 && pagination.value.page > 1) {
-                    pagination.value.page--;
-                    await fetch();
-                }
-            },
-        },
-    );
-};
 
 const handlePaginationChange = (page: number, pageSize: number) => {
     pagination.value.page = page;
@@ -163,57 +116,38 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head :title="t('products.deployments.index_title')" />
+    <Head :title="t('products.deployments.unsupported_title')" />
 
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
             <div>
                 <h1 class="text-xl font-semibold">
-                    {{ t('products.deployments.title') }}
+                    {{ t('products.deployments.unsupported_title') }}
                 </h1>
                 <p class="text-sm text-muted-foreground">
-                    {{ t('products.deployments.subtitle') }} —
+                    {{ t('products.deployments.unsupported_subtitle') }} —
                     {{ props.product.name }}
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center justify-end gap-2">
                 <Button as-child variant="outline">
+                    <Link :href="deploymentsIndex(product.id)">
+                        {{ t('products.deployments.view_all') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
                     <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
                 </Button>
-                <Button v-if="unsupportedCount > 0" as-child variant="outline">
-                    <Link
-                        :href="deploymentsUnsupported(product.id)"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <AlertTriangle class="h-4 w-4" />
-                        {{ t('products.deployments.unsupported_link') }}
-                        ({{ unsupportedCount }})
-                    </Link>
-                </Button>
-                <Button v-if="canManage" as-child variant="outline">
-                    <Link
-                        :href="deploymentsImport(product.id)"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <Upload class="h-4 w-4" />
-                        {{ t('products.deployments.import') }}
-                    </Link>
-                </Button>
-                <Button v-if="canManage" as-child>
-                    <Link
-                        :href="create(props.product.id)"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <Plus class="h-4 w-4" />
-                        {{ t('products.deployments.create') }}
-                    </Link>
-                </Button>
             </div>
         </div>
+
+        <p class="text-sm text-muted-foreground">
+            {{ t('products.deployments.unsupported_hint') }}
+        </p>
 
         <DataTable
             :columns="columns"
@@ -221,7 +155,9 @@ onMounted(() => {
             :loading="loading"
             :search="search"
             :column-title-map="columnTitleMap"
-            :search-placeholder="t('products.deployments.search_placeholder')"
+            :search-placeholder="
+                t('products.deployments.unsupported_search_placeholder')
+            "
             server-side
             :show-pagination="true"
             :show-column-toggle="true"
@@ -232,14 +168,6 @@ onMounted(() => {
             @search-change="updateSearch"
             @pagination-change="handlePaginationChange"
             @sorting-change="handleSortingChange"
-        />
-
-        <AppAlertDialog
-            v-model:open="showDeleteDialog"
-            :title="t('common.delete_confirm_title')"
-            :description="t('products.deployments.confirm_delete')"
-            @confirm="confirmDelete"
-            @cancel="cancelDelete"
         />
     </div>
 </template>

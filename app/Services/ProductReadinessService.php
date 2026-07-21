@@ -30,6 +30,11 @@ use Illuminate\Support\Carbon;
 
 class ProductReadinessService
 {
+    public function __construct(
+        private readonly ProductDeploymentService $deployments,
+    ) {
+    }
+
     /**
      * Compact per-module status for product index cards.
      *
@@ -673,9 +678,12 @@ class ProductReadinessService
             )
             ->count();
 
+        $unsupportedCount = $this->deployments->countOnUnsupportedVersions($product);
+
         $metrics = [
             'active_campaigns' => $activeCampaigns,
             'unresolved_high_criticality' => $unresolvedHigh,
+            'unsupported_installations' => $unsupportedCount,
         ];
 
         if ($unresolvedHigh > 0) {
@@ -685,6 +693,17 @@ class ProductReadinessService
                 'summary' => 'unresolved_high',
                 'gap_key' => 'products.readiness.gaps.unresolved_exposed_deployments',
                 'link' => 'campaigns',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($unsupportedCount > 0) {
+            return [
+                'key' => 'deployments',
+                'status' => 'warn',
+                'summary' => 'unsupported_versions',
+                'gap_key' => 'products.readiness.gaps.unsupported_deployments',
+                'link' => 'deployments-unsupported',
                 'metrics' => $metrics,
             ];
         }

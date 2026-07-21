@@ -880,7 +880,9 @@
                 "version": "Версия",
                 "environment": "Среда",
                 "installation_date": "Инсталиран",
-                "internet_exposure": "Интернет"
+                "internet_exposure": "Интернет",
+                "support_status": "Поддръжка на версия",
+                "security_support_deadline": "Security до"
             },
             "fields": {
                 "customer": "Клиент",
@@ -913,6 +915,12 @@
             "invalid_environment": "Environment трябва да е production, staging или other.",
             "invalid_version": "Номерът на версията не съществува за този продукт.",
             "customer_not_found": "Клиентът не е намерен в тази организация.",
+            "unsupported_title": "Неподдържани инсталации",
+            "unsupported_subtitle": "Клиентски инсталации на версии без активна поддръжка",
+            "unsupported_hint": "Показва инсталации, чиято потвърдена версия е маркирана като unsupported или е след края на security support deadline. Инсталации с документирано end-of-support изключение са изключени.",
+            "unsupported_link": "Неподдържани инсталации",
+            "unsupported_search_placeholder": "Търсене в неподдържани инсталации...",
+            "view_all": "Всички инсталации",
             "environments": {
                 "production": "Продукция",
                 "staging": "Подготовка",
@@ -1894,7 +1902,8 @@
                 "deployments": {
                     "unresolved_high": "Активна patch кампания все още има висококритични инсталации без update.",
                     "campaigns_clear": "Активните patch кампании нямат неразрешени висококритични цели.",
-                    "no_active_campaign": "Няма активна patch кампания за клиентски инсталации."
+                    "no_active_campaign": "Няма активна patch кампания за клиентски инсталации.",
+                    "unsupported_versions": "Клиентски инсталации остават на неподдържани или изтекли версии."
                 },
                 "evidence": {
                     "none": "Няма записани доказателства.",
@@ -1958,6 +1967,7 @@
                 "vulnerabilities_overdue": "Адресирайте просрочените срокове за докладване.",
                 "vulnerabilities_critical": "Обработете отворените критични уязвимости.",
                 "unresolved_exposed_deployments": "Активна patch кампания все още има висококритични клиентски инсталации, които не са updated или excepted.",
+                "unsupported_deployments": "Клиентски инсталации остават на неподдържани версии или след изтекъл security support deadline.",
                 "evidence": "Добавете доказателства за съответствие.",
                 "evidence_expired": "Подновете или заменете изтеклите доказателства.",
                 "evidence_review": "Прегледайте доказателствата с дължим преглед.",

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\DeploymentEnvironment;
+use App\Enums\SupportStatus;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductDeployment;
@@ -10,6 +11,8 @@ use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class ProductDeploymentService
@@ -37,6 +40,7 @@ class ProductDeploymentService
         string $sortBy = 'id',
         string $sortOrder = 'desc',
         string $search = '',
+        bool $unsupportedOnly = false,
     ): LengthAwarePaginator {
         $query = ProductDeployment::query()
             ->where('product_deployments.product_id', $product->id)
@@ -44,6 +48,10 @@ class ProductDeploymentService
             ->leftJoin('product_versions', 'product_versions.id', '=', 'product_deployments.product_version_id')
             ->select('product_deployments.*')
             ->with(['customer', 'productVersion']);
+
+        if ($unsupportedOnly) {
+            $this->applyUnsupportedVersionFilter($query);
+        }
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -67,6 +75,8 @@ class ProductDeploymentService
             'installation_date' => 'product_deployments.installation_date',
             'version_number' => 'product_versions.version_number',
             'internet_exposure' => 'product_deployments.internet_exposure',
+            'support_status' => 'product_versions.support_status',
+            'security_support_deadline' => 'product_versions.security_support_deadline',
             default => 'product_deployments.id',
         };
 
@@ -74,7 +84,19 @@ class ProductDeploymentService
 
         return $query
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn(ProductDeployment $deployment) => $this->listItemPayload($deployment));
+            ->through(fn(ProductDeployment $deployment) => $this->listItemPayload(
+                $deployment,
+                includeSupportFields: $unsupportedOnly,
+            ));
+    }
+
+    public function countOnUnsupportedVersions(Product $product): int
+    {
+        return ProductDeployment::query()
+            ->where('product_deployments.product_id', $product->id)
+            ->join('product_versions', 'product_versions.id', '=', 'product_deployments.product_version_id')
+            ->tap(fn(Builder $query) => $this->applyUnsupportedVersionFilter($query))
+            ->count();
     }
 
     /**
@@ -204,6 +226,30 @@ class ProductDeploymentService
     }
 
     /**
+     * Deployments on versions marked unsupported or past security support deadline.
+     * Excludes installations with a documented end-of-support exception.
+     *
+     * @param  Builder<ProductDeployment>  $query
+     */
+    private function applyUnsupportedVersionFilter(Builder $query): void
+    {
+        $today = Carbon::today()->toDateString();
+
+        $query
+            ->where('product_deployments.end_of_support_exception', false)
+            ->whereNotNull('product_deployments.product_version_id')
+            ->where(function (Builder $builder) use ($today): void {
+                $builder
+                    ->where('product_versions.support_status', SupportStatus::Unsupported->value)
+                    ->orWhere(function (Builder $deadline) use ($today): void {
+                        $deadline
+                            ->whereNotNull('product_versions.security_support_deadline')
+                            ->whereDate('product_versions.security_support_deadline', '<', $today);
+                    });
+            });
+    }
+
+    /**
      * @return array{
      *     id: int,
      *     customer_id: int,
@@ -216,12 +262,14 @@ class ProductDeploymentService
      *     update_channel: string|null,
      *     last_confirmed_at: string|null,
      *     custom_modifications: bool,
-     *     end_of_support_exception: bool
+     *     end_of_support_exception: bool,
+     *     support_status?: string|null,
+     *     security_support_deadline?: string|null
      * }
      */
-    private function listItemPayload(ProductDeployment $deployment): array
+    private function listItemPayload(ProductDeployment $deployment, bool $includeSupportFields = false): array
     {
-        return [
+        $payload = [
             'id' => $deployment->id,
             'customer_id' => $deployment->customer_id,
             'customer_name' => $deployment->customer?->name ?? '',
@@ -235,5 +283,12 @@ class ProductDeploymentService
             'custom_modifications' => $deployment->custom_modifications,
             'end_of_support_exception' => $deployment->end_of_support_exception,
         ];
+
+        if ($includeSupportFields) {
+            $payload['support_status'] = $deployment->productVersion?->support_status?->value;
+            $payload['security_support_deadline'] = $deployment->productVersion?->security_support_deadline?->toDateString();
+        }
+
+        return $payload;
     }
 }
