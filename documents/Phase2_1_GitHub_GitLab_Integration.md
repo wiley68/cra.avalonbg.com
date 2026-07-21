@@ -247,7 +247,7 @@ MVP 0.1 exit (MVP_Release_Closeout) — Done 2026-07-20
     ↓
 Phase 2.1 GitHub/GitLab (този документ) — Closed 2026-07-21
     ↓
-Phase 2.2 Customer deployments — Active
+Phase 2.2 Customer deployments — Closed 2026-07-21
     ↓
 AI / Policy library / Auditor portal
 ```

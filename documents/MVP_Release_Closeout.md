@@ -150,10 +150,12 @@ MVP 0.1 се счита за готов, когато:
 
 ~~**[Phase 2.1 — GitHub/GitLab Integration](Phase2_1_GitHub_GitLab_Integration.md)**~~ — **Closed** (2026-07-21).
 
-**Активен:** [Phase 2.2 — Customer Deployments](Phase2_2_Customer_Deployments.md)
+**Активен:** ~~[Phase 2.2 — Customer Deployments](Phase2_2_Customer_Deployments.md)~~ — **Closed** (2026-07-21). Closeout: [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md).
 
-- affected customers, patch campaigns, notification history, update confirmation;
+- affected customers, patch campaigns, notification history, update confirmation — **Done**;
 - виж Phase 2.1 closeout за VCS integration (еднопосочен sync — Done).
+
+**Следващи:** AI / Policy library / Auditor portal (§14 — TBD).
 
 ---
 

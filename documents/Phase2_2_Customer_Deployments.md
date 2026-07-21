@@ -1,8 +1,9 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.16  
+**Версия:** 1.17  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must + Should complete; Could 12–15 Done  
+**Статус:** Closed — Phase 2.2 exited (2026-07-21)  
+**Closeout:** [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md)
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -280,7 +281,7 @@ Unique: `(campaign_id, deployment_id)`.
 ```text
 Phase 2.1 GitHub/GitLab — Closed 2026-07-21
     ↓
-Phase 2.2 Customer deployments (този документ) — Active
+Phase 2.2 Customer deployments (този документ) — Closed 2026-07-21
     ↓
 AI / Policy library / Auditor portal
 ```
@@ -291,6 +292,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.17   | 2026-07-21 | Phase 2.2 Closed / exited; [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md)                                                                     |
 | 1.16   | 2026-07-21 | Could 15 Done: append-only notification event log per campaign target (+ campaign Show log UI)                                                              |
 | 1.15   | 2026-07-21 | Could 14 Done: support-period cross-check — unsupported installations list (+ readiness gap + API filter)                                                   |
 | 1.14   | 2026-07-21 | Could 13 Done: CSV bulk import за customers и product deployments (+ template download)                                                                     |
