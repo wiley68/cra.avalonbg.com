@@ -1,8 +1,8 @@
 # Phase 2.2 — Customer Deployments
 
-**Версия:** 1.8  
+**Версия:** 1.9  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Must complete; Should/Could pending  
+**Статус:** Active — Must complete; Should 8 Done; Should 9–11 / Could pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Customer deployments, §5.15)
@@ -174,6 +174,8 @@ Unique: `(campaign_id, deployment_id)`.
 
 **При `excepted`:** не пипай deployment version; само target status + `confirmed_at` / note.
 
+**Campaign completion (Should):** когато всички targets са `updated` \| `excepted` (или няма targets след activate), кампанията → `completed` + `completed_at`.
+
 ### Разширения
 
 - [`app/Enums/AuditEventType.php`](../app/Enums/AuditEventType.php) — `customer_*`, `deployment_*`, `patch_campaign_*`, `campaign_target_updated`
@@ -219,7 +221,7 @@ Unique: `(campaign_id, deployment_id)`.
 
 ### Should
 
-8. Campaign completion when all targets `updated` \| `excepted`
+8. Campaign completion when all targets `updated` \| `excepted` — **Done** (2026-07-21)
 9. Affected-customer export (CSV) от campaign
 10. Readiness gap за unresolved exposed deployments (active campaign)
 11. Optional link campaign ↔ vulnerability на Product Vulnerability show
@@ -283,6 +285,7 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                                                                                                     |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.9    | 2026-07-21 | Should 8 Done: auto-complete campaign when all targets updated/excepted (incl. empty seed)                                                                  |
 | 1.8    | 2026-07-21 | Must 7 Done: i18n EN/BG + ясно разграничение delivery model vs customer installations; Must slice complete                                                  |
 | 1.7    | 2026-07-21 | Must 6 Done: E2E campaign flow + view-only forbidden manage tests                                                                                           |
 | 1.6    | 2026-07-21 | Must 5 Done: target status updates + deployment version sync + audit                                                                                        |

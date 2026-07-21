@@ -194,8 +194,9 @@ class PatchCampaignService
 
             $fresh = $campaign->fresh(['targetVersion', 'product', 'targets']);
             AuditLogger::logPatchCampaignActivated($fresh, $actor, count($deploymentIds));
+            $this->maybeCompleteCampaign($fresh, $actor);
 
-            return $fresh;
+            return $fresh->fresh(['targetVersion', 'product', 'targets']);
         });
     }
 
@@ -269,8 +270,47 @@ class PatchCampaignService
             $fresh = $target->fresh(['deployment.customer', 'deployment.productVersion', 'campaign']);
             AuditLogger::logCampaignTargetUpdated($fresh, $actor, $previousStatus);
 
-            return $fresh;
+            if (
+                $status === PatchCampaignTargetStatus::Updated
+                || $status === PatchCampaignTargetStatus::Excepted
+            ) {
+                $this->maybeCompleteCampaign($campaign->fresh(), $actor);
+            }
+
+            return $fresh->fresh(['deployment.customer', 'deployment.productVersion', 'campaign']);
         });
+    }
+
+    /**
+     * Complete an active campaign when every target is updated or excepted
+     * (including campaigns with zero targets after activate).
+     */
+    public function maybeCompleteCampaign(PatchCampaign $campaign, User $actor): void
+    {
+        if ($campaign->status !== PatchCampaignStatus::Active) {
+            return;
+        }
+
+        $openTargets = $campaign->targets()
+            ->whereNotIn('status', [
+                PatchCampaignTargetStatus::Updated->value,
+                PatchCampaignTargetStatus::Excepted->value,
+            ])
+            ->count();
+
+        if ($openTargets > 0) {
+            return;
+        }
+
+        $campaign->update([
+            'status' => PatchCampaignStatus::Completed,
+            'completed_at' => now(),
+        ]);
+
+        AuditLogger::logPatchCampaignCompleted(
+            $campaign->fresh(['targetVersion', 'product']),
+            $actor,
+        );
     }
 
     /**

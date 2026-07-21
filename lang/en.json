@@ -898,6 +898,8 @@
             "created": "Campaign created as draft.",
             "updated": "Campaign updated.",
             "activated": "Campaign activated and matching installations attached.",
+            "completed": "Campaign completed — all targets are updated or excepted.",
+            "completed_empty": "Campaign completed — no installations needed an update.",
             "deleted": "Campaign deleted.",
             "confirm_delete": "Delete this draft campaign?",
             "confirm_activate_title": "Activate campaign",
@@ -935,6 +937,7 @@
                 "vulnerability": "Linked vulnerability",
                 "notes": "Notes",
                 "started_at": "Started",
+                "completed_at": "Completed",
                 "notification_note": "Notification note"
             },
             "help": {
@@ -2006,6 +2009,7 @@
             "patch_campaign_created": "Patch campaign created",
             "patch_campaign_updated": "Patch campaign updated",
             "patch_campaign_activated": "Patch campaign activated",
+            "patch_campaign_completed": "Patch campaign completed",
             "patch_campaign_deleted": "Patch campaign deleted",
             "campaign_target_updated": "Campaign target updated",
             "risk_created": "Risk created",

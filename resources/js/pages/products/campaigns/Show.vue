@@ -292,6 +292,14 @@ const textareaClass =
             </div>
             <div>
                 <p class="text-sm text-muted-foreground">
+                    {{ t('products.campaigns.fields.completed_at') }}
+                </p>
+                <p class="font-medium">
+                    {{ formatDate(campaign.completed_at) }}
+                </p>
+            </div>
+            <div>
+                <p class="text-sm text-muted-foreground">
                     {{ t('products.campaigns.columns.targets') }}
                 </p>
                 <p class="font-medium">{{ campaign.targets.length }}</p>

@@ -65,14 +65,17 @@ class PatchCampaignController extends Controller
         );
 
         $activated = $request->boolean('activate');
+        $messageKey = 'products.campaigns.created';
+
+        if ($activated) {
+            $messageKey = $campaign->status === PatchCampaignStatus::Completed
+                ? 'products.campaigns.completed_empty'
+                : 'products.campaigns.activated';
+        }
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get(
-                $activated
-                ? 'products.campaigns.activated'
-                : 'products.campaigns.created',
-            ),
+            'message' => Translations::get($messageKey),
         ]);
 
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
@@ -152,9 +155,15 @@ class PatchCampaignController extends Controller
 
         $this->campaigns->activate($campaign, request()->user());
 
+        $campaign->refresh();
+
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get('products.campaigns.activated'),
+            'message' => Translations::get(
+                $campaign->status === PatchCampaignStatus::Completed
+                ? 'products.campaigns.completed_empty'
+                : 'products.campaigns.activated',
+            ),
         ]);
 
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
@@ -183,9 +192,15 @@ class PatchCampaignController extends Controller
             $request->user(),
         );
 
+        $campaign->refresh();
+
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get('products.campaigns.target_updated'),
+            'message' => Translations::get(
+                $campaign->status === PatchCampaignStatus::Completed
+                ? 'products.campaigns.completed'
+                : 'products.campaigns.target_updated',
+            ),
         ]);
 
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
