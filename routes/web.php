@@ -112,6 +112,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('auditor.packages.create');
         Route::post('auditor/packages', [AuditorReviewPackageController::class, 'store'])
             ->name('auditor.packages.store');
+        Route::get('auditor/packages/{package}', [AuditorReviewPackageController::class, 'show'])
+            ->name('auditor.packages.show');
         Route::get('auditor/packages/{package}/edit', [AuditorReviewPackageController::class, 'edit'])
             ->name('auditor.packages.edit');
         Route::put('auditor/packages/{package}', [AuditorReviewPackageController::class, 'update'])

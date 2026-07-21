@@ -327,6 +327,44 @@ test('viewer can list packages but cannot manage', function () {
         ->assertForbidden();
 });
 
+test('owner and viewer can open read-only review with passport readiness and evidence', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product, 'evidence' => $evidence] = makeAuditorOrgWithOwner();
+    $viewer = makeAuditorOrgViewer($organization);
+
+    $package = AuditorReviewPackage::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Review package',
+        'status' => AuditorReviewPackageStatus::Shared,
+        'shared_at' => now(),
+        'created_by' => $owner->id,
+        'notes' => 'Focus on Annex I',
+    ]);
+    $package->evidence()->sync([$evidence->id]);
+
+    $this->actingAs($owner)
+        ->get(route('auditor.packages.show', $package))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('auditor/Show')
+            ->where('package.title', 'Review package')
+            ->where('package.notes', 'Focus on Annex I')
+            ->where('package.evidence.0.id', $evidence->id)
+            ->where('product.id', $product->id)
+            ->where('product.name', $product->name)
+            ->has('report.sections')
+            ->has('report.gaps')
+            ->where('canManage', true));
+
+    $this->actingAs($viewer)
+        ->get(route('auditor.packages.show', $package))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('auditor/Show')
+            ->where('canManage', false)
+            ->where('package.evidence.0.title', 'SBOM snapshot'));
+});
+
 test('internal api lists packages for owner', function () {
     ['owner' => $owner, 'product' => $product] = makeAuditorOrgWithOwner();
 

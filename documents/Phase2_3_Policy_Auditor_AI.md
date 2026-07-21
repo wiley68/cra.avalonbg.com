@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.8  
+**Версия:** 1.10  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Must #1 Done; 2.3B–C remaining  
+**Статус:** Active — 2.3A Done; 2.3B Must #1–#3 Done; 2.3B–C remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -269,7 +269,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 1. Migrations + models (`AuditorReviewPackage`, `AuditorFinding`, pivot) — **Done** (2026-07-21)
 2. Package CRUD (owner) + share/close — **Done** (2026-07-21)
-3. Read-only review page (passport + readiness + evidence list) — **Pending**
+3. Read-only review page (passport + readiness + evidence list) — **Done** (2026-07-21)
 4. Findings CRUD (auditor) + owner remediation status — **Pending**
 5. Export package PDF/ZIP — **Pending**
 6. Tests + RBAC (auditor vs owner) — **Pending**
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.10   | 2026-07-21 | 2.3B Must 3: read-only review (passport + readiness + evidence)       |
 | 1.9    | 2026-07-21 | 2.3B Must 2: package CRUD + share/close + owner UI + tests            |
 | 1.8    | 2026-07-21 | 2.3B Must 1: auditor review packages + findings schema/models         |
 | 1.7    | 2026-07-21 | Could 12: PDF export per organization policy                          |

@@ -10,6 +10,7 @@ use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\AuditorReviewPackageService;
+use App\Services\ProductReadinessService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class AuditorReviewPackageController extends Controller
 {
     public function __construct(
         private readonly AuditorReviewPackageService $packages,
+        private readonly ProductReadinessService $readiness,
     ) {
     }
 
@@ -78,6 +80,40 @@ class AuditorReviewPackageController extends Controller
         ]);
 
         return redirect()->route('auditor.packages.edit', $package);
+    }
+
+    public function show(AuditorReviewPackage $package): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPackageInOrganization($package, $organization);
+        $this->authorize('view', [$package, $organization]);
+
+        $package->loadMissing([
+            'product',
+            'creator:id,name',
+            'evidence:id,title,type,freshness_status,confidentiality',
+        ]);
+
+        $product = $package->product;
+        $product->load([
+            'productOwner:id,name,email',
+            'securityContact:id,name,email',
+            'versions' => fn($query) => $query
+                ->orderByDesc('release_date')
+                ->orderByDesc('id')
+                ->limit(5),
+            'supportPeriods' => fn($query) => $query
+                ->orderBy('type')
+                ->orderByDesc('id'),
+        ]);
+
+        return Inertia::render('auditor/Show', [
+            'organization' => $this->organizationPayload($organization),
+            'package' => $this->detailPayload($package),
+            'product' => $this->passportProductPayload($product),
+            'report' => $this->readiness->build($product),
+            'canManage' => request()->user()->canManageProducts($organization),
+        ]);
     }
 
     public function edit(AuditorReviewPackage $package): Response
@@ -260,7 +296,7 @@ class AuditorReviewPackageController extends Controller
      *     closed_at: string|null,
      *     created_by_name: string|null,
      *     evidence_ids: list<int>,
-     *     evidence: list<array{id: int, title: string, type: string}>,
+     *     evidence: list<array{id: int, title: string, type: string, freshness_status?: string|null, confidentiality?: string|null}>,
      *     is_editable: bool
      * }
      */
@@ -283,10 +319,78 @@ class AuditorReviewPackageController extends Controller
                     'id' => $evidence->id,
                     'title' => $evidence->title,
                     'type' => $evidence->type->value,
+                    'freshness_status' => $evidence->freshness_status?->value,
+                    'confidentiality' => $evidence->confidentiality?->value,
                 ])
                 ->values()
                 ->all(),
             'is_editable' => $package->isEditable(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     name: string,
+     *     slug: string,
+     *     manufacturer: string|null,
+     *     trademark: string|null,
+     *     product_type: string|null,
+     *     licensing_model: string|null,
+     *     scope_status: string|null,
+     *     classification_status: string|null,
+     *     intended_purpose: string|null,
+     *     product_owner: array{id: int, name: string, email: string}|null,
+     *     security_contact: array{id: int, name: string, email: string}|null,
+     *     versions: list<array{id: int, version_number: string, state: string|null, support_status: string|null, release_date: string|null}>,
+     *     support_periods: list<array{id: int, type: string, start_basis: string, duration_months: int, effective_starts_at: string|null, effective_ends_at: string|null, schedule_resolved: bool, basis: string|null, is_extended: bool}>
+     * }
+     */
+    private function passportProductPayload(Product $product): array
+    {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'manufacturer' => $product->manufacturer,
+            'trademark' => $product->trademark,
+            'product_type' => $product->product_type?->value,
+            'licensing_model' => $product->licensing_model?->value,
+            'scope_status' => $product->scope_status?->value,
+            'classification_status' => $product->classification_status?->value,
+            'intended_purpose' => $product->intended_purpose,
+            'product_owner' => $product->productOwner
+                ? [
+                    'id' => $product->productOwner->id,
+                    'name' => $product->productOwner->name,
+                    'email' => $product->productOwner->email,
+                ]
+                : null,
+            'security_contact' => $product->securityContact
+                ? [
+                    'id' => $product->securityContact->id,
+                    'name' => $product->securityContact->name,
+                    'email' => $product->securityContact->email,
+                ]
+                : null,
+            'versions' => $product->versions->map(fn($version) => [
+                'id' => $version->id,
+                'version_number' => $version->version_number,
+                'state' => $version->state?->value,
+                'support_status' => $version->support_status?->value,
+                'release_date' => $version->release_date?->toDateString(),
+            ])->values()->all(),
+            'support_periods' => $product->supportPeriods->map(fn($period) => [
+                'id' => $period->id,
+                'type' => $period->type->value,
+                'start_basis' => $period->start_basis->value,
+                'duration_months' => $period->duration_months,
+                'effective_starts_at' => $period->effectiveStartsAt()?->toDateString(),
+                'effective_ends_at' => $period->effectiveEndsAt()?->toDateString(),
+                'schedule_resolved' => $period->scheduleResolved(),
+                'basis' => $period->basis,
+                'is_extended' => $period->is_extended,
+            ])->values()->all(),
         ];
     }
 }

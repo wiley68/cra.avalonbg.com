@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Lock, Save, Share2, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Eye, Lock, Save, Share2, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -16,6 +16,7 @@ import {
     destroy as packagesDestroy,
     edit as packagesEdit,
     share as packagesShare,
+    show as packagesShow,
     update as packagesUpdate,
 } from '@/routes/auditor/packages';
 
@@ -161,12 +162,20 @@ const doDelete = () => {
                     </span>
                 </div>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="auditorIndex()">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="packagesShow(package.id)">
+                        <Eye class="h-4 w-4" />
+                        {{ t('auditor.open_review') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="auditorIndex()">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <div

@@ -1,10 +1,13 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil, Trash2 } from '@lucide/vue';
+import { ArrowUpDown, Eye, Pencil, Trash2 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
-import { edit as packagesEdit } from '@/routes/auditor/packages';
+import {
+    edit as packagesEdit,
+    show as packagesShow,
+} from '@/routes/auditor/packages';
 
 export type AuditorPackageListItem = {
     id: number;
@@ -27,9 +30,9 @@ export function createAuditorColumnTitleMap(
     return {
         id: t('auditor.columns.id'),
         title: t('auditor.columns.title'),
-        product_name: t('auditor.columns.product_name'),
+        product_name: t('auditor.columns.product'),
         status: t('auditor.columns.status'),
-        evidence_count: t('auditor.columns.evidence_count'),
+        evidence_count: t('auditor.columns.evidence'),
         updated_at: t('auditor.columns.updated_at'),
         actions: t('common.actions'),
     };
@@ -79,12 +82,22 @@ export const createAuditorColumns = ({
         header: ({ column }) =>
             sortableHeader(t('auditor.columns.title'), column),
         cell: ({ row }) =>
-            h('div', { class: 'font-medium' }, row.getValue('title')),
+            h(
+                'button',
+                {
+                    type: 'button',
+                    class: 'font-medium text-left hover:underline',
+                    onClick: () => {
+                        router.visit(packagesShow(row.original.id).url);
+                    },
+                },
+                row.getValue('title') as string,
+            ),
     },
     {
         accessorKey: 'product_name',
         header: ({ column }) =>
-            sortableHeader(t('auditor.columns.product_name'), column),
+            sortableHeader(t('auditor.columns.product'), column),
         cell: ({ row }) => h('div', {}, String(row.getValue('product_name'))),
     },
     {
@@ -97,7 +110,7 @@ export const createAuditorColumns = ({
     {
         accessorKey: 'evidence_count',
         header: ({ column }) =>
-            sortableHeader(t('auditor.columns.evidence_count'), column),
+            sortableHeader(t('auditor.columns.evidence'), column),
         cell: ({ row }) => h('div', {}, String(row.getValue('evidence_count'))),
     },
     {
@@ -127,13 +140,23 @@ export const createAuditorColumns = ({
                 onSelect: () => void;
             }[] = [
                 {
+                    label: t('auditor.open_review'),
+                    icon: Eye,
+                    onSelect: () => {
+                        router.visit(packagesShow(row.original.id).url);
+                    },
+                },
+            ];
+
+            if (canManage) {
+                actions.push({
                     label: t('common.edit'),
                     icon: Pencil,
                     onSelect: () => {
                         router.visit(packagesEdit(row.original.id).url);
                     },
-                },
-            ];
+                });
+            }
 
             if (canManage && row.original.status === 'draft') {
                 actions.push({
