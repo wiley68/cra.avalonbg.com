@@ -95,7 +95,7 @@ class OrgPolicyController extends Controller
 
         $org_policy->loadMissing([
             'approver:id,name',
-            'supersedes:id,title,version_label,status',
+            'supersedes:id,title,version_label,status,body',
             'evidence:id,product_id,title',
         ]);
 
@@ -297,7 +297,7 @@ class OrgPolicyController extends Controller
     }
 
     /**
-     * @return list<array{id: int, title: string, policy_type: string, version_label: string, status: string}>
+     * @return list<array{id: int, title: string, policy_type: string, version_label: string, status: string, body: string}>
      */
     private function supersedeOptions(Organization $organization): array
     {
@@ -305,13 +305,14 @@ class OrgPolicyController extends Controller
             ->where('organization_id', $organization->id)
             ->whereIn('status', [PolicyStatus::Approved->value, PolicyStatus::Retired->value])
             ->orderByDesc('id')
-            ->get(['id', 'title', 'policy_type', 'version_label', 'status'])
+            ->get(['id', 'title', 'policy_type', 'version_label', 'status', 'body'])
             ->map(fn(OrgPolicy $org_policy) => [
                 'id' => $org_policy->id,
                 'title' => $org_policy->title,
                 'policy_type' => $org_policy->policy_type->value,
                 'version_label' => $org_policy->version_label,
                 'status' => $org_policy->status->value,
+                'body' => $org_policy->body,
             ])
             ->all();
     }
@@ -333,6 +334,7 @@ class OrgPolicyController extends Controller
             'supersedes_title' => $org_policy->supersedes
                 ? $org_policy->supersedes->title . ' (' . $org_policy->supersedes->version_label . ')'
                 : null,
+            'supersedes_body' => $org_policy->supersedes?->body,
             'approved_at' => $org_policy->approved_at?->toIso8601String(),
             'approved_by_name' => $org_policy->approver?->name,
             'is_editable' => $org_policy->isEditable(),

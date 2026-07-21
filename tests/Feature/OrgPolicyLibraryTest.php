@@ -280,6 +280,39 @@ test('policies index accepts policy_type filter prop', function () {
             ->where('filters.policy_type', PolicyType::IncidentResponse->value));
 });
 
+test('edit page includes supersedes body for markdown diff', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $previous = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support v1',
+        'status' => PolicyStatus::Retired,
+        'version_label' => '1.0',
+        'body' => "# Support\n\nOld body.",
+        'approved_at' => now()->subMonth(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $current = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support v2',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '2.0',
+        'body' => "# Support\n\nNew body.",
+        'supersedes_id' => $previous->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('policies.edit', $current))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('policies/Edit')
+            ->where('policy.supersedes_body', "# Support\n\nOld body.")
+            ->where('policy.supersedes_title', 'Support v1 (1.0)'));
+});
+
 test('approved policy can be published as product evidence', function () {
     Storage::fake('local');
 

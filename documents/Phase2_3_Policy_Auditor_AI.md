@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.4  
+**Версия:** 1.5  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — 2.3A Must + Should 7–9 Done; 2.3B–C pending  
+**Статус:** Active — 2.3A Must + Should 7–9 + Could 10 Done; 2.3B–C pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -259,7 +259,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 #### Could
 
-10. Markdown preview + diff between versions
+10. Markdown preview + diff between versions — **Done** (2026-07-21)
 11. Approval task integration (submit review → Task)
 12. PDF export per policy
 
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                             |
 | ------ | ---------- | ------------------------------------------------------------------- |
+| 1.5    | 2026-07-21 | Could 10: Markdown preview + diff between policy versions           |
 | 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI        |
 | 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)        |
 | 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`      |

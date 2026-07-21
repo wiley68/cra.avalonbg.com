@@ -13,6 +13,7 @@ import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -59,6 +60,7 @@ type PolicyDetail = {
     notes: string | null;
     supersedes_id: number | null;
     supersedes_title: string | null;
+    supersedes_body: string | null;
     approved_at: string | null;
     approved_by_name: string | null;
     is_editable: boolean;
@@ -186,9 +188,6 @@ const doPublishEvidence = () => {
         },
     });
 };
-
-const textareaClass =
-    'border-input bg-background flex min-h-48 w-full rounded-md border px-3 py-2 font-mono text-sm disabled:opacity-60';
 </script>
 
 <template>
@@ -322,24 +321,6 @@ const textareaClass =
                 </div>
 
                 <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="body"
-                        :help="t('policies.help.body')"
-                        required
-                    >
-                        {{ t('policies.fields.body') }}
-                    </FieldLabel>
-                    <textarea
-                        id="body"
-                        v-model="form.body"
-                        rows="16"
-                        required
-                        :class="textareaClass"
-                    />
-                    <InputError :message="form.errors.body" />
-                </div>
-
-                <div class="grid gap-2">
                     <Label for="notes">{{ t('policies.fields.notes') }}</Label>
                     <textarea
                         id="notes"
@@ -350,6 +331,16 @@ const textareaClass =
                     <InputError :message="form.errors.notes" />
                 </div>
             </fieldset>
+
+            <PolicyBodyField
+                v-model="form.body"
+                :previous-body="policy.supersedes_body"
+                :previous-label="policy.supersedes_title"
+                :current-label="form.version_label"
+                :disabled="!canManage || !policy.is_editable"
+                :error="form.errors.body"
+                required
+            />
 
             <div
                 v-if="canManage && policy.is_editable"

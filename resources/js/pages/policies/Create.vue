@@ -4,6 +4,7 @@ import { ArrowLeft, Plus } from '@lucide/vue';
 import { computed, watch } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,7 @@ type SupersedeOption = {
     policy_type: string;
     version_label: string;
     status: string;
+    body: string;
 };
 
 const props = defineProps<{
@@ -60,6 +62,12 @@ const form = useForm({
 const filteredSupersedeOptions = computed(() =>
     props.supersedeOptions.filter(
         (option) => option.policy_type === form.policy_type,
+    ),
+);
+
+const selectedSupersede = computed(() =>
+    filteredSupersedeOptions.value.find(
+        (option) => option.id === form.supersedes_id,
     ),
 );
 
@@ -116,9 +124,6 @@ const submit = () => {
         supersedes_id: data.supersedes_id || null,
     })).post(store().url);
 };
-
-const textareaClass =
-    'border-input bg-background flex min-h-48 w-full rounded-md border px-3 py-2 font-mono text-sm';
 </script>
 
 <template>
@@ -239,23 +244,18 @@ const textareaClass =
                 <InputError :message="form.errors.supersedes_id" />
             </div>
 
-            <div class="grid gap-2">
-                <FieldLabel
-                    html-for="body"
-                    :help="t('policies.help.body')"
-                    required
-                >
-                    {{ t('policies.fields.body') }}
-                </FieldLabel>
-                <textarea
-                    id="body"
-                    v-model="form.body"
-                    rows="16"
-                    required
-                    :class="textareaClass"
-                />
-                <InputError :message="form.errors.body" />
-            </div>
+            <PolicyBodyField
+                v-model="form.body"
+                :previous-body="selectedSupersede?.body ?? null"
+                :previous-label="
+                    selectedSupersede
+                        ? `${selectedSupersede.title} (${selectedSupersede.version_label})`
+                        : null
+                "
+                :current-label="form.version_label"
+                :error="form.errors.body"
+                required
+            />
 
             <div class="grid gap-2">
                 <Label for="notes">{{ t('policies.fields.notes') }}</Label>

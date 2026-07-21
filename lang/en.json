@@ -518,6 +518,13 @@
         "related_help": "Open the policy library filtered to the policy types most relevant to this item.",
         "filter_type_active": "Showing policies of type: :type",
         "clear_type_filter": "Clear type filter",
+        "body_tab_write": "Write",
+        "body_tab_preview": "Preview",
+        "body_tab_diff": "Diff",
+        "preview_empty": "Nothing to preview yet. Start writing Markdown in the Write tab.",
+        "diff_unchanged": "No differences between this version and the previous one.",
+        "diff_previous": "Previous version",
+        "diff_current": "Current version",
         "statuses": {
             "draft": "Draft",
             "under_review": "Under review",
