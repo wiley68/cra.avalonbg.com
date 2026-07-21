@@ -506,6 +506,47 @@
             "draft": "Чернова",
             "shared": "Споделен",
             "closed": "Затворен"
+        },
+        "findings": {
+            "title": "Findings",
+            "subtitle": "Наблюдения на одитора и remediation статус от owner",
+            "add": "Добави finding",
+            "empty": "Все още няма записани findings.",
+            "created": "Finding е създаден.",
+            "updated": "Finding е обновен.",
+            "deleted": "Finding е изтрит.",
+            "status_updated": "Remediation статусът е обновен.",
+            "confirm_delete": "Да се изтрие ли този отворен finding?",
+            "only_shared_creatable": "Findings могат да се добавят само към споделени пакети.",
+            "only_shared_editable": "Findings могат да се редактират само докато пакетът е споделен.",
+            "only_shared_deletable": "Findings могат да се изтриват само докато пакетът е споделен.",
+            "only_open_deletable": "Само отворени findings могат да се изтриват.",
+            "only_shared_or_closed_status": "Remediation статусът може да се обновява само за споделени или затворени пакети.",
+            "fields": {
+                "title": "Заглавие",
+                "body": "Описание",
+                "severity": "Тежест",
+                "status": "Remediation статус",
+                "remediated_at": "Отстранен на"
+            },
+            "help": {
+                "title": "Кратко обобщение на пропуските или наблюдението.",
+                "body": "Опишете какво е установено и защо е важно за CRA compliance.",
+                "severity": "Колко сериозен е finding-ът за преглеждания продукт.",
+                "status": "Remediation решение на owner за този finding."
+            },
+            "severities": {
+                "info": "Инфо",
+                "minor": "Малка",
+                "major": "Голяма",
+                "critical": "Критична"
+            },
+            "statuses": {
+                "open": "Отворен",
+                "accepted": "Приет",
+                "remediated": "Отстранен",
+                "wont_fix": "Няма да се оправя"
+            }
         }
     },
     "policies": {
@@ -2296,6 +2337,10 @@
             "auditor_package_deleted": "Изтрит одиторски пакет за преглед",
             "auditor_package_shared": "Споделен одиторски пакет за преглед",
             "auditor_package_closed": "Затворен одиторски пакет за преглед",
+            "auditor_finding_created": "Създаден одиторски finding",
+            "auditor_finding_updated": "Обновен одиторски finding",
+            "auditor_finding_deleted": "Изтрит одиторски finding",
+            "auditor_finding_status_updated": "Обновен remediation статус на finding",
             "deployment_created": "Създадена клиентска инсталация",
             "deployment_updated": "Обновена клиентска инсталация",
             "deployment_deleted": "Изтрита клиентска инсталация",

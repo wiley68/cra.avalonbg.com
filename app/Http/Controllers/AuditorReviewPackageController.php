@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AuditorFindingSeverity;
+use App\Enums\AuditorFindingStatus;
 use App\Enums\AuditorReviewPackageStatus;
+use App\Enums\RoleSlug;
 use App\Http\Requests\StoreAuditorReviewPackageRequest;
 use App\Http\Requests\UpdateAuditorReviewPackageRequest;
+use App\Models\AuditorFinding;
 use App\Models\AuditorReviewPackage;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Services\AuditorFindingService;
 use App\Services\AuditorReviewPackageService;
 use App\Services\ProductReadinessService;
 use App\Support\Translations;
@@ -22,6 +27,7 @@ class AuditorReviewPackageController extends Controller
 {
     public function __construct(
         private readonly AuditorReviewPackageService $packages,
+        private readonly AuditorFindingService $findings,
         private readonly ProductReadinessService $readiness,
     ) {
     }
@@ -92,6 +98,9 @@ class AuditorReviewPackageController extends Controller
             'product',
             'creator:id,name',
             'evidence:id,title,type,freshness_status,confidentiality',
+            'findings' => fn($query) => $query
+                ->with('creator:id,name')
+                ->orderByDesc('id'),
         ]);
 
         $product = $package->product;
@@ -107,12 +116,33 @@ class AuditorReviewPackageController extends Controller
                 ->orderByDesc('id'),
         ]);
 
+        $user = request()->user();
+
         return Inertia::render('auditor/Show', [
             'organization' => $this->organizationPayload($organization),
             'package' => $this->detailPayload($package),
             'product' => $this->passportProductPayload($product),
             'report' => $this->readiness->build($product),
-            'canManage' => request()->user()->canManageProducts($organization),
+            'findings' => $package->findings
+                ->map(fn(AuditorFinding $finding) => $this->findings->payload($finding))
+                ->values()
+                ->all(),
+            'findingOptions' => [
+                'severities' => array_map(
+                    fn(AuditorFindingSeverity $severity) => $severity->value,
+                    AuditorFindingSeverity::cases(),
+                ),
+                'statuses' => array_map(
+                    fn(AuditorFindingStatus $status) => $status->value,
+                    AuditorFindingStatus::cases(),
+                ),
+            ],
+            'canManage' => $user->canManageProducts($organization),
+            'canCreateFindings' => $user->can('create', [AuditorFinding::class, $package, $organization]),
+            'canManageFindingContent' => $user->hasRole(RoleSlug::Auditor, $organization)
+                && $package->status === AuditorReviewPackageStatus::Shared,
+            'canManageRemediation' => $user->canManageProducts($organization)
+                && $package->status !== AuditorReviewPackageStatus::Draft,
         ]);
     }
 

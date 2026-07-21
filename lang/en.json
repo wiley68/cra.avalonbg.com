@@ -506,6 +506,47 @@
             "draft": "Draft",
             "shared": "Shared",
             "closed": "Closed"
+        },
+        "findings": {
+            "title": "Findings",
+            "subtitle": "Auditor observations and owner remediation status",
+            "add": "Add finding",
+            "empty": "No findings recorded yet.",
+            "created": "Finding created.",
+            "updated": "Finding updated.",
+            "deleted": "Finding deleted.",
+            "status_updated": "Finding remediation status updated.",
+            "confirm_delete": "Delete this open finding?",
+            "only_shared_creatable": "Findings can only be added to shared packages.",
+            "only_shared_editable": "Findings can only be edited while the package is shared.",
+            "only_shared_deletable": "Findings can only be deleted while the package is shared.",
+            "only_open_deletable": "Only open findings can be deleted.",
+            "only_shared_or_closed_status": "Remediation status can only be updated on shared or closed packages.",
+            "fields": {
+                "title": "Title",
+                "body": "Description",
+                "severity": "Severity",
+                "status": "Remediation status",
+                "remediated_at": "Remediated at"
+            },
+            "help": {
+                "title": "Short summary of the gap or observation.",
+                "body": "Describe what was found and why it matters for CRA compliance.",
+                "severity": "How serious the finding is for the reviewed product.",
+                "status": "Owner remediation decision for this finding."
+            },
+            "severities": {
+                "info": "Info",
+                "minor": "Minor",
+                "major": "Major",
+                "critical": "Critical"
+            },
+            "statuses": {
+                "open": "Open",
+                "accepted": "Accepted",
+                "remediated": "Remediated",
+                "wont_fix": "Won't fix"
+            }
         }
     },
     "policies": {
@@ -2296,6 +2337,10 @@
             "auditor_package_deleted": "Auditor review package deleted",
             "auditor_package_shared": "Auditor review package shared",
             "auditor_package_closed": "Auditor review package closed",
+            "auditor_finding_created": "Auditor finding created",
+            "auditor_finding_updated": "Auditor finding updated",
+            "auditor_finding_deleted": "Auditor finding deleted",
+            "auditor_finding_status_updated": "Auditor finding remediation status updated",
             "deployment_created": "Deployment created",
             "deployment_updated": "Deployment updated",
             "deployment_deleted": "Deployment deleted",

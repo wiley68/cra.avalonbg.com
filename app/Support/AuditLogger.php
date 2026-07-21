@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
+use App\Models\AuditorFinding;
 use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
 use App\Models\Customer;
@@ -442,6 +443,84 @@ class AuditLogger
             details: [
                 ['field' => 'package_id', 'value' => (string) $package->id],
                 ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
+    public static function logAuditorFindingCreated(AuditorFinding $finding, User $actor): void
+    {
+        $package = $finding->package;
+
+        self::persist(
+            type: AuditEventType::AuditorFindingCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package?->organization_id,
+            productId: $package?->product_id,
+            details: [
+                ['field' => 'finding_id', 'value' => (string) $finding->id],
+                ['field' => 'package_id', 'value' => (string) $finding->package_id],
+                ['field' => 'title', 'value' => $finding->title],
+                ['field' => 'severity', 'value' => $finding->severity->value],
+            ],
+        );
+    }
+
+    public static function logAuditorFindingUpdated(AuditorFinding $finding, User $actor): void
+    {
+        $package = $finding->package;
+
+        self::persist(
+            type: AuditEventType::AuditorFindingUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package?->organization_id,
+            productId: $package?->product_id,
+            details: [
+                ['field' => 'finding_id', 'value' => (string) $finding->id],
+                ['field' => 'package_id', 'value' => (string) $finding->package_id],
+                ['field' => 'title', 'value' => $finding->title],
+                ['field' => 'severity', 'value' => $finding->severity->value],
+            ],
+        );
+    }
+
+    public static function logAuditorFindingDeleted(AuditorFinding $finding, User $actor): void
+    {
+        $package = $finding->package;
+
+        self::persist(
+            type: AuditEventType::AuditorFindingDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package?->organization_id,
+            productId: $package?->product_id,
+            details: [
+                ['field' => 'finding_id', 'value' => (string) $finding->id],
+                ['field' => 'package_id', 'value' => (string) $finding->package_id],
+                ['field' => 'title', 'value' => $finding->title],
+            ],
+        );
+    }
+
+    public static function logAuditorFindingStatusUpdated(AuditorFinding $finding, User $actor): void
+    {
+        $package = $finding->package;
+
+        self::persist(
+            type: AuditEventType::AuditorFindingStatusUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package?->organization_id,
+            productId: $package?->product_id,
+            details: [
+                ['field' => 'finding_id', 'value' => (string) $finding->id],
+                ['field' => 'package_id', 'value' => (string) $finding->package_id],
+                ['field' => 'status', 'value' => $finding->status->value],
             ],
         );
     }

@@ -354,7 +354,10 @@ test('owner and viewer can open read-only review with passport readiness and evi
             ->where('product.name', $product->name)
             ->has('report.sections')
             ->has('report.gaps')
-            ->where('canManage', true));
+            ->has('findings')
+            ->where('canManage', true)
+            ->where('canCreateFindings', false)
+            ->where('canManageRemediation', true));
 
     $this->actingAs($viewer)
         ->get(route('auditor.packages.show', $package))
@@ -362,6 +365,8 @@ test('owner and viewer can open read-only review with passport readiness and evi
         ->assertInertia(fn($page) => $page
             ->component('auditor/Show')
             ->where('canManage', false)
+            ->where('canCreateFindings', false)
+            ->where('canManageRemediation', false)
             ->where('package.evidence.0.title', 'SBOM snapshot'));
 });
 

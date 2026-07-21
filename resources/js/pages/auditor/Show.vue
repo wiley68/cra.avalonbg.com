@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, Pencil } from '@lucide/vue';
-import { computed } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Pencil, Plus, Trash2 } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import FieldLabel from '@/components/FieldLabel.vue';
+import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as auditorIndex } from '@/routes/auditor';
@@ -11,6 +22,12 @@ import {
     edit as packagesEdit,
     show as packagesShow,
 } from '@/routes/auditor/packages';
+import {
+    destroy as findingsDestroy,
+    status as findingsStatus,
+    store as findingsStore,
+    update as findingsUpdate,
+} from '@/routes/auditor/packages/findings';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 
@@ -38,6 +55,19 @@ type PackageDetail = {
     evidence_ids: number[];
     evidence: EvidenceItem[];
     is_editable: boolean;
+};
+
+type FindingItem = {
+    id: number;
+    title: string;
+    body: string;
+    severity: string;
+    status: string;
+    created_by: number;
+    created_by_name: string | null;
+    remediated_at: string | null;
+    created_at: string | null;
+    updated_at: string | null;
 };
 
 type ProductPassport = {
@@ -100,7 +130,15 @@ const props = defineProps<{
     package: PackageDetail;
     product: ProductPassport;
     report: ReadinessReport;
+    findings: FindingItem[];
+    findingOptions: {
+        severities: string[];
+        statuses: string[];
+    };
     canManage: boolean;
+    canCreateFindings: boolean;
+    canManageFindingContent: boolean;
+    canManageRemediation: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -112,6 +150,22 @@ usePageBreadcrumbs(() => [
         href: packagesShow(props.package.id),
     },
 ]);
+
+const createForm = useForm({
+    title: '',
+    body: '',
+    severity: 'minor',
+});
+
+const editingId = ref<number | null>(null);
+const editForm = useForm({
+    title: '',
+    body: '',
+    severity: 'minor',
+});
+
+const findingToDelete = ref<number | null>(null);
+const showDeleteDialog = ref(false);
 
 const statusLabel = computed(() => {
     const key = `auditor.statuses.${props.package.status}`;
@@ -145,6 +199,20 @@ const readinessStatusVariant = (
         default:
             return 'outline';
     }
+};
+
+const severityVariant = (
+    severity: string,
+): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    if (severity === 'critical' || severity === 'major') {
+        return 'destructive';
+    }
+
+    if (severity === 'minor') {
+        return 'secondary';
+    }
+
+    return 'outline';
 };
 
 const sectionTitle = (key: string): string => {
@@ -199,6 +267,20 @@ const freshnessLabel = (value: string | null | undefined): string => {
     return translated === key ? value : translated;
 };
 
+const findingSeverityLabel = (value: string): string => {
+    const key = `auditor.findings.severities.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const findingStatusLabel = (value: string): string => {
+    const key = `auditor.findings.statuses.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
 const failCount = computed(
     () => props.report.gaps.filter((gap) => gap.status === 'fail').length,
 );
@@ -212,6 +294,66 @@ const personLabel = (person: Person): string => {
     }
 
     return `${person.name} (${person.email})`;
+};
+
+const submitCreate = () => {
+    createForm.post(findingsStore(props.package.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            createForm.reset();
+            createForm.severity = 'minor';
+        },
+    });
+};
+
+const startEdit = (finding: FindingItem) => {
+    editingId.value = finding.id;
+    editForm.title = finding.title;
+    editForm.body = finding.body;
+    editForm.severity = finding.severity;
+    editForm.clearErrors();
+};
+
+const cancelEdit = () => {
+    editingId.value = null;
+    editForm.reset();
+};
+
+const submitEdit = (findingId: number) => {
+    editForm.put(findingsUpdate([props.package.id, findingId]).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            editingId.value = null;
+            editForm.reset();
+        },
+    });
+};
+
+const updateFindingStatus = (findingId: number, status: string) => {
+    router.put(
+        findingsStatus([props.package.id, findingId]).url,
+        { status },
+        { preserveScroll: true },
+    );
+};
+
+const confirmDeleteFinding = (findingId: number) => {
+    findingToDelete.value = findingId;
+    showDeleteDialog.value = true;
+};
+
+const doDeleteFinding = () => {
+    if (findingToDelete.value === null) {
+        return;
+    }
+
+    const id = findingToDelete.value;
+    showDeleteDialog.value = false;
+    findingToDelete.value = null;
+
+    router.delete(findingsDestroy([props.package.id, id]).url, {
+        preserveScroll: true,
+    });
 };
 </script>
 
@@ -271,6 +413,273 @@ const personLabel = (person: Person): string => {
                 {{ t('auditor.fields.notes') }}
             </h2>
             <p class="text-sm whitespace-pre-wrap">{{ package.notes }}</p>
+        </section>
+
+        <section class="space-y-4 rounded-lg border p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-lg font-semibold">
+                    {{ t('auditor.findings.title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('auditor.findings.subtitle') }}
+                </p>
+            </div>
+
+            <form
+                v-if="canCreateFindings"
+                class="space-y-3 rounded-md border border-dashed p-4"
+                @submit.prevent="submitCreate"
+            >
+                <h3 class="text-sm font-medium">
+                    {{ t('auditor.findings.add') }}
+                </h3>
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="finding_title"
+                        :help="t('auditor.findings.help.title')"
+                        required
+                    >
+                        {{ t('auditor.findings.fields.title') }}
+                    </FieldLabel>
+                    <Input
+                        id="finding_title"
+                        v-model="createForm.title"
+                        required
+                    />
+                    <InputError :message="createForm.errors.title" />
+                </div>
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="finding_severity"
+                        :help="t('auditor.findings.help.severity')"
+                        required
+                    >
+                        {{ t('auditor.findings.fields.severity') }}
+                    </FieldLabel>
+                    <Select v-model="createForm.severity">
+                        <SelectTrigger id="finding_severity" class="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="severity in findingOptions.severities"
+                                :key="severity"
+                                :value="severity"
+                            >
+                                {{ findingSeverityLabel(severity) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="createForm.errors.severity" />
+                </div>
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="finding_body"
+                        :help="t('auditor.findings.help.body')"
+                        required
+                    >
+                        {{ t('auditor.findings.fields.body') }}
+                    </FieldLabel>
+                    <textarea
+                        id="finding_body"
+                        v-model="createForm.body"
+                        rows="3"
+                        required
+                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                    <InputError :message="createForm.errors.body" />
+                </div>
+                <Button type="submit" :disabled="createForm.processing">
+                    <Plus class="h-4 w-4" />
+                    {{ t('auditor.findings.add') }}
+                </Button>
+            </form>
+
+            <ul v-if="findings.length" class="space-y-3">
+                <li
+                    v-for="finding in findings"
+                    :key="finding.id"
+                    class="space-y-3 rounded-md border p-4"
+                >
+                    <template v-if="editingId === finding.id">
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                :help="t('auditor.findings.help.title')"
+                                required
+                            >
+                                {{ t('auditor.findings.fields.title') }}
+                            </FieldLabel>
+                            <Input v-model="editForm.title" required />
+                            <InputError :message="editForm.errors.title" />
+                        </div>
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                :help="t('auditor.findings.help.severity')"
+                                required
+                            >
+                                {{ t('auditor.findings.fields.severity') }}
+                            </FieldLabel>
+                            <Select v-model="editForm.severity">
+                                <SelectTrigger class="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="severity in findingOptions.severities"
+                                        :key="severity"
+                                        :value="severity"
+                                    >
+                                        {{ findingSeverityLabel(severity) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="editForm.errors.severity" />
+                        </div>
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                :help="t('auditor.findings.help.body')"
+                                required
+                            >
+                                {{ t('auditor.findings.fields.body') }}
+                            </FieldLabel>
+                            <textarea
+                                v-model="editForm.body"
+                                rows="3"
+                                required
+                                class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            />
+                            <InputError :message="editForm.errors.body" />
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                :disabled="editForm.processing"
+                                @click="submitEdit(finding.id)"
+                            >
+                                {{ t('common.save') }}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                @click="cancelEdit"
+                            >
+                                {{ t('common.cancel') }}
+                            </Button>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-3"
+                        >
+                            <div class="space-y-1">
+                                <h3 class="font-medium">{{ finding.title }}</h3>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <Badge
+                                        :variant="
+                                            severityVariant(finding.severity)
+                                        "
+                                    >
+                                        {{
+                                            findingSeverityLabel(
+                                                finding.severity,
+                                            )
+                                        }}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        {{ findingStatusLabel(finding.status) }}
+                                    </Badge>
+                                    <span
+                                        v-if="finding.created_by_name"
+                                        class="text-xs text-muted-foreground"
+                                    >
+                                        {{ finding.created_by_name }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="canManageFindingContent"
+                                class="flex flex-wrap gap-2"
+                            >
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    @click="startEdit(finding)"
+                                >
+                                    <Pencil class="h-4 w-4" />
+                                    {{ t('common.edit') }}
+                                </Button>
+                                <Button
+                                    v-if="finding.status === 'open'"
+                                    type="button"
+                                    size="sm"
+                                    variant="destructive"
+                                    @click="confirmDeleteFinding(finding.id)"
+                                >
+                                    <Trash2 class="h-4 w-4" />
+                                    {{ t('common.delete') }}
+                                </Button>
+                            </div>
+                        </div>
+                        <p
+                            class="text-sm whitespace-pre-wrap text-muted-foreground"
+                        >
+                            {{ finding.body }}
+                        </p>
+                        <div
+                            v-if="canManageRemediation"
+                            class="grid max-w-sm gap-2"
+                        >
+                            <FieldLabel
+                                :html-for="`finding_status_${finding.id}`"
+                                :help="t('auditor.findings.help.status')"
+                            >
+                                {{ t('auditor.findings.fields.status') }}
+                            </FieldLabel>
+                            <Select
+                                :model-value="finding.status"
+                                @update:model-value="
+                                    (value) =>
+                                        updateFindingStatus(
+                                            finding.id,
+                                            String(value),
+                                        )
+                                "
+                            >
+                                <SelectTrigger
+                                    :id="`finding_status_${finding.id}`"
+                                    class="w-full"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="status in findingOptions.statuses"
+                                        :key="status"
+                                        :value="status"
+                                    >
+                                        {{ findingStatusLabel(status) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <p
+                            v-else-if="finding.remediated_at"
+                            class="text-xs text-muted-foreground"
+                        >
+                            {{ t('auditor.findings.fields.remediated_at') }}:
+                            {{
+                                new Date(finding.remediated_at).toLocaleString()
+                            }}
+                        </p>
+                    </template>
+                </li>
+            </ul>
+
+            <p v-else class="text-sm text-muted-foreground">
+                {{ t('auditor.findings.empty') }}
+            </p>
         </section>
 
         <div class="grid gap-4 sm:grid-cols-3">
@@ -543,5 +952,15 @@ const personLabel = (person: Person): string => {
                 </article>
             </div>
         </section>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('auditor.findings.confirm_delete')"
+            :confirm-label="t('common.confirm_delete')"
+            variant="destructive"
+            @confirm="doDeleteFinding"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

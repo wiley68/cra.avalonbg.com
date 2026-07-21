@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\OrgPolicyApiController;
 use App\Http\Controllers\Api\AuditorReviewPackageApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\AuditorFindingController;
 use App\Http\Controllers\AuditorReviewPackageController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
@@ -124,6 +125,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('auditor.packages.share');
         Route::post('auditor/packages/{package}/close', [AuditorReviewPackageController::class, 'close'])
             ->name('auditor.packages.close');
+        Route::post('auditor/packages/{package}/findings', [AuditorFindingController::class, 'store'])
+            ->name('auditor.packages.findings.store');
+        Route::put('auditor/packages/{package}/findings/{finding}', [AuditorFindingController::class, 'update'])
+            ->name('auditor.packages.findings.update')
+            ->scopeBindings();
+        Route::put('auditor/packages/{package}/findings/{finding}/status', [AuditorFindingController::class, 'updateStatus'])
+            ->name('auditor.packages.findings.status')
+            ->scopeBindings();
+        Route::delete('auditor/packages/{package}/findings/{finding}', [AuditorFindingController::class, 'destroy'])
+            ->name('auditor.packages.findings.destroy')
+            ->scopeBindings();
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
