@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
+use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
@@ -227,6 +228,99 @@ class AuditLogger
             details: [
                 ['field' => 'customer_id', 'value' => (string) $customer->id],
                 ['field' => 'name', 'value' => $customer->name],
+            ],
+        );
+    }
+
+    public static function logOrgPolicyCreated(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+                ['field' => 'policy_type', 'value' => $policy->policy_type->value],
+            ],
+        );
+    }
+
+    public static function logOrgPolicyUpdated(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+                ['field' => 'status', 'value' => $policy->status->value],
+            ],
+        );
+    }
+
+    public static function logOrgPolicyDeleted(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+            ],
+        );
+    }
+
+    public static function logOrgPolicySubmitted(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicySubmitted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+            ],
+        );
+    }
+
+    public static function logOrgPolicyApproved(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyApproved,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
+                ['field' => 'policy_type', 'value' => $policy->policy_type->value],
+            ],
+        );
+    }
+
+    public static function logOrgPolicyRetired(OrgPolicy $policy, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::OrgPolicyRetired,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $policy->organization_id,
+            details: [
+                ['field' => 'policy_id', 'value' => (string) $policy->id],
+                ['field' => 'title', 'value' => $policy->title],
             ],
         );
     }

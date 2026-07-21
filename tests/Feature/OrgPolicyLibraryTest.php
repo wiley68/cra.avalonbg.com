@@ -1,0 +1,229 @@
+<?php
+
+use App\Enums\AuditEventType;
+use App\Enums\PolicyStatus;
+use App\Enums\PolicyType;
+use App\Models\AuditLog;
+use App\Models\Organization;
+use App\Models\OrgPolicy;
+use App\Models\Role;
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+/**
+ * @return array{organization: Organization, owner: User}
+ */
+function makePoliciesOrgWithOwner(): array
+{
+    test()->seed([RolePermissionSeeder::class]);
+
+    $organization = Organization::query()->create([
+        'name' => 'Policies Org',
+        'slug' => 'policies-org',
+        'is_active' => true,
+        'locale' => 'en',
+    ]);
+
+    $owner = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $ownerRole = Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($owner->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return compact('organization', 'owner');
+}
+
+function makePoliciesOrgViewer(Organization $organization): User
+{
+    $viewer = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $role = Role::query()->where('slug', 'read_only')->firstOrFail();
+    $organization->users()->attach($viewer->id, [
+        'role_id' => $role->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return $viewer;
+}
+
+test('owner can view policies index', function () {
+    ['owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->get(route('policies.index'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('policies/Index')
+            ->where('canManage', true));
+});
+
+test('owner can create policy from template and audit is recorded', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('policies.store'), [
+            'policy_type' => PolicyType::VulnerabilityDisclosure->value,
+            'use_template' => true,
+            'title' => '',
+            'version_label' => '',
+            'body' => '',
+        ])
+        ->assertRedirect();
+
+    $policy = OrgPolicy::query()->first();
+
+    expect($policy)->not->toBeNull()
+        ->and($policy->organization_id)->toBe($organization->id)
+        ->and($policy->status)->toBe(PolicyStatus::Draft)
+        ->and($policy->title)->not->toBe('')
+        ->and($policy->body)->toContain('Vulnerability disclosure');
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::OrgPolicyCreated->value)
+        ->exists())->toBeTrue();
+});
+
+test('lifecycle submit approve retires previous approved of same type', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $previous = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support v1',
+        'status' => PolicyStatus::Approved,
+        'version_label' => '1.0',
+        'body' => 'Old support policy',
+        'approved_at' => now()->subMonth(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $draft = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support v2',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '2.0',
+        'body' => 'New support policy',
+        'supersedes_id' => $previous->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('policies.submit-review', $draft))
+        ->assertRedirect();
+
+    expect($draft->fresh()->status)->toBe(PolicyStatus::UnderReview);
+
+    $this->actingAs($owner)
+        ->post(route('policies.approve', $draft))
+        ->assertRedirect();
+
+    expect($draft->fresh()->status)->toBe(PolicyStatus::Approved)
+        ->and($draft->fresh()->approved_by)->toBe($owner->id)
+        ->and($previous->fresh()->status)->toBe(PolicyStatus::Retired);
+});
+
+test('viewer can list policies but cannot create or change lifecycle', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+    $viewer = makePoliciesOrgViewer($organization);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Update,
+        'title' => 'Update policy',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '1.0',
+        'body' => 'Body',
+    ]);
+
+    $this->actingAs($viewer)
+        ->get(route('policies.index'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page->where('canManage', false));
+
+    $this->actingAs($viewer)
+        ->post(route('policies.store'), [
+            'policy_type' => PolicyType::Update->value,
+            'title' => 'Should fail',
+            'version_label' => '1.0',
+            'body' => 'Nope',
+            'use_template' => false,
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($viewer)
+        ->post(route('policies.submit-review', $policy))
+        ->assertForbidden();
+
+    expect($policy->fresh()->status)->toBe(PolicyStatus::Draft);
+});
+
+test('cannot delete approved policy', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::IncidentResponse,
+        'title' => 'IR',
+        'status' => PolicyStatus::Approved,
+        'version_label' => '1.0',
+        'body' => 'Body',
+        'approved_at' => now(),
+        'approved_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('policies.destroy', $policy))
+        ->assertForbidden();
+
+    expect(OrgPolicy::query()->whereKey($policy->id)->exists())->toBeTrue();
+});
+
+test('internal api lists org policies', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::SecureDevelopment,
+        'title' => 'SDL',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '1.0',
+        'body' => 'Body',
+    ]);
+
+    $this->actingAs($owner)
+        ->getJson(route('internal.policies.index', ['search' => 'SDL']))
+        ->assertOk()
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('data.0.title', 'SDL');
+});
+
+test('template endpoint returns starter content', function () {
+    ['owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->getJson(route('policies.template', [
+            'policy_type' => PolicyType::ThirdPartyComponents->value,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('version_label', '1.0')
+        ->assertJsonFragment(['title' => 'Third-party component policy']);
+});

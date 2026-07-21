@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\TaskApiController;
+use App\Http\Controllers\Api\OrgPolicyApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\OrgPolicyController;
 use App\Http\Controllers\ProductClassificationController;
 use App\Http\Controllers\ProductCompliancePassportController;
 use App\Http\Controllers\ProductComponentController;
@@ -85,6 +87,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('customers/import', [CustomerController::class, 'import'])
             ->name('customers.import.store');
         Route::resource('customers', CustomerController::class)->except(['show']);
+
+        Route::get('policies/template', [OrgPolicyController::class, 'template'])
+            ->name('policies.template');
+        Route::post('policies/{org_policy}/submit-review', [OrgPolicyController::class, 'submitReview'])
+            ->name('policies.submit-review');
+        Route::post('policies/{org_policy}/approve', [OrgPolicyController::class, 'approve'])
+            ->name('policies.approve');
+        Route::post('policies/{org_policy}/retire', [OrgPolicyController::class, 'retire'])
+            ->name('policies.retire');
+        Route::resource('policies', OrgPolicyController::class)
+            ->except(['show'])
+            ->parameters(['policies' => 'org_policy']);
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs.index');
@@ -238,6 +252,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('controls.index');
             Route::get('customers', [CustomerApiController::class, 'index'])
                 ->name('customers.index');
+            Route::get('policies', [OrgPolicyApiController::class, 'index'])
+                ->name('policies.index');
             Route::get('products', [ProductApiController::class, 'index'])
                 ->name('products.index');
             Route::get('products/{product}/versions', [ProductVersionApiController::class, 'index'])

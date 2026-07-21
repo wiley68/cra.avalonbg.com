@@ -155,7 +155,7 @@ MVP 0.1 се счита за готов, когато:
 - affected customers, patch campaigns, notification history, update confirmation — **Done**;
 - виж Phase 2.1 closeout за VCS integration (еднопосочен sync — Done).
 
-**Следващи:** AI / Policy library / Auditor portal (§14 — TBD).
+**Следващи:** [Phase 2.3 — Policy, Auditor & AI](Phase2_3_Policy_Auditor_AI.md) (Active). Ред: Policy library → Auditor portal → AI assistant.
 
 ---
 

@@ -217,12 +217,7 @@ Full suite at exit: **340 passed**, **2 skipped**, **342 total**.
 
 **[Phase 2.2 — Customer Deployments](Phase2_2_Customer_Deployments.md)** — **Closed** (2026-07-21).
 
-**Следващи (извън 2.2 scope, §14):**
-
-- AI regulatory assistant / document analyser (helper, не автономен compliance organ);
-- Policy library;
-- Auditor portal;
-- по генералния план: User Security Instructions, SDL workspace, и др.
+**Следващи (Active):** [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) — Policy library → Auditor portal → AI assistant.
 
 Dependency chain:
 
@@ -233,7 +228,9 @@ Phase 2.1 GitHub/GitLab — Closed 2026-07-21
     ↓
 Phase 2.2 Customer deployments — Closed 2026-07-21
     ↓
-AI / Policy library / Auditor portal (TBD)
+Phase 2.3 Policy / Auditor / AI — Active
+    ↓
+User Security Instructions / SDL workspace (TBD)
 ```
 
 ---

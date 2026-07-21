@@ -30,6 +30,12 @@ enum AuditEventType: string
     case PatchCampaignNotificationsQueued = 'patch_campaign_notifications_queued';
     case PatchCampaignDeleted = 'patch_campaign_deleted';
     case CampaignTargetUpdated = 'campaign_target_updated';
+    case OrgPolicyCreated = 'org_policy_created';
+    case OrgPolicyUpdated = 'org_policy_updated';
+    case OrgPolicyDeleted = 'org_policy_deleted';
+    case OrgPolicySubmitted = 'org_policy_submitted';
+    case OrgPolicyApproved = 'org_policy_approved';
+    case OrgPolicyRetired = 'org_policy_retired';
     case RiskCreated = 'risk_created';
     case RiskUpdated = 'risk_updated';
     case RiskDeleted = 'risk_deleted';
