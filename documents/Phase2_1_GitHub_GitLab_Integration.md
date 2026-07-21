@@ -1,12 +1,14 @@
 # Phase 2.1 — GitHub/GitLab Integration
 
-**Версия:** 1.7  
+**Версия:** 1.8  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — Phase 2.1 Must + Should + Could (schedule, webhooks, GitLab PAT, GitHub App) Done  
+**Статус:** Closed — Phase 2.1 exited (2026-07-21) → Phase 2.2  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 Втора фаза)
 - [MVP_Release_Closeout.md](MVP_Release_Closeout.md) (Closed — MVP 0.1 exited)
+
+> **Следващ план:** [Phase2_2_Customer_Deployments.md](Phase2_2_Customer_Deployments.md)
 
 > **Ограничение от MVP (§11):** пълна двупосочна GitHub синхронизация **не** влиза в първата версия. Phase 2.1 е **еднопосочен** import/sync (provider → CRA Workspace).
 
@@ -26,22 +28,24 @@
 
 ## 2. Scope (in)
 
-| Възможност                     | Описание                                                                             |
-| ------------------------------ | ------------------------------------------------------------------------------------ |
-| Repository link                | Обвързване на `Product` (и опционално `ProductVersion`) с remote repo URL + provider |
-| OAuth / PAT                    | Org-level credentials — **първо GitHub PAT**; GitLab PAT/OAuth и GitHub App по-късно |
-| Tags / Releases import         | Списък и детайли; map към product versions / release evidence                        |
-| Pull requests (read)           | Обобщение за release window (merged PRs) — read-only                                 |
-| CI status                      | Последен status на default branch / release tag (GitHub Actions / GitLab CI)         |
-| Dependabot / dependency alerts | Import като кандидати или линкове към vulnerability workflow (Should)                |
-| Evidence snapshots             | Immutable snapshot (JSON + hash) в Evidence repository                               |
+| Възможност                     | Описание                                                              |
+| ------------------------------ | --------------------------------------------------------------------- |
+| Repository link                | Обвързване на `Product` с remote repo URL + provider                  |
+| Org credentials                | GitHub PAT **или** GitHub App; GitLab PAT (encrypted at rest)         |
+| Tags / Releases import         | Списък и детайли; suggestions към product versions / release evidence |
+| CI status                      | Последен status на default branch (GitHub Actions / GitLab CI)        |
+| Dependabot / dependency alerts | Import като draft suggestions (не auto-create без review)             |
+| Evidence snapshots             | Immutable snapshot (JSON + hash) в Evidence repository                |
+| Scheduled sync                 | Org-level `off` / `hourly` / `daily`                                  |
+| GitHub webhooks                | HMAC incremental sync                                                 |
 
 ## 3. Scope (out) — изрично
 
 - Двупосочен sync (CRA → GitHub issues/PRs/releases create/update)
 - Автоматично отваряне на PRs / commit на файлове в repo
 - Пълен clone на source code в workspace
-- Real-time webhooks като единствен MVP на 2.1 (може Could след polling)
+- Merged PRs summary за release window — **deferred** (aspirational; не беше в Must/Should/Could)
+- GitLab webhooks / GitHub App OAuth install UI / installation-token caching — polish извън checklist
 - Customer deployments (§14 / Phase 2.2)
 - AI summarisation на PRs (§14 AI)
 
@@ -225,12 +229,14 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 
 ## 10. Acceptance criteria (Phase 2.1 done)
 
-1. Owner може да свърже org към **GitHub** с валиден PAT (GitLab — следващ provider slice).
+1. Owner може да свърже org към **GitHub** (PAT или App) и/или **GitLab** (PAT).
 2. Owner свързва продукт към repo и пуска sync.
 3. Tags/releases и CI status се виждат в UI.
 4. Snapshot е в Evidence с hash (`integration_snapshot`).
 5. Sync failure е видим и аудитиран.
 6. Няма write операции към remote git hosting.
+
+**Всички критерии са изпълнени** (2026-07-21). Phase 2.1 е официално **exited**.
 
 ---
 
@@ -239,9 +245,9 @@ Unique: `(product_id)` — един primary repo на продукт в първ
 ```text
 MVP 0.1 exit (MVP_Release_Closeout) — Done 2026-07-20
     ↓
-Phase 2.1 GitHub/GitLab (този документ) — Active
+Phase 2.1 GitHub/GitLab (този документ) — Closed 2026-07-21
     ↓
-Phase 2.2 Customer deployments
+Phase 2.2 Customer deployments — Active
     ↓
 AI / Policy library / Auditor portal
 ```
@@ -252,6 +258,8 @@ AI / Policy library / Auditor portal
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.8    | 2026-07-21 | Closed / exited; Scope/AC sync; PR summary → deferred; → Phase 2.2      |
+| 1.7    | 2026-07-21 | Could 13 Done: GitHub App (до PAT); Must+Should+Could complete          |
 | 1.6    | 2026-07-21 | Could 12 Done: GitLab PAT provider (connect/link/sync)                  |
 | 1.5    | 2026-07-20 | Could 11 Done: GitHub webhooks (HMAC + queue sync)                      |
 | 1.4    | 2026-07-20 | Could 10 Done: org-level scheduled sync (hourly/daily)                  |

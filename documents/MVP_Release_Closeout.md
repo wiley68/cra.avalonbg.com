@@ -148,10 +148,12 @@ MVP 0.1 се счита за готов, когато:
 
 ## 8. Следващ план
 
-**[Phase 2.1 — GitHub/GitLab Integration](Phase2_1_GitHub_GitLab_Integration.md)**
+~~**[Phase 2.1 — GitHub/GitLab Integration](Phase2_1_GitHub_GitLab_Integration.md)**~~ — **Closed** (2026-07-21).
 
-- еднопосочен import/sync (repos, tags/releases, CI status, Dependabot/advisory signals, evidence snapshots);
-- **без** пълна двупосочна синхронизация (§11 „да не влизат в първата версия“).
+**Активен:** [Phase 2.2 — Customer Deployments](Phase2_2_Customer_Deployments.md)
+
+- affected customers, patch campaigns, notification history, update confirmation;
+- виж Phase 2.1 closeout за VCS integration (еднопосочен sync — Done).
 
 ---
 
