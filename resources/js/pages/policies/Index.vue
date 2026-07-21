@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { Plus, X } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -27,6 +27,9 @@ type OrganizationSummary = {
 const props = defineProps<{
     organization: OrganizationSummary;
     canManage: boolean;
+    filters?: {
+        policy_type: string | null;
+    };
 }>();
 
 const { t } = useTranslations();
@@ -35,6 +38,7 @@ usePageBreadcrumbs(() => [{ titleKey: 'nav.policies', href: policiesIndex() }]);
 
 const showDeleteDialog = ref(false);
 const policyToDelete = ref<number | null>(null);
+const policyTypeFilter = ref(props.filters?.policy_type ?? null);
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<PolicyListItem>({
@@ -45,6 +49,15 @@ const { rows, pagination, loading, search, fetch } =
             sortBy: 'updated_at',
             descending: true,
             search: '',
+        },
+        getExtraParams: () => {
+            const params: Record<string, string> = {};
+
+            if (policyTypeFilter.value) {
+                params.policy_type = policyTypeFilter.value;
+            }
+
+            return params;
         },
         onError: (message) => {
             toast.error(message);
@@ -61,6 +74,17 @@ const totalPages = computed(() =>
 );
 
 const columnTitleMap = computed(() => createPolicyColumnTitleMap(t));
+
+const activeTypeLabel = computed(() => {
+    if (!policyTypeFilter.value) {
+        return null;
+    }
+
+    const key = `policies.types.${policyTypeFilter.value}`;
+    const translated = t(key);
+
+    return translated === key ? policyTypeFilter.value : translated;
+});
 
 const requestDeletePolicy = (policyId: number): void => {
     policyToDelete.value = policyId;
@@ -115,6 +139,14 @@ const updateSearch = (value: string) => {
     search.value = value;
 };
 
+const clearTypeFilter = () => {
+    router.get(
+        policiesIndex().url,
+        {},
+        { replace: true, preserveScroll: true },
+    );
+};
+
 onMounted(() => {
     void fetch();
 });
@@ -139,6 +171,28 @@ onMounted(() => {
                     <Plus class="h-4 w-4" />
                     {{ t('policies.create') }}
                 </Link>
+            </Button>
+        </div>
+
+        <div
+            v-if="activeTypeLabel"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm"
+        >
+            <p>
+                {{
+                    t('policies.filter_type_active', {
+                        type: activeTypeLabel,
+                    })
+                }}
+            </p>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                @click="clearTypeFilter"
+            >
+                <X class="h-4 w-4" />
+                {{ t('policies.clear_type_filter') }}
             </Button>
         </div>
 

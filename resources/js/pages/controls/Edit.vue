@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import RelatedPolicyLinks from '@/components/RelatedPolicyLinks.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -45,6 +46,7 @@ const props = defineProps<{
         automation_levels: string[];
         frequencies: string[];
     };
+    relatedPolicyTypes?: string[];
     canManage: boolean;
 }>();
 
@@ -117,6 +119,8 @@ const textareaClass =
                 </Link>
             </Button>
         </div>
+
+        <RelatedPolicyLinks :types="relatedPolicyTypes ?? []" />
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <fieldset :disabled="!canManage" class="space-y-5">

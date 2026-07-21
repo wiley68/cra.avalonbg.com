@@ -236,6 +236,50 @@ test('template endpoint returns starter content', function () {
         ->assertJsonFragment(['title' => 'Third-party component policy']);
 });
 
+test('internal api can filter policies by policy_type', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Support,
+        'title' => 'Support policy',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '1.0',
+        'body' => 'Support body',
+    ]);
+
+    OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Update,
+        'title' => 'Update policy',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '1.0',
+        'body' => 'Update body',
+    ]);
+
+    $this->actingAs($owner)
+        ->getJson(route('internal.policies.index', [
+            'policy_type' => PolicyType::Support->value,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('data.0.policy_type', PolicyType::Support->value)
+        ->assertJsonPath('data.0.title', 'Support policy');
+});
+
+test('policies index accepts policy_type filter prop', function () {
+    ['owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->get(route('policies.index', [
+            'policy_type' => PolicyType::IncidentResponse->value,
+        ]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('policies/Index')
+            ->where('filters.policy_type', PolicyType::IncidentResponse->value));
+});
+
 test('approved policy can be published as product evidence', function () {
     Storage::fake('local');
 

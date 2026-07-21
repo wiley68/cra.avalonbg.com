@@ -514,6 +514,10 @@
             "incident_response": "Incident response",
             "third_party_components": "Third-party components"
         },
+        "related_title": "Related policies",
+        "related_help": "Open the policy library filtered to the policy types most relevant to this item.",
+        "filter_type_active": "Showing policies of type: :type",
+        "clear_type_filter": "Clear type filter",
         "statuses": {
             "draft": "Draft",
             "under_review": "Under review",

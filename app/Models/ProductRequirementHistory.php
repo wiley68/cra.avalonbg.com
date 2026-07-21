@@ -11,8 +11,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $product_requirement_id
- * @property string|null $from_status
- * @property string $to_status
+ * @property RequirementApplicabilityStatus|null $from_status
+ * @property RequirementApplicabilityStatus|string $to_status
  * @property string|null $rationale
  * @property int|null $changed_by
  * @property Carbon|null $created_at

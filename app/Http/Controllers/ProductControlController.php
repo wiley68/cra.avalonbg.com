@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductControl;
 use App\Services\ControlService;
+use App\Support\RelatedPolicyTypes;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -135,6 +136,10 @@ class ProductControlController extends Controller
                     'requirement_codes' => $productControl->control->requirements->pluck('code')->all(),
                 ],
             ],
+            'relatedPolicyTypes' => RelatedPolicyTypes::forControl(
+                $productControl->control->code,
+                $productControl->control->requirements->pluck('code')->all(),
+            ),
             'canManage' => request()->user()->canManageControls($organization),
             'options' => [
                 'statuses' => array_column(ProductControlStatus::cases(), 'value'),

@@ -39,8 +39,13 @@ class OrgPolicyService
         string $sortBy = 'updated_at',
         string $sortOrder = 'desc',
         string $search = '',
+        ?PolicyType $policyType = null,
     ): LengthAwarePaginator {
         $query = OrgPolicy::query()->where('organization_id', $organization->id);
+
+        if ($policyType !== null) {
+            $query->where('policy_type', $policyType->value);
+        }
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {

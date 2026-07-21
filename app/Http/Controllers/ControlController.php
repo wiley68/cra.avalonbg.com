@@ -10,6 +10,7 @@ use App\Models\Control;
 use App\Models\Organization;
 use App\Models\Requirement;
 use App\Services\ControlService;
+use App\Support\RelatedPolicyTypes;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -99,6 +100,10 @@ class ControlController extends Controller
             'members' => $this->memberOptions($organization),
             'requirements' => $this->requirementOptions(),
             'options' => $this->enumOptions(),
+            'relatedPolicyTypes' => RelatedPolicyTypes::forControl(
+                $control->code,
+                $control->requirements->pluck('code')->all(),
+            ),
             'canManage' => request()->user()->canManageControls($organization),
         ]);
     }

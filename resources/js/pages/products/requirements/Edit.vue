@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import RelatedPolicyLinks from '@/components/RelatedPolicyLinks.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
@@ -66,6 +67,7 @@ const props = defineProps<{
     product: ProductSummary;
     productRequirement: ProductRequirementPayload;
     linkedControls?: LinkedControl[];
+    relatedPolicyTypes?: string[];
     histories: HistoryItem[];
     canManage: boolean;
     canManageControls?: boolean;
@@ -78,7 +80,10 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.requirements.index_title', href: requirementsIndex(props.product.id) },
+    {
+        titleKey: 'products.requirements.index_title',
+        href: requirementsIndex(props.product.id),
+    },
     {
         title: props.productRequirement.code,
         href: requirementsEdit({
@@ -261,6 +266,8 @@ const textareaClass =
                 </li>
             </ul>
         </section>
+
+        <RelatedPolicyLinks :types="relatedPolicyTypes ?? []" />
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

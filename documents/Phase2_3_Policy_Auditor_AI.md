@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 21 юли 2026 г.  
-**Статус:** Active — 2.3A Must Done + Should 7–8; 2.3B–C pending  
+**Статус:** Active — 2.3A Must + Should 7–9 Done; 2.3B–C pending  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -255,7 +255,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 7. Readiness gap `policies_missing` / `policies_review_due` — **Done** (2026-07-21)
 8. Publish approved policy → Evidence (`type=policy`) — **Done** (2026-07-21)
-9. Link from controls/requirements UI to relevant policy types
+9. Link from controls/requirements UI to relevant policy types — **Done** (2026-07-21)
 
 #### Could
 
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                             |
 | ------ | ---------- | ------------------------------------------------------------------- |
+| 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI        |
 | 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)        |
 | 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`      |
 | 1.1    | 2026-07-21 | 2.3A Must Done: policy library CRUD + lifecycle + templates + tests |

@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import RelatedPolicyLinks from '@/components/RelatedPolicyLinks.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
@@ -37,6 +38,7 @@ type ProductControlPayload = {
 const props = defineProps<{
     product: ProductSummary;
     productControl: ProductControlPayload;
+    relatedPolicyTypes?: string[];
     canManage: boolean;
     options: { statuses: string[] };
 }>();
@@ -46,7 +48,10 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.controls.index_title', href: productControlsIndex(props.product.id) },
+    {
+        titleKey: 'products.controls.index_title',
+        href: productControlsIndex(props.product.id),
+    },
     {
         title: props.productControl.control.code,
         href: productControlsEdit({
@@ -139,6 +144,8 @@ const textareaClass =
                 </p>
             </div>
         </section>
+
+        <RelatedPolicyLinks :types="relatedPolicyTypes ?? []" />
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

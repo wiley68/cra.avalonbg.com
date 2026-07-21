@@ -25,14 +25,25 @@ class OrgPolicyController extends Controller
     ) {
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $organization = $this->currentOrganization();
         $this->authorize('viewAny', [OrgPolicy::class, $organization]);
 
+        $policyType = null;
+        if ($request->filled('policy_type')) {
+            $validated = $request->validate([
+                'policy_type' => ['required', Rule::enum(PolicyType::class)],
+            ]);
+            $policyType = PolicyType::from($validated['policy_type'])->value;
+        }
+
         return Inertia::render('policies/Index', [
             'organization' => $this->organizationPayload($organization),
             'canManage' => request()->user()->canManageProducts($organization),
+            'filters' => [
+                'policy_type' => $policyType,
+            ],
         ]);
     }
 

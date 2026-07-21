@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\PolicyType;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
 use App\Services\OrgPolicyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrgPolicyApiController extends Controller
 {
@@ -27,7 +29,12 @@ class OrgPolicyApiController extends Controller
             'sort_by' => 'nullable|string|in:id,title,policy_type,status,version_label,approved_at,updated_at',
             'sort_desc' => 'in:0,1',
             'search' => 'nullable|string|max:255',
+            'policy_type' => ['nullable', 'string', Rule::enum(PolicyType::class)],
         ]);
+
+        $policyType = isset($validated['policy_type']) && $validated['policy_type'] !== ''
+            ? PolicyType::from($validated['policy_type'])
+            : null;
 
         $paginator = $this->policies->paginate(
             $organization,
@@ -36,6 +43,7 @@ class OrgPolicyApiController extends Controller
             $validated['sort_by'] ?? 'updated_at',
             (($validated['sort_desc'] ?? '1') === '1') ? 'desc' : 'asc',
             trim((string) ($validated['search'] ?? '')),
+            $policyType,
         );
 
         return response()->json($paginator);
