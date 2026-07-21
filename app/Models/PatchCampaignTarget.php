@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\PatchCampaignTargetStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * @property int $id
+ * @property int $campaign_id
+ * @property int $deployment_id
+ * @property PatchCampaignTargetStatus $status
+ * @property Carbon|null $notified_at
+ * @property Carbon|null $acknowledged_at
+ * @property Carbon|null $confirmed_at
+ * @property string|null $notification_note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
+#[Fillable([
+    'campaign_id',
+    'deployment_id',
+    'status',
+    'notified_at',
+    'acknowledged_at',
+    'confirmed_at',
+    'notification_note',
+])]
+class PatchCampaignTarget extends Model
+{
+    protected function casts(): array
+    {
+        return [
+            'status' => PatchCampaignTargetStatus::class,
+            'notified_at' => 'datetime',
+            'acknowledged_at' => 'datetime',
+            'confirmed_at' => 'datetime',
+        ];
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(PatchCampaign::class, 'campaign_id');
+    }
+
+    public function deployment(): BelongsTo
+    {
+        return $this->belongsTo(ProductDeployment::class, 'deployment_id');
+    }
+}

@@ -184,6 +184,16 @@ class Product extends Model
         return $this->hasOne(ProductRepository::class);
     }
 
+    public function deployments(): HasMany
+    {
+        return $this->hasMany(ProductDeployment::class);
+    }
+
+    public function patchCampaigns(): HasMany
+    {
+        return $this->hasMany(PatchCampaign::class);
+    }
+
     public function vcsImportSuggestions(): HasMany
     {
         return $this->hasMany(VcsImportSuggestion::class);

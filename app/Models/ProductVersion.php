@@ -79,4 +79,14 @@ class ProductVersion extends Model
             'product_vulnerability_versions',
         )->withPivot('relation')->withTimestamps();
     }
+
+    public function deployments(): HasMany
+    {
+        return $this->hasMany(ProductDeployment::class);
+    }
+
+    public function patchCampaignsAsTarget(): HasMany
+    {
+        return $this->hasMany(PatchCampaign::class, 'target_version_id');
+    }
 }
