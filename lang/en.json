@@ -389,7 +389,7 @@
         "created": "Customer created.",
         "updated": "Customer updated.",
         "deleted": "Customer deleted.",
-        "confirm_delete": "Delete this customer permanently? Linked deployments will also be removed.",
+        "confirm_delete": "Delete this customer permanently? Linked installations will also be removed.",
         "search_placeholder": "Search by name, contact or reference...",
         "active": "Active",
         "inactive": "Inactive",
@@ -399,7 +399,7 @@
             "primary_contact": "Primary contact",
             "criticality": "Criticality",
             "status": "Status",
-            "deployments": "Deployments"
+            "deployments": "Installations"
         },
         "fields": {
             "external_ref": "External reference",
@@ -531,7 +531,7 @@
                 "description": "Customer installations by environment"
             },
             "campaigns": {
-                "description": "Patch rollout tracking for customer deployments"
+                "description": "Track patch rollout across customer installations"
             },
             "requirements": {
                 "description": "CRA requirements and applicability"
@@ -646,7 +646,7 @@
             "licensing_model": "Licensing model",
             "remote_processing": "Remote data processing",
             "network_connectivity": "Network connectivity",
-            "deployment_model": "Deployment model",
+            "deployment_model": "Product delivery model",
             "support_period_notes": "Support period notes",
             "end_of_support_policy": "End-of-support policy",
             "product_owner": "Product owner",
@@ -670,7 +670,7 @@
             "licensing_model": "How the product is monetised: paid, free, or indirectly monetised.",
             "remote_processing": "Whether remote data processing is required for the product to function.",
             "network_connectivity": "Whether the product has logical or physical network connectivity.",
-            "deployment_model": "How customers deploy the product (e.g. SaaS, on-prem, plugin, appliance).",
+            "deployment_model": "Product-level architecture (e.g. SaaS, on-prem, plugin, appliance)—not a registry of customer installations.",
             "support_period_notes": "Free-text notes about how long and under what terms support is provided.",
             "end_of_support_policy": "Policy describing what happens when support ends (security fixes, withdrawals, etc.).",
             "product_owner": "Organization member accountable for the product lifecycle and roadmap.",
@@ -843,17 +843,17 @@
             "index_title": "Customer deployments",
             "title": "Customer deployments",
             "subtitle": "Installations of this product at customer sites",
-            "create": "Add deployment",
-            "create_title": "Create deployment",
-            "edit_title": "Edit deployment",
-            "created": "Deployment created.",
-            "updated": "Deployment updated.",
-            "deleted": "Deployment deleted.",
-            "confirm_delete": "Delete this customer deployment?",
+            "create": "Add installation",
+            "create_title": "Create customer installation",
+            "edit_title": "Edit customer installation",
+            "created": "Customer installation created.",
+            "updated": "Customer installation updated.",
+            "deleted": "Customer installation deleted.",
+            "confirm_delete": "Delete this customer installation?",
             "search_placeholder": "Search by customer, environment or version...",
             "customer_placeholder": "Select customer",
             "version_none": "Not set",
-            "environment_taken": "This customer already has a deployment for this environment.",
+            "environment_taken": "This customer already has an installation for this environment.",
             "customer_invalid": "Selected customer is not valid for this organization.",
             "columns": {
                 "id": "ID",
@@ -877,7 +877,7 @@
             },
             "help": {
                 "customer": "Organization that runs this installation.",
-                "environment": "One deployment line per customer and environment (production, staging, other)."
+                "environment": "One installation line per customer and environment (production, staging, other). Distinct from the product delivery model field."
             },
             "environments": {
                 "production": "Production",
@@ -897,11 +897,11 @@
             "activate": "Activate",
             "created": "Campaign created as draft.",
             "updated": "Campaign updated.",
-            "activated": "Campaign activated and matching deployments attached.",
+            "activated": "Campaign activated and matching installations attached.",
             "deleted": "Campaign deleted.",
             "confirm_delete": "Delete this draft campaign?",
             "confirm_activate_title": "Activate campaign",
-            "confirm_activate": "Activate this campaign and attach all deployments that are not yet on the target version?",
+            "confirm_activate": "Activate this campaign and attach all installations that are not yet on the target version?",
             "search_placeholder": "Search by title, status or version...",
             "version_placeholder": "Select target version",
             "vulnerability_none": "None",
@@ -910,13 +910,13 @@
             "target_updated": "Target status updated.",
             "update_target_status": "Update status",
             "notification_note_placeholder": "e.g. emailed contact@example.com / ticket #123",
-            "updated_sync_hint": "Marking as updated will set the deployment confirmed version to this campaign’s target version.",
+            "updated_sync_hint": "Marking as updated will set the installation confirmed version to this campaign’s target version.",
             "version_invalid": "Selected version is not valid for this product.",
             "vulnerability_invalid": "Selected vulnerability is not valid for this product.",
-            "seed_hint": "On activate, deployments with no version or a different version than the target are attached as pending targets.",
+            "seed_hint": "On activate, installations with no version or a different version than the target are attached as pending targets.",
             "targets_title": "Targets",
             "targets_draft_hint": "Targets are attached when the campaign is activated.",
-            "targets_empty": "No matching deployments were attached (all are already on the target version).",
+            "targets_empty": "No matching installations were attached (all are already on the target version).",
             "columns": {
                 "id": "ID",
                 "title": "Title",

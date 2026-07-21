@@ -389,7 +389,7 @@
         "created": "Клиентът е създаден.",
         "updated": "Клиентът е обновен.",
         "deleted": "Клиентът е изтрит.",
-        "confirm_delete": "Да се изтрие ли този клиент окончателно? Свързаните deployments също ще бъдат премахнати.",
+        "confirm_delete": "Да се изтрие ли този клиент окончателно? Свързаните инсталации също ще бъдат премахнати.",
         "search_placeholder": "Търсене по име, контакт или референция...",
         "active": "Активен",
         "inactive": "Неактивен",
@@ -399,7 +399,7 @@
             "primary_contact": "Основен контакт",
             "criticality": "Критичност",
             "status": "Статус",
-            "deployments": "Deployments"
+            "deployments": "Инсталации"
         },
         "fields": {
             "external_ref": "Външна референция",
@@ -412,7 +412,7 @@
             "name": "Показвано име на клиентската организация.",
             "external_ref": "Опционален CRM или номер на договор.",
             "primary_contact": "Име или имейл за оперативен контакт.",
-            "criticality": "Колко критичен е клиентът за приоритет на patch и известия.",
+            "criticality": "Колко критичен е клиентът за приоритет на пачове и известия.",
             "is_active": "Неактивните клиенти остават в историята, но по-късно ще са скрити от подразбиращи се избори."
         },
         "criticalities": {
@@ -509,8 +509,8 @@
         "empty": "Няма намерени продукти.",
         "versions_link": "Версии",
         "support_periods_link": "Периоди на поддръжка",
-        "deployments_link": "Клиентски deployments",
-        "campaigns_link": "Patch кампании",
+        "deployments_link": "Клиентски инсталации",
+        "campaigns_link": "Кампании за пачове",
         "requirements_link": "Изисквания",
         "controls_link": "Контроли",
         "risks_link": "Рискове",
@@ -528,10 +528,10 @@
                 "description": "Периоди и политика за поддръжка"
             },
             "deployments": {
-                "description": "Клиентски инсталации по environment"
+                "description": "Клиентски инсталации по среда"
             },
             "campaigns": {
-                "description": "Проследяване на patch rollout към клиентски deployments"
+                "description": "Проследяване на rollout на пачове към клиентски инсталации"
             },
             "requirements": {
                 "description": "CRA изисквания и приложимост"
@@ -646,7 +646,7 @@
             "licensing_model": "Модел на лицензиране",
             "remote_processing": "Remote data processing",
             "network_connectivity": "Мрежова свързаност",
-            "deployment_model": "Модел на внедряване",
+            "deployment_model": "Модел на доставка на продукта",
             "support_period_notes": "Бележки за периода на поддръжка",
             "end_of_support_policy": "Политика за край на поддръжката",
             "product_owner": "Product owner",
@@ -670,7 +670,7 @@
             "licensing_model": "Как се монетизира продуктът: платен, безплатен или непряко.",
             "remote_processing": "Дали remote обработка на данни е необходима, за да функционира продуктът.",
             "network_connectivity": "Дали продуктът има логическа или физическа мрежова свързаност.",
-            "deployment_model": "Как клиентите внедряват продукта (напр. SaaS, on-prem, plugin, appliance).",
+            "deployment_model": "Архитектура на ниво продукт (напр. SaaS, on-prem, plugin, appliance)—не е регистър на клиентски инсталации.",
             "support_period_notes": "Свободен текст за периода и условията на поддръжка.",
             "end_of_support_policy": "Политика какво се случва след край на поддръжката (security fixes, оттегляне и т.н.).",
             "product_owner": "Член на организацията, отговорен за жизнения цикъл и roadmap на продукта.",
@@ -840,36 +840,36 @@
             }
         },
         "deployments": {
-            "index_title": "Клиентски deployments",
-            "title": "Клиентски deployments",
+            "index_title": "Клиентски инсталации",
+            "title": "Клиентски инсталации",
             "subtitle": "Инсталации на продукта при клиенти",
-            "create": "Добави deployment",
-            "create_title": "Създай deployment",
-            "edit_title": "Редакция на deployment",
-            "created": "Deployment е създаден.",
-            "updated": "Deployment е обновен.",
-            "deleted": "Deployment е изтрит.",
-            "confirm_delete": "Да се изтрие ли този клиентски deployment?",
-            "search_placeholder": "Търсене по клиент, environment или версия...",
+            "create": "Добави инсталация",
+            "create_title": "Създай клиентска инсталация",
+            "edit_title": "Редакция на клиентска инсталация",
+            "created": "Клиентската инсталация е създадена.",
+            "updated": "Клиентската инсталация е обновена.",
+            "deleted": "Клиентската инсталация е изтрита.",
+            "confirm_delete": "Да се изтрие ли тази клиентска инсталация?",
+            "search_placeholder": "Търсене по клиент, среда или версия...",
             "customer_placeholder": "Изберете клиент",
             "version_none": "Не е зададена",
-            "environment_taken": "Този клиент вече има deployment за този environment.",
+            "environment_taken": "Този клиент вече има инсталация за тази среда.",
             "customer_invalid": "Избраният клиент не е валиден за тази организация.",
             "columns": {
                 "id": "ID",
                 "customer": "Клиент",
                 "version": "Версия",
-                "environment": "Environment",
+                "environment": "Среда",
                 "installation_date": "Инсталиран",
                 "internet_exposure": "Интернет"
             },
             "fields": {
                 "customer": "Клиент",
-                "environment": "Environment",
+                "environment": "Среда",
                 "version": "Потвърдена версия",
                 "installation_date": "Дата на инсталация",
                 "last_confirmed_at": "Последно потвърждение",
-                "update_channel": "Канал за update",
+                "update_channel": "Канал за обновяване",
                 "internet_exposure": "Интернет експозиция",
                 "custom_modifications": "Персонални модификации",
                 "end_of_support_exception": "Изключение при край на поддръжка",
@@ -877,55 +877,55 @@
             },
             "help": {
                 "customer": "Организацията, която поддържа тази инсталация.",
-                "environment": "Една deployment линия на клиент и environment (production, staging, other)."
+                "environment": "Една инсталационна линия на клиент и среда (продукция, подготовка, друга). Различно от полето „Модел на доставка на продукта“."
             },
             "environments": {
-                "production": "Production",
-                "staging": "Staging",
-                "other": "Друг"
+                "production": "Продукция",
+                "staging": "Подготовка",
+                "other": "Друга"
             }
         },
         "campaigns": {
-            "index_title": "Patch кампании",
-            "title": "Patch кампании",
-            "subtitle": "Проследяване на update rollout към клиенти за този продукт",
+            "index_title": "Кампании за пачове",
+            "title": "Кампании за пачове",
+            "subtitle": "Проследяване на rollout на обновявания към клиенти за този продукт",
             "create": "Нова кампания",
-            "create_title": "Създай patch кампания",
-            "edit_title": "Редакция на patch кампания",
+            "create_title": "Създай кампания за пачове",
+            "edit_title": "Редакция на кампания за пачове",
             "create_and_activate": "Създай и активирай",
-            "save_draft": "Запази като draft",
+            "save_draft": "Запази като чернова",
             "activate": "Активирай",
-            "created": "Кампанията е създадена като draft.",
+            "created": "Кампанията е създадена като чернова.",
             "updated": "Кампанията е обновена.",
-            "activated": "Кампанията е активирана и съвпадащите deployments са прикачени.",
+            "activated": "Кампанията е активирана и съвпадащите инсталации са прикачени.",
             "deleted": "Кампанията е изтрита.",
-            "confirm_delete": "Да се изтрие ли този draft на кампания?",
+            "confirm_delete": "Да се изтрие ли тази чернова на кампания?",
             "confirm_activate_title": "Активиране на кампания",
-            "confirm_activate": "Да се активира ли кампанията и да се прикачат всички deployments, които още не са на целевата версия?",
+            "confirm_activate": "Да се активира ли кампанията и да се прикачат всички инсталации, които още не са на целевата версия?",
             "search_placeholder": "Търсене по заглавие, статус или версия...",
             "version_placeholder": "Изберете целева версия",
             "vulnerability_none": "Няма",
-            "only_draft": "Само draft кампании могат да се променят.",
-            "only_active_targets": "Статус на target може да се обновява само при active кампании.",
-            "target_updated": "Статусът на target е обновен.",
+            "only_draft": "Само чернови кампании могат да се променят.",
+            "only_active_targets": "Статус на цел може да се обновява само при активни кампании.",
+            "target_updated": "Статусът на целта е обновен.",
             "update_target_status": "Обнови статус",
             "notification_note_placeholder": "напр. изпратен email на contact@example.com / ticket #123",
-            "updated_sync_hint": "При статус updated потвърдената версия на deployment ще се синхронизира с целевата версия на кампанията.",
+            "updated_sync_hint": "При статус „Обновена“ потвърдената версия на инсталацията ще се синхронизира с целевата версия на кампанията.",
             "version_invalid": "Избраната версия не е валидна за този продукт.",
             "vulnerability_invalid": "Избраната уязвимост не е валидна за този продукт.",
-            "seed_hint": "При активиране се прикачат deployments без версия или с версия, различна от целевата, като pending targets.",
-            "targets_title": "Targets",
-            "targets_draft_hint": "Targets се прикачват при активиране на кампанията.",
-            "targets_empty": "Няма прикачени deployments (всички вече са на целевата версия).",
+            "seed_hint": "При активиране се прикачат инсталации без версия или с версия, различна от целевата, като изчакващи цели.",
+            "targets_title": "Цели",
+            "targets_draft_hint": "Целите се прикачват при активиране на кампанията.",
+            "targets_empty": "Няма прикачени инсталации (всички вече са на целевата версия).",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
                 "status": "Статус",
                 "target_version": "Целева версия",
-                "targets": "Targets",
+                "targets": "Цели",
                 "started_at": "Стартирана",
                 "customer": "Клиент",
-                "environment": "Environment",
+                "environment": "Среда",
                 "current_version": "Текуща версия",
                 "note": "Бележка"
             },
@@ -938,22 +938,22 @@
                 "notification_note": "Бележка за уведомяване"
             },
             "help": {
-                "title": "Кратко име на тази rollout кампания.",
+                "title": "Кратко име на тази кампания за rollout.",
                 "target_version": "Клиентите трябва да преминат към тази версия на продукта.",
                 "vulnerability": "Опционална връзка към уязвимостта, която е задействала кампанията."
             },
             "statuses": {
-                "draft": "Draft",
-                "active": "Active",
-                "completed": "Completed",
-                "cancelled": "Cancelled"
+                "draft": "Чернова",
+                "active": "Активна",
+                "completed": "Завършена",
+                "cancelled": "Отменена"
             },
             "target_statuses": {
-                "pending": "Pending",
-                "notified": "Notified",
-                "acknowledged": "Acknowledged",
-                "updated": "Updated",
-                "excepted": "Excepted"
+                "pending": "Изчакваща",
+                "notified": "Уведомена",
+                "acknowledged": "Потвърдена",
+                "updated": "Обновена",
+                "excepted": "С изключение"
             }
         },
         "scope_wizard": {
@@ -2000,14 +2000,14 @@
             "customer_created": "Създаден клиент",
             "customer_updated": "Обновен клиент",
             "customer_deleted": "Изтрит клиент",
-            "deployment_created": "Създаден deployment",
-            "deployment_updated": "Обновен deployment",
-            "deployment_deleted": "Изтрит deployment",
-            "patch_campaign_created": "Създадена patch кампания",
-            "patch_campaign_updated": "Обновена patch кампания",
-            "patch_campaign_activated": "Активирана patch кампания",
-            "patch_campaign_deleted": "Изтрита patch кампания",
-            "campaign_target_updated": "Обновен campaign target",
+            "deployment_created": "Създадена клиентска инсталация",
+            "deployment_updated": "Обновена клиентска инсталация",
+            "deployment_deleted": "Изтрита клиентска инсталация",
+            "patch_campaign_created": "Създадена кампания за пачове",
+            "patch_campaign_updated": "Обновена кампания за пачове",
+            "patch_campaign_activated": "Активирана кампания за пачове",
+            "patch_campaign_deleted": "Изтрита кампания за пачове",
+            "campaign_target_updated": "Обновена цел на кампания",
             "risk_created": "Създаден риск",
             "risk_updated": "Обновен риск",
             "risk_deleted": "Изтрит риск",
