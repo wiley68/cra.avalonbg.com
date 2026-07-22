@@ -4,6 +4,8 @@ import {
     Archive,
     ArrowLeft,
     CheckCircle2,
+    ChevronDown,
+    Eye,
     FileDown,
     FileUp,
     Pencil,
@@ -14,8 +16,14 @@ import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -119,6 +127,7 @@ const form = useForm({
 
 const showRetireDialog = ref(false);
 const showPublishEvidenceDialog = ref(false);
+const showDocumentPreview = ref(false);
 
 const canEdit = computed(
     () => props.canManage && props.instruction.is_editable,
@@ -220,6 +229,36 @@ const sectionLabel = (key: string): string => {
 
     return translated === translationKey ? key : translated;
 };
+
+const documentPreviewMarkdown = computed((): string => {
+    const lines: string[] = [];
+    const title = form.title.trim() || props.instruction.title;
+    lines.push(`# ${title}`);
+    lines.push('');
+
+    for (const section of form.sections) {
+        const heading =
+            section.title_override.trim() || sectionLabel(section.section_key);
+        lines.push(`## ${heading}`);
+        lines.push('');
+
+        if (!section.is_applicable) {
+            lines.push(
+                `*${t('products.user_security_instructions.export.not_applicable')}*`,
+            );
+        } else if (section.body.trim() === '') {
+            lines.push(
+                `*${t('products.user_security_instructions.export.empty_section')}*`,
+            );
+        } else {
+            lines.push(section.body.trim());
+        }
+
+        lines.push('');
+    }
+
+    return `${lines.join('\n').trim()}\n`;
+});
 
 const sectionError = (index: number, field: string): string | undefined => {
     const key = `sections.${index}.${field}`;
@@ -571,6 +610,51 @@ const doPublishEvidence = () => {
                         }}
                     </p>
                 </div>
+
+                <Collapsible
+                    v-model:open="showDocumentPreview"
+                    class="rounded-lg border"
+                >
+                    <CollapsibleTrigger as-child>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            class="flex h-auto w-full items-center justify-between gap-2 px-4 py-3"
+                        >
+                            <span
+                                class="flex items-center gap-2 text-sm font-medium"
+                            >
+                                <Eye class="h-4 w-4" />
+                                {{
+                                    t(
+                                        'products.user_security_instructions.document_preview',
+                                    )
+                                }}
+                            </span>
+                            <ChevronDown
+                                class="h-4 w-4 shrink-0 transition-transform"
+                                :class="showDocumentPreview ? 'rotate-180' : ''"
+                            />
+                        </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent class="space-y-2 border-t px-4 py-3">
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'products.user_security_instructions.document_preview_help',
+                                )
+                            }}
+                        </p>
+                        <MarkdownPreview
+                            :source="documentPreviewMarkdown"
+                            :empty-label="
+                                t(
+                                    'products.user_security_instructions.document_preview_empty',
+                                )
+                            "
+                        />
+                    </CollapsibleContent>
+                </Collapsible>
 
                 <div
                     v-for="(section, index) in form.sections"

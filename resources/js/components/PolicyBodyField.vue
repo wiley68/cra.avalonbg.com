@@ -19,6 +19,10 @@ const props = withDefaults(
         inputId?: string;
         label?: string;
         help?: string;
+        writeLabel?: string;
+        previewLabel?: string;
+        diffLabel?: string;
+        emptyLabel?: string;
     }>(),
     {
         previousBody: null,
@@ -30,6 +34,10 @@ const props = withDefaults(
         inputId: 'body',
         label: undefined,
         help: undefined,
+        writeLabel: undefined,
+        previewLabel: undefined,
+        diffLabel: undefined,
+        emptyLabel: undefined,
     },
 );
 
@@ -39,6 +47,19 @@ const emit = defineEmits<{
 
 const { t } = useTranslations();
 const activeTab = ref('write');
+
+const resolvedWriteLabel = computed(
+    () => props.writeLabel ?? t('common.markdown.write'),
+);
+const resolvedPreviewLabel = computed(
+    () => props.previewLabel ?? t('common.markdown.preview'),
+);
+const resolvedDiffLabel = computed(
+    () => props.diffLabel ?? t('common.markdown.diff'),
+);
+const resolvedEmptyLabel = computed(
+    () => props.emptyLabel ?? t('common.markdown.empty'),
+);
 
 const canDiff = computed(
     () =>
@@ -74,17 +95,17 @@ const onInput = (event: Event): void => {
         <Tabs v-model="activeTab" class="w-full">
             <TabsList class="w-full sm:w-fit">
                 <TabsTrigger value="write" class="flex-1 sm:flex-none">
-                    {{ t('policies.body_tab_write') }}
+                    {{ resolvedWriteLabel }}
                 </TabsTrigger>
                 <TabsTrigger value="preview" class="flex-1 sm:flex-none">
-                    {{ t('policies.body_tab_preview') }}
+                    {{ resolvedPreviewLabel }}
                 </TabsTrigger>
                 <TabsTrigger
                     v-if="canDiff"
                     value="diff"
                     class="flex-1 sm:flex-none"
                 >
-                    {{ t('policies.body_tab_diff') }}
+                    {{ resolvedDiffLabel }}
                 </TabsTrigger>
             </TabsList>
 
@@ -103,7 +124,7 @@ const onInput = (event: Event): void => {
             <TabsContent value="preview" class="mt-3">
                 <MarkdownPreview
                     :source="modelValue"
-                    :empty-label="t('policies.preview_empty')"
+                    :empty-label="resolvedEmptyLabel"
                 />
             </TabsContent>
 

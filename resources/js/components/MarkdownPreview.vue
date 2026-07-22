@@ -20,55 +20,55 @@ const isEmpty = computed(() => props.source.trim() === '');
     </div>
     <div
         v-else
-        class="policy-markdown max-h-128 overflow-y-auto rounded-md border bg-background px-4 py-3 text-sm leading-relaxed"
+        class="markdown-preview max-h-128 overflow-y-auto rounded-md border bg-background px-4 py-3 text-sm leading-relaxed"
         v-html="html"
     />
 </template>
 
 <style scoped>
-.policy-markdown :deep(h1),
-.policy-markdown :deep(h2),
-.policy-markdown :deep(h3) {
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3) {
     font-weight: 600;
     margin: 0.75rem 0 0.35rem;
     line-height: 1.3;
 }
 
-.policy-markdown :deep(h1) {
+.markdown-preview :deep(h1) {
     font-size: 1.25rem;
 }
 
-.policy-markdown :deep(h2) {
+.markdown-preview :deep(h2) {
     font-size: 1.1rem;
 }
 
-.policy-markdown :deep(h3) {
+.markdown-preview :deep(h3) {
     font-size: 1rem;
 }
 
-.policy-markdown :deep(p),
-.policy-markdown :deep(ul),
-.policy-markdown :deep(ol) {
+.markdown-preview :deep(p),
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
     margin: 0.4rem 0;
 }
 
-.policy-markdown :deep(ul),
-.policy-markdown :deep(ol) {
+.markdown-preview :deep(ul),
+.markdown-preview :deep(ol) {
     padding-left: 1.25rem;
 }
 
-.policy-markdown :deep(li) {
+.markdown-preview :deep(li) {
     margin: 0.15rem 0;
 }
 
-.policy-markdown :deep(code) {
+.markdown-preview :deep(code) {
     border-radius: 0.25rem;
     background: color-mix(in oklab, var(--muted) 80%, transparent);
     padding: 0.1rem 0.3rem;
     font-size: 0.85em;
 }
 
-.policy-markdown :deep(pre) {
+.markdown-preview :deep(pre) {
     overflow-x: auto;
     border-radius: 0.375rem;
     background: color-mix(in oklab, var(--muted) 80%, transparent);
@@ -76,19 +76,19 @@ const isEmpty = computed(() => props.source.trim() === '');
     margin: 0.5rem 0;
 }
 
-.policy-markdown :deep(pre code) {
+.markdown-preview :deep(pre code) {
     background: transparent;
     padding: 0;
 }
 
-.policy-markdown :deep(blockquote) {
+.markdown-preview :deep(blockquote) {
     border-left: 3px solid var(--border);
     color: var(--muted-foreground);
     margin: 0.5rem 0;
     padding-left: 0.75rem;
 }
 
-.policy-markdown :deep(a) {
+.markdown-preview :deep(a) {
     color: var(--primary);
     text-decoration: underline;
 }

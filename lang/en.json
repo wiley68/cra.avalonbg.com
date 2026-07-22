@@ -46,7 +46,13 @@
             "empty_file": "The CSV file has no data rows.",
             "row_failed": "This row could not be imported."
         },
-        "select": "Select…"
+        "select": "Select…",
+        "markdown": {
+            "write": "Write",
+            "preview": "Preview",
+            "diff": "Diff",
+            "empty": "Nothing to preview yet. Start writing Markdown in the Write tab."
+        }
     },
     "welcome": {
         "brand": "Avalon CRA Compliance Workspace",
@@ -2463,6 +2469,9 @@
             "filter_all_versions": "All scopes",
             "filter_product_wide": "Product-wide only",
             "filter_version": "Version",
+            "document_preview": "Document preview",
+            "document_preview_help": "Live Markdown preview of the full instructions document from the current form values.",
+            "document_preview_empty": "Add section content to preview the full document.",
             "statuses": {
                 "draft": "Draft",
                 "under_review": "Under review",

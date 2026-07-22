@@ -46,7 +46,13 @@
             "empty_file": "CSV файлът няма редове с данни.",
             "row_failed": "Този ред не може да бъде импортиран."
         },
-        "select": "Изберете…"
+        "select": "Изберете…",
+        "markdown": {
+            "write": "Писане",
+            "preview": "Преглед",
+            "diff": "Разлики",
+            "empty": "Все още няма какво да се прегледа. Започнете да пишете Markdown в раздела Писане."
+        }
     },
     "welcome": {
         "brand": "Avalon CRA Compliance Workspace",
@@ -2463,6 +2469,9 @@
             "filter_all_versions": "Всички обхвати",
             "filter_product_wide": "Само за целия продукт",
             "filter_version": "Версия",
+            "document_preview": "Преглед на документа",
+            "document_preview_help": "Преглед на Markdown за целия документ от текущите стойности във формата.",
+            "document_preview_empty": "Добавете съдържание в секциите, за да видите преглед на целия документ.",
             "statuses": {
                 "draft": "Чернова",
                 "under_review": "В преглед",
