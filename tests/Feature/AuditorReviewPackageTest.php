@@ -392,3 +392,69 @@ test('internal api lists packages for owner', function () {
         ->assertJsonPath('data.0.title', 'API package')
         ->assertJsonPath('data.0.status', 'draft');
 });
+
+test('create form preselects evidence from query string', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product, 'evidence' => $evidence] = makeAuditorOrgWithOwner();
+
+    $second = Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'type' => EvidenceType::Document,
+        'title' => 'Test report',
+        'confidentiality' => EvidenceConfidentiality::Internal,
+        'freshness_status' => EvidenceFreshnessStatus::Current,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $foreignProduct = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Other Product',
+        'slug' => 'other-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $foreignEvidence = Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $foreignProduct->id,
+        'type' => EvidenceType::Document,
+        'title' => 'Foreign evidence',
+        'confidentiality' => EvidenceConfidentiality::Internal,
+        'freshness_status' => EvidenceFreshnessStatus::Current,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('auditor.packages.create', [
+            'product_id' => $product->id,
+            'evidence_ids' => "{$evidence->id},{$second->id},{$foreignEvidence->id},999999",
+        ]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('auditor/Create')
+            ->where('preselected_product_id', $product->id)
+            ->where('preselected_evidence_ids', [$evidence->id, $second->id]));
+});
+
+test('evidence index exposes package create capability for managers', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product] = makeAuditorOrgWithOwner();
+    $viewer = makeAuditorOrgViewer($organization);
+
+    $this->actingAs($owner)
+        ->get(route('products.evidence.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/evidence/Index')
+            ->where('canCreateReviewPackage', true));
+
+    $this->actingAs($viewer)
+        ->get(route('products.evidence.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('canCreateReviewPackage', false));
+});

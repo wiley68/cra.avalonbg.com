@@ -1,9 +1,16 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Download, Pencil, Trash2 } from '@lucide/vue';
+import {
+    ArrowUpDown,
+    ClipboardList,
+    Download,
+    Pencil,
+    Trash2,
+} from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
+import { create as packagesCreate } from '@/routes/auditor/packages';
 import {
     download as downloadEvidence,
     edit as editEvidence,
@@ -27,6 +34,7 @@ export function createEvidenceColumnTitleMap(
     t: TranslateFn,
 ): Record<string, string> {
     return {
+        select: t('products.evidence.columns.select'),
         id: t('products.evidence.columns.id'),
         title: t('products.evidence.columns.title'),
         type: t('products.evidence.columns.type'),
@@ -81,14 +89,44 @@ export const createEvidenceColumns = ({
     t,
     productId,
     canManage,
+    canCreateReviewPackage,
+    selectedIds,
+    onToggleSelect,
     onDelete,
 }: {
     t: TranslateFn;
     productId: number;
     canManage: boolean;
+    canCreateReviewPackage: boolean;
+    selectedIds: number[];
+    onToggleSelect: (evidenceId: number, checked: boolean) => void;
     onDelete: (evidenceId: number) => void;
 }): ColumnDef<EvidenceListItem>[] => {
-    return [
+    const columns: ColumnDef<EvidenceListItem>[] = [];
+
+    if (canCreateReviewPackage) {
+        columns.push({
+            id: 'select',
+            enableHiding: false,
+            enableSorting: false,
+            header: () => t('products.evidence.columns.select'),
+            cell: ({ row }) =>
+                h('input', {
+                    type: 'checkbox',
+                    class: 'h-4 w-4 accent-primary',
+                    checked: selectedIds.includes(row.original.id),
+                    onChange: (event: Event) => {
+                        onToggleSelect(
+                            row.original.id,
+                            (event.target as HTMLInputElement).checked,
+                        );
+                    },
+                    'aria-label': t('products.evidence.select_row'),
+                }),
+        });
+    }
+
+    columns.push(
         {
             accessorKey: 'id',
             header: ({ column }) =>
@@ -215,6 +253,23 @@ export const createEvidenceColumns = ({
                     });
                 }
 
+                if (canCreateReviewPackage) {
+                    actions.push({
+                        label: t('products.evidence.add_to_review_package'),
+                        icon: ClipboardList,
+                        onSelect: () => {
+                            router.visit(
+                                packagesCreate.url({
+                                    query: {
+                                        product_id: productId,
+                                        evidence_ids: String(row.original.id),
+                                    },
+                                }),
+                            );
+                        },
+                    });
+                }
+
                 if (canManage) {
                     actions.push({
                         label: t('common.delete'),
@@ -230,5 +285,7 @@ export const createEvidenceColumns = ({
                 });
             },
         },
-    ];
+    );
+
+    return columns;
 };

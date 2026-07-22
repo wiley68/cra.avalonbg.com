@@ -57,14 +57,18 @@ class AuditorReviewPackageController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $organization = $this->currentOrganization();
         $this->authorize('create', [AuditorReviewPackage::class, $organization]);
 
+        $preselected = $this->resolvePreselectedEvidence($organization, $request);
+
         return Inertia::render('auditor/Create', [
             'organization' => $this->organizationPayload($organization),
             'products' => $this->productOptions($organization),
+            'preselected_product_id' => $preselected['product_id'],
+            'preselected_evidence_ids' => $preselected['evidence_ids'],
         ]);
     }
 
@@ -433,6 +437,82 @@ class AuditorReviewPackageController extends Controller
                 'basis' => $period->basis,
                 'is_extended' => $period->is_extended,
             ])->values()->all(),
+        ];
+    }
+
+    /**
+     * @return array{product_id: int|null, evidence_ids: list<int>}
+     */
+    private function resolvePreselectedEvidence(Organization $organization, Request $request): array
+    {
+        $productId = null;
+
+        if ($request->filled('product_id')) {
+            $candidate = $request->integer('product_id');
+
+            if (
+                Product::query()
+                    ->where('organization_id', $organization->id)
+                    ->whereKey($candidate)
+                    ->exists()
+            ) {
+                $productId = $candidate;
+            }
+        }
+
+        $rawIds = $request->input('evidence_ids');
+        $requestedIds = [];
+
+        if (is_string($rawIds) && $rawIds !== '') {
+            $requestedIds = array_values(array_filter(array_map(
+                static fn(string $value): int => (int) trim($value),
+                explode(',', $rawIds),
+            ), static fn(int $id): bool => $id > 0));
+        } elseif (is_array($rawIds)) {
+            $requestedIds = array_values(array_filter(array_map(
+                static fn($value): int => (int) $value,
+                $rawIds,
+            ), static fn(int $id): bool => $id > 0));
+        }
+
+        if ($requestedIds === []) {
+            return [
+                'product_id' => $productId,
+                'evidence_ids' => [],
+            ];
+        }
+
+        $query = Evidence::query()
+            ->whereIn('id', $requestedIds)
+            ->whereHas(
+                'product',
+                fn($builder) => $builder->where('organization_id', $organization->id),
+            );
+
+        if ($productId !== null) {
+            $query->where('product_id', $productId);
+        }
+
+        $evidence = $query->get(['id', 'product_id']);
+
+        if ($productId === null && $evidence->isNotEmpty()) {
+            $productIds = $evidence->pluck('product_id')->unique()->values();
+            $productId = (int) $productIds->first();
+            $evidence = $evidence->where('product_id', $productId)->values();
+        }
+
+        $idOrder = array_flip($requestedIds);
+
+        $orderedIds = $evidence
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->sortBy(fn(int $id) => $idOrder[$id] ?? PHP_INT_MAX)
+            ->values()
+            ->all();
+
+        return [
+            'product_id' => $productId,
+            'evidence_ids' => $orderedIds,
         ];
     }
 }

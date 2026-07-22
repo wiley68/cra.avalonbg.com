@@ -35,6 +35,8 @@ type ProductOption = {
 
 const props = defineProps<{
     products: ProductOption[];
+    preselected_product_id?: number | null;
+    preselected_evidence_ids?: number[];
 }>();
 
 const { t } = useTranslations();
@@ -44,11 +46,40 @@ usePageBreadcrumbs(() => [
     { titleKey: 'auditor.create_title', href: packagesCreate() },
 ]);
 
+const initialProductId = (() => {
+    if (
+        props.preselected_product_id &&
+        props.products.some(
+            (product) => product.id === props.preselected_product_id,
+        )
+    ) {
+        return String(props.preselected_product_id);
+    }
+
+    return props.products[0]?.id ? String(props.products[0].id) : '';
+})();
+
+const initialEvidenceIds = (() => {
+    const product = props.products.find(
+        (item) => String(item.id) === initialProductId,
+    );
+
+    if (!product) {
+        return [] as number[];
+    }
+
+    const allowed = new Set(product.evidence.map((item) => item.id));
+
+    return (props.preselected_evidence_ids ?? []).filter((id) =>
+        allowed.has(id),
+    );
+})();
+
 const form = useForm({
-    product_id: props.products[0]?.id ? String(props.products[0].id) : '',
+    product_id: initialProductId,
     title: '',
     notes: '',
-    evidence_ids: [] as number[],
+    evidence_ids: [...initialEvidenceIds] as number[],
 });
 
 const selectedProduct = computed(() =>
@@ -56,6 +87,8 @@ const selectedProduct = computed(() =>
 );
 
 const availableEvidence = computed(() => selectedProduct.value?.evidence ?? []);
+
+const hasPreselectedEvidence = computed(() => initialEvidenceIds.length > 0);
 
 watch(
     () => form.product_id,
@@ -106,6 +139,17 @@ const submit = () => {
                 </Link>
             </Button>
         </div>
+
+        <p
+            v-if="hasPreselectedEvidence"
+            class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100"
+        >
+            {{
+                t('auditor.preselected_evidence_hint', {
+                    count: String(initialEvidenceIds.length),
+                })
+            }}
+        </p>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">
@@ -192,7 +236,9 @@ const submit = () => {
                         </span>
                     </label>
                 </div>
-                <p v-else class="text-sm text-muted-foreground">—</p>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('auditor.no_evidence') }}
+                </p>
                 <InputError :message="form.errors.evidence_ids" />
             </div>
 

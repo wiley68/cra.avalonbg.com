@@ -39,6 +39,7 @@ class EvidenceController extends Controller
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
             'canManage' => request()->user()->canManageEvidence($organization),
+            'canCreateReviewPackage' => request()->user()->canManageProducts($organization),
             'options' => $this->enumOptions(),
         ]);
     }

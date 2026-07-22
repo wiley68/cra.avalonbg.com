@@ -484,6 +484,7 @@
         "filter_status_active": "Status filter",
         "clear_status_filter": "Clear status filter",
         "no_evidence": "No evidence records for this product yet.",
+        "preselected_evidence_hint": ":count evidence item(s) were preselected from the product evidence list. Review the selection before creating the package.",
         "columns": {
             "id": "ID",
             "title": "Title",
@@ -1891,7 +1892,12 @@
             "confirm_delete": "Delete this evidence permanently?",
             "search_placeholder": "Search by title, type, freshness or checksum...",
             "download": "Download",
+            "add_to_review_package": "Add to review package",
+            "create_review_package": "Create review package (:count)",
+            "select_for_package_help": "Select evidence rows, then create an auditor review package with them preselected.",
+            "select_row": "Select evidence for review package",
             "columns": {
+                "select": "Select",
                 "id": "ID",
                 "title": "Title",
                 "type": "Type",

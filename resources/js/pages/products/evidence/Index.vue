@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Plus } from '@lucide/vue';
+import { ArrowLeft, ClipboardList, Plus } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -13,6 +13,7 @@ import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { createEvidenceColumnTitleMap, createEvidenceColumns } from './columns';
 import type { EvidenceListItem } from './columns';
+import { create as packagesCreate } from '@/routes/auditor/packages';
 import { index as evidenceApiIndex } from '@/routes/internal/products/evidence';
 import {
     create as createEvidence,
@@ -37,6 +38,7 @@ const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
     canManage: boolean;
+    canCreateReviewPackage: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -44,12 +46,16 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.evidence.index_title', href: evidenceIndex(props.product.id) },
+    {
+        titleKey: 'products.evidence.index_title',
+        href: evidenceIndex(props.product.id),
+    },
 ]);
 const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);
 const evidenceToDelete = ref<number | null>(null);
+const selectedIds = ref<number[]>([]);
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<EvidenceListItem>({
@@ -77,9 +83,30 @@ const totalPages = computed(() =>
 
 const columnTitleMap = computed(() => createEvidenceColumnTitleMap(t));
 
+const createPackageHref = computed(() =>
+    packagesCreate.url({
+        query: {
+            product_id: props.product.id,
+            evidence_ids: selectedIds.value.join(','),
+        },
+    }),
+);
+
 const requestDelete = (evidenceId: number): void => {
     evidenceToDelete.value = evidenceId;
     showDeleteDialog.value = true;
+};
+
+const toggleSelect = (evidenceId: number, checked: boolean): void => {
+    if (checked) {
+        if (!selectedIds.value.includes(evidenceId)) {
+            selectedIds.value = [...selectedIds.value, evidenceId];
+        }
+
+        return;
+    }
+
+    selectedIds.value = selectedIds.value.filter((id) => id !== evidenceId);
 };
 
 const columns = computed(() =>
@@ -87,6 +114,9 @@ const columns = computed(() =>
         t,
         productId: props.product.id,
         canManage: props.canManage,
+        canCreateReviewPackage: props.canCreateReviewPackage,
+        selectedIds: selectedIds.value,
+        onToggleSelect: toggleSelect,
         onDelete: requestDelete,
     }),
 );
@@ -114,6 +144,9 @@ const confirmDelete = (): void => {
             preserveScroll: true,
             onSuccess: async () => {
                 rows.value = rows.value.filter((row) => row.id !== id);
+                selectedIds.value = selectedIds.value.filter(
+                    (selectedId) => selectedId !== id,
+                );
                 pagination.value.rowsNumber = Math.max(
                     0,
                     pagination.value.rowsNumber - 1,
@@ -175,6 +208,22 @@ onMounted(() => {
                         {{ t('common.back') }}
                     </Link>
                 </Button>
+                <Button
+                    v-if="canCreateReviewPackage && selectedIds.length > 0"
+                    as-child
+                >
+                    <Link
+                        :href="createPackageHref"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <ClipboardList class="h-4 w-4" />
+                        {{
+                            t('products.evidence.create_review_package', {
+                                count: String(selectedIds.length),
+                            })
+                        }}
+                    </Link>
+                </Button>
                 <Button v-if="canManage" as-child>
                     <Link
                         :href="createEvidence(props.product.id)"
@@ -186,6 +235,10 @@ onMounted(() => {
                 </Button>
             </div>
         </div>
+
+        <p v-if="canCreateReviewPackage" class="text-sm text-muted-foreground">
+            {{ t('products.evidence.select_for_package_help') }}
+        </p>
 
         <DataTable
             :columns="columns"

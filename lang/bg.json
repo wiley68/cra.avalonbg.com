@@ -484,6 +484,7 @@
         "filter_status_active": "Филтър по статус",
         "clear_status_filter": "Изчисти филтъра",
         "no_evidence": "Все още няма evidence записи за този продукт.",
+        "preselected_evidence_hint": ":count evidence елемент(а) са предварително избрани от списъка с evidence. Прегледайте селекцията преди създаване на пакета.",
         "columns": {
             "id": "ID",
             "title": "Заглавие",
@@ -1891,7 +1892,12 @@
             "confirm_delete": "Да се изтрие ли това доказателство завинаги?",
             "search_placeholder": "Търсене по заглавие, тип, freshness или checksum...",
             "download": "Изтегли",
+            "add_to_review_package": "Добави към review package",
+            "create_review_package": "Създай review package (:count)",
+            "select_for_package_help": "Изберете редове с evidence, след което създайте auditor review package с предварителна селекция.",
+            "select_row": "Избери evidence за review package",
             "columns": {
+                "select": "Избор",
                 "id": "ID",
                 "title": "Заглавие",
                 "type": "Тип",
