@@ -2637,6 +2637,8 @@
     },
     "assistant": {
         "disabled": "The AI assistant is disabled. Set CRA_AI_ENABLED=true to use it.",
-        "stub_provider_note": "Local stub provider — not a live model. Human review required."
+        "stub_provider_note": "Local stub provider — not a live model. Human review required.",
+        "message_required": "Enter a message to send to the assistant.",
+        "conversation_forbidden": "You can only continue your own AI conversations."
     }
 }

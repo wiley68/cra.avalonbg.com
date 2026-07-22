@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.18  
+**Версия:** 1.19  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must1 Done (in progress)  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must1–2 Done (in progress)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -289,7 +289,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 #### Must
 
 1. Config `CRA_AI_ENABLED` + provider stub (returns canned/echo or local template) — **Done** (2026-07-22)
-2. Conversation + message persistence — **Pending**
+2. Conversation + message persistence — **Done** (2026-07-22)
 3. Product-scoped chat UI with disclaimer (§6) — **Pending**
 4. Context builder: product + requirements + controls + policies summaries (no external API required for Must stub) — **Pending**
 5. Audit log for AI requests (no prompt secrets) — **Pending**
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.19   | 2026-07-22 | 2.3C Must 2: `ai_conversations` / `ai_messages` + sendMessage persist  |
 | 1.18   | 2026-07-22 | 2.3C Must 1: `CRA_AI_ENABLED` + `AiProvider` stub (canned/echo)        |
 | 1.17   | 2026-07-22 | 2.3B Could 10: finding → Task auto-create + remediate/delete lifecycle |
 | 1.16   | 2026-07-22 | 2.3B Could 9: time-limited guest magic link (view-only)                |

@@ -2635,6 +2635,8 @@
     },
     "assistant": {
         "disabled": "AI асистентът е изключен. Задайте CRA_AI_ENABLED=true, за да го ползвате.",
-        "stub_provider_note": "Локален stub provider — не е жив модел. Изисква се human review."
+        "stub_provider_note": "Локален stub provider — не е жив модел. Изисква се human review.",
+        "message_required": "Въведете съобщение към асистента.",
+        "conversation_forbidden": "Можете да продължавате само своите AI разговори."
     }
 }
