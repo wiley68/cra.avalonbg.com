@@ -1051,6 +1051,7 @@ class AuditLogger
                 ['field' => 'model', 'value' => $meta['model'] ?? ''],
                 ['field' => 'has_context', 'value' => $meta['has_context'] ? '1' : '0'],
                 ['field' => 'context_chars', 'value' => (string) $meta['context_chars']],
+                ['field' => 'rag_hits', 'value' => (string) ($meta['rag_hits'] ?? 0)],
             ],
         );
     }

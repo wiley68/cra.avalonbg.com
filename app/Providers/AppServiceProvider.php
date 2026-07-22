@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\AiProvider;
+use App\Contracts\EmbeddingProvider;
 use App\Enums\PermissionSlug;
 use App\Http\Middleware\ForceHttps;
 use App\Services\AiAssistantService;
@@ -64,6 +65,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(AiProvider::class, function (): AiProvider {
             return AiAssistantService::makeProvider();
+        });
+
+        $this->app->bind(EmbeddingProvider::class, function (): EmbeddingProvider {
+            return AiAssistantService::makeEmbeddingProvider();
         });
     }
 

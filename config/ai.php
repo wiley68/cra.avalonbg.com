@@ -20,7 +20,8 @@ return [
     'provider' => env('CRA_AI_PROVIDER', 'stub'),
 
     /*
-    | Plain-text context builder budgets (local summaries, no RAG).
+    | Plain-text context builder budgets (local summaries).
+    | RAG appends retrieved passages when CRA_AI_RAG_ENABLED=true.
     */
     'context_max_chars' => max(500, (int) env('CRA_AI_CONTEXT_MAX_CHARS', 8000)),
     'context_requirements_limit' => max(1, (int) env('CRA_AI_CONTEXT_REQUIREMENTS_LIMIT', 40)),
@@ -28,6 +29,21 @@ return [
     'context_excerpt_chars' => max(80, (int) env('CRA_AI_CONTEXT_EXCERPT_CHARS', 400)),
     'analyse_max_chars' => max(1000, (int) env('CRA_AI_ANALYSE_MAX_CHARS', 20000)),
     'analyse_max_upload_kb' => max(64, (int) env('CRA_AI_ANALYSE_MAX_UPLOAD_KB', 2048)),
+
+    'rag' => [
+        'enabled' => (bool) env('CRA_AI_RAG_ENABLED', true),
+        'top_k' => max(1, (int) env('CRA_AI_RAG_TOP_K', 6)),
+        'min_score' => (float) env('CRA_AI_RAG_MIN_SCORE', 0.05),
+        'chunk_chars' => max(200, (int) env('CRA_AI_RAG_CHUNK_CHARS', 800)),
+        'passage_chars' => max(80, (int) env('CRA_AI_RAG_PASSAGE_CHARS', 600)),
+        'candidate_limit' => max(20, (int) env('CRA_AI_RAG_CANDIDATE_LIMIT', 200)),
+    ],
+
+    'embeddings' => [
+        'provider' => env('CRA_AI_EMBEDDING_PROVIDER', 'stub'),
+        'dimensions' => max(8, (int) env('CRA_AI_EMBEDDING_DIMENSIONS', 64)),
+        'openai_model' => env('CRA_AI_EMBEDDING_OPENAI_MODEL', 'text-embedding-3-small'),
+    ],
 
     'providers' => [
         'stub' => [

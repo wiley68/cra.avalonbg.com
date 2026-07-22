@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.26  
+**Версия:** 1.27  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must Done; Should Done (Could remaining)  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must/Should Done; Could10 Done (11–12 remaining)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -304,7 +304,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 #### Could
 
-10. Vector embeddings / RAG index
+10. Vector embeddings / RAG index — **Done** (2026-07-22)
 11. Vulnerability triage assistant integration
 12. Queued long-running analysis jobs
 
@@ -367,6 +367,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.27   | 2026-07-22 | 2.3C Could 10: local embedding chunks + RAG retrieval in chat context  |
 | 1.26   | 2026-07-22 | 2.3C Should 9: campaign draft generator (advisory / notification)      |
 | 1.25   | 2026-07-22 | 2.3C Should 8: document upload analyser + structured suggestions JSON  |
 | 1.24   | 2026-07-22 | 2.3C Should 7: OpenAI + Anthropic `AiProvider` adapters                |

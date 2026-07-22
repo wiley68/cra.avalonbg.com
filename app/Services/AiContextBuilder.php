@@ -15,7 +15,7 @@ class AiContextBuilder
      * Build a plain-text workspace summary for grounding the AI assistant.
      * No external API — local DB snapshots only (Must stub).
      */
-    public function forProduct(Product $product): string
+    public function forProduct(Product $product, bool $truncate = true): string
     {
         $sections = [
             $this->productSection($product),
@@ -25,6 +25,11 @@ class AiContextBuilder
         ];
 
         $text = implode("\n\n", array_filter($sections));
+
+        if (!$truncate) {
+            return $text;
+        }
+
         $max = max(500, (int) config('ai.context_max_chars', 8000));
 
         if (mb_strlen($text) <= $max) {

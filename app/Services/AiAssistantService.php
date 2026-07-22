@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Contracts\AiProvider;
+use App\Contracts\EmbeddingProvider;
 use App\Enums\AiConversationContextType;
 use App\Enums\AiDraftType;
 use App\Enums\AiMessageRole;
 use App\Enums\AiProviderDriver;
+use App\Enums\EmbeddingProviderDriver;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\PatchCampaign;
@@ -19,8 +21,10 @@ use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
 use App\Services\Ai\AnthropicAiProvider;
+use App\Services\Ai\OpenAiEmbeddingProvider;
 use App\Services\Ai\OpenAiProvider;
 use App\Services\Ai\StubAiProvider;
+use App\Services\Ai\StubEmbeddingProvider;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Http\UploadedFile;
@@ -34,6 +38,7 @@ class AiAssistantService
         private readonly AiContextBuilder $contextBuilder,
         private readonly AiCampaignContextBuilder $campaignContextBuilder,
         private readonly AiDocumentTextExtractor $documentTextExtractor,
+        private readonly AiRagRetriever $ragRetriever,
     ) {
     }
 
@@ -63,6 +68,18 @@ class AiAssistantService
             AiProviderDriver::Stub => new StubAiProvider,
             AiProviderDriver::OpenAi => new OpenAiProvider,
             AiProviderDriver::Anthropic => new AnthropicAiProvider,
+        };
+    }
+
+    public static function makeEmbeddingProvider(?string $driver = null): EmbeddingProvider
+    {
+        $resolved = EmbeddingProviderDriver::tryFrom(
+            $driver ?? (string) config('ai.embeddings.provider', EmbeddingProviderDriver::Stub->value),
+        ) ?? EmbeddingProviderDriver::Stub;
+
+        return match ($resolved) {
+            EmbeddingProviderDriver::Stub => new StubEmbeddingProvider,
+            EmbeddingProviderDriver::OpenAi => new OpenAiEmbeddingProvider,
         };
     }
 
@@ -136,7 +153,9 @@ class AiAssistantService
                 ])
                 ->all();
 
-            $context = $this->resolveContext($conversation, $options);
+            $grounded = $this->resolveContext($conversation, $options, $trimmed);
+            $context = $grounded['context'];
+            $ragHits = $grounded['rag_hits'];
             $hasContext = $context !== null && $context !== '';
             $contextChars = $context !== null ? mb_strlen($context) : 0;
 
@@ -154,6 +173,7 @@ class AiAssistantService
                     'model' => $completion['model'],
                     'has_context' => $hasContext,
                     'context_chars' => $contextChars,
+                    'rag_hits' => $ragHits,
                 ],
             ]);
 
@@ -169,6 +189,7 @@ class AiAssistantService
                     'model' => $completion['model'],
                     'has_context' => $hasContext,
                     'context_chars' => $contextChars,
+                    'rag_hits' => $ragHits,
                 ],
             );
 
@@ -414,23 +435,47 @@ class AiAssistantService
 
     /**
      * @param  array{context?: string|null}  $options
+     * @return array{context: string|null, rag_hits: int}
      */
-    private function resolveContext(AiConversation $conversation, array $options): ?string
+    private function resolveContext(AiConversation $conversation, array $options, ?string $query = null): array
     {
         if (array_key_exists('context', $options)) {
             $explicit = $options['context'];
 
-            return $explicit === null ? null : (string) $explicit;
+            return [
+                'context' => $explicit === null ? null : (string) $explicit,
+                'rag_hits' => 0,
+            ];
         }
 
         $conversation->loadMissing('product');
         $product = $conversation->product;
 
         if ($product === null) {
-            return null;
+            return ['context' => null, 'rag_hits' => 0];
         }
 
-        return $this->contextBuilder->forProduct($product);
+        $base = $this->contextBuilder->forProduct($product, truncate: false);
+        $ragHits = 0;
+
+        if ($query !== null && $query !== '' && $this->ragRetriever->isEnabled()) {
+            $retrieved = $this->ragRetriever->retrieve($product, $query);
+            $ragHits = $retrieved['hits'];
+
+            if ($retrieved['text'] !== '') {
+                $base = trim($base . "\n\n" . $retrieved['text']);
+            }
+        }
+
+        $max = max(500, (int) config('ai.context_max_chars', 8000));
+        if (mb_strlen($base) > $max) {
+            $base = rtrim(mb_substr($base, 0, $max - 14)) . "\n…[truncated]";
+        }
+
+        return [
+            'context' => $base,
+            'rag_hits' => $ragHits,
+        ];
     }
 
     public function latestForProductUser(Product $product, User $user): ?AiConversation

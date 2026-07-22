@@ -33,6 +33,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="CRA_AI_PROVIDER" value="stub"/>
+        <env name="CRA_AI_EMBEDDING_PROVIDER" value="stub"/>
         <env name="CRA_AI_ENABLED" value="true"/>
     </php>
 </phpunit>
