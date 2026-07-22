@@ -24,6 +24,7 @@ const props = defineProps<{
         vulnerabilities: SubjectOption[];
         evidence: SubjectOption[];
         org_policies: SubjectOption[];
+        auditor_findings: SubjectOption[];
     };
     options: {
         statuses: string[];
@@ -75,6 +76,10 @@ const subjectOptions = computed((): SubjectOption[] => {
 
     if (form.subject_type === 'org_policy') {
         return props.subjects.org_policies;
+    }
+
+    if (form.subject_type === 'auditor_finding') {
+        return props.subjects.auditor_findings;
     }
 
     return [];

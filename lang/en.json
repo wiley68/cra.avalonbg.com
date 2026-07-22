@@ -554,6 +554,9 @@
             "only_shared_deletable": "Findings can only be deleted while the package is shared.",
             "only_open_deletable": "Only open findings can be deleted.",
             "only_shared_or_closed_status": "Remediation status can only be updated on shared or closed packages.",
+            "task_title": "Remediate auditor finding: :title",
+            "task_description": "Auditor finding from package \":package\".\nSeverity: :severity\n\n:body",
+            "view_task": "View remediation task",
             "fields": {
                 "title": "Title",
                 "body": "Description",
@@ -2048,7 +2051,7 @@
                 "priority": "Relative urgency of the task.",
                 "assignee": "Organization member responsible for completing the task.",
                 "due_at": "Optional target completion date.",
-                "subject_type": "Optional related risk, vulnerability, evidence, or organization policy.",
+                "subject_type": "Optional related risk, vulnerability, evidence, organization policy, or auditor finding.",
                 "subject_id": "Specific record this task is about.",
                 "approval_status": "Whether approval is required or already pending.",
                 "approval_comment": "Optional note recorded with approve or reject."
@@ -2075,7 +2078,8 @@
                 "risk": "Risk",
                 "vulnerability": "Vulnerability",
                 "evidence": "Evidence",
-                "org_policy": "Organization policy"
+                "org_policy": "Organization policy",
+                "auditor_finding": "Auditor finding"
             }
         },
         "readiness": {

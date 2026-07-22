@@ -29,6 +29,7 @@ import {
     store as findingsStore,
     update as findingsUpdate,
 } from '@/routes/auditor/packages/findings';
+import { edit as editTask } from '@/routes/products/tasks';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 
@@ -69,6 +70,12 @@ type FindingItem = {
     remediated_at: string | null;
     created_at: string | null;
     updated_at: string | null;
+    task: {
+        id: number;
+        product_id: number;
+        title: string;
+        status: string;
+    } | null;
 };
 
 type ProductPassport = {
@@ -636,6 +643,28 @@ const doDeleteFinding = () => {
                         >
                             {{ finding.body }}
                         </p>
+                        <div v-if="finding.task" class="pt-1">
+                            <Button as-child size="sm" variant="outline">
+                                <Link
+                                    :href="
+                                        editTask({
+                                            product: finding.task.product_id,
+                                            task: finding.task.id,
+                                        }).url
+                                    "
+                                >
+                                    <ListTodo class="h-4 w-4" />
+                                    {{ t('auditor.findings.view_task') }}
+                                    <span class="text-muted-foreground">
+                                        ({{
+                                            t(
+                                                `products.tasks.statuses.${finding.task.status}`,
+                                            )
+                                        }})
+                                    </span>
+                                </Link>
+                            </Button>
+                        </div>
                         <div
                             v-if="canManageRemediation"
                             class="grid max-w-sm gap-2"

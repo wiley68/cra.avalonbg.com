@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\TaskApprovalStatus;
 use App\Enums\TaskStatus;
+use App\Models\AuditorFinding;
 use App\Models\Evidence;
 use App\Models\OrgPolicy;
 use App\Models\Product;
@@ -30,6 +31,7 @@ class TaskService
             'vulnerability' => ProductVulnerability::class,
             'evidence' => Evidence::class,
             'org_policy' => OrgPolicy::class,
+            'auditor_finding' => AuditorFinding::class,
         ];
     }
 
@@ -289,6 +291,7 @@ class TaskService
                 $task->subject instanceof Evidence => $task->subject->title,
                 $task->subject instanceof OrgPolicy => $task->subject->title
                 . ' (' . $task->subject->version_label . ')',
+                $task->subject instanceof AuditorFinding => $task->subject->title,
                 default => '#' . $task->subject_id,
             };
         }
@@ -351,6 +354,13 @@ class TaskService
             OrgPolicy::class => OrgPolicy::query()
                 ->where('id', $id)
                 ->where('organization_id', $product->organization_id)
+                ->exists(),
+            AuditorFinding::class => AuditorFinding::query()
+                ->where('id', $id)
+                ->whereHas(
+                    'package',
+                    fn($query) => $query->where('product_id', $product->id),
+                )
                 ->exists(),
             default => throw new InvalidArgumentException('Unsupported subject class.'),
         };

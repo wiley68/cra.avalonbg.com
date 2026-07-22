@@ -8,6 +8,7 @@ use App\Enums\TaskStatus;
 use App\Http\Requests\ApproveTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Models\AuditorFinding;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
@@ -294,7 +295,8 @@ class TaskController extends Controller
      *     risks: list<array{id: int, label: string}>,
      *     vulnerabilities: list<array{id: int, label: string}>,
      *     evidence: list<array{id: int, label: string}>,
-     *     org_policies: list<array{id: int, label: string}>
+     *     org_policies: list<array{id: int, label: string}>,
+     *     auditor_findings: list<array{id: int, label: string}>
      * }
      */
     private function subjectOptions(Product $product): array
@@ -337,6 +339,19 @@ class TaskController extends Controller
                 ->map(fn(OrgPolicy $policy) => [
                     'id' => $policy->id,
                     'label' => "{$policy->title} ({$policy->version_label})",
+                ])
+                ->all(),
+            'auditor_findings' => AuditorFinding::query()
+                ->whereHas(
+                    'package',
+                    fn($query) => $query->where('product_id', $product->id),
+                )
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(['id', 'title', 'severity'])
+                ->map(fn(AuditorFinding $finding) => [
+                    'id' => $finding->id,
+                    'label' => "{$finding->title} ({$finding->severity->value})",
                 ])
                 ->all(),
         ];

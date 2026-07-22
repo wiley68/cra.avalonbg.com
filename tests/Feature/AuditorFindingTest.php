@@ -11,6 +11,8 @@ use App\Enums\EvidenceType;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Models\AuditLog;
 use App\Models\AuditorFinding;
 use App\Models\AuditorReviewPackage;
@@ -18,6 +20,7 @@ use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\Role;
+use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,8 +148,23 @@ test('auditor can create finding on shared package and audit is recorded', funct
         ->and($finding->status)->toBe(AuditorFindingStatus::Open)
         ->and($finding->created_by)->toBe($auditor->id);
 
+    $task = Task::query()
+        ->where('subject_type', AuditorFinding::class)
+        ->where('subject_id', $finding->id)
+        ->first();
+
+    expect($task)->not->toBeNull()
+        ->and($task->product_id)->toBe($package->product_id)
+        ->and($task->status)->toBe(TaskStatus::Open)
+        ->and($task->priority)->toBe(TaskPriority::High)
+        ->and($task->created_by)->toBe($auditor->id);
+
     expect(AuditLog::query()
         ->where('event_type', AuditEventType::AuditorFindingCreated->value)
+        ->exists())->toBeTrue();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::TaskCreated->value)
         ->exists())->toBeTrue();
 
     $this->actingAs($owner)
@@ -232,6 +250,59 @@ test('owner can update remediation status but auditor cannot', function () {
 
     expect($finding->fresh()->remediated_at)->toBeNull()
         ->and($finding->fresh()->status)->toBe(AuditorFindingStatus::Accepted);
+});
+
+test('remediating finding completes open remediation task and deleting cancels it', function () {
+    ['owner' => $owner, 'auditor' => $auditor, 'package' => $package] = makeSharedPackageWithAuditor();
+
+    $this->actingAs($auditor)
+        ->post(route('auditor.packages.findings.store', $package), [
+            'title' => 'Needs task lifecycle',
+            'body' => 'Track me',
+            'severity' => AuditorFindingSeverity::Minor->value,
+        ])
+        ->assertRedirect();
+
+    $finding = AuditorFinding::query()->where('title', 'Needs task lifecycle')->firstOrFail();
+    $task = Task::query()
+        ->where('subject_type', AuditorFinding::class)
+        ->where('subject_id', $finding->id)
+        ->firstOrFail();
+
+    expect($task->status)->toBe(TaskStatus::Open)
+        ->and($task->priority)->toBe(TaskPriority::Medium);
+
+    $this->actingAs($owner)
+        ->put(route('auditor.packages.findings.status', [$package, $finding]), [
+            'status' => AuditorFindingStatus::Remediated->value,
+        ])
+        ->assertRedirect();
+
+    expect($task->fresh()->status)->toBe(TaskStatus::Completed);
+
+    $this->actingAs($auditor)
+        ->post(route('auditor.packages.findings.store', $package), [
+            'title' => 'Will be deleted',
+            'body' => 'Cancel my task',
+            'severity' => AuditorFindingSeverity::Info->value,
+        ])
+        ->assertRedirect();
+
+    $toDelete = AuditorFinding::query()->where('title', 'Will be deleted')->firstOrFail();
+    $openTask = Task::query()
+        ->where('subject_type', AuditorFinding::class)
+        ->where('subject_id', $toDelete->id)
+        ->firstOrFail();
+
+    expect($openTask->status)->toBe(TaskStatus::Open)
+        ->and($openTask->priority)->toBe(TaskPriority::Low);
+
+    $this->actingAs($auditor)
+        ->delete(route('auditor.packages.findings.destroy', [$package, $toDelete]))
+        ->assertRedirect();
+
+    expect(AuditorFinding::query()->find($toDelete->id))->toBeNull()
+        ->and($openTask->fresh()->status)->toBe(TaskStatus::Cancelled);
 });
 
 test('viewer cannot create findings or change remediation', function () {

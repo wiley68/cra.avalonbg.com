@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.16  
+**Версия:** 1.17  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Must+Should+Could9 Done; 2.3C remaining  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -282,7 +282,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 #### Could
 
 9. Time-limited magic link for external auditor without user account — **Done** (2026-07-22)
-10. Finding → Task auto-create
+10. Finding → Task auto-create — **Done** (2026-07-22)
 
 ### 2.3C AI assistant
 
@@ -364,22 +364,23 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                               |
-| ------ | ---------- | --------------------------------------------------------------------- |
-| 1.16   | 2026-07-22 | 2.3B Could 9: time-limited guest magic link (view-only)               |
-| 1.15   | 2026-07-22 | 2.3B Should 8: email notify auditors on package share (stub)          |
-| 1.14   | 2026-07-22 | 2.3B Should 7: preselect evidence from product evidence index         |
-| 1.13   | 2026-07-21 | 2.3B Must 6: RBAC matrix tests; drafts hidden from non-managers       |
-| 1.12   | 2026-07-21 | 2.3B Must 5: package ZIP export (PDF + selected evidence)             |
-| 1.11   | 2026-07-21 | 2.3B Must 4: findings CRUD (auditor) + owner remediation status       |
-| 1.10   | 2026-07-21 | 2.3B Must 3: read-only review (passport + readiness + evidence)       |
-| 1.9    | 2026-07-21 | 2.3B Must 2: package CRUD + share/close + owner UI + tests            |
-| 1.8    | 2026-07-21 | 2.3B Must 1: auditor review packages + findings schema/models         |
-| 1.7    | 2026-07-21 | Could 12: PDF export per organization policy                          |
-| 1.6    | 2026-07-21 | Could 11: submit-for-review creates product Task (org_policy subject) |
-| 1.5    | 2026-07-21 | Could 10: Markdown preview + diff between policy versions             |
-| 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI          |
-| 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)          |
-| 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`        |
-| 1.1    | 2026-07-21 | 2.3A Must Done: policy library CRUD + lifecycle + templates + tests   |
-| 1.0    | 2026-07-21 | Първоначален план; fixed order A → B → C                              |
+| Версия | Дата       | Промяна                                                                |
+| ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.17   | 2026-07-22 | 2.3B Could 10: finding → Task auto-create + remediate/delete lifecycle |
+| 1.16   | 2026-07-22 | 2.3B Could 9: time-limited guest magic link (view-only)                |
+| 1.15   | 2026-07-22 | 2.3B Should 8: email notify auditors on package share (stub)           |
+| 1.14   | 2026-07-22 | 2.3B Should 7: preselect evidence from product evidence index          |
+| 1.13   | 2026-07-21 | 2.3B Must 6: RBAC matrix tests; drafts hidden from non-managers        |
+| 1.12   | 2026-07-21 | 2.3B Must 5: package ZIP export (PDF + selected evidence)              |
+| 1.11   | 2026-07-21 | 2.3B Must 4: findings CRUD (auditor) + owner remediation status        |
+| 1.10   | 2026-07-21 | 2.3B Must 3: read-only review (passport + readiness + evidence)        |
+| 1.9    | 2026-07-21 | 2.3B Must 2: package CRUD + share/close + owner UI + tests             |
+| 1.8    | 2026-07-21 | 2.3B Must 1: auditor review packages + findings schema/models          |
+| 1.7    | 2026-07-21 | Could 12: PDF export per organization policy                           |
+| 1.6    | 2026-07-21 | Could 11: submit-for-review creates product Task (org_policy subject)  |
+| 1.5    | 2026-07-21 | Could 10: Markdown preview + diff between policy versions              |
+| 1.4    | 2026-07-21 | Should 9: related policy links from controls/requirements UI           |
+| 1.3    | 2026-07-21 | Should 8: publish approved policy → Evidence (`type=policy`)           |
+| 1.2    | 2026-07-21 | Should 7: readiness `policies_missing` / `policies_review_due`         |
+| 1.1    | 2026-07-21 | 2.3A Must Done: policy library CRUD + lifecycle + templates + tests    |
+| 1.0    | 2026-07-21 | Първоначален план; fixed order A → B → C                               |
