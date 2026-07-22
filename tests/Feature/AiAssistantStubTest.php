@@ -42,7 +42,7 @@ test('stub provider returns canned echo template for the last user message', fun
 });
 
 test('AiAssistantService complete uses provider when enabled', function () {
-    config(['ai.enabled' => true]);
+    config(['ai.enabled' => true, 'ai.provider' => AiProviderDriver::Stub->value]);
 
     $service = app(AiAssistantService::class);
 
@@ -57,7 +57,7 @@ test('AiAssistantService complete uses provider when enabled', function () {
 });
 
 test('AiAssistantService rejects complete when AI is disabled', function () {
-    config(['ai.enabled' => false]);
+    config(['ai.enabled' => false, 'ai.provider' => AiProviderDriver::Stub->value]);
 
     $service = app(AiAssistantService::class);
 
@@ -66,12 +66,4 @@ test('AiAssistantService rejects complete when AI is disabled', function () {
     expect(fn() => $service->complete([
         ['role' => 'user', 'content' => 'Hello'],
     ]))->toThrow(ValidationException::class);
-});
-
-test('makeProvider rejects unimplemented openai and anthropic drivers', function () {
-    expect(fn() => AiAssistantService::makeProvider(AiProviderDriver::OpenAi->value))
-        ->toThrow(InvalidArgumentException::class);
-
-    expect(fn() => AiAssistantService::makeProvider(AiProviderDriver::Anthropic->value))
-        ->toThrow(InvalidArgumentException::class);
 });

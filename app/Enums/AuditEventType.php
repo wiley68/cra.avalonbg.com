@@ -80,6 +80,7 @@ enum AuditEventType: string
     case VcsSuggestionAccepted = 'vcs_suggestion_accepted';
     case VcsSuggestionDismissed = 'vcs_suggestion_dismissed';
     case AiRequestCompleted = 'ai_request_completed';
+    case AiDocumentAnalysed = 'ai_document_analysed';
 
     public function label(): string
     {

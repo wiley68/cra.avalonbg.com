@@ -1,23 +1,63 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Bot, Send } from '@lucide/vue';
+import { ArrowLeft, Bot, FileSearch, Send } from '@lucide/vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
-import { show as assistantShow } from '@/routes/products/assistant';
+import {
+    analyse as analyseDocument,
+    show as assistantShow,
+} from '@/routes/products/assistant';
 import { store as storeAssistantMessage } from '@/routes/products/assistant/messages';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
+
+type SuggestionGap = {
+    kind?: string;
+    severity?: string;
+    description?: string;
+    suggested_action?: string;
+};
+
+type SuggestionRequirement = {
+    requirement_code?: string | null;
+    confidence?: number;
+    rationale?: string;
+    excerpt?: string | null;
+};
+
+type SuggestionEvidence = {
+    suggested_evidence_type?: string;
+    title_suggestion?: string;
+    confidence?: number;
+    rationale?: string;
+};
+
+type Suggestions = {
+    document_summary?: string;
+    document_kind_guess?: string;
+    requirement_mappings?: SuggestionRequirement[];
+    evidence_mappings?: SuggestionEvidence[];
+    gaps?: SuggestionGap[];
+    human_review_required?: boolean;
+    disclaimer?: string;
+};
 
 type ChatMessage = {
     id: number;
     role: 'user' | 'assistant';
     content: string;
     created_at: string | null;
+    metadata?: {
+        mode?: string;
+        filename?: string;
+        suggestions?: Suggestions | null;
+        suggestions_parsed?: boolean;
+    } | null;
 };
 
 type ConversationPayload = {
@@ -50,19 +90,57 @@ const form = useForm({
     content: '',
 });
 
+const analyseForm = useForm<{
+    file: File | null;
+    note: string;
+}>({
+    file: null,
+    note: '',
+});
+
 const messagesEnd = ref<HTMLElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const chatMessages = computed(() => props.conversation?.messages ?? []);
+
+const latestSuggestions = computed((): Suggestions | null => {
+    for (let i = chatMessages.value.length - 1; i >= 0; i--) {
+        const message = chatMessages.value[i];
+        if (
+            message.role === 'assistant' &&
+            message.metadata?.suggestions &&
+            typeof message.metadata.suggestions === 'object'
+        ) {
+            return message.metadata.suggestions;
+        }
+    }
+
+    return null;
+});
 
 const canSend = computed(
     () =>
         props.ai_enabled && form.content.trim().length > 0 && !form.processing,
 );
 
+const canAnalyse = computed(
+    () =>
+        props.ai_enabled &&
+        analyseForm.file !== null &&
+        !analyseForm.processing &&
+        !form.processing,
+);
+
 const assistantError = computed(() => {
     const errors = form.errors as Record<string, string | undefined>;
 
     return errors.assistant ?? null;
+});
+
+const analyseError = computed(() => {
+    const errors = analyseForm.errors as Record<string, string | undefined>;
+
+    return errors.file ?? errors.assistant ?? errors.note ?? null;
 });
 
 async function scrollToBottom(): Promise<void> {
@@ -78,6 +156,11 @@ watch(
     { immediate: true },
 );
 
+function onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    analyseForm.file = input.files?.[0] ?? null;
+}
+
 function submit(): void {
     if (!canSend.value) {
         return;
@@ -87,6 +170,23 @@ function submit(): void {
         preserveScroll: true,
         onSuccess: () => {
             form.reset('content');
+        },
+    });
+}
+
+function submitAnalyse(): void {
+    if (!canAnalyse.value) {
+        return;
+    }
+
+    analyseForm.post(analyseDocument(props.product.id).url, {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            analyseForm.reset();
+            if (fileInput.value) {
+                fileInput.value.value = '';
+            }
         },
     });
 }
@@ -135,6 +235,159 @@ function submit(): void {
             class="rounded-lg border px-4 py-2 text-sm text-muted-foreground"
         >
             {{ t('assistant.stub_provider_note') }}
+        </div>
+
+        <form
+            class="space-y-3 rounded-lg border p-4"
+            @submit.prevent="submitAnalyse"
+        >
+            <div class="flex items-start gap-2">
+                <FileSearch
+                    class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+                />
+                <div>
+                    <h2 class="text-sm font-medium">
+                        {{ t('products.assistant.analyse.title') }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('products.assistant.analyse.subtitle') }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium" for="assistant-file">
+                        {{ t('products.assistant.analyse.file_label') }}
+                    </label>
+                    <input
+                        id="assistant-file"
+                        ref="fileInput"
+                        type="file"
+                        class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-sm file:font-medium"
+                        accept=".txt,.md,.markdown,.csv,.json,.xml,.html,.htm,.log,text/plain,text/markdown,text/csv,application/json"
+                        :disabled="!props.ai_enabled || analyseForm.processing"
+                        @change="onFileChange"
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('products.assistant.analyse.file_help') }}
+                    </p>
+                </div>
+                <Button
+                    type="submit"
+                    variant="secondary"
+                    :disabled="!canAnalyse"
+                >
+                    <FileSearch class="h-4 w-4" />
+                    {{ t('products.assistant.analyse.submit') }}
+                </Button>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium" for="assistant-note">
+                    {{ t('products.assistant.analyse.note_label') }}
+                </label>
+                <textarea
+                    id="assistant-note"
+                    v-model="analyseForm.note"
+                    rows="2"
+                    class="flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                    :placeholder="
+                        t('products.assistant.analyse.note_placeholder')
+                    "
+                    :disabled="!props.ai_enabled || analyseForm.processing"
+                />
+            </div>
+
+            <p v-if="analyseError" class="text-sm text-destructive">
+                {{ analyseError }}
+            </p>
+        </form>
+
+        <div v-if="latestSuggestions" class="space-y-3 rounded-lg border p-4">
+            <h2 class="text-sm font-medium">
+                {{ t('products.assistant.analyse.suggestions_title') }}
+            </h2>
+            <p class="text-sm text-muted-foreground">
+                {{
+                    latestSuggestions.disclaimer ||
+                    t('products.assistant.analyse.human_review')
+                }}
+            </p>
+            <p v-if="latestSuggestions.document_summary" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.analyse.summary') }}:
+                </span>
+                {{ latestSuggestions.document_summary }}
+            </p>
+            <p v-if="latestSuggestions.document_kind_guess" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.analyse.kind') }}:
+                </span>
+                {{ latestSuggestions.document_kind_guess }}
+            </p>
+
+            <div
+                v-if="(latestSuggestions.requirement_mappings || []).length"
+                class="space-y-1"
+            >
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.analyse.requirements') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(
+                            item, index
+                        ) in latestSuggestions.requirement_mappings"
+                        :key="`req-${index}`"
+                    >
+                        {{ item.requirement_code || '—' }} —
+                        {{ item.rationale }}
+                    </li>
+                </ul>
+            </div>
+
+            <div
+                v-if="(latestSuggestions.evidence_mappings || []).length"
+                class="space-y-1"
+            >
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.analyse.evidence') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(
+                            item, index
+                        ) in latestSuggestions.evidence_mappings"
+                        :key="`ev-${index}`"
+                    >
+                        {{ item.title_suggestion }} ({{
+                            item.suggested_evidence_type
+                        }})
+                    </li>
+                </ul>
+            </div>
+
+            <div v-if="(latestSuggestions.gaps || []).length" class="space-y-1">
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.analyse.gaps') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(item, index) in latestSuggestions.gaps"
+                        :key="`gap-${index}`"
+                    >
+                        [{{ item.severity || 'info' }}]
+                        {{ item.description }}
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <div

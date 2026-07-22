@@ -2335,7 +2335,23 @@
             "input_placeholder": "Попитайте за requirements, controls, evidence или пропуски…",
             "send": "Изпрати",
             "role_user": "Вие",
-            "role_assistant": "Асистент"
+            "role_assistant": "Асистент",
+            "analyse": {
+                "title": "Анализ на документ",
+                "subtitle": "Качете текстов документ за one-shot предложения за mappings/gaps. Изисква се human review преди прилагане.",
+                "file_label": "Файл",
+                "file_help": "Поддържани: txt, md, csv, json, xml, html, log (макс. размер от конфигурацията).",
+                "note_label": "Опционална бележка",
+                "note_placeholder": "напр. Фокус върху vulnerability disclosure…",
+                "submit": "Анализирай документ",
+                "suggestions_title": "Предложени mappings и gaps",
+                "human_review": "Само предложения — изисква се human review. Нищо не се прилага автоматично.",
+                "summary": "Резюме",
+                "kind": "Тип документ",
+                "requirements": "Предложени requirement mappings",
+                "evidence": "Предложени evidence mappings",
+                "gaps": "Пропуски / проблеми"
+            }
         }
     },
     "audit_logs": {
@@ -2450,7 +2466,8 @@
             "vcs_sync_failed": "Неуспешен VCS sync",
             "vcs_suggestion_accepted": "VCS предложение е прието",
             "vcs_suggestion_dismissed": "VCS предложение е отхвърлено",
-            "ai_request_completed": "Завършена AI assistant заявка"
+            "ai_request_completed": "Завършена AI assistant заявка",
+            "ai_document_analysed": "Анализиран AI документ"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -2654,6 +2671,12 @@
         "disabled": "AI асистентът е изключен. Задайте CRA_AI_ENABLED=true, за да го ползвате.",
         "stub_provider_note": "Локален stub provider — не е жив модел. Изисква се human review.",
         "message_required": "Въведете съобщение към асистента.",
-        "conversation_forbidden": "Можете да продължавате само своите AI разговори."
+        "conversation_forbidden": "Можете да продължавате само своите AI разговори.",
+        "provider_misconfigured": "AI provider-ът не е конфигуриран. Задайте API ключ за избрания CRA_AI_PROVIDER.",
+        "provider_failed": "Заявката към AI provider-а неуспешна. Опитайте отново или се върнете към stub provider.",
+        "analyse": {
+            "unsupported_type": "Неподдържан тип файл. Качете текстов документ (txt, md, csv, json, xml, html, log).",
+            "empty_file": "Каченият файл е празен или не може да се прочете като текст."
+        }
     }
 }

@@ -1055,6 +1055,36 @@ class AuditLogger
         );
     }
 
+    public static function logAiDocumentAnalysed(
+        AiConversation $conversation,
+        User $actor,
+        AiMessage $userMessage,
+        AiMessage $assistantMessage,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiDocumentAnalysed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $conversation->organization_id,
+            productId: $conversation->product_id,
+            details: [
+                ['field' => 'conversation_id', 'value' => (string) $conversation->id],
+                ['field' => 'user_message_id', 'value' => (string) $userMessage->id],
+                ['field' => 'assistant_message_id', 'value' => (string) $assistantMessage->id],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'filename', 'value' => (string) ($meta['filename'] ?? '')],
+                ['field' => 'document_chars', 'value' => (string) ($meta['document_chars'] ?? 0)],
+                ['field' => 'suggestions_parsed', 'value' => !empty($meta['suggestions_parsed']) ? '1' : '0'],
+                ['field' => 'requirement_mappings', 'value' => (string) ($meta['requirement_mappings'] ?? 0)],
+                ['field' => 'evidence_mappings', 'value' => (string) ($meta['evidence_mappings'] ?? 0)],
+                ['field' => 'gaps', 'value' => (string) ($meta['gaps'] ?? 0)],
+            ],
+        );
+    }
+
     public static function logReadinessReportExported(Product $product, User $actor): void
     {
         self::persist(

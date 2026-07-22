@@ -26,6 +26,46 @@ class StubAiProvider implements AiProvider
             $lastUser = '(empty prompt)';
         }
 
+        if (($options['mode'] ?? null) === 'document_analyse') {
+            $filename = (string) ($options['filename'] ?? 'document.txt');
+            $payload = [
+                'document_summary' => 'Stub analysis of uploaded document for CRA workspace review.',
+                'document_kind_guess' => 'other',
+                'requirement_mappings' => [
+                    [
+                        'requirement_code' => null,
+                        'confidence' => 0.4,
+                        'rationale' => 'Stub provider cannot map requirements; human review required.',
+                        'excerpt' => mb_substr($lastUser, 0, 120),
+                    ],
+                ],
+                'evidence_mappings' => [
+                    [
+                        'suggested_evidence_type' => 'document',
+                        'title_suggestion' => pathinfo($filename, PATHINFO_FILENAME) ?: 'Uploaded document',
+                        'confidence' => 0.5,
+                        'rationale' => 'Consider attaching this file as product evidence after human review.',
+                    ],
+                ],
+                'gaps' => [
+                    [
+                        'kind' => 'coverage_gap',
+                        'severity' => 'info',
+                        'description' => 'Stub analysis does not verify completeness against CRA requirements.',
+                        'suggested_action' => 'Have a compliance reviewer validate mappings before applying them.',
+                    ],
+                ],
+                'human_review_required' => true,
+                'disclaimer' => 'Suggestions only; no automated compliance decisions.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         $context = trim((string) ($options['context'] ?? ''));
         $contextBlock = '';
         if ($context !== '') {

@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.23  
+**Версия:** 1.25  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must Done; Should/Could remaining  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must Done; Should7–8 Done (Should 9 / Could remaining)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -233,6 +233,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 - `GET /products/{product}/assistant` — chat UI
 - `POST /products/{product}/assistant/messages` — send prompt (sync stub Must; queue Could)
+- `POST /products/{product}/assistant/analyse` — one-shot document upload → suggestions JSON
 - `GET /products/{product}/assistant/conversations/{id}`
 - Org-level: `GET /assistant` (optional Could — product-scoped Must)
 
@@ -297,8 +298,8 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 #### Should
 
-7. OpenAI/Anthropic adapter behind interface
-8. Document upload analyser (one-shot prompt + structured suggestions JSON)
+7. OpenAI/Anthropic adapter behind interface — **Done** (2026-07-22)
+8. Document upload analyser (one-shot prompt + structured suggestions JSON) — **Done** (2026-07-22)
 9. Draft generator for security advisory / customer notification (from campaign context)
 
 #### Could
@@ -366,6 +367,8 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.25   | 2026-07-22 | 2.3C Should 8: document upload analyser + structured suggestions JSON  |
+| 1.24   | 2026-07-22 | 2.3C Should 7: OpenAI + Anthropic `AiProvider` adapters                |
 | 1.23   | 2026-07-22 | 2.3C Must 6: AI RBAC/acceptance matrix; 2.3C Must Done                 |
 | 1.22   | 2026-07-22 | 2.3C Must 5: `ai_request_completed` audit (no prompt/context secrets)  |
 | 1.21   | 2026-07-22 | 2.3C Must 4: `AiContextBuilder` grounds stub replies in workspace data |

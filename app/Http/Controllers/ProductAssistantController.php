@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAssistantDocumentAnalyseRequest;
 use App\Http\Requests\StoreAssistantMessageRequest;
 use App\Models\AiConversation;
 use App\Models\Organization;
@@ -57,6 +58,27 @@ class ProductAssistantController extends Controller
             $conversation,
             $user,
             (string) $request->validated('content'),
+        );
+
+        return redirect()->route('products.assistant.conversations.show', [
+            'product' => $product,
+            'conversation' => $result['conversation'],
+        ]);
+    }
+
+    public function analyseDocument(
+        StoreAssistantDocumentAnalyseRequest $request,
+        Product $product,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('view', [$product, $organization]);
+
+        $result = $this->assistant->analyseDocument(
+            $product,
+            $request->user(),
+            $request->file('file'),
+            $request->validated('note'),
         );
 
         return redirect()->route('products.assistant.conversations.show', [

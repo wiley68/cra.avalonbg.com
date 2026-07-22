@@ -9,19 +9,26 @@ use App\Enums\AiProviderDriver;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\Product;
+use App\Models\ProductRequirement;
 use App\Models\User;
+use App\Services\Ai\AiDocumentAnalysePrompt;
+use App\Services\Ai\AiDocumentTextExtractor;
+use App\Services\Ai\AiSuggestionsParser;
+use App\Services\Ai\AnthropicAiProvider;
+use App\Services\Ai\OpenAiProvider;
 use App\Services\Ai\StubAiProvider;
 use App\Support\AuditLogger;
 use App\Support\Translations;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use InvalidArgumentException;
 
 class AiAssistantService
 {
     public function __construct(
         private readonly AiProvider $provider,
         private readonly AiContextBuilder $contextBuilder,
+        private readonly AiDocumentTextExtractor $documentTextExtractor,
     ) {
     }
 
@@ -49,10 +56,8 @@ class AiAssistantService
 
         return match ($resolved) {
             AiProviderDriver::Stub => new StubAiProvider,
-            AiProviderDriver::OpenAi,
-            AiProviderDriver::Anthropic => throw new InvalidArgumentException(
-                "AI provider [{$resolved->value}] is not implemented yet; use stub.",
-            ),
+            AiProviderDriver::OpenAi => new OpenAiProvider,
+            AiProviderDriver::Anthropic => new AnthropicAiProvider,
         };
     }
 
@@ -171,6 +176,132 @@ class AiAssistantService
     }
 
     /**
+     * One-shot document upload analysis → structured suggestions JSON (human review required).
+     *
+     * @return array{
+     *     conversation: AiConversation,
+     *     user_message: AiMessage,
+     *     assistant_message: AiMessage,
+     *     suggestions: array<string, mixed>|null
+     * }
+     */
+    public function analyseDocument(
+        Product $product,
+        User $user,
+        UploadedFile $file,
+        ?string $note = null,
+    ): array {
+        $this->assertEnabled();
+
+        $filename = (string) $file->getClientOriginalName();
+        $documentText = $this->documentTextExtractor->extract($file);
+        $requirementHints = $this->requirementHints($product);
+        $prompt = AiDocumentAnalysePrompt::userPrompt(
+            $filename,
+            $documentText,
+            $note,
+            $requirementHints,
+        );
+
+        return DB::transaction(function () use ($product, $user, $filename, $prompt, $note, $documentText): array {
+            $conversation = $this->startConversation(
+                $product,
+                $user,
+                AiConversationContextType::DocumentAnalyser,
+            );
+
+            $userMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::User,
+                'content' => "Analyse uploaded document: {$filename}"
+                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                'metadata' => [
+                    'filename' => $filename,
+                    'document_chars' => mb_strlen($documentText),
+                    'mode' => 'document_analyse',
+                ],
+            ]);
+
+            $context = $this->contextBuilder->forProduct($product);
+            $completion = $this->provider->complete([
+                ['role' => 'user', 'content' => $prompt],
+            ], [
+                'context' => $context,
+                'mode' => 'document_analyse',
+                'filename' => $filename,
+            ]);
+
+            $suggestions = AiSuggestionsParser::parse($completion['content']);
+            $readable = $suggestions !== null
+                ? AiSuggestionsParser::toReadableSummary($suggestions, $filename)
+                : trim($completion['content']);
+
+            $assistantMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::Assistant,
+                'content' => $readable !== '' ? $readable : $completion['content'],
+                'metadata' => [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'has_context' => $context !== '',
+                    'context_chars' => mb_strlen($context),
+                    'mode' => 'document_analyse',
+                    'filename' => $filename,
+                    'suggestions' => $suggestions,
+                    'suggestions_parsed' => $suggestions !== null,
+                ],
+            ]);
+
+            $conversation->touch();
+
+            AuditLogger::logAiDocumentAnalysed(
+                $conversation,
+                $user,
+                $userMessage,
+                $assistantMessage,
+                [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'filename' => $filename,
+                    'document_chars' => mb_strlen($documentText),
+                    'suggestions_parsed' => $suggestions !== null,
+                    'requirement_mappings' => count($suggestions['requirement_mappings'] ?? []),
+                    'evidence_mappings' => count($suggestions['evidence_mappings'] ?? []),
+                    'gaps' => count($suggestions['gaps'] ?? []),
+                ],
+            );
+
+            return [
+                'conversation' => $conversation->fresh(['messages']),
+                'user_message' => $userMessage,
+                'assistant_message' => $assistantMessage,
+                'suggestions' => $suggestions,
+            ];
+        });
+    }
+
+    /**
+     * @return list<array{code: string, status: string}>
+     */
+    private function requirementHints(Product $product): array
+    {
+        $limit = max(1, (int) config('ai.context_requirements_limit', 40));
+
+        return ProductRequirement::query()
+            ->where('product_id', $product->id)
+            ->with(['requirement:id,code'])
+            ->orderBy('id')
+            ->limit($limit)
+            ->get()
+            ->map(fn(ProductRequirement $row): array => [
+                'code' => (string) ($row->requirement?->code ?? 'unknown'),
+                'status' => $row->status->value,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * @param  array{context?: string|null}  $options
      */
     private function resolveContext(AiConversation $conversation, array $options): ?string
@@ -219,7 +350,13 @@ class AiAssistantService
      * @return array{
      *     id: int,
      *     context_type: string,
-     *     messages: list<array{id: int, role: string, content: string, created_at: string|null}>
+     *     messages: list<array{
+     *         id: int,
+     *         role: string,
+     *         content: string,
+     *         created_at: string|null,
+     *         metadata: array<string, mixed>|null
+     *     }>
      * }|null
      */
     public function conversationPayload(?AiConversation $conversation): ?array
@@ -239,6 +376,7 @@ class AiAssistantService
                     'role' => $message->role->value,
                     'content' => $message->content,
                     'created_at' => $message->created_at?->toIso8601String(),
+                    'metadata' => $message->metadata,
                 ])
                 ->values()
                 ->all(),

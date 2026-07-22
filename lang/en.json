@@ -2335,7 +2335,23 @@
             "input_placeholder": "Ask about requirements, controls, evidence, or gaps…",
             "send": "Send",
             "role_user": "You",
-            "role_assistant": "Assistant"
+            "role_assistant": "Assistant",
+            "analyse": {
+                "title": "Document analyser",
+                "subtitle": "Upload a text document for one-shot mapping/gap suggestions. Human review is required before applying anything.",
+                "file_label": "Document file",
+                "file_help": "Supported: txt, md, csv, json, xml, html, log (max size from config).",
+                "note_label": "Optional note",
+                "note_placeholder": "e.g. Focus on vulnerability disclosure coverage…",
+                "submit": "Analyse document",
+                "suggestions_title": "Suggested mappings & gaps",
+                "human_review": "Suggestions only — human review required. Nothing is applied automatically.",
+                "summary": "Summary",
+                "kind": "Document kind",
+                "requirements": "Requirement mapping suggestions",
+                "evidence": "Evidence mapping suggestions",
+                "gaps": "Gaps / issues"
+            }
         }
     },
     "audit_logs": {
@@ -2452,7 +2468,8 @@
             "vcs_sync_failed": "VCS sync failed",
             "vcs_suggestion_accepted": "VCS suggestion accepted",
             "vcs_suggestion_dismissed": "VCS suggestion dismissed",
-            "ai_request_completed": "AI assistant request completed"
+            "ai_request_completed": "AI assistant request completed",
+            "ai_document_analysed": "AI document analysed"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -2656,6 +2673,12 @@
         "disabled": "The AI assistant is disabled. Set CRA_AI_ENABLED=true to use it.",
         "stub_provider_note": "Local stub provider — not a live model. Human review required.",
         "message_required": "Enter a message to send to the assistant.",
-        "conversation_forbidden": "You can only continue your own AI conversations."
+        "conversation_forbidden": "You can only continue your own AI conversations.",
+        "provider_misconfigured": "The AI provider is not configured. Set the API key for the selected CRA_AI_PROVIDER.",
+        "provider_failed": "The AI provider request failed. Try again or switch back to the stub provider.",
+        "analyse": {
+            "unsupported_type": "Unsupported file type. Upload a text document (txt, md, csv, json, xml, html, log).",
+            "empty_file": "The uploaded file is empty or could not be read as text."
+        }
     }
 }
