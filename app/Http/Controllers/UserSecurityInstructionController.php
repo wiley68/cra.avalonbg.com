@@ -193,6 +193,23 @@ class UserSecurityInstructionController extends Controller
         return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
     }
 
+    public function publishEvidence(Product $product, UserSecurityInstruction $instruction): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('update', [$instruction, $organization]);
+
+        $this->instructions->publishEvidence($instruction, $product, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.user_security_instructions.published_evidence'),
+        ]);
+
+        return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
+    }
+
     public function retire(Product $product, UserSecurityInstruction $instruction): RedirectResponse
     {
         $organization = $this->currentOrganization();

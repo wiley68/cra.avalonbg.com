@@ -17,6 +17,11 @@ use Illuminate\Validation\ValidationException;
 
 class UserSecurityInstructionService
 {
+    public function __construct(
+        private readonly EvidenceService $evidence,
+    ) {
+    }
+
     /**
      * @return LengthAwarePaginator<int, array{
      *     id: int,
@@ -291,10 +296,49 @@ class UserSecurityInstructionService
         }
 
         $instruction->update(['status' => UserSecurityInstructionStatus::Retired]);
-        $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
+        $fresh = $instruction->fresh(['sections', 'publisher:id,name', 'evidence']);
         AuditLogger::logUserSecurityInstructionRetired($fresh, $actor);
 
         return $fresh;
+    }
+
+    public function publishEvidence(
+        UserSecurityInstruction $instruction,
+        Product $product,
+        User $actor,
+    ): UserSecurityInstruction {
+        if ($instruction->status !== UserSecurityInstructionStatus::Published) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.user_security_instructions.only_published_evidence')],
+            ]);
+        }
+
+        if ($instruction->evidence_id !== null) {
+            throw ValidationException::withMessages([
+                'evidence_id' => [Translations::get('products.user_security_instructions.already_published_evidence')],
+            ]);
+        }
+
+        if ($product->id !== $instruction->product_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('products.user_security_instructions.publish_product_invalid')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($instruction, $product, $actor): UserSecurityInstruction {
+            $evidence = $this->evidence->createFromUserSecurityInstruction(
+                $product,
+                $instruction,
+                $actor,
+            );
+
+            $instruction->update(['evidence_id' => $evidence->id]);
+
+            $fresh = $instruction->fresh(['sections', 'publisher:id,name', 'evidence']);
+            AuditLogger::logUserSecurityInstructionPublishedEvidence($fresh, $evidence, $actor);
+
+            return $fresh;
+        });
     }
 
     private function assertPublishableSections(UserSecurityInstruction $instruction): void
@@ -330,6 +374,8 @@ class UserSecurityInstructionService
      *     is_editable: bool,
      *     published_at: string|null,
      *     published_by_name: string|null,
+     *     evidence_id: int|null,
+     *     evidence_title: string|null,
      *     sections: list<array{
      *         id: int,
      *         section_key: string,
@@ -342,7 +388,7 @@ class UserSecurityInstructionService
      */
     public function detailPayload(UserSecurityInstruction $instruction): array
     {
-        $instruction->loadMissing(['sections', 'publisher:id,name']);
+        $instruction->loadMissing(['sections', 'publisher:id,name', 'evidence']);
 
         return [
             'id' => $instruction->id,
@@ -354,6 +400,8 @@ class UserSecurityInstructionService
             'is_editable' => $instruction->isEditable(),
             'published_at' => $instruction->published_at?->toIso8601String(),
             'published_by_name' => $instruction->publisher?->name,
+            'evidence_id' => $instruction->evidence_id,
+            'evidence_title' => $instruction->evidence?->title,
             'sections' => $instruction->sections
                 ->sortBy('sort_order')
                 ->values()

@@ -5,6 +5,8 @@ import {
     ArrowLeft,
     CheckCircle2,
     FileDown,
+    FileUp,
+    Pencil,
     Save,
     Send,
 } from '@lucide/vue';
@@ -27,11 +29,13 @@ import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as editEvidence } from '@/routes/products/evidence';
 import {
     edit as instructionsEdit,
     exportMethod as instructionsExport,
     index as instructionsIndex,
     publish as publishInstruction,
+    publishEvidence,
     retire as retireInstruction,
     submitReview,
     update,
@@ -58,6 +62,8 @@ type InstructionDetail = {
     is_editable: boolean;
     published_at: string | null;
     published_by_name: string | null;
+    evidence_id: number | null;
+    evidence_title: string | null;
     sections: SectionPayload[];
 };
 
@@ -106,6 +112,7 @@ const form = useForm({
 });
 
 const showRetireDialog = ref(false);
+const showPublishEvidenceDialog = ref(false);
 
 const canEdit = computed(
     () => props.canManage && props.instruction.is_editable,
@@ -125,6 +132,24 @@ const canPublish = computed(
 const canRetire = computed(
     () => props.canManage && props.instruction.status === 'published',
 );
+
+const canPublishEvidence = computed(
+    () =>
+        props.canManage &&
+        props.instruction.status === 'published' &&
+        props.instruction.evidence_id === null,
+);
+
+const evidenceHref = computed(() => {
+    if (props.instruction.evidence_id === null) {
+        return null;
+    }
+
+    return editEvidence({
+        product: props.product.id,
+        evidence: props.instruction.evidence_id,
+    }).url;
+});
 
 const canExport = computed(
     () =>
@@ -227,6 +252,11 @@ const doPublish = () => {
 const doRetire = () => {
     showRetireDialog.value = false;
     router.post(retireInstruction(routeArgs).url, {}, { preserveScroll: true });
+};
+
+const doPublishEvidence = () => {
+    showPublishEvidenceDialog.value = false;
+    router.post(publishEvidence(routeArgs).url, {}, { preserveScroll: true });
 };
 </script>
 
@@ -331,6 +361,21 @@ const doRetire = () => {
             >
                 <CheckCircle2 class="h-4 w-4" />
                 {{ t('products.user_security_instructions.publish') }}
+            </Button>
+            <Button
+                v-if="canPublishEvidence"
+                type="button"
+                variant="outline"
+                @click="showPublishEvidenceDialog = true"
+            >
+                <FileUp class="h-4 w-4" />
+                {{ t('products.user_security_instructions.publish_evidence') }}
+            </Button>
+            <Button v-if="evidenceHref" as-child variant="outline">
+                <Link :href="evidenceHref">
+                    <Pencil class="h-4 w-4" />
+                    {{ t('products.user_security_instructions.view_evidence') }}
+                </Link>
             </Button>
             <Button
                 v-if="canRetire"
@@ -555,6 +600,22 @@ const doRetire = () => {
             "
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showPublishEvidenceDialog"
+            :title="
+                t(
+                    'products.user_security_instructions.confirm_publish_evidence_title',
+                )
+            "
+            :description="
+                t(
+                    'products.user_security_instructions.confirm_publish_evidence',
+                )
+            "
+            @confirm="doPublishEvidence"
+            @cancel="showPublishEvidenceDialog = false"
         />
     </div>
 </template>

@@ -45,7 +45,7 @@ class UserSecurityInstructionExportService
         ]);
 
         $viewPayload = $this->viewPayload($instruction, $product, $organization);
-        $markdown = $this->buildMarkdown($instruction, $product, $organization);
+        $markdown = $this->toMarkdown($instruction, $product, $organization);
         $filenameBase = $this->filenameBase($instruction, $product);
 
         AuditLogger::logUserSecurityInstructionExported($instruction, $actor, $format);
@@ -108,6 +108,19 @@ class UserSecurityInstructionExportService
                 'Content-Type' => 'application/zip',
             ])
             ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Assembled Markdown used by README/release export and Evidence publish.
+     */
+    public function toMarkdown(
+        UserSecurityInstruction $instruction,
+        Product $product,
+        Organization $organization,
+    ): string {
+        $instruction->loadMissing(['sections', 'publisher:id,name']);
+
+        return $this->buildMarkdown($instruction, $product, $organization);
     }
 
     private function buildMarkdown(

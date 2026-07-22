@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Carbon\CarbonInterface;
@@ -27,6 +28,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EvidenceService
 {
+    public function __construct(
+        private readonly UserSecurityInstructionExportService $userSecurityInstructionExports,
+    ) {
+    }
+
     public static function deriveFreshness(
         EvidenceFreshnessStatus $current,
         CarbonInterface|string|null $validUntil,
@@ -252,6 +258,59 @@ class EvidenceService
             'uploaded_by' => $uploader->id,
             'notes' => 'Published from organization policy library (type: '
                 . $policy->policy_type->value . ').',
+        ]);
+
+        AuditLogger::logEvidenceCreated($evidence, $uploader);
+
+        return $evidence;
+    }
+
+    /**
+     * Persist published user security instructions as Markdown evidence (type=document).
+     */
+    public function createFromUserSecurityInstruction(
+        Product $product,
+        UserSecurityInstruction $instruction,
+        User $uploader,
+    ): Evidence {
+        if ($product->id !== $instruction->product_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('products.user_security_instructions.publish_product_invalid')],
+            ]);
+        }
+
+        $product->loadMissing('organization');
+        $organization = $product->organization;
+
+        $safeVersion = preg_replace('/[^A-Za-z0-9._-]+/', '-', $instruction->version_label) ?: '1';
+        $safeLocale = preg_replace('/[^A-Za-z0-9._-]+/', '-', $instruction->locale) ?: 'en';
+        $filename = sprintf('user-security-instructions-v%s-%s.md', $safeVersion, $safeLocale);
+        $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
+        $body = $this->userSecurityInstructionExports->toMarkdown(
+            $instruction,
+            $product,
+            $organization,
+        );
+
+        Storage::disk('local')->put($storagePath, $body);
+
+        $evidence = Evidence::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'product_version_id' => $instruction->product_version_id,
+            'type' => EvidenceType::Document,
+            'title' => $instruction->title . ' (' . $instruction->version_label . ')',
+            'source' => 'user_security_instruction:' . $instruction->id,
+            'owner_user_id' => $uploader->id,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $body),
+            'confidentiality' => EvidenceConfidentiality::Internal,
+            'collected_at' => $instruction->published_at ?? now(),
+            'freshness_status' => EvidenceFreshnessStatus::Current,
+            'uploaded_by' => $uploader->id,
+            'notes' => 'Published from user security instructions (locale: '
+                . $instruction->locale . ').',
         ]);
 
         AuditLogger::logEvidenceCreated($evidence, $uploader);

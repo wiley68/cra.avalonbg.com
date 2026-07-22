@@ -238,6 +238,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [UserSecurityInstructionController::class, 'publish'],
         )->name('products.security-instructions.publish')->scopeBindings();
         Route::post(
+            'products/{product}/security-instructions/{instruction}/publish-evidence',
+            [UserSecurityInstructionController::class, 'publishEvidence'],
+        )->name('products.security-instructions.publish-evidence')->scopeBindings();
+        Route::post(
             'products/{product}/security-instructions/{instruction}/retire',
             [UserSecurityInstructionController::class, 'retire'],
         )->name('products.security-instructions.retire')->scopeBindings();
