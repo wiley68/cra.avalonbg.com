@@ -31,8 +31,11 @@ class OpenAiProvider implements AiProvider
         }
 
         $system = AiSystemPrompt::build($options['context'] ?? null);
-        if (($options['mode'] ?? null) === 'document_analyse') {
+        $mode = $options['mode'] ?? null;
+        if ($mode === 'document_analyse') {
             $system .= "\n\n" . AiDocumentAnalysePrompt::systemAddon();
+        } elseif ($mode === 'draft_generate') {
+            $system .= "\n\n" . AiDraftPrompt::systemAddon();
         }
 
         $payloadMessages = [
@@ -60,7 +63,7 @@ class OpenAiProvider implements AiProvider
             'temperature' => 0.2,
         ];
 
-        if (($options['mode'] ?? null) === 'document_analyse') {
+        if (in_array($mode, ['document_analyse', 'draft_generate'], true)) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
 

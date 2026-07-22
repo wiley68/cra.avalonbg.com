@@ -1205,6 +1205,13 @@
             "notification_email_stub_note": "Email notification sent (stub) to :email",
             "confirm_notify_title": "Queue email notifications",
             "confirm_notify": "Queue stub email notifications for pending targets that have a contact email? Targets without an email are skipped. Delivery uses the configured mailer (provider credentials later).",
+            "generate_ai_draft": "Generate AI draft",
+            "draft_dialog_title": "Generate communication draft",
+            "draft_dialog_description": "Creates an AI draft from this campaign context. Human review is required — nothing is sent or closed automatically.",
+            "draft_type_label": "Draft type",
+            "draft_note_label": "Optional note",
+            "draft_note_placeholder": "e.g. Emphasize production environments…",
+            "draft_submit": "Generate draft",
             "export": {
                 "sheet_title": "Affected customers",
                 "columns": {
@@ -2351,6 +2358,20 @@
                 "requirements": "Requirement mapping suggestions",
                 "evidence": "Evidence mapping suggestions",
                 "gaps": "Gaps / issues"
+            },
+            "draft": {
+                "panel_title": "Communication draft",
+                "human_review": "Draft only — human review required. Nothing is sent or closed automatically.",
+                "subject": "Subject",
+                "body": "Body",
+                "highlights": "Highlights",
+                "affected": "Affected summary",
+                "actions": "Recommended actions",
+                "type": "Draft type",
+                "types": {
+                    "security_advisory": "Security advisory",
+                    "customer_notification": "Customer notification"
+                }
             }
         }
     },
@@ -2469,7 +2490,8 @@
             "vcs_suggestion_accepted": "VCS suggestion accepted",
             "vcs_suggestion_dismissed": "VCS suggestion dismissed",
             "ai_request_completed": "AI assistant request completed",
-            "ai_document_analysed": "AI document analysed"
+            "ai_document_analysed": "AI document analysed",
+            "ai_draft_generated": "AI draft generated"
         },
         "event_sources": {
             "workspace": "Workspace",

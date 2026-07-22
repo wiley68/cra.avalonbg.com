@@ -4,15 +4,19 @@ namespace App\Services;
 
 use App\Contracts\AiProvider;
 use App\Enums\AiConversationContextType;
+use App\Enums\AiDraftType;
 use App\Enums\AiMessageRole;
 use App\Enums\AiProviderDriver;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
+use App\Models\PatchCampaign;
 use App\Models\Product;
 use App\Models\ProductRequirement;
 use App\Models\User;
 use App\Services\Ai\AiDocumentAnalysePrompt;
 use App\Services\Ai\AiDocumentTextExtractor;
+use App\Services\Ai\AiDraftParser;
+use App\Services\Ai\AiDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
 use App\Services\Ai\AnthropicAiProvider;
 use App\Services\Ai\OpenAiProvider;
@@ -28,6 +32,7 @@ class AiAssistantService
     public function __construct(
         private readonly AiProvider $provider,
         private readonly AiContextBuilder $contextBuilder,
+        private readonly AiCampaignContextBuilder $campaignContextBuilder,
         private readonly AiDocumentTextExtractor $documentTextExtractor,
     ) {
     }
@@ -276,6 +281,112 @@ class AiAssistantService
                 'user_message' => $userMessage,
                 'assistant_message' => $assistantMessage,
                 'suggestions' => $suggestions,
+            ];
+        });
+    }
+
+    /**
+     * @return array{
+     *     conversation: AiConversation,
+     *     user_message: AiMessage,
+     *     assistant_message: AiMessage,
+     *     draft: array<string, mixed>|null
+     * }
+     */
+    public function generateDraft(
+        Product $product,
+        User $user,
+        PatchCampaign $campaign,
+        AiDraftType $draftType,
+        ?string $note = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($campaign->product_id !== $product->id) {
+            abort(404);
+        }
+
+        $campaignContext = $this->campaignContextBuilder->forCampaign($campaign);
+        $prompt = AiDraftPrompt::userPrompt($draftType, $campaignContext, $note);
+
+        return DB::transaction(function () use ($product, $user, $campaign, $draftType, $prompt, $note, $campaignContext): array {
+            $conversation = $this->startConversation(
+                $product,
+                $user,
+                AiConversationContextType::Draft,
+            );
+
+            $userMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::User,
+                'content' => "Generate {$draftType->value} draft for campaign #{$campaign->id}"
+                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                'metadata' => [
+                    'mode' => 'draft_generate',
+                    'campaign_id' => $campaign->id,
+                    'draft_type' => $draftType->value,
+                ],
+            ]);
+
+            $context = $this->contextBuilder->forProduct($product);
+            $completion = $this->provider->complete([
+                ['role' => 'user', 'content' => $prompt],
+            ], [
+                'context' => $context . "\n\n" . $campaignContext,
+                'mode' => 'draft_generate',
+                'draft_type' => $draftType->value,
+                'campaign_id' => $campaign->id,
+            ]);
+
+            $draft = AiDraftParser::parse($completion['content'], $draftType);
+            if ($draft !== null) {
+                $draft['campaign_id'] = $campaign->id;
+            }
+
+            $readable = $draft !== null
+                ? AiDraftParser::toReadableSummary($draft)
+                : trim($completion['content']);
+
+            $assistantMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::Assistant,
+                'content' => $readable !== '' ? $readable : $completion['content'],
+                'metadata' => [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'has_context' => $context !== '',
+                    'context_chars' => mb_strlen($context),
+                    'mode' => 'draft_generate',
+                    'campaign_id' => $campaign->id,
+                    'draft_type' => $draftType->value,
+                    'draft' => $draft,
+                    'draft_parsed' => $draft !== null,
+                ],
+            ]);
+
+            $conversation->touch();
+
+            AuditLogger::logAiDraftGenerated(
+                $conversation,
+                $user,
+                $userMessage,
+                $assistantMessage,
+                [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'campaign_id' => $campaign->id,
+                    'draft_type' => $draftType->value,
+                    'draft_parsed' => $draft !== null,
+                    'highlights' => count($draft['highlights'] ?? []),
+                    'recommended_actions' => count($draft['recommended_actions'] ?? []),
+                ],
+            );
+
+            return [
+                'conversation' => $conversation->fresh(['messages']),
+                'user_message' => $userMessage,
+                'assistant_message' => $assistantMessage,
+                'draft' => $draft,
             ];
         });
     }

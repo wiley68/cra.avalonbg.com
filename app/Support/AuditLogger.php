@@ -1085,6 +1085,35 @@ class AuditLogger
         );
     }
 
+    public static function logAiDraftGenerated(
+        AiConversation $conversation,
+        User $actor,
+        AiMessage $userMessage,
+        AiMessage $assistantMessage,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiDraftGenerated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $conversation->organization_id,
+            productId: $conversation->product_id,
+            details: [
+                ['field' => 'conversation_id', 'value' => (string) $conversation->id],
+                ['field' => 'user_message_id', 'value' => (string) $userMessage->id],
+                ['field' => 'assistant_message_id', 'value' => (string) $assistantMessage->id],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'campaign_id', 'value' => (string) ($meta['campaign_id'] ?? '')],
+                ['field' => 'draft_type', 'value' => (string) ($meta['draft_type'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'highlights', 'value' => (string) ($meta['highlights'] ?? 0)],
+                ['field' => 'recommended_actions', 'value' => (string) ($meta['recommended_actions'] ?? 0)],
+            ],
+        );
+    }
+
     public static function logReadinessReportExported(Product $product, User $actor): void
     {
         self::persist(

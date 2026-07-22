@@ -52,8 +52,11 @@ class AnthropicAiProvider implements AiProvider
         }
 
         $system = AiSystemPrompt::build($options['context'] ?? null);
-        if (($options['mode'] ?? null) === 'document_analyse') {
+        $mode = $options['mode'] ?? null;
+        if ($mode === 'document_analyse') {
             $system .= "\n\n" . AiDocumentAnalysePrompt::systemAddon();
+        } elseif ($mode === 'draft_generate') {
+            $system .= "\n\n" . AiDraftPrompt::systemAddon();
         }
 
         try {

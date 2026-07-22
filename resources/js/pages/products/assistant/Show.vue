@@ -47,6 +47,19 @@ type Suggestions = {
     disclaimer?: string;
 };
 
+type DraftPayload = {
+    draft_type?: string;
+    subject?: string;
+    body_markdown?: string;
+    body_plain?: string;
+    highlights?: string[];
+    affected_summary?: string | null;
+    recommended_actions?: string[];
+    human_review_required?: boolean;
+    disclaimer?: string;
+    campaign_id?: number;
+};
+
 type ChatMessage = {
     id: number;
     role: 'user' | 'assistant';
@@ -57,6 +70,10 @@ type ChatMessage = {
         filename?: string;
         suggestions?: Suggestions | null;
         suggestions_parsed?: boolean;
+        draft?: DraftPayload | null;
+        draft_parsed?: boolean;
+        draft_type?: string;
+        campaign_id?: number;
     } | null;
 };
 
@@ -117,6 +134,32 @@ const latestSuggestions = computed((): Suggestions | null => {
 
     return null;
 });
+
+const latestDraft = computed((): DraftPayload | null => {
+    for (let i = chatMessages.value.length - 1; i >= 0; i--) {
+        const message = chatMessages.value[i];
+        if (
+            message.role === 'assistant' &&
+            message.metadata?.draft &&
+            typeof message.metadata.draft === 'object'
+        ) {
+            return message.metadata.draft;
+        }
+    }
+
+    return null;
+});
+
+const draftTypeLabel = (value: string | undefined): string => {
+    if (!value) {
+        return '—';
+    }
+
+    const key = `products.assistant.draft.types.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
 
 const canSend = computed(
     () =>
@@ -385,6 +428,82 @@ function submitAnalyse(): void {
                     >
                         [{{ item.severity || 'info' }}]
                         {{ item.description }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div v-if="latestDraft" class="space-y-3 rounded-lg border p-4">
+            <h2 class="text-sm font-medium">
+                {{ t('products.assistant.draft.panel_title') }}
+            </h2>
+            <p class="text-sm text-muted-foreground">
+                {{
+                    latestDraft.disclaimer ||
+                    t('products.assistant.draft.human_review')
+                }}
+            </p>
+            <p v-if="latestDraft.draft_type" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.draft.type') }}:
+                </span>
+                {{ draftTypeLabel(latestDraft.draft_type) }}
+            </p>
+            <p v-if="latestDraft.subject" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.draft.subject') }}:
+                </span>
+                {{ latestDraft.subject }}
+            </p>
+            <div
+                v-if="latestDraft.body_plain || latestDraft.body_markdown"
+                class="space-y-1"
+            >
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.draft.body') }}
+                </p>
+                <pre
+                    class="rounded-md bg-muted/50 p-3 text-sm whitespace-pre-wrap text-muted-foreground"
+                    >{{
+                        latestDraft.body_plain || latestDraft.body_markdown
+                    }}</pre>
+            </div>
+            <p v-if="latestDraft.affected_summary" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.draft.affected') }}:
+                </span>
+                {{ latestDraft.affected_summary }}
+            </p>
+            <div v-if="(latestDraft.highlights || []).length" class="space-y-1">
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.draft.highlights') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(item, index) in latestDraft.highlights"
+                        :key="`hl-${index}`"
+                    >
+                        {{ item }}
+                    </li>
+                </ul>
+            </div>
+            <div
+                v-if="(latestDraft.recommended_actions || []).length"
+                class="space-y-1"
+            >
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.draft.actions') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(item, index) in latestDraft.recommended_actions"
+                        :key="`act-${index}`"
+                    >
+                        {{ item }}
                     </li>
                 </ul>
             </div>

@@ -1205,6 +1205,13 @@
             "notification_email_stub_note": "Изпратено email известие (stub) до :email",
             "confirm_notify_title": "Опашка за email известия",
             "confirm_notify": "Да се поставят в опашка stub email известия за pending цели с контакт email? Целите без email се пропускат. Доставката ползва конфигурирания mailer (credentials за provider по-късно).",
+            "generate_ai_draft": "Генерирай AI чернова",
+            "draft_dialog_title": "Генериране на комуникационна чернова",
+            "draft_dialog_description": "Създава AI чернова от контекста на тази кампания. Изисква се human review — нищо не се изпраща и не се затваря автоматично.",
+            "draft_type_label": "Тип чернова",
+            "draft_note_label": "Опционална бележка",
+            "draft_note_placeholder": "напр. Акцент върху production среди…",
+            "draft_submit": "Генерирай чернова",
             "export": {
                 "sheet_title": "Засегнати клиенти",
                 "columns": {
@@ -2351,6 +2358,20 @@
                 "requirements": "Предложени requirement mappings",
                 "evidence": "Предложени evidence mappings",
                 "gaps": "Пропуски / проблеми"
+            },
+            "draft": {
+                "panel_title": "Комуникационна чернова",
+                "human_review": "Само чернова — изисква се human review. Нищо не се изпраща и не се затваря автоматично.",
+                "subject": "Тема",
+                "body": "Текст",
+                "highlights": "Акценти",
+                "affected": "Резюме за засегнати",
+                "actions": "Препоръчани действия",
+                "type": "Тип чернова",
+                "types": {
+                    "security_advisory": "Security advisory",
+                    "customer_notification": "Известие към клиенти"
+                }
             }
         }
     },
@@ -2467,7 +2488,8 @@
             "vcs_suggestion_accepted": "VCS предложение е прието",
             "vcs_suggestion_dismissed": "VCS предложение е отхвърлено",
             "ai_request_completed": "Завършена AI assistant заявка",
-            "ai_document_analysed": "Анализиран AI документ"
+            "ai_document_analysed": "Анализиран AI документ",
+            "ai_draft_generated": "Генерирана AI чернова"
         },
         "event_sources": {
             "workspace": "Workspace",

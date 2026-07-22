@@ -66,6 +66,44 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'draft_generate') {
+            $draftType = (string) ($options['draft_type'] ?? 'customer_notification');
+            $campaignId = (int) ($options['campaign_id'] ?? 0);
+            $isAdvisory = $draftType === 'security_advisory';
+            $subject = $isAdvisory
+                ? 'Security advisory — product update (draft)'
+                : 'Security update available — please review (draft)';
+            $bodyPlain = $isAdvisory
+                ? "This is a stub security advisory draft for campaign #{$campaignId}.\n\nSummary: A security-related product update is available. Review the campaign details and target version before publishing.\n\nRecommended action: Have a human compliance owner review and approve before any external distribution."
+                : "Hello,\n\nThis is a stub customer notification draft for campaign #{$campaignId}.\n\nA security/product update is available for your deployment. Please review the target version in the campaign and confirm once applied.\n\nThis message was not sent automatically.";
+
+            $payload = [
+                'draft_type' => $draftType,
+                'subject' => $subject,
+                'body_markdown' => $bodyPlain,
+                'body_plain' => $bodyPlain,
+                'highlights' => [
+                    'Stub draft grounded in campaign context only',
+                    'Human review required before send',
+                ],
+                'affected_summary' => $campaignId > 0
+                    ? "Campaign #{$campaignId} targets (see workspace context)."
+                    : 'Campaign targets from workspace context.',
+                'recommended_actions' => [
+                    'Review subject and body with a compliance owner',
+                    'Do not auto-send or auto-close from this draft',
+                ],
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; no auto-send / no auto-close.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         $context = trim((string) ($options['context'] ?? ''));
         $contextBlock = '';
         if ($context !== '') {

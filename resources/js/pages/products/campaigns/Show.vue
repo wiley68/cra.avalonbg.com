@@ -7,6 +7,7 @@ import {
     Mail,
     Pencil,
     Play,
+    Sparkles,
     Trash2,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -32,6 +33,7 @@ import {
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { draft as generateAssistantDraft } from '@/routes/products/assistant';
 import {
     activate as activateCampaign,
     destroy,
@@ -132,6 +134,7 @@ usePageBreadcrumbs(() => [
 const showDeleteDialog = ref(false);
 const showActivateDialog = ref(false);
 const showNotifyDialog = ref(false);
+const showDraftDialog = ref(false);
 const showStatusDialog = ref(false);
 const showLogDialog = ref(false);
 const selectedTarget = ref<CampaignTarget | null>(null);
@@ -147,6 +150,18 @@ const exportUrl = computed(
             campaign: props.campaign.id,
         }).url,
 );
+
+const draftForm = useForm({
+    campaign_id: props.campaign.id,
+    draft_type: 'customer_notification',
+    note: '',
+});
+
+const draftError = computed((): string | undefined => {
+    const errors = draftForm.errors as Record<string, string | undefined>;
+
+    return errors.assistant ?? errors.campaign_id ?? errors.note;
+});
 
 const statusForm = useForm({
     status: 'notified' as string,
@@ -296,6 +311,24 @@ const confirmNotify = (): void => {
     );
 };
 
+const openDraftDialog = (): void => {
+    draftForm.campaign_id = props.campaign.id;
+    draftForm.draft_type = 'customer_notification';
+    draftForm.note = '';
+    draftForm.clearErrors();
+    showDraftDialog.value = true;
+};
+
+const submitDraft = (): void => {
+    draftForm.post(generateAssistantDraft(props.product.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showDraftDialog.value = false;
+            draftForm.reset('note');
+        },
+    });
+};
+
 const confirmDelete = (): void => {
     showDeleteDialog.value = false;
     router.delete(
@@ -346,6 +379,14 @@ const textareaClass =
                 >
                     <Mail class="h-4 w-4" />
                     {{ t('products.campaigns.queue_notifications') }}
+                </Button>
+                <Button
+                    v-if="canManage"
+                    variant="outline"
+                    @click="openDraftDialog"
+                >
+                    <Sparkles class="h-4 w-4" />
+                    {{ t('products.campaigns.generate_ai_draft') }}
                 </Button>
                 <template v-if="canManage && isDraft">
                     <Button as-child variant="outline">
@@ -772,5 +813,87 @@ const textareaClass =
             @confirm="confirmNotify"
             @cancel="showNotifyDialog = false"
         />
+
+        <Dialog
+            :open="showDraftDialog"
+            @update:open="(open) => (showDraftDialog = open)"
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t('products.campaigns.draft_dialog_title') }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{ t('products.campaigns.draft_dialog_description') }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="space-y-4 py-2">
+                    <div class="space-y-2">
+                        <Label for="draft-type">
+                            {{ t('products.campaigns.draft_type_label') }}
+                        </Label>
+                        <Select v-model="draftForm.draft_type">
+                            <SelectTrigger id="draft-type" class="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="customer_notification">
+                                    {{
+                                        t(
+                                            'products.assistant.draft.types.customer_notification',
+                                        )
+                                    }}
+                                </SelectItem>
+                                <SelectItem value="security_advisory">
+                                    {{
+                                        t(
+                                            'products.assistant.draft.types.security_advisory',
+                                        )
+                                    }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="draftForm.errors.draft_type" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="draft-note">
+                            {{ t('products.campaigns.draft_note_label') }}
+                        </Label>
+                        <textarea
+                            id="draft-note"
+                            v-model="draftForm.note"
+                            rows="3"
+                            class="flex min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                            :placeholder="
+                                t('products.campaigns.draft_note_placeholder')
+                            "
+                            :disabled="draftForm.processing"
+                        />
+                        <InputError :message="draftError" />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        :disabled="draftForm.processing"
+                        @click="showDraftDialog = false"
+                    >
+                        {{ t('common.cancel') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        :disabled="draftForm.processing"
+                        @click="submitDraft"
+                    >
+                        <Sparkles class="h-4 w-4" />
+                        {{ t('products.campaigns.draft_submit') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>
