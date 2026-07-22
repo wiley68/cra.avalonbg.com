@@ -36,6 +36,9 @@ enum AuditEventType: string
     case UserSecurityInstructionCreated = 'user_security_instruction_created';
     case UserSecurityInstructionUpdated = 'user_security_instruction_updated';
     case UserSecurityInstructionDeleted = 'user_security_instruction_deleted';
+    case UserSecurityInstructionSubmitted = 'user_security_instruction_submitted';
+    case UserSecurityInstructionPublished = 'user_security_instruction_published';
+    case UserSecurityInstructionRetired = 'user_security_instruction_retired';
     case OrgPolicySubmitted = 'org_policy_submitted';
     case OrgPolicyApproved = 'org_policy_approved';
     case OrgPolicyRetired = 'org_policy_retired';

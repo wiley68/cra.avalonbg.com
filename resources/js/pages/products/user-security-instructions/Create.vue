@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
+import { watch } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
@@ -20,6 +22,7 @@ import {
     create as instructionsCreate,
     index as instructionsIndex,
     store,
+    template as instructionsTemplate,
 } from '@/routes/products/security-instructions';
 
 type ProductSummary = { id: number; name: string; slug: string };
@@ -54,6 +57,7 @@ const form = useForm({
     version_label: '1.0',
     locale: props.options.default_locale || props.options.locales[0] || 'en',
     notes: '',
+    use_template: true,
 });
 
 const localeLabel = (value: string): string => {
@@ -62,6 +66,43 @@ const localeLabel = (value: string): string => {
 
     return translated === key ? value.toUpperCase() : translated;
 };
+
+const loadTemplate = async (): Promise<void> => {
+    if (!form.use_template) {
+        return;
+    }
+
+    const response = await fetch(
+        `${instructionsTemplate(props.product.id).url}?locale=${encodeURIComponent(form.locale)}`,
+        {
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        },
+    );
+
+    if (!response.ok) {
+        return;
+    }
+
+    const data = (await response.json()) as {
+        title: string;
+        version_label: string;
+    };
+
+    form.title = data.title;
+    form.version_label = data.version_label;
+};
+
+watch(
+    () => [form.locale, form.use_template] as const,
+    () => {
+        void loadTemplate();
+    },
+    { immediate: true },
+);
 
 const submit = () => {
     form.post(store(props.product.id).url);
@@ -93,15 +134,39 @@ const submit = () => {
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
+            <div
+                class="flex items-center justify-between gap-4 rounded-md border px-3 py-2"
+            >
+                <div>
+                    <Label for="use_template">{{
+                        t(
+                            'products.user_security_instructions.fields.use_template',
+                        )
+                    }}</Label>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t(
+                                'products.user_security_instructions.help.use_template',
+                            )
+                        }}
+                    </p>
+                </div>
+                <Switch id="use_template" v-model="form.use_template" />
+            </div>
+
             <div class="grid gap-2">
                 <FieldLabel
                     html-for="title"
                     :help="t('products.user_security_instructions.help.title')"
-                    required
+                    :required="!form.use_template"
                 >
                     {{ t('products.user_security_instructions.fields.title') }}
                 </FieldLabel>
-                <Input id="title" v-model="form.title" required />
+                <Input
+                    id="title"
+                    v-model="form.title"
+                    :required="!form.use_template"
+                />
                 <InputError :message="form.errors.title" />
             </div>
 
@@ -113,7 +178,7 @@ const submit = () => {
                             'products.user_security_instructions.help.version_label',
                         )
                     "
-                    required
+                    :required="!form.use_template"
                 >
                     {{
                         t(
@@ -124,7 +189,7 @@ const submit = () => {
                 <Input
                     id="version_label"
                     v-model="form.version_label"
-                    required
+                    :required="!form.use_template"
                 />
                 <InputError :message="form.errors.version_label" />
             </div>

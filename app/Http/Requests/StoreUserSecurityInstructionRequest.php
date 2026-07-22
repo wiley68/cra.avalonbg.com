@@ -22,11 +22,24 @@ class StoreUserSecurityInstructionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $requiresManualFields = !$this->boolean('use_template');
+
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'version_label' => ['required', 'string', 'max:40'],
+            'title' => [
+                Rule::requiredIf($requiresManualFields),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'version_label' => [
+                Rule::requiredIf($requiresManualFields),
+                'nullable',
+                'string',
+                'max:40',
+            ],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
             'notes' => ['nullable', 'string'],
+            'use_template' => ['sometimes', 'boolean'],
         ];
     }
 

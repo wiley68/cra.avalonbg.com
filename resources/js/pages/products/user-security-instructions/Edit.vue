@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
-import { computed } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Archive, ArrowLeft, CheckCircle2, Save, Send } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
@@ -22,6 +23,9 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     edit as instructionsEdit,
     index as instructionsIndex,
+    publish as publishInstruction,
+    retire as retireInstruction,
+    submitReview,
     update,
 } from '@/routes/products/security-instructions';
 
@@ -93,8 +97,25 @@ const form = useForm({
     })),
 });
 
+const showRetireDialog = ref(false);
+
 const canEdit = computed(
     () => props.canManage && props.instruction.is_editable,
+);
+
+const canSubmit = computed(
+    () => props.canManage && props.instruction.status === 'draft',
+);
+
+const canPublish = computed(
+    () =>
+        props.canManage &&
+        (props.instruction.status === 'draft' ||
+            props.instruction.status === 'under_review'),
+);
+
+const canRetire = computed(
+    () => props.canManage && props.instruction.status === 'published',
 );
 
 const statusLabel = (value: string): string => {
@@ -125,6 +146,11 @@ const sectionError = (index: number, field: string): string | undefined => {
     return errors[key];
 };
 
+const routeArgs = {
+    product: props.product.id,
+    instruction: props.instruction.id,
+};
+
 const submit = () => {
     form.transform((data) => ({
         ...data,
@@ -132,12 +158,24 @@ const submit = () => {
             ...section,
             title_override: section.title_override || null,
         })),
-    })).put(
-        update({
-            product: props.product.id,
-            instruction: props.instruction.id,
-        }).url,
+    })).put(update(routeArgs).url);
+};
+
+const doSubmitReview = () => {
+    router.post(submitReview(routeArgs).url, {}, { preserveScroll: true });
+};
+
+const doPublish = () => {
+    router.post(
+        publishInstruction(routeArgs).url,
+        {},
+        { preserveScroll: true },
     );
+};
+
+const doRetire = () => {
+    showRetireDialog.value = false;
+    router.post(retireInstruction(routeArgs).url, {}, { preserveScroll: true });
 };
 </script>
 
@@ -160,12 +198,59 @@ const submit = () => {
                     ·
                     {{ localeLabel(instruction.locale) }}
                 </p>
+                <p
+                    v-if="instruction.published_at"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{
+                        t(
+                            'products.user_security_instructions.fields.published_at',
+                        )
+                    }}:
+                    {{ new Date(instruction.published_at).toLocaleString() }}
+                    <span v-if="instruction.published_by_name">
+                        ({{ instruction.published_by_name }})
+                    </span>
+                </p>
             </div>
             <Button as-child variant="outline">
                 <Link :href="instructionsIndex(props.product.id)">
                     <ArrowLeft class="h-4 w-4" />
                     {{ t('common.back') }}
                 </Link>
+            </Button>
+        </div>
+
+        <div
+            v-if="canManage"
+            class="flex flex-wrap gap-2 rounded-lg border p-3"
+        >
+            <Button
+                v-if="canSubmit"
+                type="button"
+                variant="outline"
+                @click="doSubmitReview"
+            >
+                <Send class="h-4 w-4" />
+                {{ t('products.user_security_instructions.submit_review') }}
+            </Button>
+            <Button
+                v-if="canPublish"
+                type="button"
+                variant="outline"
+                @click="doPublish"
+            >
+                <CheckCircle2 class="h-4 w-4" />
+                {{ t('products.user_security_instructions.publish') }}
+            </Button>
+            <Button
+                v-if="canRetire"
+                type="button"
+                variant="outline"
+                @click="showRetireDialog = true"
+            >
+                <Archive class="h-4 w-4" />
+                {{ t('products.user_security_instructions.retire') }}
             </Button>
         </div>
 
@@ -370,5 +455,17 @@ const submit = () => {
                 </Button>
             </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showRetireDialog"
+            :title="
+                t('products.user_security_instructions.confirm_retire_title')
+            "
+            :description="
+                t('products.user_security_instructions.confirm_retire')
+            "
+            @confirm="doRetire"
+            @cancel="showRetireDialog = false"
+        />
     </div>
 </template>

@@ -90,32 +90,81 @@ test('owner can view security instructions index', function () {
         ->assertOk();
 });
 
-test('owner can create instructions with empty sections and audit is recorded', function () {
-    ['organization' => $organization, 'owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+test('owner can create instructions from EN template with prefilled sections', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
 
-    $response = $this->actingAs($owner)
+    $this->actingAs($owner)
         ->post(route('products.security-instructions.store', $product), [
-            'title' => 'Installer security guide',
-            'version_label' => '1.0',
+            'use_template' => true,
             'locale' => 'en',
-            'notes' => 'Draft notes',
-        ]);
+            'title' => '',
+            'version_label' => '',
+        ])
+        ->assertRedirect();
 
     $instruction = UserSecurityInstruction::query()
         ->where('product_id', $product->id)
-        ->firstOrFail();
+        ->firstOrFail()
+        ->load('sections');
 
-    $response->assertRedirect(route('products.security-instructions.edit', [$product, $instruction]));
+    expect($instruction->title)->toBe('User security instructions')
+        ->and($instruction->version_label)->toBe('1.0')
+        ->and($instruction->locale)->toBe('en')
+        ->and($instruction->sections)->toHaveCount(14);
 
-    expect($instruction->status)->toBe(UserSecurityInstructionStatus::Draft)
-        ->and($instruction->organization_id)->toBe($organization->id)
-        ->and($instruction->sections()->count())->toBe(count(UserSecurityInstructionSectionKey::cases()));
+    $install = $instruction->sections
+        ->firstWhere('section_key', UserSecurityInstructionSectionKey::SecureInstallation);
 
-    expect(AuditLog::query()
-        ->where('event_type', AuditEventType::UserSecurityInstructionCreated)
-        ->where('product_id', $product->id)
-        ->exists())->toBeTrue();
+    expect($install?->body)->toContain('Secure installation')
+        ->and($install?->body)->not->toBe('');
 });
+
+test('owner can create instructions from BG template', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'use_template' => true,
+            'locale' => 'bg',
+        ])
+        ->assertRedirect();
+
+    $instruction = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    expect($instruction->title)->toBe('Инструкции за сигурност на потребителя');
+
+    $logging = $instruction->sections
+        ->firstWhere('section_key', UserSecurityInstructionSectionKey::Logging);
+
+    expect($logging?->body)->toContain('Журналиране');
+});
+
+test('template endpoint returns sections for locale', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->getJson(route('products.security-instructions.template', $product) . '?locale=en')
+        ->assertOk()
+        ->assertJsonPath('title', 'User security instructions')
+        ->assertJsonCount(14, 'sections');
+});
+
+test('create without template still requires title', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'use_template' => false,
+            'locale' => 'en',
+            'title' => '',
+            'version_label' => '',
+        ])
+        ->assertSessionHasErrors(['title', 'version_label']);
+});
+
 
 test('owner can update section bodies', function () {
     ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
@@ -224,4 +273,152 @@ test('owner can delete draft instructions', function () {
         ->assertRedirect(route('products.security-instructions.index', $product));
 
     expect(UserSecurityInstruction::query()->whereKey($instruction->id)->exists())->toBeFalse();
+});
+
+test('owner can submit draft for review', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'title' => 'Review me',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ]);
+
+    $instruction = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.submit-review', [$product, $instruction]))
+        ->assertRedirect(route('products.security-instructions.edit', [$product, $instruction]));
+
+    expect($instruction->fresh()->status)->toBe(UserSecurityInstructionStatus::UnderReview);
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::UserSecurityInstructionSubmitted)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+});
+
+test('publish requires applicable section bodies', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'title' => 'Incomplete',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ]);
+
+    $instruction = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.publish', [$product, $instruction]))
+        ->assertSessionHasErrors('sections');
+
+    expect($instruction->fresh()->status)->toBe(UserSecurityInstructionStatus::Draft);
+});
+
+test('owner can publish then retire and previous published is retired on republish', function () {
+    ['owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'title' => 'First published',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ]);
+
+    $first = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $first->sections()->update([
+        'is_applicable' => false,
+        'body' => '',
+    ]);
+    $first->sections()
+        ->where('section_key', UserSecurityInstructionSectionKey::SecureInstallation->value)
+        ->update([
+            'is_applicable' => true,
+            'body' => 'Install securely.',
+        ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.publish', [$product, $first]))
+        ->assertRedirect(route('products.security-instructions.edit', [$product, $first]));
+
+    $first->refresh();
+    expect($first->status)->toBe(UserSecurityInstructionStatus::Published)
+        ->and($first->published_at)->not->toBeNull()
+        ->and($first->published_by)->toBe($owner->id)
+        ->and($first->isEditable())->toBeFalse();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::UserSecurityInstructionPublished)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'title' => 'Second published',
+            'version_label' => '2.0',
+            'locale' => 'en',
+        ]);
+
+    $second = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->where('title', 'Second published')
+        ->firstOrFail();
+
+    $second->sections()->update(['is_applicable' => false, 'body' => '']);
+    $second->sections()
+        ->where('section_key', UserSecurityInstructionSectionKey::Logging->value)
+        ->update(['is_applicable' => true, 'body' => 'Log everything.']);
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.publish', [$product, $second]))
+        ->assertRedirect();
+
+    expect($first->fresh()->status)->toBe(UserSecurityInstructionStatus::Retired)
+        ->and($second->fresh()->status)->toBe(UserSecurityInstructionStatus::Published);
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.retire', [$product, $second]))
+        ->assertRedirect(route('products.security-instructions.edit', [$product, $second]));
+
+    expect($second->fresh()->status)->toBe(UserSecurityInstructionStatus::Retired);
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::UserSecurityInstructionRetired)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+});
+
+test('viewer cannot publish security instructions', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product] = makeUsiOrgWithOwner();
+    $viewer = makeUsiOrgViewer($organization);
+
+    $this->actingAs($owner)
+        ->post(route('products.security-instructions.store', $product), [
+            'title' => 'Locked publish',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ]);
+
+    $instruction = UserSecurityInstruction::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail();
+
+    $instruction->sections()->update(['is_applicable' => false]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.security-instructions.publish', [$product, $instruction]))
+        ->assertForbidden();
+
+    expect($instruction->fresh()->status)->toBe(UserSecurityInstructionStatus::Draft);
 });

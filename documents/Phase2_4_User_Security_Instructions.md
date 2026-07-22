@@ -1,8 +1,8 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.3  
+**Версия:** 0.5  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — Must 1–2 Done (CRUD + section editor)  
+**Статус:** Active — Must 1–4 Done (starter templates EN/BG)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
@@ -181,8 +181,8 @@ GET    /internal-api/products/{product}/security-instructions
 
 1. Migrations + models + enums (instruction + sections) — **Done**
 2. CRUD + section editor (product-scoped) — **Done**
-3. Lifecycle draft → publish (минимален)
-4. Starter templates EN/BG per section key
+3. Lifecycle draft → publish (минимален) — **Done**
+4. Starter templates EN/BG per section key — **Done**
 5. Export HTML + PDF
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
 
@@ -260,6 +260,8 @@ Reuse от Phase 2.3:
 
 | Версия | Дата       | Промяна                                         |
 | ------ | ---------- | ----------------------------------------------- |
+| 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates         |
+| 0.4    | 2026-07-22 | Must 3: submit / publish / retire lifecycle     |
 | 0.3    | 2026-07-22 | Must 2: product CRUD + section editor + tests   |
 | 0.2    | 2026-07-22 | Must 1: enums, migrations, models + smoke tests |
 | 0.1    | 2026-07-22 | Първоначален skeleton след Phase 2.3 closeout   |

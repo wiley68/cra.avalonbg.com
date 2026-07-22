@@ -297,6 +297,62 @@ class AuditLogger
         );
     }
 
+    public static function logUserSecurityInstructionSubmitted(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionSubmitted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+            ],
+        );
+    }
+
+    public static function logUserSecurityInstructionPublished(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionPublished,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+                ['field' => 'version_label', 'value' => $instruction->version_label],
+                ['field' => 'locale', 'value' => $instruction->locale],
+            ],
+        );
+    }
+
+    public static function logUserSecurityInstructionRetired(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionRetired,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+            ],
+        );
+    }
+
     public static function logOrgPolicyCreated(OrgPolicy $policy, User $actor): void
     {
         self::persist(

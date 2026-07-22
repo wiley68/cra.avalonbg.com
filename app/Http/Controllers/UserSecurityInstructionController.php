@@ -11,7 +11,10 @@ use App\Models\Product;
 use App\Models\UserSecurityInstruction;
 use App\Services\UserSecurityInstructionService;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +52,21 @@ class UserSecurityInstructionController extends Controller
         ]);
     }
 
+    public function template(Request $request, Product $product): JsonResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('create', [UserSecurityInstruction::class, $organization]);
+
+        $validated = $request->validate([
+            'locale' => ['nullable', 'string', Rule::in(Organization::LOCALES)],
+        ]);
+
+        $locale = $validated['locale'] ?? $organization->resolvedLocale();
+
+        return response()->json($this->instructions->templatePayload($locale));
+    }
+
     public function store(StoreUserSecurityInstructionRequest $request, Product $product): RedirectResponse
     {
         $organization = $this->currentOrganization();
@@ -57,10 +75,11 @@ class UserSecurityInstructionController extends Controller
         $instruction = $this->instructions->create(
             $product,
             [
-                'title' => $request->string('title')->toString(),
-                'version_label' => $request->string('version_label')->toString(),
+                'title' => (string) ($request->input('title') ?? ''),
+                'version_label' => (string) ($request->input('version_label') ?? ''),
                 'locale' => $request->string('locale')->toString(),
                 'notes' => $request->input('notes'),
+                'use_template' => $request->boolean('use_template'),
             ],
             $request->user(),
         );
@@ -133,6 +152,57 @@ class UserSecurityInstructionController extends Controller
         ]);
 
         return redirect()->route('products.security-instructions.index', $product);
+    }
+
+    public function submitReview(Product $product, UserSecurityInstruction $instruction): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('update', [$instruction, $organization]);
+
+        $this->instructions->submitForReview($instruction, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.user_security_instructions.submitted'),
+        ]);
+
+        return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
+    }
+
+    public function publish(Product $product, UserSecurityInstruction $instruction): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('update', [$instruction, $organization]);
+
+        $this->instructions->publish($instruction, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.user_security_instructions.published'),
+        ]);
+
+        return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
+    }
+
+    public function retire(Product $product, UserSecurityInstruction $instruction): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('update', [$instruction, $organization]);
+
+        $this->instructions->retire($instruction, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.user_security_instructions.retired'),
+        ]);
+
+        return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
     }
 
     /**

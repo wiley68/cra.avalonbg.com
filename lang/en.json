@@ -2411,7 +2411,7 @@
             "index_title": "User security instructions",
             "create": "New instructions",
             "create_title": "Create user security instructions",
-            "create_help": "Creates a draft with all required sections. Fill section content on the next screen.",
+            "create_help": "Creates a draft. With template enabled, all §5.17 sections are prefilled for editing.",
             "created": "User security instructions created.",
             "updated": "User security instructions updated.",
             "deleted": "User security instructions deleted.",
@@ -2437,14 +2437,17 @@
                 "notes": "Notes",
                 "is_applicable": "Applicable",
                 "title_override": "Custom section title",
-                "body": "Section body"
+                "body": "Section body",
+                "published_at": "Published at",
+                "use_template": "Start from template"
             },
             "help": {
                 "title": "Document title shown in exports and lists.",
                 "version_label": "Document revision label (e.g. 1.0).",
                 "notes": "Internal notes; not required in customer-facing exports.",
                 "title_override": "Optional override for the default section title.",
-                "body": "Markdown content for this section."
+                "body": "Markdown content for this section.",
+                "use_template": "Prefill document title and all section bodies with EN/BG starter content for the selected locale."
             },
             "statuses": {
                 "draft": "Draft",
@@ -2471,7 +2474,19 @@
                 "support_period": "Support period",
                 "end_of_support_behavior": "End-of-support behaviour",
                 "known_limitations": "Known limitations"
-            }
+            },
+            "submit_review": "Submit for review",
+            "publish": "Publish",
+            "retire": "Retire",
+            "submitted": "Instructions submitted for review.",
+            "published": "Instructions published.",
+            "retired": "Instructions retired.",
+            "only_draft_submit": "Only draft instructions can be submitted for review.",
+            "only_editable_publish": "Only draft or under-review instructions can be published.",
+            "only_published_retire": "Only published instructions can be retired.",
+            "publish_sections_incomplete": "Fill all applicable sections before publishing (:sections).",
+            "confirm_retire_title": "Retire instructions?",
+            "confirm_retire": "Retired documents stay in history but are no longer the published version."
         }
     },
     "audit_logs": {
@@ -2594,7 +2609,10 @@
             "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested",
             "user_security_instruction_created": "User security instructions created",
             "user_security_instruction_updated": "User security instructions updated",
-            "user_security_instruction_deleted": "User security instructions deleted"
+            "user_security_instruction_deleted": "User security instructions deleted",
+            "user_security_instruction_submitted": "User security instructions submitted for review",
+            "user_security_instruction_published": "User security instructions published",
+            "user_security_instruction_retired": "User security instructions retired"
         },
         "event_sources": {
             "workspace": "Workspace",

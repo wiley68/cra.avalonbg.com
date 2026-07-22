@@ -10,6 +10,7 @@ use App\Models\UserSecurityInstruction;
 use App\Models\UserSecurityInstructionSection;
 use App\Support\AuditLogger;
 use App\Support\Translations;
+use App\Support\UserSecurityInstructionTemplates;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -72,32 +73,52 @@ class UserSecurityInstructionService
 
     /**
      * @param  array{
-     *     title: string,
-     *     version_label: string,
+     *     title?: string|null,
+     *     version_label?: string|null,
      *     locale: string,
-     *     notes?: string|null
+     *     notes?: string|null,
+     *     use_template?: bool
      * }  $attributes
      */
     public function create(Product $product, array $attributes, User $actor): UserSecurityInstruction
     {
         return DB::transaction(function () use ($product, $attributes, $actor): UserSecurityInstruction {
+            $locale = $attributes['locale'];
+            $useTemplate = (bool) ($attributes['use_template'] ?? false);
+            $template = $useTemplate ? UserSecurityInstructionTemplates::for($locale) : null;
+
+            $title = trim((string) ($attributes['title'] ?? ''));
+            $versionLabel = trim((string) ($attributes['version_label'] ?? ''));
+
+            if ($template !== null) {
+                $title = $title !== '' ? $title : $template['title'];
+                $versionLabel = $versionLabel !== '' ? $versionLabel : $template['version_label'];
+            }
+
             $instruction = UserSecurityInstruction::query()->create([
                 'organization_id' => $product->organization_id,
                 'product_id' => $product->id,
                 'product_version_id' => null,
-                'title' => $attributes['title'],
+                'title' => $title,
                 'status' => UserSecurityInstructionStatus::Draft,
-                'version_label' => $attributes['version_label'],
-                'locale' => $attributes['locale'],
+                'version_label' => $versionLabel,
+                'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
             ]);
+
+            $bodiesByKey = [];
+            if ($template !== null) {
+                foreach ($template['sections'] as $section) {
+                    $bodiesByKey[$section['section_key']] = $section['body'];
+                }
+            }
 
             foreach (UserSecurityInstructionSectionKey::ordered() as $key) {
                 UserSecurityInstructionSection::query()->create([
                     'instruction_id' => $instruction->id,
                     'section_key' => $key,
                     'title_override' => null,
-                    'body' => '',
+                    'body' => $bodiesByKey[$key->value] ?? '',
                     'sort_order' => $key->defaultSortOrder(),
                     'is_applicable' => true,
                 ]);
@@ -107,6 +128,18 @@ class UserSecurityInstructionService
 
             return $instruction->load('sections');
         });
+    }
+
+    /**
+     * @return array{
+     *     title: string,
+     *     version_label: string,
+     *     sections: list<array{section_key: string, body: string}>
+     * }
+     */
+    public function templatePayload(string $locale = 'en'): array
+    {
+        return UserSecurityInstructionTemplates::for($locale);
     }
 
     /**
@@ -187,6 +220,103 @@ class UserSecurityInstructionService
 
         AuditLogger::logUserSecurityInstructionDeleted($instruction, $actor);
         $instruction->delete();
+    }
+
+    public function submitForReview(UserSecurityInstruction $instruction, User $actor): UserSecurityInstruction
+    {
+        if ($instruction->status !== UserSecurityInstructionStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.user_security_instructions.only_draft_submit')],
+            ]);
+        }
+
+        $instruction->update(['status' => UserSecurityInstructionStatus::UnderReview]);
+        $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
+        AuditLogger::logUserSecurityInstructionSubmitted($fresh, $actor);
+
+        return $fresh;
+    }
+
+    public function publish(UserSecurityInstruction $instruction, User $actor): UserSecurityInstruction
+    {
+        if (
+            !in_array($instruction->status, [
+                UserSecurityInstructionStatus::Draft,
+                UserSecurityInstructionStatus::UnderReview,
+            ], true)
+        ) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.user_security_instructions.only_editable_publish')],
+            ]);
+        }
+
+        $this->assertPublishableSections($instruction);
+
+        return DB::transaction(function () use ($instruction, $actor): UserSecurityInstruction {
+            $siblings = UserSecurityInstruction::query()
+                ->where('product_id', $instruction->product_id)
+                ->where('locale', $instruction->locale)
+                ->where('status', UserSecurityInstructionStatus::Published->value)
+                ->whereKeyNot($instruction->id);
+
+            if ($instruction->product_version_id === null) {
+                $siblings->whereNull('product_version_id');
+            } else {
+                $siblings->where('product_version_id', $instruction->product_version_id);
+            }
+
+            $siblings->update([
+                'status' => UserSecurityInstructionStatus::Retired->value,
+            ]);
+
+            $instruction->update([
+                'status' => UserSecurityInstructionStatus::Published,
+                'published_at' => now(),
+                'published_by' => $actor->id,
+            ]);
+
+            $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
+            AuditLogger::logUserSecurityInstructionPublished($fresh, $actor);
+
+            return $fresh;
+        });
+    }
+
+    public function retire(UserSecurityInstruction $instruction, User $actor): UserSecurityInstruction
+    {
+        if ($instruction->status !== UserSecurityInstructionStatus::Published) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.user_security_instructions.only_published_retire')],
+            ]);
+        }
+
+        $instruction->update(['status' => UserSecurityInstructionStatus::Retired]);
+        $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
+        AuditLogger::logUserSecurityInstructionRetired($fresh, $actor);
+
+        return $fresh;
+    }
+
+    private function assertPublishableSections(UserSecurityInstruction $instruction): void
+    {
+        $instruction->loadMissing('sections');
+
+        $incomplete = $instruction->sections
+            ->filter(fn(UserSecurityInstructionSection $section) => $section->is_applicable
+                && trim($section->body) === '')
+            ->map(fn(UserSecurityInstructionSection $section) => $section->section_key->value)
+            ->values()
+            ->all();
+
+        if ($incomplete !== []) {
+            throw ValidationException::withMessages([
+                'sections' => [
+                    Translations::get('products.user_security_instructions.publish_sections_incomplete', [
+                        'sections' => implode(', ', $incomplete),
+                    ])
+                ],
+            ]);
+        }
     }
 
     /**

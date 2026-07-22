@@ -220,6 +220,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->parameters(['security-instructions' => 'instruction'])
             ->scoped();
+        Route::get(
+            'products/{product}/security-instructions-template',
+            [UserSecurityInstructionController::class, 'template'],
+        )->name('products.security-instructions.template');
+        Route::post(
+            'products/{product}/security-instructions/{instruction}/submit-review',
+            [UserSecurityInstructionController::class, 'submitReview'],
+        )->name('products.security-instructions.submit-review')->scopeBindings();
+        Route::post(
+            'products/{product}/security-instructions/{instruction}/publish',
+            [UserSecurityInstructionController::class, 'publish'],
+        )->name('products.security-instructions.publish')->scopeBindings();
+        Route::post(
+            'products/{product}/security-instructions/{instruction}/retire',
+            [UserSecurityInstructionController::class, 'retire'],
+        )->name('products.security-instructions.retire')->scopeBindings();
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();
