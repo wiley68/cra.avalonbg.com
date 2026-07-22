@@ -2133,6 +2133,7 @@
                 "versions": "Versions",
                 "support": "Support period",
                 "policies": "Organizational policies",
+                "security_instructions": "User security instructions",
                 "requirements": "Requirements coverage",
                 "controls": "Controls",
                 "risks": "Risk status",
@@ -2210,6 +2211,11 @@
                     "review_due": "All required types are approved; policies are still under review.",
                     "complete": "All required policy types have an approved document."
                 },
+                "security_instructions": {
+                    "missing": "No published user security instructions for this product.",
+                    "published": "Published user security instructions are available.",
+                    "not_required": "Not required for out-of-scope products."
+                },
                 "deployments": {
                     "unresolved_high": "Active patch campaign still has high-criticality installations not updated.",
                     "campaigns_clear": "Active patch campaigns have no unresolved high-criticality targets.",
@@ -2282,6 +2288,7 @@
                 "unsupported_deployments": "Customer installations remain on unsupported versions or past security support deadlines.",
                 "policies_missing": "Approve required organizational policies (CVD, SDL, support, update, incident response, third-party).",
                 "policies_review_due": "Complete review of organizational policies still under review.",
+                "security_instructions_missing": "Publish user security instructions for this in-scope product.",
                 "evidence": "Add compliance evidence for this product.",
                 "evidence_expired": "Replace or renew expired evidence.",
                 "evidence_review": "Review evidence marked as due.",

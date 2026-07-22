@@ -15,6 +15,7 @@ use App\Enums\RequirementApplicabilityStatus;
 use App\Enums\ScopeStatus;
 use App\Enums\SupportStatus;
 use App\Enums\TaskStatus;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
@@ -29,6 +30,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Sbom;
 use App\Models\Task;
+use App\Models\UserSecurityInstruction;
 use Illuminate\Support\Carbon;
 
 class ProductReadinessService
@@ -143,6 +145,7 @@ class ProductReadinessService
             $this->versionsSection($product),
             $this->supportSection($product),
             $this->policiesSection($product),
+            $this->securityInstructionsSection($product),
             $this->requirementsSection($product),
             $this->controlsSection($product),
             $this->risksSection($product),
@@ -536,6 +539,57 @@ class ProductReadinessService
             'key' => 'policies',
             'status' => 'pass',
             'summary' => 'complete',
+            'metrics' => $metrics,
+        ];
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function securityInstructionsSection(Product $product): array
+    {
+        $publishedCount = UserSecurityInstruction::query()
+            ->where('product_id', $product->id)
+            ->where('status', UserSecurityInstructionStatus::Published)
+            ->count();
+
+        $draftOrReviewCount = UserSecurityInstruction::query()
+            ->where('product_id', $product->id)
+            ->whereIn('status', [
+                UserSecurityInstructionStatus::Draft,
+                UserSecurityInstructionStatus::UnderReview,
+            ])
+            ->count();
+
+        $metrics = [
+            'published' => $publishedCount,
+            'draft_or_review' => $draftOrReviewCount,
+        ];
+
+        if ($product->scope_status === ScopeStatus::OutOfScope) {
+            return [
+                'key' => 'security_instructions',
+                'status' => 'na',
+                'summary' => 'not_required',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($publishedCount === 0) {
+            return [
+                'key' => 'security_instructions',
+                'status' => 'fail',
+                'summary' => 'missing',
+                'gap_key' => 'products.readiness.gaps.security_instructions_missing',
+                'link' => 'security-instructions',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'security_instructions',
+            'status' => 'pass',
+            'summary' => 'published',
             'metrics' => $metrics,
         ];
     }
