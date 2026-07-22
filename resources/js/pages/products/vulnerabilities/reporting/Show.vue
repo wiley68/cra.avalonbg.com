@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Check, FileDown, Save, Send, Siren, X } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
@@ -151,6 +152,7 @@ const approvalComment = ref('');
 
 const syncFormsFromMilestone = (): void => {
     const submission = activeMilestone.value?.submission;
+    draftForm.clearErrors();
     draftForm.type = activeType.value;
     draftForm.summary = submission?.summary ?? '';
     draftForm.impact = submission?.impact ?? '';
@@ -160,6 +162,7 @@ const syncFormsFromMilestone = (): void => {
     draftForm.contact_name = submission?.contact_name ?? '';
     draftForm.contact_email = submission?.contact_email ?? '';
     draftForm.notes = submission?.notes ?? '';
+    draftForm.defaults();
     submitForm.type = activeType.value;
     submitForm.notes = submission?.notes ?? '';
     approvalComment.value = submission?.approval_comment ?? '';
@@ -172,6 +175,77 @@ const locked = computed(
         activeMilestone.value?.submission?.status === 'submitted' ||
         activeMilestone.value?.submission?.status === 'pending_approval',
 );
+
+const requiresAffectedVersions = computed(
+    () => activeType.value !== 'early_warning',
+);
+
+const requiresCorrectiveOrWorkaround = computed(
+    () => activeType.value === 'final',
+);
+
+const canSubmitForApproval = computed(() => {
+    const status = activeMilestone.value?.submission?.status;
+
+    return (
+        status !== undefined &&
+        ['draft', 'rejected', 'approved'].includes(status)
+    );
+});
+
+const collectMandatoryFieldErrors = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
+
+    if (!draftForm.summary.trim()) {
+        errors.summary = t(
+            'products.vulnerabilities.reporting.validation.summary_required',
+        );
+    }
+
+    if (!draftForm.impact.trim()) {
+        errors.impact = t(
+            'products.vulnerabilities.reporting.validation.impact_required',
+        );
+    }
+
+    if (!draftForm.contact_name.trim()) {
+        errors.contact_name = t(
+            'products.vulnerabilities.reporting.validation.contact_name_required',
+        );
+    }
+
+    if (!draftForm.contact_email.trim()) {
+        errors.contact_email = t(
+            'products.vulnerabilities.reporting.validation.contact_email_required',
+        );
+    }
+
+    if (
+        requiresAffectedVersions.value &&
+        !draftForm.affected_versions_text.trim()
+    ) {
+        errors.affected_versions_text = t(
+            'products.vulnerabilities.reporting.validation.affected_versions_required',
+        );
+    }
+
+    if (
+        requiresCorrectiveOrWorkaround.value &&
+        !draftForm.corrective_action.trim() &&
+        !draftForm.workaround.trim()
+    ) {
+        errors.corrective_action = t(
+            'products.vulnerabilities.reporting.validation.corrective_or_workaround_required',
+        );
+    }
+
+    return errors;
+};
+
+const applyFieldErrors = (errors: Record<string, string>): void => {
+    draftForm.clearErrors();
+    draftForm.setError(errors);
+};
 
 const formatCountdown = (seconds: number | null): string => {
     if (seconds === null) {
@@ -214,6 +288,10 @@ const saveDraft = (): void => {
     draftForm.type = activeType.value;
     draftForm.put(updateDraft(routeArgs.value).url, {
         preserveScroll: true,
+        onSuccess: () => {
+            draftForm.defaults();
+            draftForm.clearErrors();
+        },
     });
 };
 
@@ -222,6 +300,55 @@ const postType = (url: string): void => {
         url,
         { type: activeType.value, comment: approvalComment.value || null },
         { preserveScroll: true },
+    );
+};
+
+const submitForApproval = (): void => {
+    if (!activeMilestone.value?.submission) {
+        toast.error(t('products.vulnerabilities.reporting.save_before_submit'));
+        return;
+    }
+
+    if (draftForm.isDirty) {
+        toast.error(t('products.vulnerabilities.reporting.save_before_submit'));
+        return;
+    }
+
+    const fieldErrors = collectMandatoryFieldErrors();
+
+    if (Object.keys(fieldErrors).length > 0) {
+        applyFieldErrors(fieldErrors);
+        toast.error(
+            t('products.vulnerabilities.reporting.complete_required_fields'),
+        );
+        return;
+    }
+
+    router.post(
+        submitApproval(routeArgs.value).url,
+        { type: activeType.value },
+        {
+            preserveScroll: true,
+            onError: (errors) => {
+                const mapped: Record<string, string> = {};
+
+                for (const [key, value] of Object.entries(errors)) {
+                    if (typeof value === 'string' && value !== '') {
+                        mapped[key] = value;
+                    }
+                }
+
+                if (Object.keys(mapped).length > 0) {
+                    applyFieldErrors(mapped);
+                }
+
+                toast.error(
+                    t(
+                        'products.vulnerabilities.reporting.complete_required_fields',
+                    ),
+                );
+            },
+        },
     );
 };
 
@@ -387,6 +514,7 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                                     'products.vulnerabilities.reporting.help.summary',
                                 )
                             "
+                            required
                         >
                             {{
                                 t(
@@ -411,6 +539,7 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                                     'products.vulnerabilities.reporting.help.impact',
                                 )
                             "
+                            required
                         >
                             {{
                                 t(
@@ -435,6 +564,7 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                                     'products.vulnerabilities.reporting.help.affected_versions',
                                 )
                             "
+                            :required="requiresAffectedVersions"
                         >
                             {{
                                 t(
@@ -474,16 +604,22 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                             :class="textareaClass"
                             :disabled="!canManage || locked"
                         />
+                        <InputError :message="draftForm.errors.workaround" />
                     </div>
 
                     <div class="grid gap-2">
                         <FieldLabel
                             html-for="corrective_action"
                             :help="
-                                t(
-                                    'products.vulnerabilities.reporting.help.corrective_action',
-                                )
+                                requiresCorrectiveOrWorkaround
+                                    ? t(
+                                          'products.vulnerabilities.reporting.help.corrective_or_workaround',
+                                      )
+                                    : t(
+                                          'products.vulnerabilities.reporting.help.corrective_action',
+                                      )
                             "
+                            :required="requiresCorrectiveOrWorkaround"
                         >
                             {{
                                 t(
@@ -497,6 +633,9 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                             :class="textareaClass"
                             :disabled="!canManage || locked"
                         />
+                        <InputError
+                            :message="draftForm.errors.corrective_action"
+                        />
                     </div>
 
                     <div class="grid gap-2">
@@ -507,6 +646,7 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                                     'products.vulnerabilities.reporting.help.contact_name',
                                 )
                             "
+                            required
                         >
                             {{
                                 t(
@@ -530,6 +670,7 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                                     'products.vulnerabilities.reporting.help.contact_email',
                                 )
                             "
+                            required
                         >
                             {{
                                 t(
@@ -570,36 +711,51 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                     </div>
                 </div>
 
-                <div
-                    v-if="canManage"
-                    class="flex flex-wrap items-center gap-2 border-t pt-4"
-                >
-                    <Button
-                        type="button"
-                        :disabled="locked || draftForm.processing"
-                        @click="saveDraft"
+                <div v-if="canManage" class="flex flex-col gap-3 border-t pt-4">
+                    <p
+                        v-if="draftForm.isDirty && !locked"
+                        class="text-sm text-amber-700 dark:text-amber-400"
                     >
-                        <Save class="h-4 w-4" />
-                        {{ t('common.save') }}
-                    </Button>
-                    <Button
-                        v-if="
-                            activeMilestone?.submission &&
-                            ['draft', 'rejected', 'approved'].includes(
-                                activeMilestone.submission.status,
-                            )
-                        "
-                        type="button"
-                        variant="outline"
-                        @click="postType(submitApproval(routeArgs).url)"
-                    >
-                        <Send class="h-4 w-4" />
                         {{
                             t(
-                                'products.vulnerabilities.reporting.submit_approval',
+                                'products.vulnerabilities.reporting.unsaved_changes_hint',
                             )
                         }}
-                    </Button>
+                    </p>
+                    <p
+                        v-else-if="!activeMilestone?.submission && !locked"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{
+                            t(
+                                'products.vulnerabilities.reporting.save_before_submit',
+                            )
+                        }}
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            type="button"
+                            :disabled="locked || draftForm.processing"
+                            @click="saveDraft"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('common.save') }}
+                        </Button>
+                        <Button
+                            v-if="canSubmitForApproval"
+                            type="button"
+                            variant="outline"
+                            :disabled="draftForm.processing"
+                            @click="submitForApproval"
+                        >
+                            <Send class="h-4 w-4" />
+                            {{
+                                t(
+                                    'products.vulnerabilities.reporting.submit_approval',
+                                )
+                            }}
+                        </Button>
+                    </div>
                 </div>
 
                 <div
