@@ -4,17 +4,19 @@ namespace App\Console\Commands;
 
 use App\Models\Product;
 use App\Services\AiEmbeddingIndexer;
+use App\Services\AiQueuedAnalysisService;
 use Illuminate\Console\Command;
 
 class IndexAiEmbeddingsCommand extends Command
 {
     protected $signature = 'ai:index-embeddings
                             {product? : Product ID to index (omit to index all products)}
-                            {--organization= : Limit to organization ID}';
+                            {--organization= : Limit to organization ID}
+                            {--sync : Run indexing inline instead of queueing}';
 
     protected $description = 'Build or refresh the local AI embedding / RAG index for product workspace content';
 
-    public function handle(AiEmbeddingIndexer $indexer): int
+    public function handle(AiEmbeddingIndexer $indexer, AiQueuedAnalysisService $queued): int
     {
         if (!(bool) config('ai.rag.enabled', true)) {
             $this->warn('RAG is disabled (CRA_AI_RAG_ENABLED=false). Nothing to index.');
@@ -24,6 +26,7 @@ class IndexAiEmbeddingsCommand extends Command
 
         $productId = $this->argument('product');
         $organizationId = $this->option('organization');
+        $sync = (bool) $this->option('sync');
 
         $query = Product::query()->orderBy('id');
 
@@ -40,6 +43,17 @@ class IndexAiEmbeddingsCommand extends Command
             $this->warn('No products matched.');
 
             return self::FAILURE;
+        }
+
+        if (!$sync && $queued->queueEnabled()) {
+            foreach ($products as $product) {
+                $result = $queued->queueRagIndex($product);
+                $this->line("Product #{$product->id} ({$product->slug}): queued job #{$result['analysis_job']->id}");
+            }
+
+            $this->info("Queued RAG index for {$products->count()} product(s). Run queue:work to process.");
+
+            return self::SUCCESS;
         }
 
         $totalChunks = 0;

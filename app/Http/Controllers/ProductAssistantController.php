@@ -10,6 +10,7 @@ use App\Models\AiConversation;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\AiAssistantService;
+use App\Services\AiQueuedAnalysisService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -18,6 +19,7 @@ class ProductAssistantController extends Controller
 {
     public function __construct(
         private readonly AiAssistantService $assistant,
+        private readonly AiQueuedAnalysisService $queuedAnalysis,
     ) {
     }
 
@@ -76,7 +78,7 @@ class ProductAssistantController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('view', [$product, $organization]);
 
-        $result = $this->assistant->analyseDocument(
+        $result = $this->queuedAnalysis->queueAnalyseDocument(
             $product,
             $request->user(),
             $request->file('file'),
@@ -97,7 +99,7 @@ class ProductAssistantController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('view', [$product, $organization]);
 
-        $result = $this->assistant->generateDraft(
+        $result = $this->queuedAnalysis->queueGenerateDraft(
             $product,
             $request->user(),
             $request->campaign(),
@@ -119,7 +121,7 @@ class ProductAssistantController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('view', [$product, $organization]);
 
-        $result = $this->assistant->triageVulnerability(
+        $result = $this->queuedAnalysis->queueTriageVulnerability(
             $product,
             $request->user(),
             $request->vulnerability(),
@@ -143,6 +145,8 @@ class ProductAssistantController extends Controller
             'ai_enabled' => $this->assistant->isEnabled(),
             'provider' => $this->assistant->driver()->value,
             'conversation' => $this->assistant->conversationPayload($conversation),
+            'analysis_job' => $this->queuedAnalysis->latestJobPayloadForConversation($conversation),
+            'queue_enabled' => $this->queuedAnalysis->queueEnabled(),
         ]);
     }
 

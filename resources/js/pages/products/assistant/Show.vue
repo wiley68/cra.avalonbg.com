@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Bot, FileSearch, Send } from '@lucide/vue';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
@@ -103,12 +103,21 @@ type ConversationPayload = {
     messages: ChatMessage[];
 } | null;
 
+type AnalysisJobPayload = {
+    id: number;
+    type: string;
+    status: string;
+    error_message: string | null;
+} | null;
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
     ai_enabled: boolean;
     provider: string;
     conversation: ConversationPayload;
+    analysis_job?: AnalysisJobPayload;
+    queue_enabled?: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -122,6 +131,72 @@ usePageBreadcrumbs(() => [
         href: assistantShow(props.product.id),
     },
 ]);
+
+const pollTimer = ref<ReturnType<typeof setInterval> | null>(null);
+
+const analysisJobStatus = computed(() => props.analysis_job?.status ?? null);
+
+const isAnalysisInFlight = computed(() =>
+    ['pending', 'running'].includes(analysisJobStatus.value ?? ''),
+);
+
+const queueBanner = computed((): string | null => {
+    const status = analysisJobStatus.value;
+    if (status === 'pending') {
+        return t('products.assistant.queue.pending');
+    }
+    if (status === 'running') {
+        return t('products.assistant.queue.running');
+    }
+    if (status === 'failed') {
+        return (
+            props.analysis_job?.error_message ||
+            t('products.assistant.queue.failed')
+        );
+    }
+
+    return null;
+});
+
+function clearPoll(): void {
+    if (pollTimer.value !== null) {
+        clearInterval(pollTimer.value);
+        pollTimer.value = null;
+    }
+}
+
+function startPoll(): void {
+    clearPoll();
+    if (!props.conversation || !isAnalysisInFlight.value) {
+        return;
+    }
+
+    pollTimer.value = setInterval(() => {
+        if (!props.conversation) {
+            return;
+        }
+
+        router.reload({
+            only: ['conversation', 'analysis_job'],
+        });
+    }, 2500);
+}
+
+watch(
+    isAnalysisInFlight,
+    (inFlight) => {
+        if (inFlight) {
+            startPoll();
+        } else {
+            clearPoll();
+        }
+    },
+    { immediate: true },
+);
+
+onBeforeUnmount(() => {
+    clearPoll();
+});
 
 const form = useForm({
     content: '',
@@ -299,6 +374,18 @@ function submitAnalyse(): void {
             class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
         >
             {{ t('products.assistant.disclaimer') }}
+        </div>
+
+        <div
+            v-if="queueBanner"
+            class="rounded-lg border px-4 py-3 text-sm"
+            :class="
+                analysisJobStatus === 'failed'
+                    ? 'border-destructive/30 bg-destructive/5 text-destructive'
+                    : 'border-border bg-muted/40 text-muted-foreground'
+            "
+        >
+            {{ queueBanner }}
         </div>
 
         <div

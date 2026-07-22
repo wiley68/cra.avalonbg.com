@@ -35,5 +35,6 @@
         <env name="CRA_AI_PROVIDER" value="stub"/>
         <env name="CRA_AI_EMBEDDING_PROVIDER" value="stub"/>
         <env name="CRA_AI_ENABLED" value="true"/>
+        <env name="CRA_AI_QUEUE_ENABLED" value="true"/>
     </php>
 </phpunit>

@@ -2393,6 +2393,12 @@
                 "corrective_action": "Предложено corrective action",
                 "cross_product": "Cross-product подсказки",
                 "open_vulnerability": "Отвори уязвимостта"
+            },
+            "queue": {
+                "pending": "Анализът е в опашка — чака worker…",
+                "running": "Анализът се изпълнява…",
+                "failed": "Опашканият анализ е неуспешен. Можете да опитате отново от изходната действие.",
+                "succeeded": "Анализът приключи."
             }
         }
     },

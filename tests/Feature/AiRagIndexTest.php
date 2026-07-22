@@ -225,7 +225,10 @@ test('ai:index-embeddings command indexes a product', function () {
 
     ['product' => $product] = makeRagFixture();
 
-    $this->artisan('ai:index-embeddings', ['product' => $product->id])
+    $this->artisan('ai:index-embeddings', [
+        'product' => $product->id,
+        '--sync' => true,
+    ])
         ->assertSuccessful();
 
     expect(AiEmbeddingChunk::query()->where('organization_id', $product->organization_id)->count())->toBeGreaterThan(0);

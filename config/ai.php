@@ -45,6 +45,15 @@ return [
         'openai_model' => env('CRA_AI_EMBEDDING_OPENAI_MODEL', 'text-embedding-3-small'),
     ],
 
+    'queue' => [
+        /*
+        | When true, document analyse / draft / triage run via queue workers.
+        | Chat messages stay synchronous. Set false to force inline processing.
+        */
+        'enabled' => (bool) env('CRA_AI_QUEUE_ENABLED', true),
+        'timeout' => max(60, (int) env('CRA_AI_QUEUE_TIMEOUT', 120)),
+    ],
+
     'providers' => [
         'stub' => [
             // No credentials — returns a local canned/echo template.

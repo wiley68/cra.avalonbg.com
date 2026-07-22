@@ -2393,6 +2393,12 @@
                 "corrective_action": "Suggested corrective action",
                 "cross_product": "Cross-product hints",
                 "open_vulnerability": "Open vulnerability"
+            },
+            "queue": {
+                "pending": "Analysis queued — waiting for a worker…",
+                "running": "Analysis running…",
+                "failed": "Queued analysis failed. You can retry from the source action.",
+                "succeeded": "Analysis finished."
             }
         }
     },

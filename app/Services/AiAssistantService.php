@@ -220,8 +220,19 @@ class AiAssistantService
         User $user,
         UploadedFile $file,
         ?string $note = null,
+        ?AiConversation $existingConversation = null,
     ): array {
         $this->assertEnabled();
+
+        if ($existingConversation !== null) {
+            $this->assertConversationOwner($existingConversation, $user);
+            if (
+                $existingConversation->product_id !== $product->id
+                || $existingConversation->context_type !== AiConversationContextType::DocumentAnalyser
+            ) {
+                abort(404);
+            }
+        }
 
         $filename = (string) $file->getClientOriginalName();
         $documentText = $this->documentTextExtractor->extract($file);
@@ -233,24 +244,42 @@ class AiAssistantService
             $requirementHints,
         );
 
-        return DB::transaction(function () use ($product, $user, $filename, $prompt, $note, $documentText): array {
-            $conversation = $this->startConversation(
+        return DB::transaction(function () use ($product, $user, $filename, $prompt, $note, $documentText, $existingConversation): array {
+            $conversation = $existingConversation ?? $this->startConversation(
                 $product,
                 $user,
                 AiConversationContextType::DocumentAnalyser,
             );
 
-            $userMessage = AiMessage::query()->create([
-                'conversation_id' => $conversation->id,
-                'role' => AiMessageRole::User,
-                'content' => "Analyse uploaded document: {$filename}"
-                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
-                'metadata' => [
-                    'filename' => $filename,
-                    'document_chars' => mb_strlen($documentText),
-                    'mode' => 'document_analyse',
-                ],
-            ]);
+            $userMessage = $existingConversation !== null
+                ? AiMessage::query()
+                    ->where('conversation_id', $conversation->id)
+                    ->where('role', AiMessageRole::User)
+                    ->orderBy('id')
+                    ->firstOrFail()
+                : AiMessage::query()->create([
+                    'conversation_id' => $conversation->id,
+                    'role' => AiMessageRole::User,
+                    'content' => "Analyse uploaded document: {$filename}"
+                        . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                    'metadata' => [
+                        'filename' => $filename,
+                        'document_chars' => mb_strlen($documentText),
+                        'mode' => 'document_analyse',
+                    ],
+                ]);
+
+            if ($existingConversation !== null) {
+                $userMessage->update([
+                    'metadata' => array_merge(
+                        is_array($userMessage->metadata) ? $userMessage->metadata : [],
+                        [
+                            'document_chars' => mb_strlen($documentText),
+                            'queued' => false,
+                        ],
+                    ),
+                ]);
+            }
 
             $context = $this->contextBuilder->forProduct($product);
             $completion = $this->provider->complete([
@@ -303,7 +332,7 @@ class AiAssistantService
 
             return [
                 'conversation' => $conversation->fresh(['messages']),
-                'user_message' => $userMessage,
+                'user_message' => $userMessage->fresh(),
                 'assistant_message' => $assistantMessage,
                 'suggestions' => $suggestions,
             ];
@@ -324,6 +353,7 @@ class AiAssistantService
         PatchCampaign $campaign,
         AiDraftType $draftType,
         ?string $note = null,
+        ?AiConversation $existingConversation = null,
     ): array {
         $this->assertEnabled();
 
@@ -331,27 +361,43 @@ class AiAssistantService
             abort(404);
         }
 
+        if ($existingConversation !== null) {
+            $this->assertConversationOwner($existingConversation, $user);
+            if (
+                $existingConversation->product_id !== $product->id
+                || $existingConversation->context_type !== AiConversationContextType::Draft
+            ) {
+                abort(404);
+            }
+        }
+
         $campaignContext = $this->campaignContextBuilder->forCampaign($campaign);
         $prompt = AiDraftPrompt::userPrompt($draftType, $campaignContext, $note);
 
-        return DB::transaction(function () use ($product, $user, $campaign, $draftType, $prompt, $note, $campaignContext): array {
-            $conversation = $this->startConversation(
+        return DB::transaction(function () use ($product, $user, $campaign, $draftType, $prompt, $note, $campaignContext, $existingConversation): array {
+            $conversation = $existingConversation ?? $this->startConversation(
                 $product,
                 $user,
                 AiConversationContextType::Draft,
             );
 
-            $userMessage = AiMessage::query()->create([
-                'conversation_id' => $conversation->id,
-                'role' => AiMessageRole::User,
-                'content' => "Generate {$draftType->value} draft for campaign #{$campaign->id}"
-                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
-                'metadata' => [
-                    'mode' => 'draft_generate',
-                    'campaign_id' => $campaign->id,
-                    'draft_type' => $draftType->value,
-                ],
-            ]);
+            $userMessage = $existingConversation !== null
+                ? AiMessage::query()
+                    ->where('conversation_id', $conversation->id)
+                    ->where('role', AiMessageRole::User)
+                    ->orderBy('id')
+                    ->firstOrFail()
+                : AiMessage::query()->create([
+                    'conversation_id' => $conversation->id,
+                    'role' => AiMessageRole::User,
+                    'content' => "Generate {$draftType->value} draft for campaign #{$campaign->id}"
+                        . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                    'metadata' => [
+                        'mode' => 'draft_generate',
+                        'campaign_id' => $campaign->id,
+                        'draft_type' => $draftType->value,
+                    ],
+                ]);
 
             $context = $this->contextBuilder->forProduct($product);
             $completion = $this->provider->complete([
@@ -429,6 +475,7 @@ class AiAssistantService
         User $user,
         ProductVulnerability $vulnerability,
         ?string $note = null,
+        ?AiConversation $existingConversation = null,
     ): array {
         $this->assertEnabled();
 
@@ -436,26 +483,42 @@ class AiAssistantService
             abort(404);
         }
 
+        if ($existingConversation !== null) {
+            $this->assertConversationOwner($existingConversation, $user);
+            if (
+                $existingConversation->product_id !== $product->id
+                || $existingConversation->context_type !== AiConversationContextType::VulnerabilityTriage
+            ) {
+                abort(404);
+            }
+        }
+
         $vulnContext = $this->vulnerabilityContextBuilder->forVulnerability($vulnerability);
         $prompt = AiVulnerabilityTriagePrompt::userPrompt($vulnContext, $note);
 
-        return DB::transaction(function () use ($product, $user, $vulnerability, $prompt, $note, $vulnContext): array {
-            $conversation = $this->startConversation(
+        return DB::transaction(function () use ($product, $user, $vulnerability, $prompt, $note, $vulnContext, $existingConversation): array {
+            $conversation = $existingConversation ?? $this->startConversation(
                 $product,
                 $user,
                 AiConversationContextType::VulnerabilityTriage,
             );
 
-            $userMessage = AiMessage::query()->create([
-                'conversation_id' => $conversation->id,
-                'role' => AiMessageRole::User,
-                'content' => "Triage vulnerability #{$vulnerability->id}: {$vulnerability->title}"
-                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
-                'metadata' => [
-                    'mode' => 'vulnerability_triage',
-                    'vulnerability_id' => $vulnerability->id,
-                ],
-            ]);
+            $userMessage = $existingConversation !== null
+                ? AiMessage::query()
+                    ->where('conversation_id', $conversation->id)
+                    ->where('role', AiMessageRole::User)
+                    ->orderBy('id')
+                    ->firstOrFail()
+                : AiMessage::query()->create([
+                    'conversation_id' => $conversation->id,
+                    'role' => AiMessageRole::User,
+                    'content' => "Triage vulnerability #{$vulnerability->id}: {$vulnerability->title}"
+                        . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                    'metadata' => [
+                        'mode' => 'vulnerability_triage',
+                        'vulnerability_id' => $vulnerability->id,
+                    ],
+                ]);
 
             $context = $this->contextBuilder->forProduct($product);
             $completion = $this->provider->complete([
@@ -650,7 +713,7 @@ class AiAssistantService
         ];
     }
 
-    private function assertEnabled(): void
+    public function assertEnabled(): void
     {
         if (!$this->isEnabled()) {
             throw ValidationException::withMessages([
