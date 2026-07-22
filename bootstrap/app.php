@@ -4,12 +4,12 @@ use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureTwoFactorIsEnabled;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\NormalizeBrowserNavigation;
 use App\Http\Middleware\RequirePasswordConfirmation;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
@@ -44,11 +44,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'two-factor.enabled' => EnsureTwoFactorIsEnabled::class,
         ]);
 
+        $middleware->web(prepend: [
+            NormalizeBrowserNavigation::class,
+        ]);
+
         $middleware->web(append: [
             SetLocale::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
+            // Intentionally omit AddLinkHeadersForPreloadedAssets:
+            // Vite page graphs produce multi‑KB Link headers that crash PHP-FPM
+            // (Premature end of script headers) on full document navigations.
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

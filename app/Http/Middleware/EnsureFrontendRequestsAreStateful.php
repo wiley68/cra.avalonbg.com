@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Http\Request;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful as SanctumEnsureFrontendRequestsAreStateful;
 use Laravel\Sanctum\Sanctum;
 
@@ -22,16 +23,28 @@ class EnsureFrontendRequestsAreStateful extends SanctumEnsureFrontendRequestsAre
             return true;
         }
 
+        /** @var Request $request */
         return self::isTrustedFirstPartyApiRequest($request);
     }
 
-    protected static function isTrustedFirstPartyApiRequest($request): bool
+    protected static function isTrustedFirstPartyApiRequest(Request $request): bool
     {
         if (!self::requestHostIsSanctumStateful($request)) {
             return false;
         }
 
-        if ($request->headers->get('Sec-Fetch-Site') === 'same-origin') {
+        $secFetchSite = $request->headers->get('Sec-Fetch-Site');
+
+        if ($secFetchSite === 'same-origin') {
+            return true;
+        }
+
+        // Address bar / bookmark / typed URL (Chrome): no Referer/Origin, Sec-Fetch-Site: none.
+        if (
+            $secFetchSite === 'none'
+            && $request->headers->get('Sec-Fetch-Mode') === 'navigate'
+            && in_array($request->headers->get('Sec-Fetch-Dest'), ['document', 'iframe', null, ''], true)
+        ) {
             return true;
         }
 
@@ -42,7 +55,7 @@ class EnsureFrontendRequestsAreStateful extends SanctumEnsureFrontendRequestsAre
         return false;
     }
 
-    protected static function requestHostIsSanctumStateful($request): bool
+    protected static function requestHostIsSanctumStateful(Request $request): bool
     {
         $requestHost = $request->getHttpHost();
 

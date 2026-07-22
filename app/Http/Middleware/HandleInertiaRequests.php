@@ -114,7 +114,8 @@ class HandleInertiaRequests extends Middleware
                 ['code' => 'en', 'label' => 'English'],
                 ['code' => 'bg', 'label' => 'Български'],
             ],
-            'translations' => Translations::forLocale(),
+            // Served separately via /translations/{locale}.json — keeps Inertia HTML small.
+            'translations_version' => Translations::version(),
             'appearance' => $this->resolveAppearance($request),
             'auth' => [
                 'user' => $user ? [

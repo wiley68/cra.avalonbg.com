@@ -122,11 +122,12 @@ test('assistant show includes §6 disclaimer translation for the chat UI', funct
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
             ->component('products/assistant/Show')
-            ->where(
-                'translations.products.assistant.disclaimer',
-                fn($value) => is_string($value)
-                && str_contains($value, 'human review'),
-            ));
+            ->where('locale', 'en')
+            ->missing('translations'));
+
+    expect(\App\Support\Translations::get('products.assistant.disclaimer'))
+        ->toBeString()
+        ->toContain('human review');
 });
 
 test('auditor can ask read-only Q&A without mutating product or policies', function () {

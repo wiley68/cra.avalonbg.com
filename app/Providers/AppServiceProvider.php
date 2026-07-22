@@ -72,6 +72,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(EmbeddingProvider::class, function (): EmbeddingProvider {
             return AiAssistantService::makeEmbeddingProvider();
         });
+
+        // Prefer app Sanctum override (typed URL / Sec-Fetch-Site: none navigations).
+        $this->app->bind(
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        );
     }
 
     /**

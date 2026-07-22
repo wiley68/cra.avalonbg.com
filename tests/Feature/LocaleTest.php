@@ -9,7 +9,12 @@ test('home page defaults to english locale', function () {
         ->assertOk()
         ->assertInertia(fn($page) => $page
             ->where('locale', 'en')
-            ->where('translations.welcome.sign_in', 'Sign in'));
+            ->where('translations_version', Translations::version('en'))
+            ->missing('translations'));
+
+    $this->get(route('translations.show', ['locale' => 'en']))
+        ->assertOk()
+        ->assertJsonPath('welcome.sign_in', 'Sign in');
 });
 
 test('locale can be switched and stored in session', function () {
@@ -21,7 +26,12 @@ test('locale can be switched and stored in session', function () {
         ->assertOk()
         ->assertInertia(fn($page) => $page
             ->where('locale', 'bg')
-            ->where('translations.welcome.sign_in', 'Вход'));
+            ->where('translations_version', Translations::version('bg'))
+            ->missing('translations'));
+
+    $this->get(route('translations.show', ['locale' => 'bg']))
+        ->assertOk()
+        ->assertJsonPath('welcome.sign_in', 'Вход');
 });
 
 test('invalid locale returns not found', function () {

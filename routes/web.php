@@ -58,6 +58,7 @@ use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVcsImportSuggestionController;
 use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TranslationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VulnerabilityReportingController;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +66,10 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.update');
+Route::get('translations/{locale}.json', TranslationController::class)
+    ->where('locale', '[a-z]{2}')
+    ->middleware('throttle:60,1')
+    ->name('translations.show');
 
 Route::middleware('throttle:30,1')->group(function () {
     Route::get('auditor/guest/{token}', [AuditorGuestReviewController::class, 'show'])

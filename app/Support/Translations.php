@@ -4,27 +4,47 @@ namespace App\Support;
 
 class Translations
 {
+    /** @var array<string, array<string, mixed>> */
+    private static array $cache = [];
+
     /**
      * @return array<string, mixed>
      */
     public static function forLocale(?string $locale = null): array
     {
         $locale ??= app()->getLocale();
+
+        if (isset(self::$cache[$locale])) {
+            return self::$cache[$locale];
+        }
+
         $path = lang_path("{$locale}.json");
 
         if (!is_file($path)) {
-            return [];
+            return self::$cache[$locale] = [];
         }
 
         $contents = file_get_contents($path);
 
         if ($contents === false) {
-            return [];
+            return self::$cache[$locale] = [];
         }
 
         $decoded = json_decode($contents, true);
 
-        return is_array($decoded) ? $decoded : [];
+        return self::$cache[$locale] = is_array($decoded) ? $decoded : [];
+    }
+
+    public static function version(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+        $path = lang_path("{$locale}.json");
+
+        if (!is_file($path)) {
+            return '0';
+        }
+
+        return (string) filemtime($path);
     }
 
     public static function get(string $key, array $replace = [], ?string $locale = null): string
