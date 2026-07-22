@@ -834,6 +834,9 @@
             },
             "assistant": {
                 "description": "Въпроси по CRA в контекста на продукта (изисква се human review)"
+            },
+            "user_security_instructions": {
+                "description": "Структурирани инструкции за сигурност (§5.17) и експорти"
             }
         },
         "passport": {
@@ -2400,6 +2403,75 @@
                 "failed": "Опашканият анализ е неуспешен. Можете да опитате отново от изходната действие.",
                 "succeeded": "Анализът приключи."
             }
+        },
+        "user_security_instructions_link": "Инструкции за сигурност",
+        "user_security_instructions": {
+            "title": "Инструкции за сигурност на потребителя",
+            "subtitle": "Структурирана продуктова документация за сигурност за инсталатори и оператори",
+            "index_title": "Инструкции за сигурност",
+            "create": "Нови инструкции",
+            "create_title": "Създаване на инструкции за сигурност",
+            "create_help": "Създава чернова с всички задължителни секции. Попълнете съдържанието на следващия екран.",
+            "created": "Инструкциите за сигурност са създадени.",
+            "updated": "Инструкциите за сигурност са обновени.",
+            "deleted": "Инструкциите за сигурност са изтрити.",
+            "confirm_delete": "Изтриване на тази чернова?",
+            "search_placeholder": "Търсене по заглавие, статус, версия…",
+            "cannot_delete_locked": "Публикувани или оттеглени инструкции не могат да се изтриват.",
+            "cannot_edit_locked": "Публикувани или оттеглени инструкции не могат да се редактират.",
+            "read_only_notice": "Документът е само за преглед при текущия статус.",
+            "sections_heading": "Секции",
+            "sections_help": "Маркирайте секция като неприложима, когато не важи за продукта.",
+            "columns": {
+                "id": "ID",
+                "title": "Заглавие",
+                "status": "Статус",
+                "version_label": "Версия",
+                "locale": "Език",
+                "updated_at": "Обновено"
+            },
+            "fields": {
+                "title": "Заглавие",
+                "version_label": "Етикет на версия",
+                "locale": "Език",
+                "notes": "Бележки",
+                "is_applicable": "Приложима",
+                "title_override": "Персонализирано заглавие на секция",
+                "body": "Съдържание на секцията"
+            },
+            "help": {
+                "title": "Заглавие на документа в експорти и списъци.",
+                "version_label": "Етикет на ревизията (напр. 1.0).",
+                "notes": "Вътрешни бележки; не са задължителни в клиентските експорти.",
+                "title_override": "Опционално заместване на стандартното заглавие на секцията.",
+                "body": "Markdown съдържание за тази секция."
+            },
+            "statuses": {
+                "draft": "Чернова",
+                "under_review": "В преглед",
+                "published": "Публикувана",
+                "retired": "Оттеглена"
+            },
+            "locales": {
+                "en": "Английски",
+                "bg": "Български"
+            },
+            "sections": {
+                "secure_installation": "Сигурна инсталация",
+                "minimum_environment": "Минимална среда",
+                "required_permissions": "Изисквани права",
+                "secure_configuration": "Сигурна конфигурация",
+                "default_settings": "Настройки по подразбиране",
+                "encryption_requirements": "Изисквания за криптиране",
+                "backup": "Резервни копия",
+                "logging": "Журналиране",
+                "update_procedure": "Процедура за обновяване",
+                "security_contact": "Контакт за сигурност",
+                "vulnerability_reporting": "Докладване на уязвимости",
+                "support_period": "Период на поддръжка",
+                "end_of_support_behavior": "Поведение след край на поддръжката",
+                "known_limitations": "Известни ограничения"
+            }
         }
     },
     "audit_logs": {
@@ -2517,7 +2589,10 @@
             "ai_request_completed": "Завършена AI assistant заявка",
             "ai_document_analysed": "Анализиран AI документ",
             "ai_draft_generated": "Генерирана AI чернова",
-            "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост"
+            "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост",
+            "user_security_instruction_created": "Инструкции за сигурност създадени",
+            "user_security_instruction_updated": "Инструкции за сигурност обновени",
+            "user_security_instruction_deleted": "Инструкции за сигурност изтрити"
         },
         "event_sources": {
             "workspace": "Workspace",

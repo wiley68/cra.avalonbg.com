@@ -217,6 +217,12 @@ class Product extends Model
         return $this->hasMany(UserSecurityInstruction::class);
     }
 
+    /** Route-model binding alias for nested `instruction` parameter. */
+    public function instructions(): HasMany
+    {
+        return $this->userSecurityInstructions();
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');

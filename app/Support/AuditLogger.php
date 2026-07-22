@@ -22,6 +22,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Models\VcsImportSuggestion;
 use App\Models\VcsSyncRun;
 use Illuminate\Http\Request;
@@ -236,6 +237,62 @@ class AuditLogger
             details: [
                 ['field' => 'customer_id', 'value' => (string) $customer->id],
                 ['field' => 'name', 'value' => $customer->name],
+            ],
+        );
+    }
+
+    public static function logUserSecurityInstructionCreated(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+                ['field' => 'locale', 'value' => $instruction->locale],
+            ],
+        );
+    }
+
+    public static function logUserSecurityInstructionUpdated(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+                ['field' => 'status', 'value' => $instruction->status->value],
+            ],
+        );
+    }
+
+    public static function logUserSecurityInstructionDeleted(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
             ],
         );
     }

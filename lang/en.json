@@ -834,6 +834,9 @@
             },
             "assistant": {
                 "description": "Ask CRA questions grounded in this product (human review required)"
+            },
+            "user_security_instructions": {
+                "description": "Structured §5.17 security instructions and exports"
             }
         },
         "passport": {
@@ -2400,6 +2403,75 @@
                 "failed": "Queued analysis failed. You can retry from the source action.",
                 "succeeded": "Analysis finished."
             }
+        },
+        "user_security_instructions_link": "User security instructions",
+        "user_security_instructions": {
+            "title": "User security instructions",
+            "subtitle": "Structured product security documentation for installers and operators",
+            "index_title": "User security instructions",
+            "create": "New instructions",
+            "create_title": "Create user security instructions",
+            "create_help": "Creates a draft with all required sections. Fill section content on the next screen.",
+            "created": "User security instructions created.",
+            "updated": "User security instructions updated.",
+            "deleted": "User security instructions deleted.",
+            "confirm_delete": "Delete this draft instructions document?",
+            "search_placeholder": "Search by title, status, version…",
+            "cannot_delete_locked": "Published or retired instructions cannot be deleted.",
+            "cannot_edit_locked": "Published or retired instructions cannot be edited.",
+            "read_only_notice": "This document is read-only in its current status.",
+            "sections_heading": "Sections",
+            "sections_help": "Mark a section as not applicable when it does not apply to this product.",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "version_label": "Version",
+                "locale": "Locale",
+                "updated_at": "Updated"
+            },
+            "fields": {
+                "title": "Title",
+                "version_label": "Version label",
+                "locale": "Locale",
+                "notes": "Notes",
+                "is_applicable": "Applicable",
+                "title_override": "Custom section title",
+                "body": "Section body"
+            },
+            "help": {
+                "title": "Document title shown in exports and lists.",
+                "version_label": "Document revision label (e.g. 1.0).",
+                "notes": "Internal notes; not required in customer-facing exports.",
+                "title_override": "Optional override for the default section title.",
+                "body": "Markdown content for this section."
+            },
+            "statuses": {
+                "draft": "Draft",
+                "under_review": "Under review",
+                "published": "Published",
+                "retired": "Retired"
+            },
+            "locales": {
+                "en": "English",
+                "bg": "Bulgarian"
+            },
+            "sections": {
+                "secure_installation": "Secure installation",
+                "minimum_environment": "Minimum environment",
+                "required_permissions": "Required permissions",
+                "secure_configuration": "Secure configuration",
+                "default_settings": "Default settings",
+                "encryption_requirements": "Encryption requirements",
+                "backup": "Backup",
+                "logging": "Logging",
+                "update_procedure": "Update procedure",
+                "security_contact": "Security contact",
+                "vulnerability_reporting": "Vulnerability reporting",
+                "support_period": "Support period",
+                "end_of_support_behavior": "End-of-support behaviour",
+                "known_limitations": "Known limitations"
+            }
         }
     },
     "audit_logs": {
@@ -2519,7 +2591,10 @@
             "ai_request_completed": "AI assistant request completed",
             "ai_document_analysed": "AI document analysed",
             "ai_draft_generated": "AI draft generated",
-            "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested"
+            "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested",
+            "user_security_instruction_created": "User security instructions created",
+            "user_security_instruction_updated": "User security instructions updated",
+            "user_security_instruction_deleted": "User security instructions deleted"
         },
         "event_sources": {
             "workspace": "Workspace",

@@ -17,6 +17,8 @@ const props = withDefaults(
         required?: boolean;
         error?: string;
         inputId?: string;
+        label?: string;
+        help?: string;
     }>(),
     {
         previousBody: null,
@@ -26,6 +28,8 @@ const props = withDefaults(
         required: false,
         error: undefined,
         inputId: 'body',
+        label: undefined,
+        help: undefined,
     },
 );
 
@@ -61,10 +65,10 @@ const onInput = (event: Event): void => {
     <div class="grid gap-2">
         <FieldLabel
             :html-for="inputId"
-            :help="t('policies.help.body')"
+            :help="help ?? t('policies.help.body')"
             :required="required"
         >
-            {{ t('policies.fields.body') }}
+            {{ label ?? t('policies.fields.body') }}
         </FieldLabel>
 
         <Tabs v-model="activeTab" class="w-full">

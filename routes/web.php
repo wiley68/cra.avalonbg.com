@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ProductDeploymentApiController;
 use App\Http\Controllers\Api\PatchCampaignApiController;
 use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
+use App\Http\Controllers\Api\UserSecurityInstructionApiController;
 use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
@@ -50,6 +51,7 @@ use App\Http\Controllers\ProductAssistantController;
 use App\Http\Controllers\ProductRepositoryController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
+use App\Http\Controllers\UserSecurityInstructionController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductSupportPeriodController;
 use App\Http\Controllers\ProductVersionController;
@@ -214,6 +216,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.risks', ProductRiskController::class)
             ->except(['show'])
             ->scoped();
+        Route::resource('products.security-instructions', UserSecurityInstructionController::class)
+            ->except(['show'])
+            ->parameters(['security-instructions' => 'instruction'])
+            ->scoped();
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();
@@ -337,6 +343,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.controls.index');
             Route::get('products/{product}/risks', [ProductRiskApiController::class, 'index'])
                 ->name('products.risks.index');
+            Route::get('products/{product}/security-instructions', [UserSecurityInstructionApiController::class, 'index'])
+                ->name('products.security-instructions.index');
             Route::get('products/{product}/components', [ProductComponentApiController::class, 'index'])
                 ->name('products.components.index');
             Route::get('products/{product}/vulnerabilities', [ProductVulnerabilityApiController::class, 'index'])

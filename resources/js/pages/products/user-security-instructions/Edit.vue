@@ -1,0 +1,374 @@
+<script setup lang="ts">
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save } from '@lucide/vue';
+import { computed } from 'vue';
+import FieldLabel from '@/components/FieldLabel.vue';
+import InputError from '@/components/InputError.vue';
+import PolicyBodyField from '@/components/PolicyBodyField.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import {
+    edit as instructionsEdit,
+    index as instructionsIndex,
+    update,
+} from '@/routes/products/security-instructions';
+
+type ProductSummary = { id: number; name: string; slug: string };
+
+type SectionPayload = {
+    id: number;
+    section_key: string;
+    title_override: string | null;
+    body: string;
+    sort_order: number;
+    is_applicable: boolean;
+};
+
+type InstructionDetail = {
+    id: number;
+    title: string;
+    status: string;
+    version_label: string;
+    locale: string;
+    notes: string | null;
+    is_editable: boolean;
+    published_at: string | null;
+    published_by_name: string | null;
+    sections: SectionPayload[];
+};
+
+const props = defineProps<{
+    product: ProductSummary;
+    instruction: InstructionDetail;
+    canManage: boolean;
+    options: {
+        locales: string[];
+        statuses: string[];
+        section_keys: string[];
+        default_locale: string;
+    };
+}>();
+
+const { t } = useTranslations();
+
+usePageBreadcrumbs(() => [
+    { titleKey: 'nav.products', href: productsIndex() },
+    { title: props.product.name, href: editProduct(props.product.id) },
+    {
+        titleKey: 'products.user_security_instructions.index_title',
+        href: instructionsIndex(props.product.id),
+    },
+    {
+        title: props.instruction.title,
+        href: instructionsEdit({
+            product: props.product.id,
+            instruction: props.instruction.id,
+        }),
+    },
+]);
+
+const form = useForm({
+    title: props.instruction.title,
+    version_label: props.instruction.version_label,
+    locale: props.instruction.locale,
+    notes: props.instruction.notes ?? '',
+    sections: props.instruction.sections.map((section) => ({
+        section_key: section.section_key,
+        title_override: section.title_override ?? '',
+        body: section.body,
+        sort_order: section.sort_order,
+        is_applicable: section.is_applicable,
+    })),
+});
+
+const canEdit = computed(
+    () => props.canManage && props.instruction.is_editable,
+);
+
+const statusLabel = (value: string): string => {
+    const key = `products.user_security_instructions.statuses.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value : translated;
+};
+
+const localeLabel = (value: string): string => {
+    const key = `products.user_security_instructions.locales.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value.toUpperCase() : translated;
+};
+
+const sectionLabel = (key: string): string => {
+    const translationKey = `products.user_security_instructions.sections.${key}`;
+    const translated = t(translationKey);
+
+    return translated === translationKey ? key : translated;
+};
+
+const sectionError = (index: number, field: string): string | undefined => {
+    const key = `sections.${index}.${field}`;
+    const errors = form.errors as Record<string, string | undefined>;
+
+    return errors[key];
+};
+
+const submit = () => {
+    form.transform((data) => ({
+        ...data,
+        sections: data.sections.map((section) => ({
+            ...section,
+            title_override: section.title_override || null,
+        })),
+    })).put(
+        update({
+            product: props.product.id,
+            instruction: props.instruction.id,
+        }).url,
+    );
+};
+</script>
+
+<template>
+    <Head :title="instruction.title" />
+
+    <div class="mx-auto max-w-3xl space-y-6">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm text-muted-foreground">
+                    {{ props.product.name }}
+                </p>
+                <h1 class="text-xl font-semibold">
+                    {{ instruction.title }}
+                </h1>
+                <p class="text-sm text-muted-foreground">
+                    {{ statusLabel(instruction.status) }}
+                    ·
+                    {{ instruction.version_label }}
+                    ·
+                    {{ localeLabel(instruction.locale) }}
+                </p>
+            </div>
+            <Button as-child variant="outline">
+                <Link :href="instructionsIndex(props.product.id)">
+                    <ArrowLeft class="h-4 w-4" />
+                    {{ t('common.back') }}
+                </Link>
+            </Button>
+        </div>
+
+        <p
+            v-if="!canEdit"
+            class="rounded-md border border-border px-3 py-2 text-sm text-muted-foreground"
+        >
+            {{ t('products.user_security_instructions.read_only_notice') }}
+        </p>
+
+        <form class="space-y-8" @submit.prevent="submit">
+            <div class="space-y-4">
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="title"
+                        :help="
+                            t('products.user_security_instructions.help.title')
+                        "
+                        required
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.fields.title',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Input
+                        id="title"
+                        v-model="form.title"
+                        :disabled="!canEdit"
+                        required
+                    />
+                    <InputError :message="form.errors.title" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="version_label"
+                        :help="
+                            t(
+                                'products.user_security_instructions.help.version_label',
+                            )
+                        "
+                        required
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.fields.version_label',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Input
+                        id="version_label"
+                        v-model="form.version_label"
+                        :disabled="!canEdit"
+                        required
+                    />
+                    <InputError :message="form.errors.version_label" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label>{{
+                        t('products.user_security_instructions.fields.locale')
+                    }}</Label>
+                    <Select v-model="form.locale" :disabled="!canEdit">
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="locale in options.locales"
+                                :key="locale"
+                                :value="locale"
+                            >
+                                {{ localeLabel(locale) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors.locale" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="notes"
+                        :help="
+                            t('products.user_security_instructions.help.notes')
+                        "
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.fields.notes',
+                            )
+                        }}
+                    </FieldLabel>
+                    <textarea
+                        id="notes"
+                        v-model="form.notes"
+                        rows="3"
+                        :disabled="!canEdit"
+                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+                    />
+                    <InputError :message="form.errors.notes" />
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-lg font-medium">
+                        {{
+                            t(
+                                'products.user_security_instructions.sections_heading',
+                            )
+                        }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t(
+                                'products.user_security_instructions.sections_help',
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div
+                    v-for="(section, index) in form.sections"
+                    :key="section.section_key"
+                    class="space-y-4 border-t border-border pt-6"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="font-medium">
+                                {{ sectionLabel(section.section_key) }}
+                            </h3>
+                            <p class="text-xs text-muted-foreground">
+                                {{ section.section_key }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <Label
+                                :for="`applicable-${section.section_key}`"
+                                class="text-sm"
+                            >
+                                {{
+                                    t(
+                                        'products.user_security_instructions.fields.is_applicable',
+                                    )
+                                }}
+                            </Label>
+                            <Switch
+                                :id="`applicable-${section.section_key}`"
+                                v-model="section.is_applicable"
+                                :disabled="!canEdit"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            :html-for="`title-override-${section.section_key}`"
+                            :help="
+                                t(
+                                    'products.user_security_instructions.help.title_override',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.user_security_instructions.fields.title_override',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            :id="`title-override-${section.section_key}`"
+                            v-model="section.title_override"
+                            :disabled="!canEdit || !section.is_applicable"
+                        />
+                        <InputError
+                            :message="sectionError(index, 'title_override')"
+                        />
+                    </div>
+
+                    <PolicyBodyField
+                        v-model="section.body"
+                        :input-id="`section-body-${section.section_key}`"
+                        :label="
+                            t('products.user_security_instructions.fields.body')
+                        "
+                        :help="
+                            t('products.user_security_instructions.help.body')
+                        "
+                        :disabled="!canEdit || !section.is_applicable"
+                        :error="sectionError(index, 'body')"
+                    />
+                </div>
+                <InputError :message="form.errors.sections" />
+            </div>
+
+            <div v-if="canEdit" class="flex justify-end">
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
+            </div>
+        </form>
+    </div>
+</template>

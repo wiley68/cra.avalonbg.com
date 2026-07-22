@@ -1,5 +1,6 @@
 import {
     Boxes,
+    BookOpen,
     Bot,
     Bug,
     CalendarRange,
@@ -25,6 +26,7 @@ import { show as productReadinessShow } from '@/routes/products/readiness';
 import { show as productAssistantShow } from '@/routes/products/assistant';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as productRisksIndex } from '@/routes/products/risks';
+import { index as securityInstructionsIndex } from '@/routes/products/security-instructions';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 import { index as productTasksIndex } from '@/routes/products/tasks';
 import { index as versionsIndex } from '@/routes/products/versions';
@@ -57,7 +59,8 @@ export type ProductModuleKey =
     | 'tasks'
     | 'passport'
     | 'readiness'
-    | 'assistant';
+    | 'assistant'
+    | 'security_instructions';
 
 export type ProductModuleDefinition = {
     key: ProductModuleKey;
@@ -191,6 +194,15 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.assistant.description',
         icon: Bot,
         href: (productId) => productAssistantShow(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
+        key: 'security_instructions',
+        labelKey: 'products.user_security_instructions_link',
+        descriptionKey:
+            'products.modules.user_security_instructions.description',
+        icon: BookOpen,
+        href: (productId) => securityInstructionsIndex(productId).url,
         canViewFlag: 'can_view_products',
     },
 ];
