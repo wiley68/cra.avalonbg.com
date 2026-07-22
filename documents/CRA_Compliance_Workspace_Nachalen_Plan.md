@@ -1435,7 +1435,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 - vulnerability summarisation;
 - draft generation.
 
-> **Статус:** Planned — [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) §2.3C.
+> **Статус:** Active — 2.3C Must Done (Should/Could remaining) — [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) §2.3C.
 
 ## Policy library
 
@@ -1457,7 +1457,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 - remediation;
 - export.
 
-> **Статус:** Planned — [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) §2.3B.
+> **Статус:** Done — [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) §2.3B.
 
 ---
 

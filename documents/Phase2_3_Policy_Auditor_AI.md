@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.22  
+**Версия:** 1.23  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must1–5 Done (in progress)  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must Done; Should/Could remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -293,7 +293,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 3. Product-scoped chat UI with disclaimer (§6) — **Done** (2026-07-22)
 4. Context builder: product + requirements + controls + policies summaries (no external API required for Must stub) — **Done** (2026-07-22)
 5. Audit log for AI requests (no prompt secrets) — **Done** (2026-07-22)
-6. Tests — **Pending**
+6. Tests — **Done** (2026-07-22)
 
 #### Should
 
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.23   | 2026-07-22 | 2.3C Must 6: AI RBAC/acceptance matrix; 2.3C Must Done                 |
 | 1.22   | 2026-07-22 | 2.3C Must 5: `ai_request_completed` audit (no prompt/context secrets)  |
 | 1.21   | 2026-07-22 | 2.3C Must 4: `AiContextBuilder` grounds stub replies in workspace data |
 | 1.20   | 2026-07-22 | 2.3C Must 3: product AI chat UI + §6 disclaimer                        |
