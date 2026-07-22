@@ -46,6 +46,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductDeploymentController;
 use App\Http\Controllers\PatchCampaignController;
 use App\Http\Controllers\ProductReadinessController;
+use App\Http\Controllers\ProductAssistantController;
 use App\Http\Controllers\ProductRepositoryController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
@@ -192,6 +193,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.readiness.show');
         Route::get('products/{product}/readiness/export', [ProductReadinessController::class, 'export'])
             ->name('products.readiness.export');
+        Route::get('products/{product}/assistant', [ProductAssistantController::class, 'show'])
+            ->name('products.assistant.show');
+        Route::post('products/{product}/assistant/messages', [ProductAssistantController::class, 'storeMessage'])
+            ->name('products.assistant.messages.store');
+        Route::get(
+            'products/{product}/assistant/conversations/{conversation}',
+            [ProductAssistantController::class, 'showConversation'],
+        )->name('products.assistant.conversations.show');
         Route::resource('products.controls', ProductControlController::class)
             ->except(['show'])
             ->parameters(['controls' => 'product_control'])

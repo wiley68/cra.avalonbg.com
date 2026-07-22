@@ -831,6 +831,9 @@
             },
             "readiness": {
                 "description": "Readiness overview"
+            },
+            "assistant": {
+                "description": "Ask CRA questions grounded in this product (human review required)"
             }
         },
         "passport": {
@@ -2321,6 +2324,18 @@
                 "non_conformity": "Non-conformity",
                 "exception_approved": "Exception approved"
             }
+        },
+        "assistant_link": "AI assistant",
+        "assistant": {
+            "title": "AI assistant",
+            "subtitle": "Product-scoped helper for requirements, controls, and evidence questions",
+            "disclaimer": "The AI assistant is a helper, not an autonomous compliance authority. It must not determine final CRA applicability, confirm compliance, close vulnerabilities, submit reports, or change product data. All material decisions require human review and approval.",
+            "empty": "Ask a question about this product’s compliance context. Responses are suggestions only.",
+            "input_label": "Message",
+            "input_placeholder": "Ask about requirements, controls, evidence, or gaps…",
+            "send": "Send",
+            "role_user": "You",
+            "role_assistant": "Assistant"
         }
     },
     "audit_logs": {
@@ -2633,7 +2648,8 @@
         "passport": "Compliance passport",
         "readiness": "Readiness",
         "import": "Import",
-        "assign_control": "Assign control"
+        "assign_control": "Assign control",
+        "assistant": "AI assistant"
     },
     "assistant": {
         "disabled": "The AI assistant is disabled. Set CRA_AI_ENABLED=true to use it.",

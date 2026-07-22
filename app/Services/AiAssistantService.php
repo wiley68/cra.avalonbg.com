@@ -146,6 +146,60 @@ class AiAssistantService
         });
     }
 
+    public function latestForProductUser(Product $product, User $user): ?AiConversation
+    {
+        return AiConversation::query()
+            ->where('product_id', $product->id)
+            ->where('user_id', $user->id)
+            ->where('context_type', AiConversationContextType::Chat)
+            ->latest('id')
+            ->first();
+    }
+
+    public function getOrStartConversation(
+        Product $product,
+        User $user,
+        AiConversationContextType $contextType = AiConversationContextType::Chat,
+    ): AiConversation {
+        $existing = $this->latestForProductUser($product, $user);
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return $this->startConversation($product, $user, $contextType);
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     context_type: string,
+     *     messages: list<array{id: int, role: string, content: string, created_at: string|null}>
+     * }|null
+     */
+    public function conversationPayload(?AiConversation $conversation): ?array
+    {
+        if ($conversation === null) {
+            return null;
+        }
+
+        $conversation->loadMissing('messages');
+
+        return [
+            'id' => $conversation->id,
+            'context_type' => $conversation->context_type->value,
+            'messages' => $conversation->messages
+                ->map(fn(AiMessage $message): array => [
+                    'id' => $message->id,
+                    'role' => $message->role->value,
+                    'content' => $message->content,
+                    'created_at' => $message->created_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
     private function assertEnabled(): void
     {
         if (!$this->isEnabled()) {

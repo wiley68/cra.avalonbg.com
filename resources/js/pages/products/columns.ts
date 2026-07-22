@@ -1,5 +1,6 @@
 import {
     Boxes,
+    Bot,
     Bug,
     CalendarRange,
     CheckSquare,
@@ -21,6 +22,7 @@ import { index as deploymentsIndex } from '@/routes/products/deployments';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
 import { show as productPassportShow } from '@/routes/products/passport';
 import { show as productReadinessShow } from '@/routes/products/readiness';
+import { show as productAssistantShow } from '@/routes/products/assistant';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
@@ -54,7 +56,8 @@ export type ProductModuleKey =
     | 'evidence'
     | 'tasks'
     | 'passport'
-    | 'readiness';
+    | 'readiness'
+    | 'assistant';
 
 export type ProductModuleDefinition = {
     key: ProductModuleKey;
@@ -180,6 +183,14 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.readiness.description',
         icon: ClipboardCheck,
         href: (productId) => productReadinessShow(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
+        key: 'assistant',
+        labelKey: 'products.assistant_link',
+        descriptionKey: 'products.modules.assistant.description',
+        icon: Bot,
+        href: (productId) => productAssistantShow(productId).url,
         canViewFlag: 'can_view_products',
     },
 ];

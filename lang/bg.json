@@ -831,6 +831,9 @@
             },
             "readiness": {
                 "description": "Преглед на готовността"
+            },
+            "assistant": {
+                "description": "Въпроси по CRA в контекста на продукта (изисква се human review)"
             }
         },
         "passport": {
@@ -2321,6 +2324,18 @@
                 "non_conformity": "Несъответствие",
                 "exception_approved": "Одобрено изключение"
             }
+        },
+        "assistant_link": "AI асистент",
+        "assistant": {
+            "title": "AI асистент",
+            "subtitle": "Помощник за продукта — requirements, controls и evidence въпроси",
+            "disclaimer": "AI асистентът е помощник, а не автономен compliance орган. Не определя окончателна CRA приложимост, не потвърждава съответствие, не затваря vulnerabilities, не submit-ва reports и не променя продуктови данни. Всички съществени решения изискват human review и одобрение.",
+            "empty": "Задайте въпрос за compliance контекста на продукта. Отговорите са само предложения.",
+            "input_label": "Съобщение",
+            "input_placeholder": "Попитайте за requirements, controls, evidence или пропуски…",
+            "send": "Изпрати",
+            "role_user": "Вие",
+            "role_assistant": "Асистент"
         }
     },
     "audit_logs": {
@@ -2631,7 +2646,8 @@
         "passport": "Compliance паспорт",
         "readiness": "Готовност",
         "import": "Импорт",
-        "assign_control": "Назначи контрол"
+        "assign_control": "Назначи контрол",
+        "assistant": "AI асистент"
     },
     "assistant": {
         "disabled": "AI асистентът е изключен. Задайте CRA_AI_ENABLED=true, за да го ползвате.",
