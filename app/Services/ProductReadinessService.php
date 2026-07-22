@@ -66,26 +66,30 @@ class ProductReadinessService
 
         $aggregate = $this->aggregateCardStatus($statuses);
         $statuses['passport'] = $aggregate;
-        $statuses['readiness'] = $this->readinessModuleCardStatus($product);
+        $statuses['readiness'] = $this->readinessModuleCardStatus($product, $aggregate);
 
         return $statuses;
     }
 
     /**
-     * Readiness module color on product cards reflects the full readiness report,
-     * not only the passport module subset.
+     * Readiness card color: incomplete when passport modules are incomplete, or when
+     * readiness-only sections (policies / security instructions) have gaps.
      *
+     * @param  'empty'|'complete'|'incomplete'  $passportAggregate
      * @return 'empty'|'complete'|'incomplete'
      */
-    private function readinessModuleCardStatus(Product $product): string
+    private function readinessModuleCardStatus(Product $product, string $passportAggregate): string
     {
-        $gaps = $this->build($product)['gaps'];
-
-        if ($gaps !== []) {
-            return 'incomplete';
+        foreach ([
+            $this->policiesSection($product),
+            $this->securityInstructionsSection($product),
+        ] as $section) {
+            if (in_array($section['status'], ['fail', 'warn'], true)) {
+                return 'incomplete';
+            }
         }
 
-        return 'complete';
+        return $passportAggregate;
     }
 
     /**
