@@ -75,6 +75,7 @@ const confirmDelete = (): void => {
     showDeleteDialog.value = false;
 
     router.delete(destroy(organizationId).url, {
+        preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
             void fetch();

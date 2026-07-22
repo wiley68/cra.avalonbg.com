@@ -28,9 +28,7 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 
-usePageBreadcrumbs(() => [
-    { titleKey: 'nav.products', href: productsIndex() },
-]);
+usePageBreadcrumbs(() => [{ titleKey: 'nav.products', href: productsIndex() }]);
 
 const showDeleteDialog = ref(false);
 const productToDelete = ref<number | null>(null);
@@ -67,9 +65,10 @@ const confirmDelete = (): void => {
     showDeleteDialog.value = false;
 
     router.delete(destroy(productId).url, {
+        preserveState: true,
         preserveScroll: true,
-        onSuccess: async () => {
-            await fetch();
+        onSuccess: () => {
+            void fetch();
         },
     });
 };

@@ -44,7 +44,10 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.versions.index_title', href: versionsIndex(props.product.id) },
+    {
+        titleKey: 'products.versions.index_title',
+        href: versionsIndex(props.product.id),
+    },
 ]);
 const { backHref } = useProductModuleBack(props.product.id);
 
@@ -111,18 +114,10 @@ const confirmDelete = (): void => {
             version: versionId,
         }).url,
         {
+            preserveState: true,
             preserveScroll: true,
-            onSuccess: async () => {
-                rows.value = rows.value.filter((row) => row.id !== versionId);
-                pagination.value.rowsNumber = Math.max(
-                    0,
-                    pagination.value.rowsNumber - 1,
-                );
-
-                if (rows.value.length === 0 && pagination.value.page > 1) {
-                    pagination.value.page--;
-                    await fetch();
-                }
+            onSuccess: () => {
+                void fetch();
             },
         },
     );

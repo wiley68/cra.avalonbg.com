@@ -114,6 +114,7 @@ const confirmDelete = (): void => {
     showDeleteDialog.value = false;
 
     router.delete(destroy(policyId).url, {
+        preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
             void fetch();

@@ -37,8 +37,14 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.organizations', href: organizationsIndex() },
-    { title: props.organization.name, href: editOrganization(props.organization.id) },
-    { titleKey: 'admin.users.index_title', href: organizationUsersIndex(props.organization.id) },
+    {
+        title: props.organization.name,
+        href: editOrganization(props.organization.id),
+    },
+    {
+        titleKey: 'admin.users.index_title',
+        href: organizationUsersIndex(props.organization.id),
+    },
 ]);
 
 const showDeleteDialog = ref(false);
@@ -103,18 +109,10 @@ const confirmDelete = (): void => {
             user: userId,
         }).url,
         {
+            preserveState: true,
             preserveScroll: true,
-            onSuccess: async () => {
-                rows.value = rows.value.filter((row) => row.id !== userId);
-                pagination.value.rowsNumber = Math.max(
-                    0,
-                    pagination.value.rowsNumber - 1,
-                );
-
-                if (rows.value.length === 0 && pagination.value.page > 1) {
-                    pagination.value.page--;
-                    await fetch();
-                }
+            onSuccess: () => {
+                void fetch();
             },
         },
     );
