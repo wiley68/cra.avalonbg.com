@@ -199,3 +199,49 @@ test('invalid export format is rejected', function () {
         ]))
         ->assertNotFound();
 });
+
+test('owner can export readme markdown and release zip package', function () {
+    ['owner' => $owner, 'product' => $product, 'instruction' => $instruction] = makeUsiExportFixture();
+
+    $readme = $this->actingAs($owner)
+        ->get(route('products.security-instructions.export', [
+            'product' => $product,
+            'instruction' => $instruction,
+            'format' => 'readme',
+        ]))
+        ->assertOk();
+
+    expect($readme->headers->get('content-type'))->toContain('text/markdown');
+    expect($readme->headers->get('content-disposition'))->toContain('.md');
+    expect($readme->getContent())->toContain('# ' . $instruction->title);
+    expect($readme->getContent())->toContain('## Secure installation');
+    expect($readme->getContent())->toContain('Secure installation');
+
+    $release = $this->actingAs($owner)
+        ->get(route('products.security-instructions.export', [
+            'product' => $product,
+            'instruction' => $instruction,
+            'format' => 'release',
+        ]))
+        ->assertOk();
+
+    expect($release->headers->get('content-type'))->toContain('application/zip');
+    expect($release->headers->get('content-disposition'))->toContain('.zip');
+
+    $zipPath = $release->baseResponse->getFile()->getPathname();
+    $zip = new \ZipArchive;
+    expect($zip->open($zipPath))->toBeTrue();
+    expect($zip->locateName('README.md'))->not->toBeFalse();
+    expect($zip->locateName('security-instructions.html'))->not->toBeFalse();
+    expect($zip->locateName('security-instructions.pdf'))->not->toBeFalse();
+
+    $md = $zip->getFromName('README.md');
+    expect($md)->toContain('# ' . $instruction->title);
+    expect($zip->getFromName('security-instructions.pdf'))->toStartWith('%PDF');
+    $zip->close();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::UserSecurityInstructionExported->value)
+        ->where('product_id', $product->id)
+        ->count())->toBeGreaterThanOrEqual(2);
+});

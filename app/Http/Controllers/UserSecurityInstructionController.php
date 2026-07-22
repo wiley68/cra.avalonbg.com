@@ -19,6 +19,7 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class UserSecurityInstructionController extends Controller
@@ -213,7 +214,7 @@ class UserSecurityInstructionController extends Controller
         Product $product,
         UserSecurityInstruction $instruction,
         string $format,
-    ): Response|SymfonyResponse {
+    ): Response|BinaryFileResponse|SymfonyResponse {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
         $this->assertInstructionBelongsToProduct($instruction, $product);

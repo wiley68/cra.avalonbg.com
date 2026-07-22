@@ -151,6 +151,24 @@ const exportPdfUrl = computed(
         }).url,
 );
 
+const exportReadmeUrl = computed(
+    () =>
+        instructionsExport({
+            product: props.product.id,
+            instruction: props.instruction.id,
+            format: 'readme',
+        }).url,
+);
+
+const exportReleaseUrl = computed(
+    () =>
+        instructionsExport({
+            product: props.product.id,
+            instruction: props.instruction.id,
+            format: 'release',
+        }).url,
+);
+
 const statusLabel = (value: string): string => {
     const key = `products.user_security_instructions.statuses.${value}`;
     const translated = t(key);
@@ -260,6 +278,26 @@ const doRetire = () => {
                         <FileDown class="h-4 w-4" />
                         {{
                             t('products.user_security_instructions.export_pdf')
+                        }}
+                    </a>
+                </Button>
+                <Button v-if="canExport" as-child variant="outline">
+                    <a :href="exportReadmeUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t(
+                                'products.user_security_instructions.export_readme',
+                            )
+                        }}
+                    </a>
+                </Button>
+                <Button v-if="canExport" as-child variant="outline">
+                    <a :href="exportReleaseUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t(
+                                'products.user_security_instructions.export_release',
+                            )
                         }}
                     </a>
                 </Button>

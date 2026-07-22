@@ -240,7 +240,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/security-instructions/{instruction}/export/{format}',
             [UserSecurityInstructionController::class, 'export'],
         )->name('products.security-instructions.export')->scopeBindings()
-            ->whereIn('format', ['html', 'pdf']);
+            ->whereIn('format', ['html', 'pdf', 'readme', 'release']);
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();

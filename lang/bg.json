@@ -2489,12 +2489,16 @@
             "confirm_retire": "Оттеглените документи остават в историята, но вече не са публикуваната версия.",
             "export_html": "Експорт HTML",
             "export_pdf": "Експорт PDF",
+            "export_readme": "Експорт README",
+            "export_release": "Експорт release пакет",
             "export": {
                 "generated_at": "Генериран на",
                 "disclaimer": "Този документ е потребителски security instructions за продукта. Не е правен сертификат за compliance.",
                 "not_applicable": "Не е приложимо за този продукт.",
                 "empty_section": "Няма съдържание за тази секция.",
-                "invalid_format": "Форматът за експорт трябва да е html или pdf."
+                "invalid_format": "Форматът за експорт трябва да е html, pdf, readme или release.",
+                "meta_organization": "Организация",
+                "meta_product": "Продукт"
             }
         }
     },

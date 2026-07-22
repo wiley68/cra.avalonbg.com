@@ -2489,12 +2489,16 @@
             "confirm_retire": "Retired documents stay in history but are no longer the published version.",
             "export_html": "Export HTML",
             "export_pdf": "Export PDF",
+            "export_readme": "Export README",
+            "export_release": "Export release package",
             "export": {
                 "generated_at": "Generated at",
                 "disclaimer": "This document is product user security instructions. It is not a legal compliance certificate.",
                 "not_applicable": "Not applicable for this product.",
                 "empty_section": "No content provided for this section.",
-                "invalid_format": "Export format must be html or pdf."
+                "invalid_format": "Export format must be html, pdf, readme or release.",
+                "meta_organization": "Organization",
+                "meta_product": "Product"
             }
         }
     },

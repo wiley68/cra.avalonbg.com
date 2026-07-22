@@ -13,12 +13,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use ZipArchive;
 
 class UserSecurityInstructionExportService
 {
+    private const FORMATS = ['html', 'pdf', 'readme', 'release'];
+
     /**
-     * @return Response|SymfonyResponse
+     * @return Response|BinaryFileResponse|SymfonyResponse
      */
     public function export(
         UserSecurityInstruction $instruction,
@@ -26,10 +30,10 @@ class UserSecurityInstructionExportService
         Organization $organization,
         string $format,
         User $actor,
-    ): Response|SymfonyResponse {
+    ): Response|BinaryFileResponse|SymfonyResponse {
         $format = strtolower($format);
 
-        if (!in_array($format, ['html', 'pdf'], true)) {
+        if (!in_array($format, self::FORMATS, true)) {
             throw ValidationException::withMessages([
                 'format' => Translations::get('products.user_security_instructions.export.invalid_format'),
             ]);
@@ -40,23 +44,137 @@ class UserSecurityInstructionExportService
             'publisher:id,name',
         ]);
 
-        $payload = $this->viewPayload($instruction, $product, $organization);
+        $viewPayload = $this->viewPayload($instruction, $product, $organization);
+        $markdown = $this->buildMarkdown($instruction, $product, $organization);
         $filenameBase = $this->filenameBase($instruction, $product);
 
         AuditLogger::logUserSecurityInstructionExported($instruction, $actor, $format);
 
-        if ($format === 'pdf') {
-            return Pdf::loadView('pdf.user-security-instructions', $payload)
+        return match ($format) {
+            'pdf' => Pdf::loadView('pdf.user-security-instructions', $viewPayload)
                 ->setPaper('a4')
-                ->stream($filenameBase . '.pdf');
+                ->stream($filenameBase . '.pdf'),
+            'html' => response(
+                view('pdf.user-security-instructions', $viewPayload)->render(),
+                200,
+                [
+                    'Content-Type' => 'text/html; charset=UTF-8',
+                    'Content-Disposition' => 'attachment; filename="' . $filenameBase . '.html"',
+                ],
+            ),
+            'readme' => response($markdown, 200, [
+                'Content-Type' => 'text/markdown; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filenameBase . '-README.md"',
+            ]),
+            'release' => $this->downloadReleaseZip(
+                $filenameBase,
+                $markdown,
+                view('pdf.user-security-instructions', $viewPayload)->render(),
+                Pdf::loadView('pdf.user-security-instructions', $viewPayload)
+                    ->setPaper('a4')
+                    ->output(),
+            ),
+        };
+    }
+
+    private function downloadReleaseZip(
+        string $filenameBase,
+        string $markdown,
+        string $html,
+        string $pdfBinary,
+    ): BinaryFileResponse {
+        $zipPath = tempnam(sys_get_temp_dir(), 'usi-release-');
+        if ($zipPath === false) {
+            abort(500, 'Could not create temporary export file.');
         }
 
-        $html = view('pdf.user-security-instructions', $payload)->render();
+        $zipPathWithExt = $zipPath . '.zip';
+        rename($zipPath, $zipPathWithExt);
+        $zipPath = $zipPathWithExt;
 
-        return response($html, 200, [
-            'Content-Type' => 'text/html; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filenameBase . '.html"',
-        ]);
+        $zip = new ZipArchive;
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            @unlink($zipPath);
+            abort(500, 'Could not create ZIP archive.');
+        }
+
+        $zip->addFromString('README.md', $markdown);
+        $zip->addFromString('security-instructions.html', $html);
+        $zip->addFromString('security-instructions.pdf', $pdfBinary);
+        $zip->close();
+
+        return response()
+            ->download($zipPath, $filenameBase . '-release.zip', [
+                'Content-Type' => 'application/zip',
+            ])
+            ->deleteFileAfterSend(true);
+    }
+
+    private function buildMarkdown(
+        UserSecurityInstruction $instruction,
+        Product $product,
+        Organization $organization,
+    ): string {
+        $lines = [];
+        $lines[] = '# ' . $instruction->title;
+        $lines[] = '';
+        $lines[] = '> ' . Translations::get('products.user_security_instructions.export.disclaimer');
+        $lines[] = '';
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_organization') . ':** ' . $organization->name;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_product') . ':** ' . $product->name;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.version_label') . ':** ' . $instruction->version_label;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.locale') . ':** ' . $instruction->locale;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.columns.status') . ':** ' . $instruction->status->value;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.export.generated_at') . ':** ' . now()->toIso8601String();
+
+        if ($instruction->published_at !== null) {
+            $published = $instruction->published_at->toIso8601String();
+            if ($instruction->publisher?->name) {
+                $published .= ' (' . $instruction->publisher->name . ')';
+            }
+            $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.published_at') . ':** ' . $published;
+        }
+
+        $lines[] = '';
+
+        foreach ($instruction->sections->sortBy('sort_order') as $section) {
+            /** @var UserSecurityInstructionSection $section */
+            $lines[] = '## ' . $this->sectionTitle($section);
+            $lines[] = '';
+
+            if (!$section->is_applicable) {
+                $lines[] = '*' . Translations::get('products.user_security_instructions.export.not_applicable') . '*';
+                $lines[] = '';
+
+                continue;
+            }
+
+            if (!filled($section->body)) {
+                $lines[] = '*' . Translations::get('products.user_security_instructions.export.empty_section') . '*';
+                $lines[] = '';
+
+                continue;
+            }
+
+            $lines[] = rtrim((string) $section->body);
+            $lines[] = '';
+        }
+
+        return implode("\n", $lines) . "\n";
+    }
+
+    private function sectionTitle(UserSecurityInstructionSection $section): string
+    {
+        if (filled($section->title_override)) {
+            return (string) $section->title_override;
+        }
+
+        $defaultTitleKey = 'products.user_security_instructions.sections.' . $section->section_key->value;
+        $defaultTitle = Translations::get($defaultTitleKey);
+
+        return $defaultTitle === $defaultTitleKey
+            ? $section->section_key->value
+            : $defaultTitle;
     }
 
     /**
@@ -89,16 +207,6 @@ class UserSecurityInstructionExportService
             ->sortBy('sort_order')
             ->values()
             ->map(function (UserSecurityInstructionSection $section) {
-                $defaultTitleKey = 'products.user_security_instructions.sections.' . $section->section_key->value;
-                $defaultTitle = Translations::get($defaultTitleKey);
-                if ($defaultTitle === $defaultTitleKey) {
-                    $defaultTitle = $section->section_key->value;
-                }
-
-                $title = filled($section->title_override)
-                    ? (string) $section->title_override
-                    : $defaultTitle;
-
                 $bodyHtml = '';
                 if ($section->is_applicable && filled($section->body)) {
                     $bodyHtml = Str::markdown($section->body, [
@@ -109,7 +217,7 @@ class UserSecurityInstructionExportService
 
                 return [
                     'section_key' => $section->section_key->value,
-                    'title' => $title,
+                    'title' => $this->sectionTitle($section),
                     'is_applicable' => $section->is_applicable,
                     'body_html' => $bodyHtml,
                 ];

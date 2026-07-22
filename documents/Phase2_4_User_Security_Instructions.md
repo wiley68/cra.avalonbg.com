@@ -1,8 +1,8 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.7  
+**Версия:** 0.8  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — Must Done; Should/Could remaining  
+**Статус:** Active — Must Done; Should 7 Done; Should 8–11 / Could remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
@@ -188,7 +188,7 @@ GET    /internal-api/products/{product}/security-instructions
 
 ### Should
 
-7. README / release-package markdown export
+7. README / release-package markdown export — **Done** (2026-07-22)
 8. Readiness gap `security_instructions_missing`
 9. Publish published instructions → Evidence
 10. Version-pinned instructions (`product_version_id`)
@@ -260,6 +260,7 @@ Reuse от Phase 2.3:
 
 | Версия | Дата       | Промяна                                         |
 | ------ | ---------- | ----------------------------------------------- |
+| 0.8    | 2026-07-22 | Should 7: README markdown + release ZIP export  |
 | 0.7    | 2026-07-22 | Must 6: i18n verified + CRUD/RBAC feature tests |
 | 0.6    | 2026-07-22 | Must 5: HTML + PDF export + audit + RBAC        |
 | 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates         |
