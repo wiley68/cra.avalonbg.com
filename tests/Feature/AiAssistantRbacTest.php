@@ -112,7 +112,7 @@ test('guests cannot open or post to the product assistant', function () {
     expect(AiConversation::query()->count())->toBe(0);
 });
 
-test('assistant show includes §6 disclaimer translation for the chat UI', function () {
+test('assistant show includes section 6 disclaimer translation for the chat UI', function () {
     config(['ai.enabled' => true]);
 
     ['owner' => $owner, 'product' => $product] = makeAiRbacFixture();
@@ -122,7 +122,7 @@ test('assistant show includes §6 disclaimer translation for the chat UI', funct
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
             ->component('products/assistant/Show')
-            ->where('locale', 'en')
+            ->where('locale', fn($locale) => $locale === 'en')
             ->missing('translations'));
 
     expect(\App\Support\Translations::get('products.assistant.disclaimer'))
