@@ -201,6 +201,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.assistant.analyse');
         Route::post('products/{product}/assistant/draft', [ProductAssistantController::class, 'generateDraft'])
             ->name('products.assistant.draft');
+        Route::post('products/{product}/assistant/triage', [ProductAssistantController::class, 'triageVulnerability'])
+            ->name('products.assistant.triage');
         Route::get(
             'products/{product}/assistant/conversations/{conversation}',
             [ProductAssistantController::class, 'showConversation'],

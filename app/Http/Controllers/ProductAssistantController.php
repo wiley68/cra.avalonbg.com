@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAssistantDocumentAnalyseRequest;
 use App\Http\Requests\StoreAssistantDraftRequest;
 use App\Http\Requests\StoreAssistantMessageRequest;
+use App\Http\Requests\StoreAssistantTriageRequest;
 use App\Models\AiConversation;
 use App\Models\Organization;
 use App\Models\Product;
@@ -101,6 +102,27 @@ class ProductAssistantController extends Controller
             $request->user(),
             $request->campaign(),
             $request->draftType(),
+            $request->validated('note'),
+        );
+
+        return redirect()->route('products.assistant.conversations.show', [
+            'product' => $product,
+            'conversation' => $result['conversation'],
+        ]);
+    }
+
+    public function triageVulnerability(
+        StoreAssistantTriageRequest $request,
+        Product $product,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('view', [$product, $organization]);
+
+        $result = $this->assistant->triageVulnerability(
+            $product,
+            $request->user(),
+            $request->vulnerability(),
             $request->validated('note'),
         );
 

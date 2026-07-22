@@ -36,6 +36,8 @@ class OpenAiProvider implements AiProvider
             $system .= "\n\n" . AiDocumentAnalysePrompt::systemAddon();
         } elseif ($mode === 'draft_generate') {
             $system .= "\n\n" . AiDraftPrompt::systemAddon();
+        } elseif ($mode === 'vulnerability_triage') {
+            $system .= "\n\n" . AiVulnerabilityTriagePrompt::systemAddon();
         }
 
         $payloadMessages = [
@@ -63,7 +65,7 @@ class OpenAiProvider implements AiProvider
             'temperature' => 0.2,
         ];
 
-        if (in_array($mode, ['document_analyse', 'draft_generate'], true)) {
+        if (in_array($mode, ['document_analyse', 'draft_generate', 'vulnerability_triage'], true)) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
 

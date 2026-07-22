@@ -12,6 +12,7 @@ import {
     show as assistantShow,
 } from '@/routes/products/assistant';
 import { store as storeAssistantMessage } from '@/routes/products/assistant/messages';
+import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -60,6 +61,22 @@ type DraftPayload = {
     campaign_id?: number;
 };
 
+type TriagePayload = {
+    vulnerability_id?: number;
+    suggested_component_ids?: number[];
+    suggested_affected_version_ids?: number[];
+    suggested_fixed_version_ids?: number[];
+    suggested_business_severity?: string | null;
+    suggested_exploitation_status?: string | null;
+    suggested_status?: string | null;
+    suggested_workaround?: string | null;
+    suggested_corrective_action?: string | null;
+    rationale?: string;
+    cross_product_hints?: string[];
+    human_review_required?: boolean;
+    disclaimer?: string;
+};
+
 type ChatMessage = {
     id: number;
     role: 'user' | 'assistant';
@@ -74,6 +91,9 @@ type ChatMessage = {
         draft_parsed?: boolean;
         draft_type?: string;
         campaign_id?: number;
+        triage?: TriagePayload | null;
+        triage_parsed?: boolean;
+        vulnerability_id?: number;
     } | null;
 };
 
@@ -144,6 +164,21 @@ const latestDraft = computed((): DraftPayload | null => {
             typeof message.metadata.draft === 'object'
         ) {
             return message.metadata.draft;
+        }
+    }
+
+    return null;
+});
+
+const latestTriage = computed((): TriagePayload | null => {
+    for (let i = chatMessages.value.length - 1; i >= 0; i--) {
+        const message = chatMessages.value[i];
+        if (
+            message.role === 'assistant' &&
+            message.metadata?.triage &&
+            typeof message.metadata.triage === 'object'
+        ) {
+            return message.metadata.triage;
         }
     }
 
@@ -502,6 +537,131 @@ function submitAnalyse(): void {
                     <li
                         v-for="(item, index) in latestDraft.recommended_actions"
                         :key="`act-${index}`"
+                    >
+                        {{ item }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div v-if="latestTriage" class="space-y-3 rounded-lg border p-4">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <h2 class="text-sm font-medium">
+                    {{ t('products.assistant.triage.panel_title') }}
+                </h2>
+                <Button
+                    v-if="latestTriage.vulnerability_id"
+                    as-child
+                    variant="outline"
+                    size="sm"
+                >
+                    <Link
+                        :href="
+                            editProductVulnerability({
+                                product: props.product.id,
+                                vulnerability: latestTriage.vulnerability_id,
+                            })
+                        "
+                    >
+                        {{ t('products.assistant.triage.open_vulnerability') }}
+                    </Link>
+                </Button>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                {{
+                    latestTriage.disclaimer ||
+                    t('products.assistant.triage.human_review')
+                }}
+            </p>
+            <p v-if="latestTriage.rationale" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.rationale') }}:
+                </span>
+                {{ latestTriage.rationale }}
+            </p>
+            <p v-if="latestTriage.suggested_status" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.status') }}:
+                </span>
+                {{ latestTriage.suggested_status }}
+            </p>
+            <p v-if="latestTriage.suggested_business_severity" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.severity') }}:
+                </span>
+                {{ latestTriage.suggested_business_severity }}
+            </p>
+            <p
+                v-if="latestTriage.suggested_exploitation_status"
+                class="text-sm"
+            >
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.exploitation') }}:
+                </span>
+                {{ latestTriage.suggested_exploitation_status }}
+            </p>
+            <p
+                v-if="(latestTriage.suggested_component_ids || []).length"
+                class="text-sm"
+            >
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.components') }}:
+                </span>
+                {{ (latestTriage.suggested_component_ids || []).join(', ') }}
+            </p>
+            <p
+                v-if="
+                    (latestTriage.suggested_affected_version_ids || []).length
+                "
+                class="text-sm"
+            >
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.affected_versions') }}:
+                </span>
+                {{
+                    (latestTriage.suggested_affected_version_ids || []).join(
+                        ', ',
+                    )
+                }}
+            </p>
+            <p
+                v-if="(latestTriage.suggested_fixed_version_ids || []).length"
+                class="text-sm"
+            >
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.fixed_versions') }}:
+                </span>
+                {{
+                    (latestTriage.suggested_fixed_version_ids || []).join(', ')
+                }}
+            </p>
+            <p v-if="latestTriage.suggested_workaround" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.workaround') }}:
+                </span>
+                {{ latestTriage.suggested_workaround }}
+            </p>
+            <p v-if="latestTriage.suggested_corrective_action" class="text-sm">
+                <span class="font-medium">
+                    {{ t('products.assistant.triage.corrective_action') }}:
+                </span>
+                {{ latestTriage.suggested_corrective_action }}
+            </p>
+            <div
+                v-if="(latestTriage.cross_product_hints || []).length"
+                class="space-y-1"
+            >
+                <p class="text-sm font-medium">
+                    {{ t('products.assistant.triage.cross_product') }}
+                </p>
+                <ul
+                    class="list-disc space-y-1 pl-5 text-sm text-muted-foreground"
+                >
+                    <li
+                        v-for="(
+                            item, index
+                        ) in latestTriage.cross_product_hints"
+                        :key="`hint-${index}`"
                     >
                         {{ item }}
                     </li>

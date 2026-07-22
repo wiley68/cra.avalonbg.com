@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, Save, Trash2 } from '@lucide/vue';
+import { ArrowLeft, Plus, Save, Sparkles, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { triage as triageVulnerability } from '@/routes/products/assistant';
 import {
     create as campaignsCreate,
     show as campaignsShow,
@@ -111,6 +121,18 @@ const selectClass =
     'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
 
 const showDeleteDialog = ref(false);
+const showTriageDialog = ref(false);
+
+const triageForm = useForm({
+    vulnerability_id: props.vulnerability.id,
+    note: '',
+});
+
+const triageError = computed((): string | undefined => {
+    const errors = triageForm.errors as Record<string, string | undefined>;
+
+    return errors.assistant ?? errors.vulnerability_id ?? errors.note;
+});
 
 const form = useForm({
     title: props.vulnerability.title,
@@ -186,6 +208,23 @@ const confirmDelete = () => {
     );
 };
 
+const openTriageDialog = (): void => {
+    triageForm.vulnerability_id = props.vulnerability.id;
+    triageForm.note = '';
+    triageForm.clearErrors();
+    showTriageDialog.value = true;
+};
+
+const submitTriage = (): void => {
+    triageForm.post(triageVulnerability(props.product.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showTriageDialog.value = false;
+            triageForm.reset('note');
+        },
+    });
+};
+
 const enumLabel = (group: string, value: string): string => {
     const key = `products.vulnerabilities.${group}.${value}`;
     const translated = t(key);
@@ -236,12 +275,23 @@ const toggleId = (
                     {{ t('products.vulnerabilities.edit_title') }}
                 </h1>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="productVulnerabilitiesIndex(props.product.id)">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                    v-if="canManage"
+                    type="button"
+                    variant="outline"
+                    @click="openTriageDialog"
+                >
+                    <Sparkles class="h-4 w-4" />
+                    {{ t('products.vulnerabilities.ai_triage') }}
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="productVulnerabilitiesIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <form class="space-y-6" @submit.prevent="submit">
@@ -838,5 +888,65 @@ const toggleId = (
             @confirm="confirmDelete"
             @cancel="showDeleteDialog = false"
         />
+
+        <Dialog
+            :open="showTriageDialog"
+            @update:open="(open) => (showTriageDialog = open)"
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            t('products.vulnerabilities.ai_triage_dialog_title')
+                        }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            t(
+                                'products.vulnerabilities.ai_triage_dialog_description',
+                            )
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="space-y-2 py-2">
+                    <Label for="triage-note">
+                        {{ t('products.vulnerabilities.ai_triage_note_label') }}
+                    </Label>
+                    <textarea
+                        id="triage-note"
+                        v-model="triageForm.note"
+                        rows="3"
+                        :class="textareaClass"
+                        :placeholder="
+                            t(
+                                'products.vulnerabilities.ai_triage_note_placeholder',
+                            )
+                        "
+                        :disabled="triageForm.processing"
+                    />
+                    <InputError :message="triageError" />
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        :disabled="triageForm.processing"
+                        @click="showTriageDialog = false"
+                    >
+                        {{ t('common.cancel') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        :disabled="triageForm.processing"
+                        @click="submitTriage"
+                    >
+                        <Sparkles class="h-4 w-4" />
+                        {{ t('products.vulnerabilities.ai_triage_submit') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

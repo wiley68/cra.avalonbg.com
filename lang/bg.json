@@ -1724,6 +1724,12 @@
             "patch_campaigns_subtitle": "Клиентски rollout кампании, свързани с тази уязвимост",
             "patch_campaigns_empty": "Все още няма свързани кампании за пачове.",
             "start_patch_campaign": "Стартирай кампания за пачове",
+            "ai_triage": "AI triage предложения",
+            "ai_triage_dialog_title": "Генериране на triage предложения",
+            "ai_triage_dialog_description": "Създава AI предложения за severity, версии и remediation. Изисква се human review — нищо не се прилага и не се затваря автоматично.",
+            "ai_triage_note_label": "Опционална бележка",
+            "ai_triage_note_placeholder": "напр. Фокус върху production версии…",
+            "ai_triage_submit": "Генерирай предложения",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
@@ -2372,6 +2378,21 @@
                     "security_advisory": "Security advisory",
                     "customer_notification": "Известие към клиенти"
                 }
+            },
+            "triage": {
+                "panel_title": "Предложения за triage на уязвимост",
+                "human_review": "Само предложения — изисква се human review. Нищо не се прилага и не се затваря автоматично.",
+                "rationale": "Обосновка",
+                "status": "Предложен статус",
+                "severity": "Предложена business severity",
+                "exploitation": "Предложена exploitation",
+                "components": "Предложени component IDs",
+                "affected_versions": "Предложени affected version IDs",
+                "fixed_versions": "Предложени fixed version IDs",
+                "workaround": "Предложен workaround",
+                "corrective_action": "Предложено corrective action",
+                "cross_product": "Cross-product подсказки",
+                "open_vulnerability": "Отвори уязвимостта"
             }
         }
     },
@@ -2489,7 +2510,8 @@
             "vcs_suggestion_dismissed": "VCS предложение е отхвърлено",
             "ai_request_completed": "Завършена AI assistant заявка",
             "ai_document_analysed": "Анализиран AI документ",
-            "ai_draft_generated": "Генерирана AI чернова"
+            "ai_draft_generated": "Генерирана AI чернова",
+            "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост"
         },
         "event_sources": {
             "workspace": "Workspace",

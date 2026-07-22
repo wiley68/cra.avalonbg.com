@@ -1724,6 +1724,12 @@
             "patch_campaigns_subtitle": "Customer rollout campaigns linked to this vulnerability",
             "patch_campaigns_empty": "No patch campaigns are linked yet.",
             "start_patch_campaign": "Start patch campaign",
+            "ai_triage": "AI triage suggestions",
+            "ai_triage_dialog_title": "Generate triage suggestions",
+            "ai_triage_dialog_description": "Creates AI suggestions for severity, versions, and remediation. Human review is required — nothing is applied or closed automatically.",
+            "ai_triage_note_label": "Optional note",
+            "ai_triage_note_placeholder": "e.g. Focus on production versions…",
+            "ai_triage_submit": "Generate suggestions",
             "columns": {
                 "id": "ID",
                 "title": "Title",
@@ -2372,6 +2378,21 @@
                     "security_advisory": "Security advisory",
                     "customer_notification": "Customer notification"
                 }
+            },
+            "triage": {
+                "panel_title": "Vulnerability triage suggestions",
+                "human_review": "Suggestions only — human review required. Nothing is applied or closed automatically.",
+                "rationale": "Rationale",
+                "status": "Suggested status",
+                "severity": "Suggested business severity",
+                "exploitation": "Suggested exploitation",
+                "components": "Suggested component IDs",
+                "affected_versions": "Suggested affected version IDs",
+                "fixed_versions": "Suggested fixed version IDs",
+                "workaround": "Suggested workaround",
+                "corrective_action": "Suggested corrective action",
+                "cross_product": "Cross-product hints",
+                "open_vulnerability": "Open vulnerability"
             }
         }
     },
@@ -2491,7 +2512,8 @@
             "vcs_suggestion_dismissed": "VCS suggestion dismissed",
             "ai_request_completed": "AI assistant request completed",
             "ai_document_analysed": "AI document analysed",
-            "ai_draft_generated": "AI draft generated"
+            "ai_draft_generated": "AI draft generated",
+            "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested"
         },
         "event_sources": {
             "workspace": "Workspace",

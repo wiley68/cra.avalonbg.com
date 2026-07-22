@@ -14,12 +14,15 @@ use App\Models\AiMessage;
 use App\Models\PatchCampaign;
 use App\Models\Product;
 use App\Models\ProductRequirement;
+use App\Models\ProductVulnerability;
 use App\Models\User;
 use App\Services\Ai\AiDocumentAnalysePrompt;
 use App\Services\Ai\AiDocumentTextExtractor;
 use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
+use App\Services\Ai\AiVulnerabilityTriageParser;
+use App\Services\Ai\AiVulnerabilityTriagePrompt;
 use App\Services\Ai\AnthropicAiProvider;
 use App\Services\Ai\OpenAiEmbeddingProvider;
 use App\Services\Ai\OpenAiProvider;
@@ -37,6 +40,7 @@ class AiAssistantService
         private readonly AiProvider $provider,
         private readonly AiContextBuilder $contextBuilder,
         private readonly AiCampaignContextBuilder $campaignContextBuilder,
+        private readonly AiVulnerabilityContextBuilder $vulnerabilityContextBuilder,
         private readonly AiDocumentTextExtractor $documentTextExtractor,
         private readonly AiRagRetriever $ragRetriever,
     ) {
@@ -408,6 +412,113 @@ class AiAssistantService
                 'user_message' => $userMessage,
                 'assistant_message' => $assistantMessage,
                 'draft' => $draft,
+            ];
+        });
+    }
+
+    /**
+     * @return array{
+     *     conversation: AiConversation,
+     *     user_message: AiMessage,
+     *     assistant_message: AiMessage,
+     *     suggestions: array<string, mixed>|null
+     * }
+     */
+    public function triageVulnerability(
+        Product $product,
+        User $user,
+        ProductVulnerability $vulnerability,
+        ?string $note = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($vulnerability->product_id !== $product->id) {
+            abort(404);
+        }
+
+        $vulnContext = $this->vulnerabilityContextBuilder->forVulnerability($vulnerability);
+        $prompt = AiVulnerabilityTriagePrompt::userPrompt($vulnContext, $note);
+
+        return DB::transaction(function () use ($product, $user, $vulnerability, $prompt, $note, $vulnContext): array {
+            $conversation = $this->startConversation(
+                $product,
+                $user,
+                AiConversationContextType::VulnerabilityTriage,
+            );
+
+            $userMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::User,
+                'content' => "Triage vulnerability #{$vulnerability->id}: {$vulnerability->title}"
+                    . (filled($note) ? "\nNote: " . trim((string) $note) : ''),
+                'metadata' => [
+                    'mode' => 'vulnerability_triage',
+                    'vulnerability_id' => $vulnerability->id,
+                ],
+            ]);
+
+            $context = $this->contextBuilder->forProduct($product);
+            $completion = $this->provider->complete([
+                ['role' => 'user', 'content' => $prompt],
+            ], [
+                'context' => $context . "\n\n" . $vulnContext,
+                'mode' => 'vulnerability_triage',
+                'vulnerability_id' => $vulnerability->id,
+            ]);
+
+            $suggestions = AiVulnerabilityTriageParser::parse($completion['content']);
+            if ($suggestions !== null) {
+                $suggestions['vulnerability_id'] = $vulnerability->id;
+            }
+
+            $readable = $suggestions !== null
+                ? AiVulnerabilityTriageParser::toReadableSummary($suggestions)
+                : trim($completion['content']);
+
+            $assistantMessage = AiMessage::query()->create([
+                'conversation_id' => $conversation->id,
+                'role' => AiMessageRole::Assistant,
+                'content' => $readable !== '' ? $readable : $completion['content'],
+                'metadata' => [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'has_context' => $context !== '',
+                    'context_chars' => mb_strlen($context),
+                    'mode' => 'vulnerability_triage',
+                    'vulnerability_id' => $vulnerability->id,
+                    'triage' => $suggestions,
+                    'triage_parsed' => $suggestions !== null,
+                ],
+            ]);
+
+            $conversation->touch();
+
+            $versionSuggestions = count($suggestions['suggested_affected_version_ids'] ?? [])
+                + count($suggestions['suggested_fixed_version_ids'] ?? []);
+
+            AuditLogger::logAiVulnerabilityTriageSuggested(
+                $conversation,
+                $user,
+                $userMessage,
+                $assistantMessage,
+                [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'vulnerability_id' => $vulnerability->id,
+                    'suggestions_parsed' => $suggestions !== null,
+                    'suggested_status' => $suggestions['suggested_status'] ?? '',
+                    'suggested_business_severity' => $suggestions['suggested_business_severity'] ?? '',
+                    'component_suggestions' => count($suggestions['suggested_component_ids'] ?? []),
+                    'version_suggestions' => $versionSuggestions,
+                    'cross_product_hints' => count($suggestions['cross_product_hints'] ?? []),
+                ],
+            );
+
+            return [
+                'conversation' => $conversation->fresh(['messages']),
+                'user_message' => $userMessage,
+                'assistant_message' => $assistantMessage,
+                'suggestions' => $suggestions,
             ];
         });
     }

@@ -1115,6 +1115,37 @@ class AuditLogger
         );
     }
 
+    public static function logAiVulnerabilityTriageSuggested(
+        AiConversation $conversation,
+        User $actor,
+        AiMessage $userMessage,
+        AiMessage $assistantMessage,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiVulnerabilityTriageSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $conversation->organization_id,
+            productId: $conversation->product_id,
+            details: [
+                ['field' => 'conversation_id', 'value' => (string) $conversation->id],
+                ['field' => 'user_message_id', 'value' => (string) $userMessage->id],
+                ['field' => 'assistant_message_id', 'value' => (string) $assistantMessage->id],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'vulnerability_id', 'value' => (string) ($meta['vulnerability_id'] ?? '')],
+                ['field' => 'suggestions_parsed', 'value' => !empty($meta['suggestions_parsed']) ? '1' : '0'],
+                ['field' => 'suggested_status', 'value' => (string) ($meta['suggested_status'] ?? '')],
+                ['field' => 'suggested_business_severity', 'value' => (string) ($meta['suggested_business_severity'] ?? '')],
+                ['field' => 'component_suggestions', 'value' => (string) ($meta['component_suggestions'] ?? 0)],
+                ['field' => 'version_suggestions', 'value' => (string) ($meta['version_suggestions'] ?? 0)],
+                ['field' => 'cross_product_hints', 'value' => (string) ($meta['cross_product_hints'] ?? 0)],
+            ],
+        );
+    }
+
     public static function logReadinessReportExported(Product $product, User $actor): void
     {
         self::persist(

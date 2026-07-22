@@ -104,6 +104,51 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'vulnerability_triage') {
+            $vulnerabilityId = (int) ($options['vulnerability_id'] ?? 0);
+            $componentIds = [];
+            $affectedIds = [];
+            $fixedIds = [];
+
+            if (preg_match_all('/Available components[\s\S]*?(?=## |\z)/', $options['context'] ?? '', $m) === 1) {
+                if (preg_match('/- #(\d+)/', $m[0][0] ?? '', $cm)) {
+                    $componentIds[] = (int) $cm[1];
+                }
+            }
+            if (preg_match_all('/Available versions[\s\S]*?(?=## |\z)/', $options['context'] ?? '', $m) === 1) {
+                if (preg_match_all('/- #(\d+)/', $m[0][0] ?? '', $vm)) {
+                    $ids = array_map('intval', $vm[1]);
+                    $affectedIds = array_slice($ids, 0, 1);
+                    $fixedIds = array_slice($ids, 1, 1);
+                }
+            }
+
+            $payload = [
+                'suggested_component_ids' => $componentIds,
+                'suggested_affected_version_ids' => $affectedIds,
+                'suggested_fixed_version_ids' => $fixedIds,
+                'suggested_business_severity' => 'high',
+                'suggested_exploitation_status' => 'unknown',
+                'suggested_status' => 'triage',
+                'suggested_workaround' => 'Restrict exposure until a fixed version is confirmed by a human reviewer.',
+                'suggested_corrective_action' => 'Plan a patch release after human confirmation of severity and affected versions.',
+                'rationale' => $vulnerabilityId > 0
+                    ? "Stub triage for vulnerability #{$vulnerabilityId}. Suggestions are illustrative only."
+                    : 'Stub triage suggestions. Human review required before applying.',
+                'cross_product_hints' => [
+                    'Review sibling products in the same organization for similar components (hint only).',
+                ],
+                'human_review_required' => true,
+                'disclaimer' => 'Suggestions only; no auto-close / no auto-apply.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         $context = trim((string) ($options['context'] ?? ''));
         $contextBlock = '';
         if ($context !== '') {
