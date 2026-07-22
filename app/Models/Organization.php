@@ -70,4 +70,9 @@ class Organization extends Model
     {
         return $this->hasMany(AuditorReviewPackage::class);
     }
+
+    public function userSecurityInstructions(): HasMany
+    {
+        return $this->hasMany(UserSecurityInstruction::class);
+    }
 }

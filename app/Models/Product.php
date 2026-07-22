@@ -212,6 +212,11 @@ class Product extends Model
         return $this->hasMany(AuditorReviewPackage::class);
     }
 
+    public function userSecurityInstructions(): HasMany
+    {
+        return $this->hasMany(UserSecurityInstruction::class);
+    }
+
     public function productOwner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'product_owner_user_id');
