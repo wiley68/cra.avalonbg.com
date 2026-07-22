@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Eye, Lock, Save, Share2, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import {
+    ArrowLeft,
+    Copy,
+    Eye,
+    Link2,
+    Lock,
+    Save,
+    Share2,
+    Trash2,
+    Unlink,
+} from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
@@ -19,6 +30,10 @@ import {
     show as packagesShow,
     update as packagesUpdate,
 } from '@/routes/auditor/packages';
+import {
+    generate as generateGuestLink,
+    revoke as revokeGuestLink,
+} from '@/routes/auditor/packages/guest-link';
 
 type EvidenceOption = {
     id: number;
@@ -42,9 +57,18 @@ type PackageDetail = {
     is_editable: boolean;
 };
 
+type GuestLinkState = {
+    active: boolean;
+    expires_at: string | null;
+    created_at: string | null;
+    last_accessed_at: string | null;
+};
+
 const props = defineProps<{
     package: PackageDetail;
     evidenceOptions: EvidenceOption[];
+    guestLink: GuestLinkState;
+    freshGuestLinkUrl: string | null;
     canManage: boolean;
 }>();
 
@@ -67,6 +91,17 @@ const form = useForm({
 const showDeleteDialog = ref(false);
 const showShareDialog = ref(false);
 const showCloseDialog = ref(false);
+const showRevokeGuestDialog = ref(false);
+const displayedGuestUrl = ref(props.freshGuestLinkUrl ?? '');
+
+watch(
+    () => props.freshGuestLinkUrl,
+    (url) => {
+        if (url) {
+            displayedGuestUrl.value = url;
+        }
+    },
+);
 
 const statusLabel = computed(() => {
     const key = `auditor.statuses.${props.package.status}`;
@@ -95,6 +130,9 @@ const canClose = computed(
 );
 const canDelete = computed(
     () => props.canManage && props.package.status === 'draft',
+);
+const canManageGuestLink = computed(
+    () => props.canManage && props.package.status === 'shared',
 );
 
 const evidenceTypeLabel = (value: string): string => {
@@ -141,6 +179,36 @@ const doClose = () => {
 const doDelete = () => {
     showDeleteDialog.value = false;
     router.delete(packagesDestroy(props.package.id).url);
+};
+
+const doGenerateGuestLink = () => {
+    displayedGuestUrl.value = '';
+    router.post(
+        generateGuestLink(props.package.id).url,
+        {},
+        { preserveScroll: true },
+    );
+};
+
+const doRevokeGuestLink = () => {
+    showRevokeGuestDialog.value = false;
+    displayedGuestUrl.value = '';
+    router.delete(revokeGuestLink(props.package.id).url, {
+        preserveScroll: true,
+    });
+};
+
+const copyGuestUrl = async () => {
+    if (!displayedGuestUrl.value) {
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(displayedGuestUrl.value);
+        toast.success(t('auditor.guest_link_copied'));
+    } catch {
+        toast.error(t('auditor.guest_link_copy_failed'));
+    }
 };
 </script>
 
@@ -209,6 +277,74 @@ const doDelete = () => {
                 <Trash2 class="h-4 w-4" />
                 {{ t('common.delete') }}
             </Button>
+        </div>
+
+        <div v-if="canManageGuestLink" class="space-y-3 rounded-lg border p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="space-y-1">
+                    <h2 class="text-sm font-medium">
+                        {{ t('auditor.guest_link_title') }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('auditor.guest_link_help') }}
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="doGenerateGuestLink"
+                    >
+                        <Link2 class="h-4 w-4" />
+                        {{
+                            guestLink.active
+                                ? t('auditor.guest_link_regenerate')
+                                : t('auditor.guest_link_generate')
+                        }}
+                    </Button>
+                    <Button
+                        v-if="guestLink.active"
+                        type="button"
+                        variant="outline"
+                        @click="showRevokeGuestDialog = true"
+                    >
+                        <Unlink class="h-4 w-4" />
+                        {{ t('auditor.guest_link_revoke') }}
+                    </Button>
+                </div>
+            </div>
+
+            <p
+                v-if="guestLink.active && guestLink.expires_at"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('auditor.guest_link_expires') }}:
+                {{ new Date(guestLink.expires_at).toLocaleString() }}
+            </p>
+
+            <div
+                v-if="displayedGuestUrl"
+                class="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-950/40"
+            >
+                <p class="text-sm text-amber-900 dark:text-amber-100">
+                    {{ t('auditor.guest_link_copy_once') }}
+                </p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <Input
+                        :model-value="displayedGuestUrl"
+                        readonly
+                        class="font-mono text-xs"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="copyGuestUrl"
+                    >
+                        <Copy class="h-4 w-4" />
+                        {{ t('common.copy') }}
+                    </Button>
+                </div>
+            </div>
         </div>
 
         <div
@@ -369,6 +505,14 @@ const doDelete = () => {
             :description="t('auditor.confirm_delete')"
             @confirm="doDelete"
             @cancel="showDeleteDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showRevokeGuestDialog"
+            :title="t('auditor.confirm_revoke_guest_title')"
+            :description="t('auditor.confirm_revoke_guest')"
+            @confirm="doRevokeGuestLink"
+            @cancel="showRevokeGuestDialog = false"
         />
     </div>
 </template>

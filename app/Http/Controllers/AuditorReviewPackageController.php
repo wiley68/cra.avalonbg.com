@@ -153,7 +153,7 @@ class AuditorReviewPackageController extends Controller
         ]);
     }
 
-    public function edit(AuditorReviewPackage $package): Response
+    public function edit(Request $request, AuditorReviewPackage $package): Response
     {
         $organization = $this->currentOrganization();
         $this->assertPackageInOrganization($package, $organization);
@@ -169,6 +169,8 @@ class AuditorReviewPackageController extends Controller
             'organization' => $this->organizationPayload($organization),
             'package' => $this->detailPayload($package),
             'evidenceOptions' => $this->evidenceOptions($package->product),
+            'guestLink' => $this->packages->guestLinkPayload($package),
+            'freshGuestLinkUrl' => $request->session()->pull('fresh_guest_link_url'),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
@@ -250,6 +252,40 @@ class AuditorReviewPackageController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('auditor.closed'),
+        ]);
+
+        return redirect()->route('auditor.packages.edit', $package);
+    }
+
+    public function generateGuestLink(AuditorReviewPackage $package): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPackageInOrganization($package, $organization);
+        $this->authorize('update', [$package, $organization]);
+
+        $result = $this->packages->generateGuestLink($package, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('auditor.guest_link_generated'),
+        ]);
+
+        return redirect()
+            ->route('auditor.packages.edit', $result['package'])
+            ->with('fresh_guest_link_url', $result['url']);
+    }
+
+    public function revokeGuestLink(AuditorReviewPackage $package): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertPackageInOrganization($package, $organization);
+        $this->authorize('update', [$package, $organization]);
+
+        $this->packages->revokeGuestLink($package, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('auditor.guest_link_revoked'),
         ]);
 
         return redirect()->route('auditor.packages.edit', $package);

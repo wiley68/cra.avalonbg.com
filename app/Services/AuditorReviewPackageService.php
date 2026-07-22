@@ -284,6 +284,8 @@ class AuditorReviewPackageService
             ]);
         }
 
+        $this->clearGuestLink($package);
+
         $package->update([
             'status' => AuditorReviewPackageStatus::Closed,
             'closed_at' => now(),
@@ -293,6 +295,109 @@ class AuditorReviewPackageService
         AuditLogger::logAuditorPackageClosed($package, $actor);
 
         return $package;
+    }
+
+    /**
+     * @return array{package: AuditorReviewPackage, url: string, expires_at: string}
+     */
+    public function generateGuestLink(AuditorReviewPackage $package, User $actor, ?int $ttlDays = null): array
+    {
+        if ($package->status !== AuditorReviewPackageStatus::Shared) {
+            throw ValidationException::withMessages([
+                'status' => Translations::get('auditor.guest_link_only_shared'),
+            ]);
+        }
+
+        $days = $ttlDays ?? (int) config('auditor_guest_access.guest_link_ttl_days', 7);
+        $days = max(1, $days);
+        $plainToken = bin2hex(random_bytes(32));
+        $expiresAt = now()->addDays($days);
+
+        $package->update([
+            'guest_token_hash' => hash('sha256', $plainToken),
+            'guest_token_expires_at' => $expiresAt,
+            'guest_token_created_at' => now(),
+            'guest_token_created_by' => $actor->id,
+            'guest_token_last_accessed_at' => null,
+        ]);
+
+        $package = $package->fresh(['product', 'creator']);
+
+        AuditLogger::logAuditorPackageGuestLinkGenerated(
+            $package,
+            $actor,
+            $expiresAt->toIso8601String(),
+        );
+
+        return [
+            'package' => $package,
+            'url' => route('auditor.guest.show', ['token' => $plainToken]),
+            'expires_at' => $expiresAt->toIso8601String(),
+        ];
+    }
+
+    public function revokeGuestLink(AuditorReviewPackage $package, User $actor): AuditorReviewPackage
+    {
+        if (!filled($package->guest_token_hash)) {
+            throw ValidationException::withMessages([
+                'guest_link' => Translations::get('auditor.guest_link_missing'),
+            ]);
+        }
+
+        $this->clearGuestLink($package);
+        $package = $package->fresh(['product', 'creator']);
+
+        AuditLogger::logAuditorPackageGuestLinkRevoked($package, $actor);
+
+        return $package;
+    }
+
+    public function findPackageByGuestToken(string $token): ?AuditorReviewPackage
+    {
+        if ($token === '' || strlen($token) > 128) {
+            return null;
+        }
+
+        $package = AuditorReviewPackage::query()
+            ->where('guest_token_hash', hash('sha256', $token))
+            ->first();
+
+        if ($package === null || !$package->hasActiveGuestLink()) {
+            return null;
+        }
+
+        return $package;
+    }
+
+    public function touchGuestLinkAccess(AuditorReviewPackage $package): void
+    {
+        $package->update([
+            'guest_token_last_accessed_at' => now(),
+        ]);
+    }
+
+    /**
+     * @return array{active: bool, expires_at: string|null, created_at: string|null, last_accessed_at: string|null}
+     */
+    public function guestLinkPayload(AuditorReviewPackage $package): array
+    {
+        return [
+            'active' => $package->hasActiveGuestLink(),
+            'expires_at' => $package->guest_token_expires_at?->toIso8601String(),
+            'created_at' => $package->guest_token_created_at?->toIso8601String(),
+            'last_accessed_at' => $package->guest_token_last_accessed_at?->toIso8601String(),
+        ];
+    }
+
+    private function clearGuestLink(AuditorReviewPackage $package): void
+    {
+        $package->forceFill([
+            'guest_token_hash' => null,
+            'guest_token_expires_at' => null,
+            'guest_token_created_at' => null,
+            'guest_token_created_by' => null,
+            'guest_token_last_accessed_at' => null,
+        ])->save();
     }
 
     /**

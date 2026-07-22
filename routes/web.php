@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\AuditorReviewPackageApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuditorFindingController;
+use App\Http\Controllers\AuditorGuestReviewController;
 use App\Http\Controllers\AuditorReviewPackageController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
@@ -61,6 +62,12 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.update');
+
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('auditor/guest/{token}', [AuditorGuestReviewController::class, 'show'])
+        ->where('token', '[A-Fa-f0-9]{64}')
+        ->name('auditor.guest.show');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('auth/force-password-change', [ForcePasswordChangeController::class, 'edit'])->name('auth.force-password.edit');
@@ -125,6 +132,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('auditor.packages.share');
         Route::post('auditor/packages/{package}/close', [AuditorReviewPackageController::class, 'close'])
             ->name('auditor.packages.close');
+        Route::post('auditor/packages/{package}/guest-link', [AuditorReviewPackageController::class, 'generateGuestLink'])
+            ->name('auditor.packages.guest-link.generate');
+        Route::delete('auditor/packages/{package}/guest-link', [AuditorReviewPackageController::class, 'revokeGuestLink'])
+            ->name('auditor.packages.guest-link.revoke');
         Route::get('auditor/packages/{package}/export', [AuditorReviewPackageController::class, 'export'])
             ->name('auditor.packages.export');
         Route::post('auditor/packages/{package}/findings', [AuditorFindingController::class, 'store'])

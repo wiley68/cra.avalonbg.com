@@ -453,6 +453,44 @@ class AuditLogger
         );
     }
 
+    public static function logAuditorPackageGuestLinkGenerated(
+        AuditorReviewPackage $package,
+        User $actor,
+        string $expiresAtIso,
+    ): void {
+        self::persist(
+            type: AuditEventType::AuditorPackageGuestLinkGenerated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'expires_at', 'value' => $expiresAtIso],
+            ],
+        );
+    }
+
+    public static function logAuditorPackageGuestLinkRevoked(
+        AuditorReviewPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::AuditorPackageGuestLinkRevoked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
     public static function logAuditorPackageClosed(AuditorReviewPackage $package, User $actor): void
     {
         self::persist(

@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.15  
+**Версия:** 1.16  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Must + Should Done; 2.3C remaining  
+**Статус:** Active — 2.3A Done; 2.3B Must+Should+Could9 Done; 2.3C remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -75,7 +75,7 @@
 - Notified-body portal / regulatory submission automation
 - Full RAG vector DB / embedding pipeline в Must (може file-based context в Must)
 - Real-time collaborative editing на policies (Google Docs style)
-- Magic-link anonymous auditor access без org user (Could по-късно)
+- Magic-link anonymous auditor access без org user (Could — **Done** 2026-07-22, view-only)
 - Customer self-service portal (Phase 2.2 out-of-scope)
 - Billing tier enforcement за auditor/AI features
 
@@ -281,7 +281,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 
 #### Could
 
-9. Time-limited magic link for external auditor without user account
+9. Time-limited magic link for external auditor without user account — **Done** (2026-07-22)
 10. Finding → Task auto-create
 
 ### 2.3C AI assistant
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.16   | 2026-07-22 | 2.3B Could 9: time-limited guest magic link (view-only)               |
 | 1.15   | 2026-07-22 | 2.3B Should 8: email notify auditors on package share (stub)          |
 | 1.14   | 2026-07-22 | 2.3B Should 7: preselect evidence from product evidence index         |
 | 1.13   | 2026-07-21 | 2.3B Must 6: RBAC matrix tests; drafts hidden from non-managers       |
