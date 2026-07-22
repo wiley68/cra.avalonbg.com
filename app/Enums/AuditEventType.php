@@ -42,6 +42,7 @@ enum AuditEventType: string
     case AuditorPackageUpdated = 'auditor_package_updated';
     case AuditorPackageDeleted = 'auditor_package_deleted';
     case AuditorPackageShared = 'auditor_package_shared';
+    case AuditorPackageNotificationsQueued = 'auditor_package_notifications_queued';
     case AuditorPackageClosed = 'auditor_package_closed';
     case AuditorPackageExported = 'auditor_package_exported';
     case AuditorFindingCreated = 'auditor_finding_created';

@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.14  
+**Версия:** 1.15  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Must + Should 7 Done; 2.3C remaining  
+**Статус:** Active — 2.3A Done; 2.3B Must + Should Done; 2.3C remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -277,7 +277,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 #### Should
 
 7. Preselect evidence from product evidence index — **Done** (2026-07-22)
-8. Email notify auditor when package shared (stub)
+8. Email notify auditor when package shared (stub) — **Done** (2026-07-22)
 
 #### Could
 
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.15   | 2026-07-22 | 2.3B Should 8: email notify auditors on package share (stub)          |
 | 1.14   | 2026-07-22 | 2.3B Should 7: preselect evidence from product evidence index         |
 | 1.13   | 2026-07-21 | 2.3B Must 6: RBAC matrix tests; drafts hidden from non-managers       |
 | 1.12   | 2026-07-21 | 2.3B Must 5: package ZIP export (PDF + selected evidence)             |

@@ -220,14 +220,23 @@ class AuditorReviewPackageController extends Controller
         $this->assertPackageInOrganization($package, $organization);
         $this->authorize('share', [$package, $organization]);
 
-        $this->packages->share($package, request()->user());
+        $result = $this->packages->share($package, request()->user());
+
+        $message = Translations::get('auditor.shared');
+
+        if ($result['notifications_enabled']) {
+            $message = Translations::get('auditor.shared_with_notifications', [
+                'queued' => (string) $result['notifications_queued'],
+                'skipped' => (string) $result['notifications_skipped'],
+            ]);
+        }
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get('auditor.shared'),
+            'message' => $message,
         ]);
 
-        return redirect()->route('auditor.packages.edit', $package);
+        return redirect()->route('auditor.packages.edit', $result['package']);
     }
 
     public function close(AuditorReviewPackage $package): RedirectResponse

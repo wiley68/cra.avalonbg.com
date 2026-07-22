@@ -431,6 +431,28 @@ class AuditLogger
         );
     }
 
+    public static function logAuditorPackageNotificationsQueued(
+        AuditorReviewPackage $package,
+        User $actor,
+        int $queued,
+        int $skippedNoEmail,
+    ): void {
+        self::persist(
+            type: AuditEventType::AuditorPackageNotificationsQueued,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'queued', 'value' => (string) $queued],
+                ['field' => 'skipped_no_email', 'value' => (string) $skippedNoEmail],
+            ],
+        );
+    }
+
     public static function logAuditorPackageClosed(AuditorReviewPackage $package, User $actor): void
     {
         self::persist(

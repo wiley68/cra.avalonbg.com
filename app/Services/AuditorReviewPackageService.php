@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\AuditorReviewPackageStatus;
+use App\Enums\RoleSlug;
+use App\Jobs\SendAuditorReviewPackageSharedNotificationJob;
 use App\Models\AuditorReviewPackage;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Translations;
@@ -163,7 +166,15 @@ class AuditorReviewPackageService
         $package->delete();
     }
 
-    public function share(AuditorReviewPackage $package, User $actor): AuditorReviewPackage
+    /**
+     * @return array{
+     *     package: AuditorReviewPackage,
+     *     notifications_queued: int,
+     *     notifications_skipped: int,
+     *     notifications_enabled: bool
+     * }
+     */
+    public function share(AuditorReviewPackage $package, User $actor): array
     {
         if ($package->status !== AuditorReviewPackageStatus::Draft) {
             throw ValidationException::withMessages([
@@ -177,10 +188,92 @@ class AuditorReviewPackageService
             'closed_at' => null,
         ]);
 
-        $package = $package->fresh(['product', 'evidence', 'creator']);
+        $package = $package->fresh(['product', 'evidence', 'creator', 'organization']);
         AuditLogger::logAuditorPackageShared($package, $actor);
 
-        return $package;
+        $notify = $this->queueShareNotifications($package, $actor);
+
+        return [
+            'package' => $package,
+            'notifications_queued' => $notify['queued'],
+            'notifications_skipped' => $notify['skipped_no_email'],
+            'notifications_enabled' => $notify['enabled'],
+        ];
+    }
+
+    /**
+     * Queue stub emails to organization members with the auditor role.
+     *
+     * @return array{queued: int, skipped_no_email: int, enabled: bool}
+     */
+    public function queueShareNotifications(AuditorReviewPackage $package, User $actor): array
+    {
+        if (!config('auditor_notifications.enabled')) {
+            return [
+                'queued' => 0,
+                'skipped_no_email' => 0,
+                'enabled' => false,
+            ];
+        }
+
+        $auditorRoleId = Role::query()
+            ->where('slug', RoleSlug::Auditor->value)
+            ->value('id');
+
+        if ($auditorRoleId === null) {
+            return [
+                'queued' => 0,
+                'skipped_no_email' => 0,
+                'enabled' => true,
+            ];
+        }
+
+        $organization = $package->organization
+            ?? Organization::query()->find($package->organization_id);
+
+        if ($organization === null) {
+            return [
+                'queued' => 0,
+                'skipped_no_email' => 0,
+                'enabled' => true,
+            ];
+        }
+
+        $auditors = $organization->users()
+            ->wherePivot('role_id', $auditorRoleId)
+            ->get(['users.id', 'users.email']);
+
+        $queued = 0;
+        $skippedNoEmail = 0;
+
+        foreach ($auditors as $auditor) {
+            if (blank($auditor->email)) {
+                $skippedNoEmail++;
+
+                continue;
+            }
+
+            SendAuditorReviewPackageSharedNotificationJob::dispatch(
+                $package->id,
+                $auditor->id,
+                $actor->id,
+            );
+
+            $queued++;
+        }
+
+        AuditLogger::logAuditorPackageNotificationsQueued(
+            $package,
+            $actor,
+            $queued,
+            $skippedNoEmail,
+        );
+
+        return [
+            'queued' => $queued,
+            'skipped_no_email' => $skippedNoEmail,
+            'enabled' => true,
+        ];
     }
 
     public function close(AuditorReviewPackage $package, User $actor): AuditorReviewPackage
