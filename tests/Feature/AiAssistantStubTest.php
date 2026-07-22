@@ -36,6 +36,8 @@ test('stub provider returns canned echo template for the last user message', fun
         ->and($result['content'])->toContain('CRA AI stub')
         ->and($result['content'])->toContain('What evidence is missing?')
         ->and($result['content'])->toContain('Workspace context was supplied')
+        ->and($result['content'])->toContain('Grounded workspace context')
+        ->and($result['content'])->toContain('Product: Demo; Requirements: 3')
         ->and($result['content'])->toContain('Human review is required');
 });
 
@@ -61,15 +63,15 @@ test('AiAssistantService rejects complete when AI is disabled', function () {
 
     expect($service->isEnabled())->toBeFalse();
 
-    expect(fn () => $service->complete([
+    expect(fn() => $service->complete([
         ['role' => 'user', 'content' => 'Hello'],
     ]))->toThrow(ValidationException::class);
 });
 
 test('makeProvider rejects unimplemented openai and anthropic drivers', function () {
-    expect(fn () => AiAssistantService::makeProvider(AiProviderDriver::OpenAi->value))
+    expect(fn() => AiAssistantService::makeProvider(AiProviderDriver::OpenAi->value))
         ->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => AiAssistantService::makeProvider(AiProviderDriver::Anthropic->value))
+    expect(fn() => AiAssistantService::makeProvider(AiProviderDriver::Anthropic->value))
         ->toThrow(InvalidArgumentException::class);
 });

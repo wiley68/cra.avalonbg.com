@@ -106,9 +106,11 @@ test('sendMessage appends user and assistant messages with stub metadata', funct
         ->and($result['user_message']->metadata)->toBeNull()
         ->and($result['assistant_message']->role)->toBe(AiMessageRole::Assistant)
         ->and($result['assistant_message']->content)->toContain('What evidence is missing?')
+        ->and($result['assistant_message']->content)->toContain($product->name)
         ->and($result['assistant_message']->metadata)->toMatchArray([
                 'provider' => 'stub',
                 'model' => 'stub-local-template',
+                'has_context' => true,
             ]);
 
     expect(AiMessage::query()->where('conversation_id', $conversation->id)->count())->toBe(2)

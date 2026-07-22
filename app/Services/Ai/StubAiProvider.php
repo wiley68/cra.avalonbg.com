@@ -27,9 +27,21 @@ class StubAiProvider implements AiProvider
         }
 
         $context = trim((string) ($options['context'] ?? ''));
-        $contextBlock = $context !== ''
-            ? "Workspace context was supplied (stub does not call an external model).\n\n"
-            : '';
+        $contextBlock = '';
+        if ($context !== '') {
+            $excerptLimit = max(80, (int) config('ai.context_excerpt_chars', 400));
+            $excerpt = mb_strlen($context) <= $excerptLimit
+                ? $context
+                : rtrim(mb_substr($context, 0, $excerptLimit - 1)) . '…';
+
+            $contextBlock = <<<CTX
+Workspace context was supplied (stub does not call an external model).
+
+Grounded workspace context (excerpt):
+{$excerpt}
+
+CTX;
+        }
 
         $content = <<<TEXT
 [CRA AI stub — local template, not a live model]

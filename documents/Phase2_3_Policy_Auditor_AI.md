@@ -1,8 +1,8 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.20  
+**Версия:** 1.21  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must1–3 Done (in progress)  
+**Статус:** Active — 2.3A Done; 2.3B Done; 2.3C Must1–4 Done (in progress)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -291,7 +291,7 @@ Append-only messages; no update/delete на assistant turns в Must.
 1. Config `CRA_AI_ENABLED` + provider stub (returns canned/echo or local template) — **Done** (2026-07-22)
 2. Conversation + message persistence — **Done** (2026-07-22)
 3. Product-scoped chat UI with disclaimer (§6) — **Done** (2026-07-22)
-4. Context builder: product + requirements + controls + policies summaries (no external API required for Must stub) — **Pending**
+4. Context builder: product + requirements + controls + policies summaries (no external API required for Must stub) — **Done** (2026-07-22)
 5. Audit log for AI requests (no prompt secrets) — **Pending**
 6. Tests — **Pending**
 
@@ -366,6 +366,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.21   | 2026-07-22 | 2.3C Must 4: `AiContextBuilder` grounds stub replies in workspace data |
 | 1.20   | 2026-07-22 | 2.3C Must 3: product AI chat UI + §6 disclaimer                        |
 | 1.19   | 2026-07-22 | 2.3C Must 2: `ai_conversations` / `ai_messages` + sendMessage persist  |
 | 1.18   | 2026-07-22 | 2.3C Must 1: `CRA_AI_ENABLED` + `AiProvider` stub (canned/echo)        |

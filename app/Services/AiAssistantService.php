@@ -20,6 +20,7 @@ class AiAssistantService
 {
     public function __construct(
         private readonly AiProvider $provider,
+        private readonly AiContextBuilder $contextBuilder,
     ) {
     }
 
@@ -124,7 +125,11 @@ class AiAssistantService
                 ])
                 ->all();
 
-            $completion = $this->provider->complete($history, $options);
+            $context = $this->resolveContext($conversation, $options);
+            $completion = $this->provider->complete($history, [
+                ...$options,
+                'context' => $context,
+            ]);
 
             $assistantMessage = AiMessage::query()->create([
                 'conversation_id' => $conversation->id,
@@ -133,6 +138,8 @@ class AiAssistantService
                 'metadata' => [
                     'provider' => $completion['provider'],
                     'model' => $completion['model'],
+                    'has_context' => $context !== null && $context !== '',
+                    'context_chars' => $context !== null ? mb_strlen($context) : 0,
                 ],
             ]);
 
@@ -144,6 +151,27 @@ class AiAssistantService
                 'assistant_message' => $assistantMessage,
             ];
         });
+    }
+
+    /**
+     * @param  array{context?: string|null}  $options
+     */
+    private function resolveContext(AiConversation $conversation, array $options): ?string
+    {
+        if (array_key_exists('context', $options)) {
+            $explicit = $options['context'];
+
+            return $explicit === null ? null : (string) $explicit;
+        }
+
+        $conversation->loadMissing('product');
+        $product = $conversation->product;
+
+        if ($product === null) {
+            return null;
+        }
+
+        return $this->contextBuilder->forProduct($product);
     }
 
     public function latestForProductUser(Product $product, User $user): ?AiConversation
