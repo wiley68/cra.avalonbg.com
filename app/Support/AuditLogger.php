@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Enums\AuditEventSource;
 use App\Enums\AuditEventType;
+use App\Models\AiConversation;
+use App\Models\AiMessage;
 use App\Models\AuditorFinding;
 use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
@@ -43,6 +45,10 @@ class AuditLogger
         'secret',
         'two_factor_secret',
         'two_factor_recovery_codes',
+        'prompt',
+        'api_key',
+        'context',
+        'messages',
     ];
 
     public static function resolveSource(?Request $request = null): AuditEventSource
@@ -1008,6 +1014,43 @@ class AuditLogger
             details: [
                 ['field' => 'product_id', 'value' => (string) $product->id],
                 ['field' => 'name', 'value' => $product->name],
+            ],
+        );
+    }
+
+    /**
+     * Log a completed AI assistant turn without prompt/response/context text.
+     *
+     * @param  array{
+     *     provider: string,
+     *     model: string|null,
+     *     has_context: bool,
+     *     context_chars: int
+     * }  $meta
+     */
+    public static function logAiRequestCompleted(
+        AiConversation $conversation,
+        User $actor,
+        AiMessage $userMessage,
+        AiMessage $assistantMessage,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiRequestCompleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $conversation->organization_id,
+            productId: $conversation->product_id,
+            details: [
+                ['field' => 'conversation_id', 'value' => (string) $conversation->id],
+                ['field' => 'user_message_id', 'value' => (string) $userMessage->id],
+                ['field' => 'assistant_message_id', 'value' => (string) $assistantMessage->id],
+                ['field' => 'context_type', 'value' => $conversation->context_type->value],
+                ['field' => 'provider', 'value' => $meta['provider']],
+                ['field' => 'model', 'value' => $meta['model'] ?? ''],
+                ['field' => 'has_context', 'value' => $meta['has_context'] ? '1' : '0'],
+                ['field' => 'context_chars', 'value' => (string) $meta['context_chars']],
             ],
         );
     }

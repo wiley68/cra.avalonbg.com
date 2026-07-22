@@ -2451,7 +2451,8 @@
             "vcs_sync_succeeded": "VCS sync succeeded",
             "vcs_sync_failed": "VCS sync failed",
             "vcs_suggestion_accepted": "VCS suggestion accepted",
-            "vcs_suggestion_dismissed": "VCS suggestion dismissed"
+            "vcs_suggestion_dismissed": "VCS suggestion dismissed",
+            "ai_request_completed": "AI assistant request completed"
         },
         "event_sources": {
             "workspace": "Workspace",

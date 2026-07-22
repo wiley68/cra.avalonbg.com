@@ -11,6 +11,7 @@ use App\Models\AiMessage;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\Ai\StubAiProvider;
+use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -108,7 +109,7 @@ class AiAssistantService
             ]);
         }
 
-        return DB::transaction(function () use ($conversation, $trimmed, $options): array {
+        return DB::transaction(function () use ($conversation, $user, $trimmed, $options): array {
             $userMessage = AiMessage::query()->create([
                 'conversation_id' => $conversation->id,
                 'role' => AiMessageRole::User,
@@ -126,6 +127,9 @@ class AiAssistantService
                 ->all();
 
             $context = $this->resolveContext($conversation, $options);
+            $hasContext = $context !== null && $context !== '';
+            $contextChars = $context !== null ? mb_strlen($context) : 0;
+
             $completion = $this->provider->complete($history, [
                 ...$options,
                 'context' => $context,
@@ -138,12 +142,25 @@ class AiAssistantService
                 'metadata' => [
                     'provider' => $completion['provider'],
                     'model' => $completion['model'],
-                    'has_context' => $context !== null && $context !== '',
-                    'context_chars' => $context !== null ? mb_strlen($context) : 0,
+                    'has_context' => $hasContext,
+                    'context_chars' => $contextChars,
                 ],
             ]);
 
             $conversation->touch();
+
+            AuditLogger::logAiRequestCompleted(
+                $conversation,
+                $user,
+                $userMessage,
+                $assistantMessage,
+                [
+                    'provider' => $completion['provider'],
+                    'model' => $completion['model'],
+                    'has_context' => $hasContext,
+                    'context_chars' => $contextChars,
+                ],
+            );
 
             return [
                 'conversation' => $conversation->fresh(['messages']),

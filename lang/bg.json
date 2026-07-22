@@ -2449,7 +2449,8 @@
             "vcs_sync_succeeded": "Успешен VCS sync",
             "vcs_sync_failed": "Неуспешен VCS sync",
             "vcs_suggestion_accepted": "VCS предложение е прието",
-            "vcs_suggestion_dismissed": "VCS предложение е отхвърлено"
+            "vcs_suggestion_dismissed": "VCS предложение е отхвърлено",
+            "ai_request_completed": "Завършена AI assistant заявка"
         },
         "event_sources": {
             "workspace": "Workspace",
