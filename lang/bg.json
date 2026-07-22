@@ -2632,5 +2632,9 @@
         "readiness": "Готовност",
         "import": "Импорт",
         "assign_control": "Назначи контрол"
+    },
+    "assistant": {
+        "disabled": "AI асистентът е изключен. Задайте CRA_AI_ENABLED=true, за да го ползвате.",
+        "stub_provider_note": "Локален stub provider — не е жив модел. Изисква се human review."
     }
 }

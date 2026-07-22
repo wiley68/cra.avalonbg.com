@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\AiProvider;
 use App\Enums\PermissionSlug;
 use App\Http\Middleware\ForceHttps;
+use App\Services\AiAssistantService;
 use App\Models\AuditLog;
 use App\Models\AuditorFinding;
 use App\Models\AuditorReviewPackage;
@@ -60,7 +62,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(AiProvider::class, function (): AiProvider {
+            return AiAssistantService::makeProvider();
+        });
     }
 
     /**

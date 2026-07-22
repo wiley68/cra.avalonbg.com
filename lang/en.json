@@ -2634,5 +2634,9 @@
         "readiness": "Readiness",
         "import": "Import",
         "assign_control": "Assign control"
+    },
+    "assistant": {
+        "disabled": "The AI assistant is disabled. Set CRA_AI_ENABLED=true to use it.",
+        "stub_provider_note": "Local stub provider — not a live model. Human review required."
     }
 }
