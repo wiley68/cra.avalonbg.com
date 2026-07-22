@@ -31,6 +31,13 @@ class UpdateUserSecurityInstructionRequest extends FormRequest
             'version_label' => ['required', 'string', 'max:40'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
             'notes' => ['nullable', 'string'],
+            'product_version_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_versions', 'id')->where(
+                    fn($query) => $query->where('product_id', $this->route('product')?->id),
+                ),
+            ],
             'sections' => ['required', 'array', 'min:1'],
             'sections.*.section_key' => ['required', 'string', Rule::enum(UserSecurityInstructionSectionKey::class)],
             'sections.*.body' => ['nullable', 'string'],

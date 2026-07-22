@@ -40,6 +40,7 @@ class UserSecurityInstructionController extends Controller
         return Inertia::render('products/user-security-instructions/Index', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
+            'versions' => $this->versionOptions($product),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
@@ -53,6 +54,7 @@ class UserSecurityInstructionController extends Controller
         return Inertia::render('products/user-security-instructions/Create', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
+            'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
         ]);
     }
@@ -85,6 +87,9 @@ class UserSecurityInstructionController extends Controller
                 'locale' => $request->string('locale')->toString(),
                 'notes' => $request->input('notes'),
                 'use_template' => $request->boolean('use_template'),
+                'product_version_id' => $request->input('product_version_id') !== null
+                    ? (int) $request->input('product_version_id')
+                    : null,
             ],
             $request->user(),
         );
@@ -108,6 +113,7 @@ class UserSecurityInstructionController extends Controller
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
             'instruction' => $this->instructions->detailPayload($instruction),
+            'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
@@ -129,6 +135,9 @@ class UserSecurityInstructionController extends Controller
                 'version_label' => $request->string('version_label')->toString(),
                 'locale' => $request->string('locale')->toString(),
                 'notes' => $request->input('notes'),
+                'product_version_id' => $request->input('product_version_id') !== null
+                    ? (int) $request->input('product_version_id')
+                    : null,
                 'sections' => $request->input('sections', []),
             ],
             $request->user(),
@@ -268,6 +277,21 @@ class UserSecurityInstructionController extends Controller
             ),
             'default_locale' => $organization->resolvedLocale(),
         ];
+    }
+
+    /**
+     * @return list<array{id: int, version_number: string}>
+     */
+    private function versionOptions(Product $product): array
+    {
+        return $product->versions()
+            ->orderByDesc('id')
+            ->get(['id', 'version_number'])
+            ->map(fn($version) => [
+                'id' => $version->id,
+                'version_number' => $version->version_number,
+            ])
+            ->all();
     }
 
     /**

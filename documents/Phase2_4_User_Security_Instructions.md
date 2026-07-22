@@ -1,8 +1,8 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.10  
+**Версия:** 0.11  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–9 Done; Should 10–11 / Could remaining  
+**Статус:** Active — Must Done; Should 7–10 Done; Should 11 / Could remaining  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
@@ -192,7 +192,7 @@ GET    /internal-api/products/{product}/security-instructions
 7. README / release-package markdown export — **Done** (2026-07-22)
 8. Readiness gap `security_instructions_missing` — **Done** (2026-07-22)
 9. Publish published instructions → Evidence — **Done** (2026-07-22)
-10. Version-pinned instructions (`product_version_id`)
+10. Version-pinned instructions (`product_version_id`) — **Done** (2026-07-22)
 11. Markdown preview (reuse 2.3A helpers)
 
 ### Could
@@ -259,15 +259,16 @@ Reuse от Phase 2.3:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                             |
-| ------ | ---------- | --------------------------------------------------- |
-| 0.10   | 2026-07-22 | Should 9: publish published instructions → Evidence |
-| 0.9    | 2026-07-22 | Should 8: readiness `security_instructions_missing` |
-| 0.8    | 2026-07-22 | Should 7: README markdown + release ZIP export      |
-| 0.7    | 2026-07-22 | Must 6: i18n verified + CRUD/RBAC feature tests     |
-| 0.6    | 2026-07-22 | Must 5: HTML + PDF export + audit + RBAC            |
-| 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates             |
-| 0.4    | 2026-07-22 | Must 3: submit / publish / retire lifecycle         |
-| 0.3    | 2026-07-22 | Must 2: product CRUD + section editor + tests       |
-| 0.2    | 2026-07-22 | Must 1: enums, migrations, models + smoke tests     |
-| 0.1    | 2026-07-22 | Първоначален skeleton след Phase 2.3 closeout       |
+| Версия | Дата       | Промяна                                                       |
+| ------ | ---------- | ------------------------------------------------------------- |
+| 0.11   | 2026-07-22 | Should 10: version-pinned instructions (`product_version_id`) |
+| 0.10   | 2026-07-22 | Should 9: publish published instructions → Evidence           |
+| 0.9    | 2026-07-22 | Should 8: readiness `security_instructions_missing`           |
+| 0.8    | 2026-07-22 | Should 7: README markdown + release ZIP export                |
+| 0.7    | 2026-07-22 | Must 6: i18n verified + CRUD/RBAC feature tests               |
+| 0.6    | 2026-07-22 | Must 5: HTML + PDF export + audit + RBAC                      |
+| 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates                       |
+| 0.4    | 2026-07-22 | Must 3: submit / publish / retire lifecycle                   |
+| 0.3    | 2026-07-22 | Must 2: product CRUD + section editor + tests                 |
+| 0.2    | 2026-07-22 | Must 1: enums, migrations, models + smoke tests               |
+| 0.1    | 2026-07-22 | Първоначален skeleton след Phase 2.3 closeout                 |

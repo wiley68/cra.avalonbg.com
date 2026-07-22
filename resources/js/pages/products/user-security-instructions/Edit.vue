@@ -42,6 +42,7 @@ import {
 } from '@/routes/products/security-instructions';
 
 type ProductSummary = { id: number; name: string; slug: string };
+type VersionOption = { id: number; version_number: string };
 
 type SectionPayload = {
     id: number;
@@ -64,12 +65,15 @@ type InstructionDetail = {
     published_by_name: string | null;
     evidence_id: number | null;
     evidence_title: string | null;
+    product_version_id: number | null;
+    product_version_number: string | null;
     sections: SectionPayload[];
 };
 
 const props = defineProps<{
     product: ProductSummary;
     instruction: InstructionDetail;
+    versions: VersionOption[];
     canManage: boolean;
     options: {
         locales: string[];
@@ -102,6 +106,8 @@ const form = useForm({
     version_label: props.instruction.version_label,
     locale: props.instruction.locale,
     notes: props.instruction.notes ?? '',
+    product_version_id: (props.instruction.product_version_id ?? '') as
+        number | '',
     sections: props.instruction.sections.map((section) => ({
         section_key: section.section_key,
         title_override: section.title_override ?? '',
@@ -230,6 +236,8 @@ const routeArgs = {
 const submit = () => {
     form.transform((data) => ({
         ...data,
+        product_version_id:
+            data.product_version_id === '' ? null : data.product_version_id,
         sections: data.sections.map((section) => ({
             ...section,
             title_override: section.title_override || null,
@@ -443,6 +451,62 @@ const doPublishEvidence = () => {
                         required
                     />
                     <InputError :message="form.errors.version_label" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="product_version_id"
+                        :help="
+                            t(
+                                'products.user_security_instructions.help.product_version',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.fields.product_version',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select
+                        :model-value="
+                            form.product_version_id === ''
+                                ? '__none__'
+                                : String(form.product_version_id)
+                        "
+                        :disabled="!canEdit"
+                        @update:model-value="
+                            (value) => {
+                                form.product_version_id =
+                                    value === '__none__' ||
+                                    value === undefined ||
+                                    value === null
+                                        ? ''
+                                        : Number(value);
+                            }
+                        "
+                    >
+                        <SelectTrigger id="product_version_id" class="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none__">
+                                {{
+                                    t(
+                                        'products.user_security_instructions.product_wide',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="version in versions"
+                                :key="version.id"
+                                :value="String(version.id)"
+                            >
+                                {{ version.version_number }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors.product_version_id" />
                 </div>
 
                 <div class="grid gap-2">

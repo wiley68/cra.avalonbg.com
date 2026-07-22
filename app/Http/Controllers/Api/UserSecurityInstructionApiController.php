@@ -9,6 +9,7 @@ use App\Models\UserSecurityInstruction;
 use App\Services\UserSecurityInstructionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserSecurityInstructionApiController extends Controller
 {
@@ -31,9 +32,17 @@ class UserSecurityInstructionApiController extends Controller
         $validated = $request->validate([
             'per_page' => 'integer|min:1|max:100',
             'page' => 'integer|min:1',
-            'sort_by' => 'nullable|string|in:id,title,status,version_label,locale,published_at,updated_at',
+            'sort_by' => 'nullable|string|in:id,title,status,version_label,locale,published_at,updated_at,product_version_number',
             'sort_desc' => 'in:0,1',
             'search' => 'nullable|string|max:255',
+            'product_version_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_versions', 'id')->where(
+                    fn($query) => $query->where('product_id', $product->id),
+                ),
+            ],
+            'product_wide' => 'nullable|in:0,1',
         ]);
 
         $paginator = $this->instructions->paginate(
@@ -43,6 +52,8 @@ class UserSecurityInstructionApiController extends Controller
             $validated['sort_by'] ?? 'updated_at',
             (($validated['sort_desc'] ?? '1') === '1') ? 'desc' : 'asc',
             trim((string) ($validated['search'] ?? '')),
+            isset($validated['product_version_id']) ? (int) $validated['product_version_id'] : null,
+            ($validated['product_wide'] ?? '0') === '1',
         );
 
         return response()->json($paginator);

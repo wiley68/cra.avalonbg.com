@@ -12,6 +12,8 @@ export type UserSecurityInstructionListItem = {
     status: string;
     version_label: string;
     locale: string;
+    product_version_id: number | null;
+    product_version_number: string | null;
     published_at: string | null;
     updated_at: string | null;
 };
@@ -27,6 +29,9 @@ export function createUserSecurityInstructionColumnTitleMap(
         status: t('products.user_security_instructions.columns.status'),
         version_label: t(
             'products.user_security_instructions.columns.version_label',
+        ),
+        product_version_number: t(
+            'products.user_security_instructions.columns.product_version_number',
         ),
         locale: t('products.user_security_instructions.columns.locale'),
         updated_at: t('products.user_security_instructions.columns.updated_at'),
@@ -111,6 +116,26 @@ export const createUserSecurityInstructionColumns = ({
                 ),
             cell: ({ row }) =>
                 h('div', {}, String(row.getValue('version_label'))),
+        },
+        {
+            accessorKey: 'product_version_number',
+            header: ({ column }) =>
+                sortableHeader(
+                    t(
+                        'products.user_security_instructions.columns.product_version_number',
+                    ),
+                    column,
+                ),
+            cell: ({ row }) => {
+                const value = row.original.product_version_number;
+
+                return h(
+                    'div',
+                    { class: 'text-muted-foreground' },
+                    value ??
+                        t('products.user_security_instructions.product_wide'),
+                );
+            },
         },
         {
             accessorKey: 'locale',

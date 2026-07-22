@@ -40,6 +40,13 @@ class StoreUserSecurityInstructionRequest extends FormRequest
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
             'notes' => ['nullable', 'string'],
             'use_template' => ['sometimes', 'boolean'],
+            'product_version_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_versions', 'id')->where(
+                    fn($query) => $query->where('product_id', $this->route('product')?->id),
+                ),
+            ],
         ];
     }
 

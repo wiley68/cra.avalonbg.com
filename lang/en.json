@@ -2433,13 +2433,15 @@
                 "id": "ID",
                 "title": "Title",
                 "status": "Status",
-                "version_label": "Version",
+                "version_label": "Doc version",
+                "product_version_number": "Product version",
                 "locale": "Locale",
                 "updated_at": "Updated"
             },
             "fields": {
                 "title": "Title",
                 "version_label": "Version label",
+                "product_version": "Product version",
                 "locale": "Locale",
                 "notes": "Notes",
                 "is_applicable": "Applicable",
@@ -2451,11 +2453,16 @@
             "help": {
                 "title": "Document title shown in exports and lists.",
                 "version_label": "Document revision label (e.g. 1.0).",
+                "product_version": "Optional product release this document applies to. Leave empty for product-wide instructions.",
                 "notes": "Internal notes; not required in customer-facing exports.",
                 "title_override": "Optional override for the default section title.",
                 "body": "Markdown content for this section.",
                 "use_template": "Prefill document title and all section bodies with EN/BG starter content for the selected locale."
             },
+            "product_wide": "Product-wide",
+            "filter_all_versions": "All scopes",
+            "filter_product_wide": "Product-wide only",
+            "filter_version": "Version",
             "statuses": {
                 "draft": "Draft",
                 "under_review": "Under review",

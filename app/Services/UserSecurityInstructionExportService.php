@@ -128,6 +128,8 @@ class UserSecurityInstructionExportService
         Product $product,
         Organization $organization,
     ): string {
+        $instruction->loadMissing('productVersion:id,version_number');
+
         $lines = [];
         $lines[] = '# ' . $instruction->title;
         $lines[] = '';
@@ -135,6 +137,9 @@ class UserSecurityInstructionExportService
         $lines[] = '';
         $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_organization') . ':** ' . $organization->name;
         $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_product') . ':** ' . $product->name;
+        $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.product_version') . ':** '
+            . ($instruction->productVersion?->version_number
+                ?? Translations::get('products.user_security_instructions.product_wide'));
         $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.version_label') . ':** ' . $instruction->version_label;
         $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.locale') . ':** ' . $instruction->locale;
         $lines[] = '- **' . Translations::get('products.user_security_instructions.columns.status') . ':** ' . $instruction->status->value;
@@ -199,6 +204,7 @@ class UserSecurityInstructionExportService
      *         status: string,
      *         version_label: string,
      *         locale: string,
+     *         product_version_number: string|null,
      *         published_at: string|null,
      *         published_by_name: string|null
      *     },
@@ -216,6 +222,8 @@ class UserSecurityInstructionExportService
         Product $product,
         Organization $organization,
     ): array {
+        $instruction->loadMissing('productVersion:id,version_number');
+
         $sections = $instruction->sections
             ->sortBy('sort_order')
             ->values()
@@ -253,6 +261,7 @@ class UserSecurityInstructionExportService
                 'status' => $instruction->status->value,
                 'version_label' => $instruction->version_label,
                 'locale' => $instruction->locale,
+                'product_version_number' => $instruction->productVersion?->version_number,
                 'published_at' => $instruction->published_at?->toIso8601String(),
                 'published_by_name' => $instruction->publisher?->name,
             ],

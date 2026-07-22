@@ -29,6 +29,8 @@ class UserSecurityInstructionService
      *     status: string,
      *     version_label: string,
      *     locale: string,
+     *     product_version_id: int|null,
+     *     product_version_number: string|null,
      *     published_at: string|null,
      *     updated_at: string|null
      * }>
@@ -40,9 +42,18 @@ class UserSecurityInstructionService
         string $sortBy = 'updated_at',
         string $sortOrder = 'desc',
         string $search = '',
+        ?int $productVersionId = null,
+        bool $productWideOnly = false,
     ): LengthAwarePaginator {
         $query = UserSecurityInstruction::query()
+            ->with('productVersion:id,version_number')
             ->where('product_id', $product->id);
+
+        if ($productWideOnly) {
+            $query->whereNull('product_version_id');
+        } elseif ($productVersionId !== null) {
+            $query->where('product_version_id', $productVersionId);
+        }
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -51,7 +62,11 @@ class UserSecurityInstructionService
                     ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('version_label', 'like', "%{$search}%")
                     ->orWhere('locale', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'productVersion',
+                        fn($versionQuery) => $versionQuery->where('version_number', 'like', "%{$search}%"),
+                    );
 
                 if (ctype_digit($search)) {
                     $builder->orWhere('id', (int) $search);
@@ -66,6 +81,7 @@ class UserSecurityInstructionService
             'version_label' => 'version_label',
             'locale' => 'locale',
             'published_at' => 'published_at',
+            'product_version_number' => 'product_version_id',
             default => 'updated_at',
         };
 
@@ -82,7 +98,8 @@ class UserSecurityInstructionService
      *     version_label?: string|null,
      *     locale: string,
      *     notes?: string|null,
-     *     use_template?: bool
+     *     use_template?: bool,
+     *     product_version_id?: int|null
      * }  $attributes
      */
     public function create(Product $product, array $attributes, User $actor): UserSecurityInstruction
@@ -103,7 +120,7 @@ class UserSecurityInstructionService
             $instruction = UserSecurityInstruction::query()->create([
                 'organization_id' => $product->organization_id,
                 'product_id' => $product->id,
-                'product_version_id' => null,
+                'product_version_id' => $attributes['product_version_id'] ?? null,
                 'title' => $title,
                 'status' => UserSecurityInstructionStatus::Draft,
                 'version_label' => $versionLabel,
@@ -153,6 +170,7 @@ class UserSecurityInstructionService
      *     version_label: string,
      *     locale: string,
      *     notes?: string|null,
+     *     product_version_id?: int|null,
      *     sections: list<array{
      *         section_key: string,
      *         body?: string|null,
@@ -175,6 +193,9 @@ class UserSecurityInstructionService
                 'version_label' => $attributes['version_label'],
                 'locale' => $attributes['locale'],
                 'notes' => $attributes['notes'] ?? null,
+                'product_version_id' => array_key_exists('product_version_id', $attributes)
+                    ? $attributes['product_version_id']
+                    : $instruction->product_version_id,
             ]);
 
             $sectionsByKey = $instruction->sections()
@@ -376,6 +397,8 @@ class UserSecurityInstructionService
      *     published_by_name: string|null,
      *     evidence_id: int|null,
      *     evidence_title: string|null,
+     *     product_version_id: int|null,
+     *     product_version_number: string|null,
      *     sections: list<array{
      *         id: int,
      *         section_key: string,
@@ -388,7 +411,7 @@ class UserSecurityInstructionService
      */
     public function detailPayload(UserSecurityInstruction $instruction): array
     {
-        $instruction->loadMissing(['sections', 'publisher:id,name', 'evidence']);
+        $instruction->loadMissing(['sections', 'publisher:id,name', 'evidence', 'productVersion:id,version_number']);
 
         return [
             'id' => $instruction->id,
@@ -402,6 +425,8 @@ class UserSecurityInstructionService
             'published_by_name' => $instruction->publisher?->name,
             'evidence_id' => $instruction->evidence_id,
             'evidence_title' => $instruction->evidence?->title,
+            'product_version_id' => $instruction->product_version_id,
+            'product_version_number' => $instruction->productVersion?->version_number,
             'sections' => $instruction->sections
                 ->sortBy('sort_order')
                 ->values()
@@ -424,18 +449,24 @@ class UserSecurityInstructionService
      *     status: string,
      *     version_label: string,
      *     locale: string,
+     *     product_version_id: int|null,
+     *     product_version_number: string|null,
      *     published_at: string|null,
      *     updated_at: string|null
      * }
      */
     public function listItemPayload(UserSecurityInstruction $instruction): array
     {
+        $instruction->loadMissing('productVersion:id,version_number');
+
         return [
             'id' => $instruction->id,
             'title' => $instruction->title,
             'status' => $instruction->status->value,
             'version_label' => $instruction->version_label,
             'locale' => $instruction->locale,
+            'product_version_id' => $instruction->product_version_id,
+            'product_version_number' => $instruction->productVersion?->version_number,
             'published_at' => $instruction->published_at?->toIso8601String(),
             'updated_at' => $instruction->updated_at?->toIso8601String(),
         ];

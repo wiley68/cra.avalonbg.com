@@ -2,11 +2,18 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useApiTable } from '@/composables/useApiTable';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
@@ -36,9 +43,12 @@ type ProductSummary = {
     slug: string;
 };
 
+type VersionOption = { id: number; version_number: string };
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: ProductSummary;
+    versions: VersionOption[];
     canManage: boolean;
 }>();
 
@@ -56,6 +66,7 @@ const { backHref } = useProductModuleBack(props.product.id);
 
 const showDeleteDialog = ref(false);
 const instructionToDelete = ref<number | null>(null);
+const versionFilter = ref('__all__');
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<UserSecurityInstructionListItem>({
@@ -72,7 +83,23 @@ const { rows, pagination, loading, search, fetch } =
         },
         autoload: false,
         searchDebounceMs: 400,
+        getExtraParams: (): Record<string, string> => {
+            if (versionFilter.value === '__all__') {
+                return {};
+            }
+
+            if (versionFilter.value === '__none__') {
+                return { product_wide: '1' };
+            }
+
+            return { product_version_id: versionFilter.value };
+        },
     });
+
+watch(versionFilter, () => {
+    pagination.value.page = 1;
+    void fetch();
+});
 
 const totalPages = computed(() =>
     Math.max(
@@ -185,6 +212,53 @@ onMounted(() => {
                     </Link>
                 </Button>
             </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <Select
+                :model-value="versionFilter"
+                @update:model-value="
+                    (value) => {
+                        versionFilter =
+                            value === undefined || value === null
+                                ? '__all__'
+                                : String(value);
+                    }
+                "
+            >
+                <SelectTrigger class="w-55">
+                    <SelectValue
+                        :placeholder="
+                            t(
+                                'products.user_security_instructions.filter_version',
+                            )
+                        "
+                    />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="__all__">
+                        {{
+                            t(
+                                'products.user_security_instructions.filter_all_versions',
+                            )
+                        }}
+                    </SelectItem>
+                    <SelectItem value="__none__">
+                        {{
+                            t(
+                                'products.user_security_instructions.filter_product_wide',
+                            )
+                        }}
+                    </SelectItem>
+                    <SelectItem
+                        v-for="version in versions"
+                        :key="version.id"
+                        :value="String(version.id)"
+                    >
+                        {{ version.version_number }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
         </div>
 
         <DataTable

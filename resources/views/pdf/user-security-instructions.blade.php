@@ -117,6 +117,13 @@
             <td>{{ $statusLabel }}</td>
         </tr>
         <tr>
+            <th>{{ Translations::get('products.user_security_instructions.fields.product_version') }}</th>
+            <td>
+                {{ $instruction['product_version_number']
+                    ?? Translations::get('products.user_security_instructions.product_wide') }}
+            </td>
+        </tr>
+        <tr>
             <th>{{ Translations::get('products.user_security_instructions.fields.version_label') }}</th>
             <td>{{ $instruction['version_label'] }}</td>
         </tr>
