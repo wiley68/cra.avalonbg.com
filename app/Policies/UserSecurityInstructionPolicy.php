@@ -40,4 +40,29 @@ class UserSecurityInstructionPolicy
                 UserSecurityInstructionStatus::UnderReview,
             ], true);
     }
+
+    public function export(
+        User $user,
+        UserSecurityInstruction $instruction,
+        Organization $organization,
+    ): bool {
+        if (
+            $instruction->organization_id !== $organization->id
+            || !$user->canViewProducts($organization)
+        ) {
+            return false;
+        }
+
+        // Published/retired: any viewer. Draft/under_review: managers only.
+        if (
+            in_array($instruction->status, [
+                UserSecurityInstructionStatus::Published,
+                UserSecurityInstructionStatus::Retired,
+            ], true)
+        ) {
+            return true;
+        }
+
+        return $user->canManageProducts($organization);
+    }
 }

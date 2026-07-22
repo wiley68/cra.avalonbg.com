@@ -2486,7 +2486,16 @@
             "only_published_retire": "Само публикувани инструкции могат да се оттеглят.",
             "publish_sections_incomplete": "Попълнете всички приложими секции преди публикуване (:sections).",
             "confirm_retire_title": "Оттегляне на инструкциите?",
-            "confirm_retire": "Оттеглените документи остават в историята, но вече не са публикуваната версия."
+            "confirm_retire": "Оттеглените документи остават в историята, но вече не са публикуваната версия.",
+            "export_html": "Експорт HTML",
+            "export_pdf": "Експорт PDF",
+            "export": {
+                "generated_at": "Генериран на",
+                "disclaimer": "Този документ е потребителски security instructions за продукта. Не е правен сертификат за compliance.",
+                "not_applicable": "Не е приложимо за този продукт.",
+                "empty_section": "Няма съдържание за тази секция.",
+                "invalid_format": "Форматът за експорт трябва да е html или pdf."
+            }
         }
     },
     "audit_logs": {
@@ -2610,7 +2619,8 @@
             "user_security_instruction_deleted": "Инструкции за сигурност изтрити",
             "user_security_instruction_submitted": "Инструкции за сигурност изпратени за преглед",
             "user_security_instruction_published": "Инструкции за сигурност публикувани",
-            "user_security_instruction_retired": "Инструкции за сигурност оттеглени"
+            "user_security_instruction_retired": "Инструкции за сигурност оттеглени",
+            "user_security_instruction_exported": "Инструкции за сигурност експортирани"
         },
         "event_sources": {
             "workspace": "Workspace",

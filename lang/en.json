@@ -2486,7 +2486,16 @@
             "only_published_retire": "Only published instructions can be retired.",
             "publish_sections_incomplete": "Fill all applicable sections before publishing (:sections).",
             "confirm_retire_title": "Retire instructions?",
-            "confirm_retire": "Retired documents stay in history but are no longer the published version."
+            "confirm_retire": "Retired documents stay in history but are no longer the published version.",
+            "export_html": "Export HTML",
+            "export_pdf": "Export PDF",
+            "export": {
+                "generated_at": "Generated at",
+                "disclaimer": "This document is product user security instructions. It is not a legal compliance certificate.",
+                "not_applicable": "Not applicable for this product.",
+                "empty_section": "No content provided for this section.",
+                "invalid_format": "Export format must be html or pdf."
+            }
         }
     },
     "audit_logs": {
@@ -2612,7 +2621,8 @@
             "user_security_instruction_deleted": "User security instructions deleted",
             "user_security_instruction_submitted": "User security instructions submitted for review",
             "user_security_instruction_published": "User security instructions published",
-            "user_security_instruction_retired": "User security instructions retired"
+            "user_security_instruction_retired": "User security instructions retired",
+            "user_security_instruction_exported": "User security instructions exported"
         },
         "event_sources": {
             "workspace": "Workspace",

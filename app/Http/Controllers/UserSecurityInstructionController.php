@@ -9,23 +9,27 @@ use App\Http\Requests\UpdateUserSecurityInstructionRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\UserSecurityInstruction;
+use App\Services\UserSecurityInstructionExportService;
 use App\Services\UserSecurityInstructionService;
 use App\Support\Translations;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class UserSecurityInstructionController extends Controller
 {
     public function __construct(
         private readonly UserSecurityInstructionService $instructions,
+        private readonly UserSecurityInstructionExportService $exports,
     ) {
     }
 
-    public function index(Product $product): Response
+    public function index(Product $product): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -39,7 +43,7 @@ class UserSecurityInstructionController extends Controller
         ]);
     }
 
-    public function create(Product $product): Response
+    public function create(Product $product): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -92,7 +96,7 @@ class UserSecurityInstructionController extends Controller
         return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
     }
 
-    public function edit(Product $product, UserSecurityInstruction $instruction): Response
+    public function edit(Product $product, UserSecurityInstruction $instruction): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -203,6 +207,25 @@ class UserSecurityInstructionController extends Controller
         ]);
 
         return redirect()->route('products.security-instructions.edit', [$product, $instruction]);
+    }
+
+    public function export(
+        Product $product,
+        UserSecurityInstruction $instruction,
+        string $format,
+    ): Response|SymfonyResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('export', [$instruction, $organization]);
+
+        return $this->exports->export(
+            $instruction,
+            $product,
+            $organization,
+            $format,
+            request()->user(),
+        );
     }
 
     /**

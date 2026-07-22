@@ -236,6 +236,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/security-instructions/{instruction}/retire',
             [UserSecurityInstructionController::class, 'retire'],
         )->name('products.security-instructions.retire')->scopeBindings();
+        Route::get(
+            'products/{product}/security-instructions/{instruction}/export/{format}',
+            [UserSecurityInstructionController::class, 'export'],
+        )->name('products.security-instructions.export')->scopeBindings()
+            ->whereIn('format', ['html', 'pdf']);
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Archive, ArrowLeft, CheckCircle2, Save, Send } from '@lucide/vue';
+import {
+    Archive,
+    ArrowLeft,
+    CheckCircle2,
+    FileDown,
+    Save,
+    Send,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -22,6 +29,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     edit as instructionsEdit,
+    exportMethod as instructionsExport,
     index as instructionsIndex,
     publish as publishInstruction,
     retire as retireInstruction,
@@ -116,6 +124,31 @@ const canPublish = computed(
 
 const canRetire = computed(
     () => props.canManage && props.instruction.status === 'published',
+);
+
+const canExport = computed(
+    () =>
+        props.canManage ||
+        props.instruction.status === 'published' ||
+        props.instruction.status === 'retired',
+);
+
+const exportHtmlUrl = computed(
+    () =>
+        instructionsExport({
+            product: props.product.id,
+            instruction: props.instruction.id,
+            format: 'html',
+        }).url,
+);
+
+const exportPdfUrl = computed(
+    () =>
+        instructionsExport({
+            product: props.product.id,
+            instruction: props.instruction.id,
+            format: 'pdf',
+        }).url,
 );
 
 const statusLabel = (value: string): string => {
@@ -213,12 +246,30 @@ const doRetire = () => {
                     </span>
                 </p>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="instructionsIndex(props.product.id)">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button v-if="canExport" as-child variant="outline">
+                    <a :href="exportHtmlUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t('products.user_security_instructions.export_html')
+                        }}
+                    </a>
+                </Button>
+                <Button v-if="canExport" as-child variant="outline">
+                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t('products.user_security_instructions.export_pdf')
+                        }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="instructionsIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <div

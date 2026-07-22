@@ -353,6 +353,26 @@ class AuditLogger
         );
     }
 
+    public static function logUserSecurityInstructionExported(
+        UserSecurityInstruction $instruction,
+        User $actor,
+        string $format,
+    ): void {
+        self::persist(
+            type: AuditEventType::UserSecurityInstructionExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'title', 'value' => $instruction->title],
+                ['field' => 'format', 'value' => $format],
+            ],
+        );
+    }
+
     public static function logOrgPolicyCreated(OrgPolicy $policy, User $actor): void
     {
         self::persist(
