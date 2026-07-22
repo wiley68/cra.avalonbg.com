@@ -1,7 +1,7 @@
 # Phase 2.2 Release Closeout
 
-**Версия:** 1.0  
-**Дата:** 21 юли 2026 г.  
+**Версия:** 1.1  
+**Дата:** 22 юли 2026 г.  
 **Статус:** Closed — Phase 2.2 exited (2026-07-21)  
 **Родителски документи:**
 
@@ -217,7 +217,9 @@ Full suite at exit: **340 passed**, **2 skipped**, **342 total**.
 
 **[Phase 2.2 — Customer Deployments](Phase2_2_Customer_Deployments.md)** — **Closed** (2026-07-21).
 
-**Следващи (Active):** [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) — Policy library → Auditor portal → AI assistant.
+**Следващи:** [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) — **Closed** ([Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md)).
+
+**Активен:** [Phase2_4_User_Security_Instructions.md](Phase2_4_User_Security_Instructions.md) — User Security Instructions (§5.17).
 
 Dependency chain:
 
@@ -228,9 +230,9 @@ Phase 2.1 GitHub/GitLab — Closed 2026-07-21
     ↓
 Phase 2.2 Customer deployments — Closed 2026-07-21
     ↓
-Phase 2.3 Policy / Auditor / AI — Active
+Phase 2.3 Policy / Auditor / AI — Closed 2026-07-22
     ↓
-User Security Instructions / SDL workspace (TBD)
+Phase 2.4 User Security Instructions — Active
 ```
 
 ---
@@ -239,4 +241,5 @@ User Security Instructions / SDL workspace (TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.1    | 2026-07-22 | Next pointer → Phase 2.4 (Phase 2.3 Closed)                            |
 | 1.0    | 2026-07-21 | Formal Phase 2.2 exit; 15/15 slices Done; tests 340 passed; → §14 next |

@@ -1,8 +1,8 @@
 # MVP Release Closeout
 
-**Версия:** 1.4  
-**Дата:** 20 юли 2026 г.  
-**Статус:** Closed — MVP 0.1 exited (2026-07-20) → Phase 2.1  
+**Версия:** 1.5  
+**Дата:** 22 юли 2026 г.  
+**Статус:** Closed — MVP 0.1 exited (2026-07-20) → Phase 2.4 Active  
 **Родителски документ:** [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§11 MVP, §13 седмици 11–12, §20)
 
 > Цел: затваряне и валидация на MVP 0.1 преди старт на Втора фаза. Не въвежда нови големи модули.
@@ -155,7 +155,9 @@ MVP 0.1 се счита за готов, когато:
 - affected customers, patch campaigns, notification history, update confirmation — **Done**;
 - виж Phase 2.1 closeout за VCS integration (еднопосочен sync — Done).
 
-**Следващи:** [Phase 2.3 — Policy, Auditor & AI](Phase2_3_Policy_Auditor_AI.md) (Active). Ред: Policy library → Auditor portal → AI assistant.
+**Следващи:** [Phase 2.3 — Policy, Auditor & AI](Phase2_3_Policy_Auditor_AI.md) — **Closed** ([Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md)).
+
+**Активен:** [Phase2_4_User_Security_Instructions.md](Phase2_4_User_Security_Instructions.md) — User Security Instructions skeleton.
 
 ---
 
@@ -163,6 +165,7 @@ MVP 0.1 се счита за готов, когато:
 
 | Версия | Дата       | Промяна                                                                                               |
 | ------ | ---------- | ----------------------------------------------------------------------------------------------------- |
+| 1.5    | 2026-07-22 | Next pointer → Phase 2.4 (2.1–2.3 Closed)                                                             |
 | 1.4    | 2026-07-20 | Formal MVP 0.1 exit; feature tests OK (218 passed); → Phase 2.1                                       |
 | 1.3    | 2026-07-20 | P1 polish Done: support 180/90/30, dashboard actions, technical documentation outline                 |
 | 1.2    | 2026-07-20 | §20 #3 incident → Done (минимална task/vuln/evidence симулация)                                       |

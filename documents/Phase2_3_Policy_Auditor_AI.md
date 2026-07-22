@@ -1,8 +1,10 @@
 # Phase 2.3 — Policy Library, Auditor Portal & AI Assistant
 
-**Версия:** 1.29  
+**Версия:** 1.30  
 **Дата:** 22 юли 2026 г.  
-**Статус:** Closed — 2.3A–2.3C Done (Must/Should/Could complete)  
+**Статус:** Closed — Phase 2.3 exited (2026-07-22)  
+**Closeout:** [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md)  
+**Следващ план:** [Phase2_4_User_Security_Instructions.md](Phase2_4_User_Security_Instructions.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§6 AI, §14 Втора фаза)
@@ -352,13 +354,15 @@ Append-only messages; no update/delete на assistant turns в Must.
 ```text
 Phase 2.2 Customer deployments — Closed 2026-07-21
     ↓
-Phase 2.3A Policy library (този документ — start here)
+Phase 2.3A Policy library
     ↓
 Phase 2.3B Auditor portal
     ↓
 Phase 2.3C AI assistant
     ↓
-User Security Instructions / SDL workspace (§14+, TBD)
+Phase 2.3 exited — Closeout 2026-07-22
+    ↓
+Phase 2.4 User Security Instructions — [Phase2_4_User_Security_Instructions.md](Phase2_4_User_Security_Instructions.md)
 ```
 
 ---
@@ -367,6 +371,7 @@ User Security Instructions / SDL workspace (§14+, TBD)
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 1.30   | 2026-07-22 | Formal exit + closeout; next → Phase 2.4 User Security Instructions    |
 | 1.29   | 2026-07-22 | 2.3C Could 12: queued AI analyse/draft/triage + RAG index jobs         |
 | 1.28   | 2026-07-22 | 2.3C Could 11: vulnerability triage AI suggestions (no auto-apply)     |
 | 1.27   | 2026-07-22 | 2.3C Could 10: local embedding chunks + RAG retrieval in chat context  |
