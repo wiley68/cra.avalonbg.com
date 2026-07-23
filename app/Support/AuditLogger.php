@@ -502,6 +502,26 @@ class AuditLogger
         );
     }
 
+    public static function logIncidentExported(
+        ProductIncident $incident,
+        User $actor,
+        string $format,
+    ): void {
+        self::persist(
+            type: AuditEventType::IncidentExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'title', 'value' => $incident->title],
+                ['field' => 'format', 'value' => $format],
+            ],
+        );
+    }
+
     public static function logIncidentTimelineEventAdded(
         ProductIncident $incident,
         IncidentTimelineEvent $event,

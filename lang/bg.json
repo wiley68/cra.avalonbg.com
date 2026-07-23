@@ -2700,7 +2700,20 @@
             "closure_task_title": "Преглед на затворен инцидент: :title",
             "closure_task_description": "Преглед след затваряне на security инцидент.\nЗаглавие: :title",
             "closed_by": "Затворен от :name",
-            "already_closed": "Този инцидент е затворен."
+            "already_closed": "Този инцидент е затворен.",
+            "export_markdown": "Експорт Markdown",
+            "export_pdf": "Експорт PDF",
+            "export": {
+                "title": "Обобщение на security инцидент",
+                "disclaimer": "Този документ е вътрешно обобщение на security инцидент. Не е правен сертификат за съответствие или пакет за подаване към орган.",
+                "generated_at": "Генериран на",
+                "meta_organization": "Организация",
+                "meta_product": "Продукт",
+                "closed_by": "Затворен от",
+                "section_overview": "Преглед",
+                "empty": "Няма данни.",
+                "invalid_format": "Форматът за експорт трябва да е markdown или pdf."
+            }
         },
         "incidents_link": "Инциденти"
     },
@@ -2834,7 +2847,8 @@
             "incident_deleted": "Инцидент изтрит",
             "incident_status_updated": "Статус на инцидент обновен",
             "incident_closed": "Инцидент затворен",
-            "incident_timeline_event_added": "Добавено събитие в timeline на инцидент"
+            "incident_timeline_event_added": "Добавено събитие в timeline на инцидент",
+            "incident_exported": "Инцидент експортиран"
         },
         "event_sources": {
             "workspace": "Workspace",

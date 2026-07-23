@@ -16,20 +16,23 @@ use App\Models\Product;
 use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVulnerability;
+use App\Services\ProductIncidentExportService;
 use App\Services\ProductIncidentService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
 
 class ProductIncidentController extends Controller
 {
     public function __construct(
         private readonly ProductIncidentService $incidents,
+        private readonly ProductIncidentExportService $exports,
     ) {
     }
 
-    public function index(Product $product): Response
+    public function index(Product $product): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -44,7 +47,7 @@ class ProductIncidentController extends Controller
         ]);
     }
 
-    public function create(Product $product): Response
+    public function create(Product $product): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -83,7 +86,7 @@ class ProductIncidentController extends Controller
         return redirect()->route('products.incidents.edit', [$product, $incident]);
     }
 
-    public function edit(Product $product, ProductIncident $incident): Response
+    public function edit(Product $product, ProductIncident $incident): InertiaResponse
     {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
@@ -226,6 +229,25 @@ class ProductIncidentController extends Controller
         ]);
 
         return redirect()->route('products.incidents.edit', [$product, $incident]);
+    }
+
+    public function export(
+        Product $product,
+        ProductIncident $incident,
+        string $format,
+    ): Response {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+        $this->authorize('view', [$incident, $organization]);
+
+        return $this->exports->export(
+            $incident,
+            $product,
+            $organization,
+            $format,
+            request()->user(),
+        );
     }
 
     public function update(

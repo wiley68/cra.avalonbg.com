@@ -47,6 +47,7 @@ enum AuditEventType: string
     case IncidentStatusUpdated = 'incident_status_updated';
     case IncidentClosed = 'incident_closed';
     case IncidentTimelineEventAdded = 'incident_timeline_event_added';
+    case IncidentExported = 'incident_exported';
     case OrgPolicySubmitted = 'org_policy_submitted';
     case OrgPolicyApproved = 'org_policy_approved';
     case OrgPolicyRetired = 'org_policy_retired';

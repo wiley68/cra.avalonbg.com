@@ -2700,7 +2700,20 @@
             "closure_task_title": "Review closed incident: :title",
             "closure_task_description": "Post-closure review for security incident.\nTitle: :title",
             "closed_by": "Closed by :name",
-            "already_closed": "This incident is closed."
+            "already_closed": "This incident is closed.",
+            "export_markdown": "Export Markdown",
+            "export_pdf": "Export PDF",
+            "export": {
+                "title": "Security incident summary",
+                "disclaimer": "This document is an internal security incident summary. It is not a legal compliance certificate or authority submission package.",
+                "generated_at": "Generated at",
+                "meta_organization": "Organization",
+                "meta_product": "Product",
+                "closed_by": "Closed by",
+                "section_overview": "Overview",
+                "empty": "Not provided.",
+                "invalid_format": "Export format must be markdown or pdf."
+            }
         },
         "incidents_link": "Incidents"
     },
@@ -2836,7 +2849,8 @@
             "incident_deleted": "Incident deleted",
             "incident_status_updated": "Incident status updated",
             "incident_closed": "Incident closed",
-            "incident_timeline_event_added": "Incident timeline event added"
+            "incident_timeline_event_added": "Incident timeline event added",
+            "incident_exported": "Incident exported"
         },
         "event_sources": {
             "workspace": "Workspace",

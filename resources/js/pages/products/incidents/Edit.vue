@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     ExternalLink,
+    FileDown,
     Link2,
     Lock,
     Plus,
@@ -25,6 +26,7 @@ import {
     createVulnerability as createIncidentVulnerability,
     destroy as destroyProductIncident,
     edit as productIncidentsEdit,
+    exportMethod as exportProductIncident,
     index as productIncidentsIndex,
     linkVulnerability as linkIncidentVulnerability,
     unlinkVulnerability as unlinkIncidentVulnerability,
@@ -183,6 +185,24 @@ const closeForm = useForm({
 });
 
 const isTerminal = computed(() => props.incident.is_terminal);
+
+const exportMarkdownUrl = computed(
+    () =>
+        exportProductIncident({
+            product: props.product.id,
+            incident: props.incident.id,
+            format: 'markdown',
+        }).url,
+);
+
+const exportPdfUrl = computed(
+    () =>
+        exportProductIncident({
+            product: props.product.id,
+            incident: props.incident.id,
+            format: 'pdf',
+        }).url,
+);
 
 const coreTimestampRows = computed(
     () =>
@@ -383,12 +403,24 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     {{ t('products.incidents.edit_title') }}
                 </h1>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center justify-end gap-2">
                 <Button as-child variant="outline">
                     <Link :href="productIncidentsIndex(props.product.id)">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportMarkdownUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.incidents.export_markdown') }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.incidents.export_pdf') }}
+                    </a>
                 </Button>
                 <Button
                     v-if="canManage"

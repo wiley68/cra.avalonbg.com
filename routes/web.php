@@ -287,6 +287,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductIncidentController::class, 'close'],
         )->name('products.incidents.close')->scopeBindings();
         Route::get(
+            'products/{product}/incidents/{incident}/export/{format}',
+            [ProductIncidentController::class, 'export'],
+        )->name('products.incidents.export')->scopeBindings()
+            ->whereIn('format', ['markdown', 'pdf']);
+        Route::get(
             'products/{product}/vulnerabilities/{vulnerability}/reporting',
             [VulnerabilityReportingController::class, 'show'],
         )->name('products.vulnerabilities.reporting.show')->scopeBindings();
