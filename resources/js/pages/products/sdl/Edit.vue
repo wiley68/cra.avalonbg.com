@@ -52,6 +52,23 @@ type GitEvidenceOption = {
     collected_at: string | null;
     checksum_short: string | null;
 };
+type GitSuggestionItem = {
+    kind: 'snapshot' | 'ci_url' | string;
+    evidence_id: number | null;
+    title: string;
+    url: string | null;
+    source: string | null;
+    checksum_short: string | null;
+    collected_at: string | null;
+    suggested_stages: string[];
+    already_on_run: boolean;
+    ci_conclusion: string | null;
+};
+type GitSuggestions = {
+    synced_at: string | null;
+    has_error: boolean;
+    items: GitSuggestionItem[];
+};
 type RepositoryPayload = {
     id: number;
     full_name: string;
@@ -128,6 +145,7 @@ const props = defineProps<{
     evidence: EvidenceOption[];
     repository: RepositoryPayload | null;
     git_evidence: GitEvidenceOption[];
+    git_suggestions: GitSuggestions;
     canManage: boolean;
     aiEnabled: boolean;
     stage_note_templates: Record<string, string>;
@@ -596,6 +614,60 @@ const attachGitEvidence = (id: number): void => {
     toggleRunEvidence(id, true);
 };
 
+const attachGitSuggestionToRun = (item: GitSuggestionItem): void => {
+    if (!canEdit.value || item.evidence_id === null) {
+        return;
+    }
+
+    attachGitEvidence(item.evidence_id);
+};
+
+const attachGitSuggestionToStage = (
+    item: GitSuggestionItem,
+    stage: string,
+): void => {
+    if (!canEdit.value || item.evidence_id === null) {
+        return;
+    }
+
+    attachGitEvidence(item.evidence_id);
+    toggleStageEvidence(stage, item.evidence_id, true);
+};
+
+const suggestionAlreadyOnStage = (
+    item: GitSuggestionItem,
+    stage: string,
+): boolean => {
+    if (item.evidence_id === null || !stageDrafts[stage]) {
+        return false;
+    }
+
+    return stageDrafts[stage].evidence_ids.includes(item.evidence_id);
+};
+
+const suggestionAttachedToRun = (item: GitSuggestionItem): boolean => {
+    if (item.kind === 'snapshot' && item.evidence_id !== null) {
+        return form.evidence_ids.includes(item.evidence_id);
+    }
+
+    return item.already_on_run;
+};
+
+const prefillExternalFromSuggestion = (item: GitSuggestionItem): void => {
+    if (!canEdit.value || !item.url) {
+        return;
+    }
+
+    externalUrl.value = item.url;
+    externalTitle.value = item.title;
+    externalStage.value = item.suggested_stages[0] ?? '';
+
+    document.getElementById('git-url')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+    });
+};
+
 const submitExternalLink = (): void => {
     if (!canEdit.value) {
         return;
@@ -966,6 +1038,223 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                 />
                                 {{ t('products.repository.sync_now') }}
                             </Button>
+
+                            <div
+                                v-if="
+                                    props.git_suggestions.items.length > 0 &&
+                                    !props.git_suggestions.has_error
+                                "
+                                class="space-y-2 rounded-md border border-dashed p-3"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium">
+                                        {{
+                                            t(
+                                                'products.sdl.git_suggest_heading',
+                                            )
+                                        }}
+                                    </p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{
+                                            t('products.sdl.git_suggest_help')
+                                        }}
+                                    </p>
+                                </div>
+                                <ul class="space-y-3">
+                                    <li
+                                        v-for="(
+                                            item, index
+                                        ) in props.git_suggestions.items"
+                                        :key="`${item.kind}-${item.evidence_id ?? item.url ?? index}`"
+                                        class="space-y-2 rounded-md border p-2 text-sm"
+                                    >
+                                        <div class="min-w-0">
+                                            <p class="font-medium">
+                                                {{
+                                                    item.kind === 'ci_url'
+                                                        ? t(
+                                                              'products.sdl.git_suggest_ci_label',
+                                                          )
+                                                        : t(
+                                                              'products.sdl.git_suggest_snapshot_label',
+                                                          )
+                                                }}
+                                                —
+                                                {{ item.title }}
+                                            </p>
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                <template
+                                                    v-if="
+                                                        item.ci_conclusion
+                                                    "
+                                                >
+                                                    {{
+                                                        t(
+                                                            'products.repository.ci_status',
+                                                        )
+                                                    }}:
+                                                    {{ item.ci_conclusion }}
+                                                    ·
+                                                </template>
+                                                <template
+                                                    v-if="
+                                                        item.suggested_stages
+                                                            .length
+                                                    "
+                                                >
+                                                    {{
+                                                        t(
+                                                            'products.sdl.git_suggest_stages',
+                                                        )
+                                                    }}:
+                                                    {{
+                                                        item.suggested_stages
+                                                            .map((stage) =>
+                                                                enumLabel(
+                                                                    'stages',
+                                                                    stage,
+                                                                ),
+                                                            )
+                                                            .join(', ')
+                                                    }}
+                                                </template>
+                                            </p>
+                                            <a
+                                                v-if="item.url"
+                                                :href="item.url"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="mt-1 inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
+                                            >
+                                                {{ item.url }}
+                                                <ExternalLink
+                                                    class="h-3 w-3"
+                                                />
+                                            </a>
+                                        </div>
+                                        <div
+                                            v-if="canEdit"
+                                            class="flex flex-wrap gap-2"
+                                        >
+                                            <template
+                                                v-if="
+                                                    item.kind ===
+                                                        'snapshot' &&
+                                                    item.evidence_id
+                                                "
+                                            >
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    :disabled="
+                                                        suggestionAttachedToRun(
+                                                            item,
+                                                        )
+                                                    "
+                                                    @click="
+                                                        attachGitSuggestionToRun(
+                                                            item,
+                                                        )
+                                                    "
+                                                >
+                                                    <Plus class="h-4 w-4" />
+                                                    {{
+                                                        suggestionAttachedToRun(
+                                                            item,
+                                                        )
+                                                            ? t(
+                                                                  'products.sdl.git_attached',
+                                                              )
+                                                            : t(
+                                                                  'products.sdl.git_suggest_add_run',
+                                                              )
+                                                    }}
+                                                </Button>
+                                                <Button
+                                                    v-for="stage in item.suggested_stages"
+                                                    :key="`${item.evidence_id}-${stage}`"
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    :disabled="
+                                                        suggestionAlreadyOnStage(
+                                                            item,
+                                                            stage,
+                                                        )
+                                                    "
+                                                    @click="
+                                                        attachGitSuggestionToStage(
+                                                            item,
+                                                            stage,
+                                                        )
+                                                    "
+                                                >
+                                                    <Plus class="h-4 w-4" />
+                                                    {{
+                                                        suggestionAlreadyOnStage(
+                                                            item,
+                                                            stage,
+                                                        )
+                                                            ? t(
+                                                                  'products.sdl.git_suggest_on_stage',
+                                                                  {
+                                                                      stage: enumLabel(
+                                                                          'stages',
+                                                                          stage,
+                                                                      ),
+                                                                  },
+                                                              )
+                                                            : t(
+                                                                  'products.sdl.git_suggest_add_stage',
+                                                                  {
+                                                                      stage: enumLabel(
+                                                                          'stages',
+                                                                          stage,
+                                                                      ),
+                                                                  },
+                                                              )
+                                                    }}
+                                                </Button>
+                                            </template>
+                                            <Button
+                                                v-else-if="
+                                                    item.kind === 'ci_url' &&
+                                                    item.url
+                                                "
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                :disabled="
+                                                    suggestionAttachedToRun(
+                                                        item,
+                                                    )
+                                                "
+                                                @click="
+                                                    prefillExternalFromSuggestion(
+                                                        item,
+                                                    )
+                                                "
+                                            >
+                                                <Link2 class="h-4 w-4" />
+                                                {{
+                                                    suggestionAttachedToRun(
+                                                        item,
+                                                    )
+                                                        ? t(
+                                                              'products.sdl.git_suggest_url_linked',
+                                                          )
+                                                        : t(
+                                                              'products.sdl.git_suggest_use_url',
+                                                          )
+                                                }}
+                                            </Button>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
 
                             <div class="space-y-2">
                                 <p class="text-sm font-medium">

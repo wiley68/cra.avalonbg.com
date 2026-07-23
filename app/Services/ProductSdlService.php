@@ -422,6 +422,133 @@ class ProductSdlService
             ->all();
     }
 
+    /**
+     * Suggest evidence from the product's latest VCS sync (human review — no auto-attach).
+     *
+     * @return array{
+     *     synced_at: string|null,
+     *     has_error: bool,
+     *     items: list<array{
+     *         kind: string,
+     *         evidence_id: int|null,
+     *         title: string,
+     *         url: string|null,
+     *         source: string|null,
+     *         checksum_short: string|null,
+     *         collected_at: string|null,
+     *         suggested_stages: list<string>,
+     *         already_on_run: bool,
+     *         ci_conclusion: string|null
+     *     }>
+     * }
+     */
+    public function gitSyncSuggestions(Product $product, ?SdlRun $run = null): array
+    {
+        $product->loadMissing('repository');
+        $repository = $product->repository;
+        $summary = is_array($repository?->last_sync_summary)
+            ? $repository->last_sync_summary
+            : [];
+
+        $runEvidenceIds = [];
+        $runEvidenceSources = [];
+
+        if ($run !== null) {
+            $run->loadMissing('evidence:id,source');
+            $runEvidenceIds = $run->evidence->pluck('id')->all();
+            $runEvidenceSources = $run->evidence
+                ->pluck('source')
+                ->filter()
+                ->map(fn($source) => rtrim(strtolower((string) $source), '/'))
+                ->values()
+                ->all();
+        }
+
+        $items = [];
+
+        $evidenceId = isset($summary['evidence_id']) ? (int) $summary['evidence_id'] : 0;
+        if ($evidenceId > 0) {
+            $snapshot = Evidence::query()
+                ->whereKey($evidenceId)
+                ->where('product_id', $product->id)
+                ->where('organization_id', $product->organization_id)
+                ->first(['id', 'title', 'source', 'collected_at', 'checksum_sha256']);
+
+            if ($snapshot !== null) {
+                $items[] = [
+                    'kind' => 'snapshot',
+                    'evidence_id' => $snapshot->id,
+                    'title' => $snapshot->title,
+                    'url' => null,
+                    'source' => $snapshot->source,
+                    'checksum_short' => $snapshot->checksum_sha256 !== null
+                        ? substr($snapshot->checksum_sha256, 0, 12)
+                        : null,
+                    'collected_at' => $snapshot->collected_at?->toIso8601String(),
+                    'suggested_stages' => [
+                        SdlStage::DependencyScan->value,
+                        SdlStage::SecurityTest->value,
+                    ],
+                    'already_on_run' => in_array($snapshot->id, $runEvidenceIds, true),
+                    'ci_conclusion' => null,
+                ];
+            }
+        }
+
+        $ci = is_array($summary['ci'] ?? null) ? $summary['ci'] : [];
+        $ciUrl = isset($ci['html_url']) ? trim((string) $ci['html_url']) : '';
+        if (
+            $ciUrl !== ''
+            && filter_var($ciUrl, FILTER_VALIDATE_URL) !== false
+            && preg_match('#^https?://#i', $ciUrl) === 1
+        ) {
+            $normalizedCi = rtrim(strtolower($ciUrl), '/');
+            $workflow = isset($ci['workflow_name']) ? trim((string) $ci['workflow_name']) : '';
+            $conclusion = isset($ci['conclusion']) ? trim((string) $ci['conclusion']) : '';
+            $title = $workflow !== ''
+                ? $workflow
+                : Translations::get('products.sdl.git_suggest_ci_default_title');
+
+            $items[] = [
+                'kind' => 'ci_url',
+                'evidence_id' => null,
+                'title' => $title,
+                'url' => $ciUrl,
+                'source' => $ciUrl,
+                'checksum_short' => null,
+                'collected_at' => null,
+                'suggested_stages' => $this->suggestedStagesForGitUrl($ciUrl),
+                'already_on_run' => in_array($normalizedCi, $runEvidenceSources, true),
+                'ci_conclusion' => $conclusion !== '' ? $conclusion : null,
+            ];
+        }
+
+        return [
+            'synced_at' => $repository?->last_synced_at?->toIso8601String(),
+            'has_error' => filled($summary['error'] ?? null),
+            'items' => $items,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function suggestedStagesForGitUrl(string $url): array
+    {
+        $path = strtolower((string) (parse_url($url, PHP_URL_PATH) ?? ''));
+
+        if (
+            str_contains($path, '/pull/')
+            || str_contains($path, '/pulls/')
+            || str_contains($path, '/merge_requests/')
+            || str_contains($path, '/-/merge_requests/')
+        ) {
+            return [SdlStage::CodeReview->value];
+        }
+
+        return [SdlStage::SecurityTest->value, SdlStage::CodeReview->value];
+    }
+
     private function normalizeExternalEvidenceUrl(string $url): string
     {
         $normalized = trim($url);

@@ -70,6 +70,7 @@ class ProductSdlController extends Controller
             'evidence' => $this->evidenceOptions($product),
             'repository' => $this->repositories->payload($product->repository),
             'git_evidence' => $this->sdl->gitEvidenceOptions($product),
+            'git_suggestions' => $this->sdl->gitSyncSuggestions($product),
             'options' => [
                 ...$this->enumOptions(),
                 'locales' => Organization::LOCALES,
@@ -139,6 +140,7 @@ class ProductSdlController extends Controller
             'evidence' => $this->evidenceOptions($product),
             'repository' => $this->repositories->payload($product->repository),
             'git_evidence' => $this->sdl->gitEvidenceOptions($product),
+            'git_suggestions' => $this->sdl->gitSyncSuggestions($product, $sdlRun),
             'options' => $this->enumOptions(),
             'stage_note_templates' => SdlStageNoteTemplates::payload(
                 $organization->resolvedLocale(),
