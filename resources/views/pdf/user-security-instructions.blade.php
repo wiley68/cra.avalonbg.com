@@ -101,6 +101,13 @@
 </head>
 <body>
     <h1>{{ $instruction['title'] }}</h1>
+    @if (!empty($customer))
+        <div class="meta" style="font-weight: bold; color: #111827; margin-bottom: 6px;">
+            {{ Translations::get('products.user_security_instructions.export.customer_guide_heading', [
+                'customer' => $customer['name'],
+            ]) }}
+        </div>
+    @endif
     <div class="meta">
         {{ $organization['name'] }} · {{ $product['name'] }} ·
         {{ Translations::get('products.user_security_instructions.export.generated_at') }}:
@@ -108,7 +115,11 @@
     </div>
 
     <div class="disclaimer">
-        {{ Translations::get('products.user_security_instructions.export.disclaimer') }}
+        {{ Translations::get(
+            !empty($customer)
+                ? 'products.user_security_instructions.export.customer_disclaimer'
+                : 'products.user_security_instructions.export.disclaimer'
+        ) }}
     </div>
 
     <table class="meta-table">
@@ -141,6 +152,48 @@
                     @endif
                 </td>
             </tr>
+        @endif
+        @if (!empty($customer))
+            <tr>
+                <th>{{ Translations::get('products.user_security_instructions.export.meta_customer') }}</th>
+                <td>{{ $customer['name'] }}</td>
+            </tr>
+            @if (!empty($customer['external_ref']))
+                <tr>
+                    <th>{{ Translations::get('products.user_security_instructions.export.meta_customer_ref') }}</th>
+                    <td>{{ $customer['external_ref'] }}</td>
+                </tr>
+            @endif
+            @if (!empty($customer['primary_contact']))
+                <tr>
+                    <th>{{ Translations::get('products.user_security_instructions.export.meta_customer_contact') }}</th>
+                    <td>{{ $customer['primary_contact'] }}</td>
+                </tr>
+            @endif
+        @endif
+        @if (!empty($deployment))
+            <tr>
+                <th>{{ Translations::get('products.user_security_instructions.export.meta_deployment_environment') }}</th>
+                <td>{{ $deployment['environment'] }}</td>
+            </tr>
+            @if (!empty($deployment['product_version_number']))
+                <tr>
+                    <th>{{ Translations::get('products.user_security_instructions.export.meta_deployment_version') }}</th>
+                    <td>{{ $deployment['product_version_number'] }}</td>
+                </tr>
+            @endif
+            @if (!empty($deployment['update_channel']))
+                <tr>
+                    <th>{{ Translations::get('products.user_security_instructions.export.meta_update_channel') }}</th>
+                    <td>{{ $deployment['update_channel'] }}</td>
+                </tr>
+            @endif
+            @if (!empty($deployment['notes']))
+                <tr>
+                    <th>{{ Translations::get('products.user_security_instructions.export.meta_deployment_notes') }}</th>
+                    <td>{{ $deployment['notes'] }}</td>
+                </tr>
+            @endif
         @endif
     </table>
 

@@ -357,7 +357,24 @@ class AuditLogger
         UserSecurityInstruction $instruction,
         User $actor,
         string $format,
+        ?Customer $customer = null,
+        ?ProductDeployment $deployment = null,
     ): void {
+        $details = [
+            ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+            ['field' => 'title', 'value' => $instruction->title],
+            ['field' => 'format', 'value' => $format],
+        ];
+
+        if ($customer !== null) {
+            $details[] = ['field' => 'customer_id', 'value' => (string) $customer->id];
+            $details[] = ['field' => 'customer_name', 'value' => $customer->name];
+        }
+
+        if ($deployment !== null) {
+            $details[] = ['field' => 'deployment_id', 'value' => (string) $deployment->id];
+        }
+
         self::persist(
             type: AuditEventType::UserSecurityInstructionExported,
             success: true,
@@ -365,11 +382,7 @@ class AuditLogger
             actor: $actor,
             organizationId: $instruction->organization_id,
             productId: $instruction->product_id,
-            details: [
-                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
-                ['field' => 'title', 'value' => $instruction->title],
-                ['field' => 'format', 'value' => $format],
-            ],
+            details: $details,
         );
     }
 

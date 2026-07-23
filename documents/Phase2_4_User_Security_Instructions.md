@@ -1,8 +1,8 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.12  
-**Дата:** 22 юли 2026 г.  
-**Статус:** Active — Must + Should Done; Could remaining  
+**Версия:** 0.13  
+**Дата:** 23 юли 2026 г.  
+**Статус:** Active — Must + Should Done; Could 12 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
@@ -197,7 +197,7 @@ GET    /internal-api/products/{product}/security-instructions
 
 ### Could
 
-12. Customer-specific installation guide variant
+12. Customer-specific installation guide variant — **Done** (2026-07-23)
 13. AI draft per section (human review; reuse AiProvider)
 14. Diff between superseding versions
 15. Task on submit-for-review
@@ -261,6 +261,7 @@ Reuse от Phase 2.3:
 
 | Версия | Дата       | Промяна                                                          |
 | ------ | ---------- | ---------------------------------------------------------------- |
+| 0.13   | 2026-07-23 | Could 12: customer-specific installation guide export variant    |
 | 0.12   | 2026-07-22 | Should 11: Markdown preview (PolicyBodyField + document preview) |
 | 0.11   | 2026-07-22 | Should 10: version-pinned instructions (`product_version_id`)    |
 | 0.10   | 2026-07-22 | Should 9: publish published instructions → Evidence              |

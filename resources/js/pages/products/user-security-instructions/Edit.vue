@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     Archive,
     ArrowLeft,
+    Building2,
     CheckCircle2,
     ChevronDown,
     Eye,
@@ -12,7 +13,7 @@ import {
     Save,
     Send,
 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
@@ -24,6 +25,14 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -51,6 +60,14 @@ import {
 
 type ProductSummary = { id: number; name: string; slug: string };
 type VersionOption = { id: number; version_number: string };
+type CustomerOption = { id: number; name: string; is_active: boolean };
+type DeploymentOption = {
+    id: number;
+    customer_id: number;
+    environment: string;
+    product_version_number: string | null;
+    notes: string | null;
+};
 
 type SectionPayload = {
     id: number;
@@ -82,6 +99,8 @@ const props = defineProps<{
     product: ProductSummary;
     instruction: InstructionDetail;
     versions: VersionOption[];
+    customers: CustomerOption[];
+    deployments: DeploymentOption[];
     canManage: boolean;
     options: {
         locales: string[];
@@ -208,6 +227,60 @@ const exportReleaseUrl = computed(
             format: 'release',
         }).url,
 );
+
+const showCustomerGuideDialog = ref(false);
+const customerGuideCustomerId = ref('');
+const customerGuideDeploymentId = ref('none');
+const customerGuideFormat = ref<'html' | 'pdf' | 'readme'>('pdf');
+
+const customerDeployments = computed(() => {
+    if (!customerGuideCustomerId.value) {
+        return [] as DeploymentOption[];
+    }
+
+    const customerId = Number(customerGuideCustomerId.value);
+
+    return props.deployments.filter(
+        (deployment) => deployment.customer_id === customerId,
+    );
+});
+
+watch(customerGuideCustomerId, () => {
+    customerGuideDeploymentId.value = 'none';
+});
+
+const customerGuideUrl = computed(() => {
+    if (!customerGuideCustomerId.value) {
+        return null;
+    }
+
+    const query: Record<string, string | number> = {
+        customer_id: Number(customerGuideCustomerId.value),
+    };
+
+    if (
+        customerGuideDeploymentId.value &&
+        customerGuideDeploymentId.value !== 'none'
+    ) {
+        query.deployment_id = Number(customerGuideDeploymentId.value);
+    }
+
+    return instructionsExport(
+        {
+            product: props.product.id,
+            instruction: props.instruction.id,
+            format: customerGuideFormat.value,
+        },
+        { query },
+    ).url;
+});
+
+const openCustomerGuideDialog = (): void => {
+    if (!customerGuideCustomerId.value && props.customers[0] !== undefined) {
+        customerGuideCustomerId.value = String(props.customers[0].id);
+    }
+    showCustomerGuideDialog.value = true;
+};
 
 const statusLabel = (value: string): string => {
     const key = `products.user_security_instructions.statuses.${value}`;
@@ -377,6 +450,19 @@ const doPublishEvidence = () => {
                             )
                         }}
                     </a>
+                </Button>
+                <Button
+                    v-if="canExport && customers.length > 0"
+                    type="button"
+                    variant="outline"
+                    @click="openCustomerGuideDialog"
+                >
+                    <Building2 class="h-4 w-4" />
+                    {{
+                        t(
+                            'products.user_security_instructions.export_customer_guide',
+                        )
+                    }}
                 </Button>
                 <Button as-child variant="outline">
                     <Link :href="instructionsIndex(props.product.id)">
@@ -765,5 +851,144 @@ const doPublishEvidence = () => {
             @confirm="doPublishEvidence"
             @cancel="showPublishEvidenceDialog = false"
         />
+
+        <Dialog
+            :open="showCustomerGuideDialog"
+            @update:open="
+                (open: boolean) => {
+                    showCustomerGuideDialog = open;
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            t(
+                                'products.user_security_instructions.customer_guide_title',
+                            )
+                        }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            t(
+                                'products.user_security_instructions.customer_guide_help',
+                            )
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="space-y-4 py-2">
+                    <div class="grid gap-2">
+                        <Label>{{
+                            t(
+                                'products.user_security_instructions.fields.customer',
+                            )
+                        }}</Label>
+                        <Select v-model="customerGuideCustomerId">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="customer in customers"
+                                    :key="customer.id"
+                                    :value="String(customer.id)"
+                                >
+                                    {{ customer.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label>{{
+                            t(
+                                'products.user_security_instructions.fields.deployment_optional',
+                            )
+                        }}</Label>
+                        <Select
+                            v-model="customerGuideDeploymentId"
+                            :disabled="customerDeployments.length === 0"
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">
+                                    {{
+                                        t(
+                                            'products.user_security_instructions.deployment_none',
+                                        )
+                                    }}
+                                </SelectItem>
+                                <SelectItem
+                                    v-for="deployment in customerDeployments"
+                                    :key="deployment.id"
+                                    :value="String(deployment.id)"
+                                >
+                                    #{{ deployment.id }} ·
+                                    {{ deployment.environment }}
+                                    <template
+                                        v-if="deployment.product_version_number"
+                                    >
+                                        ·
+                                        {{ deployment.product_version_number }}
+                                    </template>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label>{{
+                            t(
+                                'products.user_security_instructions.fields.export_format',
+                            )
+                        }}</Label>
+                        <Select v-model="customerGuideFormat">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pdf">PDF</SelectItem>
+                                <SelectItem value="html">HTML</SelectItem>
+                                <SelectItem value="readme">README</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showCustomerGuideDialog = false"
+                    >
+                        {{ t('common.cancel') }}
+                    </Button>
+                    <Button as-child :disabled="!customerGuideUrl">
+                        <a
+                            v-if="customerGuideUrl"
+                            :href="customerGuideUrl"
+                            :target="
+                                customerGuideFormat === 'pdf'
+                                    ? '_blank'
+                                    : undefined
+                            "
+                            rel="noopener"
+                            @click="showCustomerGuideDialog = false"
+                        >
+                            <FileDown class="h-4 w-4" />
+                            {{
+                                t(
+                                    'products.user_security_instructions.export_customer_guide_download',
+                                )
+                            }}
+                        </a>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

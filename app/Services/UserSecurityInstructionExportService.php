@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Models\UserSecurityInstructionSection;
@@ -30,6 +32,8 @@ class UserSecurityInstructionExportService
         Organization $organization,
         string $format,
         User $actor,
+        ?Customer $customer = null,
+        ?ProductDeployment $deployment = null,
     ): Response|BinaryFileResponse|SymfonyResponse {
         $format = strtolower($format);
 
@@ -44,11 +48,17 @@ class UserSecurityInstructionExportService
             'publisher:id,name',
         ]);
 
-        $viewPayload = $this->viewPayload($instruction, $product, $organization);
-        $markdown = $this->toMarkdown($instruction, $product, $organization);
-        $filenameBase = $this->filenameBase($instruction, $product);
+        $viewPayload = $this->viewPayload($instruction, $product, $organization, $customer, $deployment);
+        $markdown = $this->toMarkdown($instruction, $product, $organization, $customer, $deployment);
+        $filenameBase = $this->filenameBase($instruction, $product, $customer);
 
-        AuditLogger::logUserSecurityInstructionExported($instruction, $actor, $format);
+        AuditLogger::logUserSecurityInstructionExported(
+            $instruction,
+            $actor,
+            $format,
+            $customer,
+            $deployment,
+        );
 
         return match ($format) {
             'pdf' => Pdf::loadView('pdf.user-security-instructions', $viewPayload)
@@ -117,23 +127,38 @@ class UserSecurityInstructionExportService
         UserSecurityInstruction $instruction,
         Product $product,
         Organization $organization,
+        ?Customer $customer = null,
+        ?ProductDeployment $deployment = null,
     ): string {
         $instruction->loadMissing(['sections', 'publisher:id,name']);
 
-        return $this->buildMarkdown($instruction, $product, $organization);
+        return $this->buildMarkdown($instruction, $product, $organization, $customer, $deployment);
     }
 
     private function buildMarkdown(
         UserSecurityInstruction $instruction,
         Product $product,
         Organization $organization,
+        ?Customer $customer = null,
+        ?ProductDeployment $deployment = null,
     ): string {
         $instruction->loadMissing('productVersion:id,version_number');
+        $deployment?->loadMissing('productVersion:id,version_number');
 
         $lines = [];
         $lines[] = '# ' . $instruction->title;
+        if ($customer !== null) {
+            $lines[] = '';
+            $lines[] = '## ' . Translations::get('products.user_security_instructions.export.customer_guide_heading', [
+                'customer' => $customer->name,
+            ]);
+        }
         $lines[] = '';
-        $lines[] = '> ' . Translations::get('products.user_security_instructions.export.disclaimer');
+        $lines[] = '> ' . Translations::get(
+            $customer !== null
+            ? 'products.user_security_instructions.export.customer_disclaimer'
+            : 'products.user_security_instructions.export.disclaimer',
+        );
         $lines[] = '';
         $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_organization') . ':** ' . $organization->name;
         $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_product') . ':** ' . $product->name;
@@ -151,6 +176,32 @@ class UserSecurityInstructionExportService
                 $published .= ' (' . $instruction->publisher->name . ')';
             }
             $lines[] = '- **' . Translations::get('products.user_security_instructions.fields.published_at') . ':** ' . $published;
+        }
+
+        if ($customer !== null) {
+            $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_customer') . ':** ' . $customer->name;
+            if (filled($customer->external_ref)) {
+                $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_customer_ref') . ':** ' . $customer->external_ref;
+            }
+            if (filled($customer->primary_contact)) {
+                $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_customer_contact') . ':** ' . $customer->primary_contact;
+            }
+        }
+
+        if ($deployment !== null) {
+            $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_deployment_environment') . ':** ' . $deployment->environment->value;
+            if ($deployment->productVersion?->version_number) {
+                $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_deployment_version') . ':** '
+                    . $deployment->productVersion->version_number;
+            }
+            if (filled($deployment->update_channel)) {
+                $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_update_channel') . ':** '
+                    . $deployment->update_channel;
+            }
+            if (filled($deployment->notes)) {
+                $lines[] = '- **' . Translations::get('products.user_security_instructions.export.meta_deployment_notes') . ':** '
+                    . $deployment->notes;
+            }
         }
 
         $lines[] = '';
@@ -208,6 +259,19 @@ class UserSecurityInstructionExportService
      *         published_at: string|null,
      *         published_by_name: string|null
      *     },
+     *     customer: array{
+     *         id: int,
+     *         name: string,
+     *         external_ref: string|null,
+     *         primary_contact: string|null
+     *     }|null,
+     *     deployment: array{
+     *         id: int,
+     *         environment: string,
+     *         product_version_number: string|null,
+     *         update_channel: string|null,
+     *         notes: string|null
+     *     }|null,
      *     sections: list<array{
      *         section_key: string,
      *         title: string,
@@ -221,8 +285,11 @@ class UserSecurityInstructionExportService
         UserSecurityInstruction $instruction,
         Product $product,
         Organization $organization,
+        ?Customer $customer = null,
+        ?ProductDeployment $deployment = null,
     ): array {
         $instruction->loadMissing('productVersion:id,version_number');
+        $deployment?->loadMissing('productVersion:id,version_number');
 
         $sections = $instruction->sections
             ->sortBy('sort_order')
@@ -265,22 +332,45 @@ class UserSecurityInstructionExportService
                 'published_at' => $instruction->published_at?->toIso8601String(),
                 'published_by_name' => $instruction->publisher?->name,
             ],
+            'customer' => $customer === null ? null : [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'external_ref' => $customer->external_ref,
+                'primary_contact' => $customer->primary_contact,
+            ],
+            'deployment' => $deployment === null ? null : [
+                'id' => $deployment->id,
+                'environment' => $deployment->environment->value,
+                'product_version_number' => $deployment->productVersion?->version_number,
+                'update_channel' => $deployment->update_channel,
+                'notes' => $deployment->notes,
+            ],
             'sections' => $sections,
             'generated_at' => now()->toIso8601String(),
         ];
     }
 
-    private function filenameBase(UserSecurityInstruction $instruction, Product $product): string
-    {
+    private function filenameBase(
+        UserSecurityInstruction $instruction,
+        Product $product,
+        ?Customer $customer = null,
+    ): string {
         $slug = Str::slug($instruction->title) ?: 'security-instructions';
         $version = Str::slug($instruction->version_label) ?: 'version';
-
-        return sprintf(
+        $base = sprintf(
             'security-instructions-%s-%s-%s-%s',
             $product->slug,
             $slug,
             $version,
             now()->format('Y-m-d'),
         );
+
+        if ($customer === null) {
+            return $base;
+        }
+
+        $customerSlug = Str::slug($customer->name) ?: 'customer';
+
+        return $base . '-for-' . $customerSlug;
     }
 }

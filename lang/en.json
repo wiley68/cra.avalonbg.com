@@ -2454,7 +2454,10 @@
                 "title_override": "Custom section title",
                 "body": "Section body",
                 "published_at": "Published at",
-                "use_template": "Start from template"
+                "use_template": "Start from template",
+                "customer": "Customer",
+                "deployment_optional": "Deployment (optional)",
+                "export_format": "Format"
             },
             "help": {
                 "title": "Document title shown in exports and lists.",
@@ -2529,8 +2532,23 @@
                 "empty_section": "No content provided for this section.",
                 "invalid_format": "Export format must be html, pdf, readme or release.",
                 "meta_organization": "Organization",
-                "meta_product": "Product"
-            }
+                "meta_product": "Product",
+                "customer_guide_heading": "Installation guide for :customer",
+                "customer_disclaimer": "This customer-specific installation guide is derived from product user security instructions. It is not a legal compliance certificate.",
+                "meta_customer": "Customer",
+                "meta_customer_ref": "Customer reference",
+                "meta_customer_contact": "Customer contact",
+                "meta_deployment_environment": "Deployment environment",
+                "meta_deployment_version": "Deployed version",
+                "meta_update_channel": "Update channel",
+                "meta_deployment_notes": "Deployment notes",
+                "customer_deployment_mismatch": "Selected deployment does not belong to the selected customer."
+            },
+            "export_customer_guide": "Customer guide…",
+            "export_customer_guide_download": "Download guide",
+            "customer_guide_title": "Customer-specific installation guide",
+            "customer_guide_help": "Exports this document with customer (and optional deployment) metadata for installation handoff. No separate document is created.",
+            "deployment_none": "No specific deployment"
         }
     },
     "audit_logs": {

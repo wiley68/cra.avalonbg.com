@@ -6,8 +6,10 @@ use App\Enums\UserSecurityInstructionSectionKey;
 use App\Enums\UserSecurityInstructionStatus;
 use App\Http\Requests\StoreUserSecurityInstructionRequest;
 use App\Http\Requests\UpdateUserSecurityInstructionRequest;
+use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\UserSecurityInstruction;
 use App\Services\UserSecurityInstructionExportService;
 use App\Services\UserSecurityInstructionService;
@@ -17,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -114,6 +117,8 @@ class UserSecurityInstructionController extends Controller
             'product' => $this->productPayload($product),
             'instruction' => $this->instructions->detailPayload($instruction),
             'versions' => $this->versionOptions($product),
+            'customers' => $this->customerOptions($organization),
+            'deployments' => $this->deploymentOptions($product),
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
@@ -237,6 +242,7 @@ class UserSecurityInstructionController extends Controller
     }
 
     public function export(
+        Request $request,
         Product $product,
         UserSecurityInstruction $instruction,
         string $format,
@@ -246,12 +252,57 @@ class UserSecurityInstructionController extends Controller
         $this->assertInstructionBelongsToProduct($instruction, $product);
         $this->authorize('export', [$instruction, $organization]);
 
+        $validated = $request->validate([
+            'customer_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('customers', 'id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+            'deployment_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_deployments', 'id')->where(
+                    fn($query) => $query
+                        ->where('organization_id', $organization->id)
+                        ->where('product_id', $product->id),
+                ),
+            ],
+        ]);
+
+        $customer = null;
+        $deployment = null;
+
+        if (!empty($validated['deployment_id'])) {
+            $deployment = ProductDeployment::query()
+                ->with(['customer', 'productVersion:id,version_number'])
+                ->findOrFail((int) $validated['deployment_id']);
+
+            if (
+                isset($validated['customer_id'])
+                && (int) $validated['customer_id'] !== $deployment->customer_id
+            ) {
+                throw ValidationException::withMessages([
+                    'deployment_id' => [
+                        Translations::get('products.user_security_instructions.export.customer_deployment_mismatch'),
+                    ],
+                ]);
+            }
+
+            $customer = $deployment->customer;
+        } elseif (!empty($validated['customer_id'])) {
+            $customer = Customer::query()->findOrFail((int) $validated['customer_id']);
+        }
+
         return $this->exports->export(
             $instruction,
             $product,
             $organization,
             $format,
-            request()->user(),
+            $request->user(),
+            $customer,
+            $deployment,
         );
     }
 
@@ -290,6 +341,49 @@ class UserSecurityInstructionController extends Controller
             ->map(fn($version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string, is_active: bool}>
+     */
+    private function customerOptions(Organization $organization): array
+    {
+        return Customer::query()
+            ->where('organization_id', $organization->id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_active'])
+            ->map(fn(Customer $customer) => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'is_active' => $customer->is_active,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{
+     *     id: int,
+     *     customer_id: int,
+     *     environment: string,
+     *     product_version_number: string|null,
+     *     notes: string|null
+     * }>
+     */
+    private function deploymentOptions(Product $product): array
+    {
+        return ProductDeployment::query()
+            ->where('product_id', $product->id)
+            ->with('productVersion:id,version_number')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn(ProductDeployment $deployment) => [
+                'id' => $deployment->id,
+                'customer_id' => $deployment->customer_id,
+                'environment' => $deployment->environment->value,
+                'product_version_number' => $deployment->productVersion?->version_number,
+                'notes' => $deployment->notes,
             ])
             ->all();
     }

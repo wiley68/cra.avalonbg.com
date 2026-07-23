@@ -2454,7 +2454,10 @@
                 "title_override": "Персонализирано заглавие на секция",
                 "body": "Съдържание на секцията",
                 "published_at": "Публикувано на",
-                "use_template": "Старт от шаблон"
+                "use_template": "Старт от шаблон",
+                "customer": "Клиент",
+                "deployment_optional": "Deployment (опционално)",
+                "export_format": "Формат"
             },
             "help": {
                 "title": "Заглавие на документа в експорти и списъци.",
@@ -2529,8 +2532,23 @@
                 "empty_section": "Няма съдържание за тази секция.",
                 "invalid_format": "Форматът за експорт трябва да е html, pdf, readme или release.",
                 "meta_organization": "Организация",
-                "meta_product": "Продукт"
-            }
+                "meta_product": "Продукт",
+                "customer_guide_heading": "Инсталационен гайд за :customer",
+                "customer_disclaimer": "Този клиентски инсталационен гайд е производен от продуктовите инструкции за сигурност. Не е юридически сертификат за съответствие.",
+                "meta_customer": "Клиент",
+                "meta_customer_ref": "Референция на клиент",
+                "meta_customer_contact": "Контакт на клиент",
+                "meta_deployment_environment": "Среда на deployment",
+                "meta_deployment_version": "Инсталирана версия",
+                "meta_update_channel": "Канал за обновяване",
+                "meta_deployment_notes": "Бележки за deployment",
+                "customer_deployment_mismatch": "Избраният deployment не принадлежи на избрания клиент."
+            },
+            "export_customer_guide": "Клиентски гайд…",
+            "export_customer_guide_download": "Изтегли гайда",
+            "customer_guide_title": "Клиентски инсталационен гайд",
+            "customer_guide_help": "Експортира документа с метаданни за клиент (и опционално deployment) за инсталация. Не създава отделен документ.",
+            "deployment_none": "Без конкретен deployment"
         }
     },
     "audit_logs": {

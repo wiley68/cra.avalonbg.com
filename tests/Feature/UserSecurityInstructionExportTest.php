@@ -2,14 +2,18 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\CustomerCriticality;
+use App\Enums\DeploymentEnvironment;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
 use App\Enums\UserSecurityInstructionSectionKey;
 use App\Enums\UserSecurityInstructionStatus;
 use App\Models\AuditLog;
+use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
@@ -244,4 +248,112 @@ test('owner can export readme markdown and release zip package', function () {
         ->where('event_type', AuditEventType::UserSecurityInstructionExported->value)
         ->where('product_id', $product->id)
         ->count())->toBeGreaterThanOrEqual(2);
+});
+
+test('owner can export customer-specific installation guide with deployment meta', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product, 'instruction' => $instruction] = makeUsiExportFixture();
+
+    $customer = Customer::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Acme Hospitals',
+        'external_ref' => 'ACME-42',
+        'primary_contact' => 'sec@acme.example',
+        'criticality' => CustomerCriticality::High,
+        'is_active' => true,
+    ]);
+
+    $deployment = ProductDeployment::query()->create([
+        'organization_id' => $organization->id,
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'product_version_id' => null,
+        'environment' => DeploymentEnvironment::Production,
+        'internet_exposure' => true,
+        'update_channel' => 'stable',
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+        'notes' => 'VPN-only management plane',
+    ]);
+
+    $response = $this->actingAs($owner)
+        ->get(route('products.security-instructions.export', [
+            'product' => $product,
+            'instruction' => $instruction,
+            'format' => 'html',
+            'customer_id' => $customer->id,
+            'deployment_id' => $deployment->id,
+        ]))
+        ->assertOk();
+
+    $html = $response->getContent();
+    expect($html)->toContain('Installation guide for Acme Hospitals')
+        ->and($html)->toContain('Acme Hospitals')
+        ->and($html)->toContain('ACME-42')
+        ->and($html)->toContain('sec@acme.example')
+        ->and($html)->toContain('production')
+        ->and($html)->toContain('VPN-only management plane')
+        ->and($response->headers->get('content-disposition'))->toContain('for-acme-hospitals');
+
+    $readme = $this->actingAs($owner)
+        ->get(route('products.security-instructions.export', [
+            'product' => $product,
+            'instruction' => $instruction,
+            'format' => 'readme',
+            'customer_id' => $customer->id,
+        ]))
+        ->assertOk()
+        ->getContent();
+
+    expect($readme)->toContain('Installation guide for Acme Hospitals')
+        ->and($readme)->toContain('Acme Hospitals');
+
+    $audit = AuditLog::query()
+        ->where('event_type', AuditEventType::UserSecurityInstructionExported->value)
+        ->where('product_id', $product->id)
+        ->latest('id')
+        ->first();
+
+    expect($audit)->not->toBeNull();
+    $details = collect(json_decode((string) $audit->description, true) ?: [])->keyBy('field');
+    expect($details->get('customer_id')['value'] ?? null)->toBe((string) $customer->id)
+        ->and($details->get('deployment_id')['value'] ?? null)->toBeNull();
+});
+
+test('customer guide rejects deployment from another customer', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product, 'instruction' => $instruction] = makeUsiExportFixture();
+
+    $customerA = Customer::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Customer A',
+        'criticality' => CustomerCriticality::Low,
+        'is_active' => true,
+    ]);
+
+    $customerB = Customer::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Customer B',
+        'criticality' => CustomerCriticality::Low,
+        'is_active' => true,
+    ]);
+
+    $deploymentB = ProductDeployment::query()->create([
+        'organization_id' => $organization->id,
+        'customer_id' => $customerB->id,
+        'product_id' => $product->id,
+        'environment' => DeploymentEnvironment::Staging,
+        'internet_exposure' => false,
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('products.security-instructions.edit', [$product, $instruction]))
+        ->get(route('products.security-instructions.export', [
+            'product' => $product,
+            'instruction' => $instruction,
+            'format' => 'html',
+            'customer_id' => $customerA->id,
+            'deployment_id' => $deploymentB->id,
+        ]))
+        ->assertSessionHasErrors('deployment_id');
 });
