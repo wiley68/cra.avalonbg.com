@@ -185,7 +185,8 @@ Phase 2.4 User Security Instructions — Closed 2026-07-23
 ```
 
 > **Update (2026-07-23):** Phase 2.4 exited — виж [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md).  
-> **Update (2026-07-23):** Следваща вълна Active — [Phase2_5_Security_Incident_Management.md](Phase2_5_Security_Incident_Management.md).
+> **Update (2026-07-23):** Phase 2.5 exited — [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md).  
+> **Update (2026-07-23):** Следваща вълна Active — [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md).
 
 ---
 

@@ -1,17 +1,18 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.9  
+**Версия:** 2.0  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Closed — Phase 2.5 complete (Must 1–6 + Should 7–12 + Could 13–18 done)  
+**Статус:** Closed — Phase 2.5 exited (2026-07-23) → [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
 - [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md) (Closed — Phase 2.4 exited; §8 кандидат A)
+- [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md) (Closed — Phase 2.5 exited)
 - [MVP_Release_Closeout.md](MVP_Release_Closeout.md) (P2 #10 — deferred Incident module)
 
 > **Цел на вълната:** product-scoped **Security Incident** register като **отделен обект** от vulnerability (§5.10), с одитируем timeline и връзки към vuln / tasks / evidence — след затворен Phase 2.4.
 
-> **Ред на имплементация (предложен):** schema + CRUD → timeline → vuln link + tasks → RBAC/tests → Should (customers, closure, export, dashboard) → Could (authority reports, AI summary, CIA fields).
+> **Closeout:** [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md) — следва [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md).
 
 > **Граница с §5.11:** CRA vulnerability reporting wizard (24h/72h/final) остава **само върху `ProductVulnerability`**. Incident authority reporting е отделен Could — reuse на approval/export **pattern**, не на `VulnerabilityReportingService`.
 
@@ -263,15 +264,17 @@ POST   /products/{product}/incidents/{incident}/ai-draft
 
 ---
 
-## 9. Acceptance criteria (Phase 2.5 done) — чернова
+## 9. Acceptance criteria (Phase 2.5 done)
 
-1. Owner създава incident за продукт и записва awareness / classification timestamps.
-2. Owner добавя timeline events; историята е одитируема.
-3. Incident може да се свърже с (или да създаде) vulnerability с discovery `incident_investigation`.
-4. Viewer вижда incidents, но не manage-ва.
-5. Task може да сочи към incident (`subject_type=incident`).
-6. Vulnerability reporting wizard **не** се замества и остава върху vuln обекта.
-7. Няма SRP auto-submit / full orchestration в scope.
+1. Owner създава incident за продукт и записва awareness / classification timestamps. — **Done**
+2. Owner добавя timeline events; историята е одитируема. — **Done**
+3. Incident може да се свърже с (или да създаде) vulnerability с discovery `incident_investigation`. — **Done**
+4. Viewer вижда incidents, но не manage-ва. — **Done**
+5. Task може да сочи към incident (`subject_type=incident`). — **Done**
+6. Vulnerability reporting wizard **не** се замества и остава върху vuln обекта. — **Done**
+7. Няма SRP auto-submit / full orchestration в scope. — **Done**
+
+> Formal exit: [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md).
 
 ---
 
@@ -291,9 +294,9 @@ POST   /products/{product}/incidents/{incident}/ai-draft
 ```text
 Phase 2.4 User Security Instructions — Closed 2026-07-23
     ↓
-Phase 2.5 Security Incident Management (този документ)
+Phase 2.5 Security Incident Management — Closed 2026-07-23 (този документ)
     ↓
-(по-късно) SDL / Tech docs / Integration wave 2 — TBD
+Phase 2.6 Secure Development Lifecycle — Active
 ```
 
 Reuse:
@@ -311,6 +314,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 2.0    | 2026-07-23 | Formal exit — closeout + pointer → Phase 2.6 SDL                        |
 | 1.9    | 2026-07-23 | Could 18 Done — org-level cross-product incidents index + sidebar       |
 | 1.8    | 2026-07-23 | Could 17 Done — lessons learned links to evidence + controls            |
 | 1.7    | 2026-07-23 | Could 16 Done — AI incident summary draft (suggest/apply, no auto-save) |
