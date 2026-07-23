@@ -179,8 +179,12 @@ Phase 2.2 Customer deployments — Closed 2026-07-21
     ↓
 Phase 2.3 Policy / Auditor / AI — Closed 2026-07-22
     ↓
-Phase 2.4 User Security Instructions — Active (skeleton)
+Phase 2.4 User Security Instructions — Closed 2026-07-23
+    ↓
+Следваща вълна — TBD ([Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md) §8)
 ```
+
+> **Update (2026-07-23):** Phase 2.4 exited — виж [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md).
 
 ---
 

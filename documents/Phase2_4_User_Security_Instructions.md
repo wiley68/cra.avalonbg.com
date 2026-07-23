@@ -1,17 +1,20 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.17  
+**Версия:** 1.0  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must + Should + Could Done  
+**Статус:** Closed — Phase 2.4 exited (2026-07-23) → [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
 - [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md) (Closed — Phase 2.3 exited)
 - [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) (Closed)
+- [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md) (Closed — Phase 2.4 exited)
 
 > **Цел на вълната:** product-scoped **User Security Instructions** (структурирани секции + export формати) като SDL / customer-facing security documentation workspace — след затворен Phase 2.3.
 
-> **Ред на имплементация (предложен):** schema + CRUD → section templates EN/BG → export (HTML/PDF/README) → evidence/readiness hooks → AI assist (optional Could).
+> **Ред на имплементация:** schema + CRUD → section templates EN/BG → export (HTML/PDF/README) → evidence/readiness hooks → AI assist / pairs / tasks (Could) — **всички Done**.
+
+> **Closeout:** [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md)
 
 ---
 
@@ -218,14 +221,14 @@ GET    /internal-api/products/{product}/security-instructions
 
 ---
 
-## 9. Acceptance criteria (Phase 2.4 done) — чернова
+## 9. Acceptance criteria (Phase 2.4 done)
 
-1. Owner създава instructions за продукт и попълва задължителните секции (или маркира N/A с rationale).
-2. Owner publish-ва документ; Viewer вижда/export-ва published, но не edit-ва.
-3. HTML и PDF export са налични и одитируеми.
-4. Readiness показва gap при липса на published instructions (ако Should 8 е в scope).
-5. Промените са в audit log.
-6. AI (ако Could) не publish-ва и не overwrite-ва без human confirmation.
+1. Owner създава instructions за продукт и попълва задължителните секции (или маркира N/A с rationale). — **Done**
+2. Owner publish-ва документ; Viewer вижда/export-ва published, но не edit-ва. — **Done**
+3. HTML и PDF export са налични и одитируеми. — **Done**
+4. Readiness показва gap при липса на published instructions. — **Done** (Should 8)
+5. Промените са в audit log. — **Done**
+6. AI (Could) не publish-ва и не overwrite-ва без human confirmation. — **Done** (Could 13)
 
 ---
 
@@ -245,9 +248,9 @@ GET    /internal-api/products/{product}/security-instructions
 ```text
 Phase 2.3 Policy / Auditor / AI — Closed 2026-07-22
     ↓
-Phase 2.4 User Security Instructions (този документ)
+Phase 2.4 User Security Instructions — Closed 2026-07-23
     ↓
-(по-късно) SDL workspace extensions / release packaging polish — TBD
+Следваща вълна — TBD (виж Phase2_4_Release_Closeout.md §8)
 ```
 
 Reuse от Phase 2.3:
@@ -262,22 +265,23 @@ Reuse от Phase 2.3:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                          |
-| ------ | ---------- | ---------------------------------------------------------------- |
-| 0.17   | 2026-07-23 | Could 16: multi-locale EN/BG pairs (`paired_instruction_id`)     |
-| 0.16   | 2026-07-23 | Could 15: Task on submit-for-review (closes on publish)          |
-| 0.15   | 2026-07-23 | Could 14: diff between superseding versions (PolicyBodyField)    |
-| 0.14   | 2026-07-23 | Could 13: AI draft per section (suggest → apply; no auto-save)   |
-| 0.13   | 2026-07-23 | Could 12: customer-specific installation guide export variant    |
-| 0.12   | 2026-07-22 | Should 11: Markdown preview (PolicyBodyField + document preview) |
-| 0.11   | 2026-07-22 | Should 10: version-pinned instructions (`product_version_id`)    |
-| 0.10   | 2026-07-22 | Should 9: publish published instructions → Evidence              |
-| 0.9    | 2026-07-22 | Should 8: readiness `security_instructions_missing`              |
-| 0.8    | 2026-07-22 | Should 7: README markdown + release ZIP export                   |
-| 0.7    | 2026-07-22 | Must 6: i18n verified + CRUD/RBAC feature tests                  |
-| 0.6    | 2026-07-22 | Must 5: HTML + PDF export + audit + RBAC                         |
-| 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates                          |
-| 0.4    | 2026-07-22 | Must 3: submit / publish / retire lifecycle                      |
-| 0.3    | 2026-07-22 | Must 2: product CRUD + section editor + tests                    |
-| 0.2    | 2026-07-22 | Must 1: enums, migrations, models + smoke tests                  |
-| 0.1    | 2026-07-22 | Първоначален skeleton след Phase 2.3 closeout                    |
+| Версия | Дата       | Промяна                                                                                  |
+| ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 1.0    | 2026-07-23 | Closed / exited; AC Done; → [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md) |
+| 0.17   | 2026-07-23 | Could 16: multi-locale EN/BG pairs (`paired_instruction_id`)                             |
+| 0.16   | 2026-07-23 | Could 15: Task on submit-for-review (closes on publish)                                  |
+| 0.15   | 2026-07-23 | Could 14: diff between superseding versions (PolicyBodyField)                            |
+| 0.14   | 2026-07-23 | Could 13: AI draft per section (suggest → apply; no auto-save)                           |
+| 0.13   | 2026-07-23 | Could 12: customer-specific installation guide export variant                            |
+| 0.12   | 2026-07-22 | Should 11: Markdown preview (PolicyBodyField + document preview)                         |
+| 0.11   | 2026-07-22 | Should 10: version-pinned instructions (`product_version_id`)                            |
+| 0.10   | 2026-07-22 | Should 9: publish published instructions → Evidence                                      |
+| 0.9    | 2026-07-22 | Should 8: readiness `security_instructions_missing`                                      |
+| 0.8    | 2026-07-22 | Should 7: README markdown + release ZIP export                                           |
+| 0.7    | 2026-07-22 | Must 6: i18n verified + CRUD/RBAC feature tests                                          |
+| 0.6    | 2026-07-22 | Must 5: HTML + PDF export + audit + RBAC                                                 |
+| 0.5    | 2026-07-22 | Must 4: EN/BG section starter templates                                                  |
+| 0.4    | 2026-07-22 | Must 3: submit / publish / retire lifecycle                                              |
+| 0.3    | 2026-07-22 | Must 2: product CRUD + section editor + tests                                            |
+| 0.2    | 2026-07-22 | Must 1: enums, migrations, models + smoke tests                                          |
+| 0.1    | 2026-07-22 | Първоначален skeleton след Phase 2.3 closeout                                            |
