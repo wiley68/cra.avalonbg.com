@@ -26,7 +26,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 /**
- * @return array{0: Organization, 1: User, 2: Product, 3: ProductIncident}
+ * @return array{
+ *     organization: Organization,
+ *     owner: User,
+ *     product: Product,
+ *     incident: ProductIncident
+ * }
  */
 function makeIncidentTaskAuditFixture(): array
 {
@@ -85,11 +90,11 @@ function makeIncidentTaskAuditFixture(): array
         'severity' => IncidentSeverity::High,
     ]);
 
-    return [$organization, $owner, $product, $incident];
+    return compact('organization', 'owner', 'product', 'incident');
 }
 
 test('owner can create task with incident subject', function () {
-    [, $owner, $product, $incident] = makeIncidentTaskAuditFixture();
+    ['owner' => $owner, 'product' => $product, 'incident' => $incident] = makeIncidentTaskAuditFixture();
 
     $this->actingAs($owner)
         ->post(route('products.tasks.store', $product), [
@@ -113,7 +118,7 @@ test('owner can create task with incident subject', function () {
 });
 
 test('incident create update status and timeline write audit events', function () {
-    [, $owner, $product] = makeIncidentTaskAuditFixture();
+    ['owner' => $owner, 'product' => $product] = makeIncidentTaskAuditFixture();
 
     $this->actingAs($owner)
         ->post(route('products.incidents.store', $product), [
