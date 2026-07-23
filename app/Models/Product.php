@@ -174,6 +174,11 @@ class Product extends Model
         return $this->hasMany(ProductIncident::class);
     }
 
+    public function sdlRuns(): HasMany
+    {
+        return $this->hasMany(SdlRun::class);
+    }
+
     public function evidence(): HasMany
     {
         return $this->hasMany(Evidence::class);

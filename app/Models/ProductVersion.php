@@ -90,6 +90,11 @@ class ProductVersion extends Model
         return $this->hasMany(UserSecurityInstruction::class);
     }
 
+    public function sdlRuns(): HasMany
+    {
+        return $this->hasMany(SdlRun::class, 'product_version_id');
+    }
+
     public function patchCampaignsAsTarget(): HasMany
     {
         return $this->hasMany(PatchCampaign::class, 'target_version_id');

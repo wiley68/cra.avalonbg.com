@@ -75,4 +75,9 @@ class Organization extends Model
     {
         return $this->hasMany(UserSecurityInstruction::class);
     }
+
+    public function sdlRuns(): HasMany
+    {
+        return $this->hasMany(SdlRun::class);
+    }
 }

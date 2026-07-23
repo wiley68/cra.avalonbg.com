@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 0.1  
+**Версия:** 0.2  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — skeleton (след Closed Phase 2.5)  
+**Статус:** Active — Must 1 Done (schema + models + enums)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -63,7 +63,7 @@ requirement
 → monitoring
 ```
 
-> Уточнение при имплементация: един „SDL run“ може да е per-version release, per-feature, или lightweight checklist — избор в Must 1–2.
+> Уточнение: един „SDL run“ може да е per-version release, per-feature, или lightweight checklist. Schema поддържа optional `product_version_id`; stage rows се seed-ват чрез `SdlRun::ensureStageEntries()`.
 
 ---
 
@@ -190,7 +190,7 @@ GET    /internal-api/sdl
 
 ### Must
 
-1. Migrations + models + enums (run, stages, status)
+1. ~~Migrations + models + enums (run, stages, status)~~ **Done**
 2. CRUD + Index DataTable (product-scoped)
 3. Stage checklist UI (complete / N/A + notes)
 4. Evidence link на stage / run
@@ -273,6 +273,7 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                             |
-| ------ | ---------- | ------------------------------------------------------------------- |
-| 0.1    | 2026-07-23 | Skeleton след Phase 2.5 closeout — §5.14 SDL workspace (кандидат B) |
+| Версия | Дата       | Промяна                                                              |
+| ------ | ---------- | -------------------------------------------------------------------- |
+| 0.2    | 2026-07-23 | Must 1 Done — `sdl_runs` / `sdl_stage_entries` + enums + model tests |
+| 0.1    | 2026-07-23 | Skeleton след Phase 2.5 closeout — §5.14 SDL workspace (кандидат B)  |
