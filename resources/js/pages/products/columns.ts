@@ -82,6 +82,7 @@ export type ProductModuleDefinition = {
         | 'can_view_risks'
         | 'can_view_components'
         | 'can_view_vulnerabilities'
+        | 'can_view_incidents'
         | 'can_view_evidence'
         | 'can_view_tasks';
 };
@@ -165,7 +166,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.incidents.description',
         icon: Siren,
         href: (productId) => productIncidentsIndex(productId).url,
-        canViewFlag: 'can_view_vulnerabilities',
+        canViewFlag: 'can_view_incidents',
     },
     {
         key: 'evidence',

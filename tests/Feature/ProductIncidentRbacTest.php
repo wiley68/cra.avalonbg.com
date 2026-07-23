@@ -4,8 +4,10 @@ use App\Enums\ClassificationStatus;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
+use App\Enums\PermissionSlug;
 use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
+use App\Enums\RoleScope;
 use App\Enums\ScopeStatus;
 use App\Enums\SupportStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
@@ -13,6 +15,7 @@ use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Organization;
+use App\Models\Permission;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
@@ -254,4 +257,101 @@ test('viewer can view index and edit but cannot manage incidents', function () {
     $this->actingAs($viewer)
         ->post(route('products.incidents.create-vulnerability', [$product, $incident]))
         ->assertForbidden();
+});
+
+test('seeded roles include dedicated incidents permissions', function () {
+    test()->seed([RolePermissionSeeder::class]);
+
+    expect(Permission::query()->pluck('slug'))
+        ->toContain(
+            PermissionSlug::IncidentsView->value,
+            PermissionSlug::IncidentsManage->value,
+        );
+
+    $owner = Role::query()->where('slug', 'organization_owner')->with('permissions')->firstOrFail();
+    $viewer = Role::query()->where('slug', 'read_only')->with('permissions')->firstOrFail();
+
+    expect($owner->permissions->pluck('slug'))
+        ->toContain(
+            PermissionSlug::IncidentsView->value,
+            PermissionSlug::IncidentsManage->value,
+        )
+        ->and($viewer->permissions->pluck('slug'))
+        ->toContain(PermissionSlug::IncidentsView->value)
+        ->not->toContain(PermissionSlug::IncidentsManage->value);
+});
+
+test('vulnerabilities manage alone does not grant incident manage', function () {
+    [
+        'organization' => $organization,
+        'product' => $product,
+        'incident' => $incident,
+    ] = makeIncidentRbacFixture();
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $role = Role::query()->create([
+        'slug' => 'vuln-only-' . uniqid(),
+        'name' => 'Vuln only',
+        'description' => 'Vulnerabilities without incidents',
+        'scope' => RoleScope::Organization,
+        'is_default' => false,
+    ]);
+
+    $role->permissions()->sync(
+        Permission::query()
+            ->whereIn('slug', [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::VulnerabilitiesView->value,
+                PermissionSlug::VulnerabilitiesManage->value,
+            ])
+            ->pluck('id'),
+    );
+
+    $organization->users()->attach($user->id, [
+        'role_id' => $role->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect($user->canViewVulnerabilities($organization))->toBeTrue()
+        ->and($user->canManageVulnerabilities($organization))->toBeTrue()
+        ->and($user->canViewIncidents($organization))->toBeFalse()
+        ->and($user->canManageIncidents($organization))->toBeFalse();
+
+    $this->actingAs($user)
+        ->get(route('products.incidents.index', $product))
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Should fail',
+            'status' => IncidentStatus::Contained->value,
+            'severity' => IncidentSeverity::Low->value,
+        ])
+        ->assertForbidden();
+});
+
+test('shared auth exposes can_view_incidents and can_manage_incidents', function () {
+    ['owner' => $owner, 'viewer' => $viewer, 'product' => $product] = makeIncidentRbacFixture();
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('auth.user.can_view_incidents', true)
+            ->where('auth.user.can_manage_incidents', true));
+
+    $this->actingAs($viewer)
+        ->get(route('products.incidents.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('auth.user.can_view_incidents', true)
+            ->where('auth.user.can_manage_incidents', false));
 });

@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Should in progress (Must 1–6 done; Should 7–11 done)  
+**Статус:** Active — Should complete (Must 1–6 + Should 7–12 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -100,7 +100,7 @@ flowchart TB
 | View           | `incidents.view` (или reuse `vulnerabilities.view` в Must v1) |
 | Manage / close | `incidents.manage`                                            |
 
-> MVP-lean вариант: mirror `vulnerabilities.view` / `vulnerabilities.manage` докато се добавят отделни permission slugs (Should).
+> MVP: dedicated `incidents.view` / `incidents.manage` (Should 12). Legacy Must temporarily reused `vulnerabilities.*`.
 
 ### UI conventions
 
@@ -232,7 +232,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 9. ~~Root cause + corrective measures on Edit (if not already in Must form)~~ **Done**
 10. ~~Dashboard counts (`open_incidents`, unclassified)~~ **Done**
 11. ~~PDF/Markdown incident summary export~~ **Done**
-12. Product module nav card + dedicated `incidents.*` permissions
+12. ~~Product module nav card + dedicated `incidents.*` permissions~~ **Done**
 
 ### Could
 
@@ -303,6 +303,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag    |
 | 1.2    | 2026-07-23 | Should 11 Done — PDF/Markdown incident summary export                 |
 | 1.1    | 2026-07-23 | Should 10 Done — dashboard open/unclassified incident counts          |
 | 1.0    | 2026-07-23 | Should 9 Done — investigation section; close requires root/corrective |

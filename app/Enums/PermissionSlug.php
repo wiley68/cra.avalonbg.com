@@ -26,6 +26,8 @@ enum PermissionSlug: string
     case ReleasesApprove = 'releases.approve';
     case VulnerabilitiesView = 'vulnerabilities.view';
     case VulnerabilitiesManage = 'vulnerabilities.manage';
+    case IncidentsView = 'incidents.view';
+    case IncidentsManage = 'incidents.manage';
     case EvidenceView = 'evidence.view';
     case EvidenceManage = 'evidence.manage';
     case TasksView = 'tasks.view';

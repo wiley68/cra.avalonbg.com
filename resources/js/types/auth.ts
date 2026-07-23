@@ -23,6 +23,8 @@ export type User = {
     can_manage_components?: boolean;
     can_view_vulnerabilities?: boolean;
     can_manage_vulnerabilities?: boolean;
+    can_view_incidents?: boolean;
+    can_manage_incidents?: boolean;
     can_view_evidence?: boolean;
     can_manage_evidence?: boolean;
     can_view_tasks?: boolean;

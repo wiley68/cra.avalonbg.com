@@ -85,6 +85,12 @@ class HandleInertiaRequests extends Middleware
         $canManageVulnerabilities = $user !== null && $organization !== null
             ? $user->canManageVulnerabilities($organization)
             : false;
+        $canViewIncidents = $user !== null && $organization !== null
+            ? $user->canViewIncidents($organization)
+            : false;
+        $canManageIncidents = $user !== null && $organization !== null
+            ? $user->canManageIncidents($organization)
+            : false;
         $canViewEvidence = $user !== null && $organization !== null
             ? $user->canViewEvidence($organization)
             : false;
@@ -142,6 +148,8 @@ class HandleInertiaRequests extends Middleware
                     'can_manage_components' => $canManageComponents,
                     'can_view_vulnerabilities' => $canViewVulnerabilities,
                     'can_manage_vulnerabilities' => $canManageVulnerabilities,
+                    'can_view_incidents' => $canViewIncidents,
+                    'can_manage_incidents' => $canManageIncidents,
                     'can_view_evidence' => $canViewEvidence,
                     'can_manage_evidence' => $canManageEvidence,
                     'can_view_tasks' => $canViewTasks,

@@ -244,6 +244,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization);
     }
 
+    public function canViewIncidents(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::IncidentsView->value, $organization);
+    }
+
+    public function canManageIncidents(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::IncidentsManage->value, $organization);
+    }
+
     public function canViewEvidence(?Organization $organization = null): bool
     {
         $organization ??= $this->currentOrganization();

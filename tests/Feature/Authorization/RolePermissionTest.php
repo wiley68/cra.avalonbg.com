@@ -15,7 +15,13 @@ test('roles and permissions are seeded from config', function () {
 
     expect($roles)->toContain('platform_admin', 'organization_owner', 'developer');
     expect($roles)->not->toContain('administrator');
-    expect($permissions)->toContain('platform.admin', 'users.create', 'audit.view');
+    expect($permissions)->toContain(
+        'platform.admin',
+        'users.create',
+        'audit.view',
+        'incidents.view',
+        'incidents.manage',
+    );
 
     $platformAdmin = Role::query()
         ->where('slug', 'platform_admin')

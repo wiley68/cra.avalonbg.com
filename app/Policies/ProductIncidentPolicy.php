@@ -11,30 +11,30 @@ class ProductIncidentPolicy
 {
     public function viewAny(User $user, Organization $organization): bool
     {
-        return $user->hasPermission(PermissionSlug::VulnerabilitiesView->value, $organization);
+        return $user->hasPermission(PermissionSlug::IncidentsView->value, $organization);
     }
 
     public function view(User $user, ProductIncident $incident, Organization $organization): bool
     {
         return $this->belongsToOrganization($incident, $organization)
-            && $user->hasPermission(PermissionSlug::VulnerabilitiesView->value, $organization);
+            && $user->hasPermission(PermissionSlug::IncidentsView->value, $organization);
     }
 
     public function create(User $user, Organization $organization): bool
     {
-        return $user->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization);
+        return $user->hasPermission(PermissionSlug::IncidentsManage->value, $organization);
     }
 
     public function update(User $user, ProductIncident $incident, Organization $organization): bool
     {
         return $this->belongsToOrganization($incident, $organization)
-            && $user->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization);
+            && $user->hasPermission(PermissionSlug::IncidentsManage->value, $organization);
     }
 
     public function delete(User $user, ProductIncident $incident, Organization $organization): bool
     {
         return $this->belongsToOrganization($incident, $organization)
-            && $user->hasPermission(PermissionSlug::VulnerabilitiesManage->value, $organization);
+            && $user->hasPermission(PermissionSlug::IncidentsManage->value, $organization);
     }
 
     private function belongsToOrganization(ProductIncident $incident, Organization $organization): bool

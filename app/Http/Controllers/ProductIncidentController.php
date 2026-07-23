@@ -42,7 +42,7 @@ class ProductIncidentController extends Controller
         return Inertia::render('products/incidents/Index', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
-            'canManage' => request()->user()->canManageVulnerabilities($organization),
+            'canManage' => request()->user()->canManageIncidents($organization),
             'options' => $this->enumOptions(),
         ]);
     }
@@ -113,7 +113,7 @@ class ProductIncidentController extends Controller
             'deployments' => $this->deploymentOptions($product),
             'vulnerabilities' => $this->incidents->linkableVulnerabilityOptions($product),
             'options' => $this->enumOptions(),
-            'canManage' => request()->user()->canManageVulnerabilities($organization),
+            'canManage' => request()->user()->canManageIncidents($organization),
         ]);
     }
 
