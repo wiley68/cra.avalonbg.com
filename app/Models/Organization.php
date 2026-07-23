@@ -80,4 +80,9 @@ class Organization extends Model
     {
         return $this->hasMany(SdlRun::class);
     }
+
+    public function technicalDocumentationPackages(): HasMany
+    {
+        return $this->hasMany(TechnicalDocumentationPackage::class);
+    }
 }

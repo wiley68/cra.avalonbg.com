@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 0.1  
+**Версия:** 0.2  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — skeleton  
+**Статус:** Active — Must 1 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -146,7 +146,7 @@ GET    /internal-api/products/{product}/technical-documentation
 
 ### Must
 
-1. Migrations + models + enums (package, sections, status, section keys)
+1. ~~Migrations + models + enums (package, sections, status, section keys)~~ **Done**
 2. CRUD + Index DataTable (product-scoped)
 3. Section editor UI (authored + generated placeholders)
 4. Generate-from-modules for core sections (identification, risks, SBOM, support, versions)
@@ -231,4 +231,5 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                       |
 | ------ | ---------- | ----------------------------------------------------------------------------- |
+| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                  |
 | 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C) |
