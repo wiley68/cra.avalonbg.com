@@ -2624,7 +2624,14 @@
                 "deployments": "Засегнати deployments",
                 "timeline_occurred_at": "Настъпило на",
                 "timeline_label": "Етикет на събитието",
-                "timeline_notes": "Бележки към събитието"
+                "timeline_notes": "Бележки към събитието",
+                "report_authority": "Орган",
+                "report_submitted_at": "Подадено на",
+                "report_channel": "Канал за подаване",
+                "report_reference": "Референция на подаването",
+                "report_summary": "Какво е подадено",
+                "report_notes": "Вътрешни бележки",
+                "report_evidence": "Свързано evidence"
             },
             "help": {
                 "title": "Кратко име на записа за инцидента.",
@@ -2647,7 +2654,13 @@
                 "timeline_label": "Кратък етикет, напр. Доклад от клиент или Приложена мярка.",
                 "timeline_notes": "Опционални детайли. След запис събитията не се редактират.",
                 "vulnerability_link": "Изберете съществуваща уязвимост за този продукт, която да се свърже с инцидента.",
-                "create_approval_task": "Създава отворена задача, свързана с инцидента, за преглед след затваряне."
+                "create_approval_task": "Създава отворена задача, свързана с инцидента, за преглед след затваряне.",
+                "report_authority": "Кой е получил доклада (напр. национален CSIRT, ENISA SRP).",
+                "report_submitted_at": "Кога подаването е изпратено към органа.",
+                "report_channel": "Как е подаден докладът.",
+                "report_reference": "Тикет, разписка или case идентификатор от органа.",
+                "report_summary": "Кратко описание на подаденото.",
+                "report_notes": "Вътрешни бележки за подаването."
             },
             "statuses": {
                 "open": "Отворен",
@@ -2662,12 +2675,23 @@
                 "high": "Висока",
                 "critical": "Критична"
             },
+            "report_channels": {
+                "email": "Имейл",
+                "portal": "Портал",
+                "other": "Друго"
+            },
             "timeline_added": "Събитието в timeline е добавено.",
             "timeline_title": "Timeline на инцидента",
             "timeline_subtitle": "Основни timestamps и append-only събития от разследването.",
             "timeline_empty": "Все още няма записани timeline събития.",
             "timeline_add": "Добави timeline събитие",
             "timeline_recorded_by": "Записано от :name",
+            "reports_title": "Доклади към органи",
+            "reports_subtitle": "Ръчен запис на подавания към органи. Без автоматично изпращане.",
+            "reports_empty": "Все още няма записани подавания към органи.",
+            "reports_add": "Запиши подаване към орган",
+            "reports_recorded_by": "Записано от :name",
+            "report_added": "Подаването към орган е записано.",
             "core_timestamps_title": "Основни timestamps",
             "core_timestamps_subtitle": "Старт, откриване, осведоменост и класификация за този инцидент.",
             "investigation_title": "Разследване и отстраняване",

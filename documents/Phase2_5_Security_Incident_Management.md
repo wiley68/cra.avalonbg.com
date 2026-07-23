@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Should complete (Must 1–6 + Should 7–12 done)  
+**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -236,7 +236,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 
 ### Could
 
-13. Authority reports (`incident_reports`) — manual submission record
+13. ~~Authority reports (`incident_reports`) — manual submission record~~ **Done**
 14. Customer communications log (отделно от patch campaigns)
 15. CIA impacts + attack vector enums
 16. AI `incident_summary` draft (human review)
@@ -303,6 +303,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.4    | 2026-07-23 | Could 13 Done — manual authority reports (append-only log)            |
 | 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag    |
 | 1.2    | 2026-07-23 | Should 11 Done — PDF/Markdown incident summary export                 |
 | 1.1    | 2026-07-23 | Should 10 Done — dashboard open/unclassified incident counts          |

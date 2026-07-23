@@ -439,6 +439,77 @@ test('read-only user cannot append timeline event', function () {
     expect($incident->timelineEvents()->count())->toBe(0);
 });
 
+test('owner can append authority report', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Authority report incident',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::High,
+    ]);
+
+    $submittedAt = '2026-07-22T16:00';
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.reports.store', [$product, $incident]), [
+            'authority' => 'National CSIRT',
+            'submitted_at' => $submittedAt,
+            'submission_channel' => 'email',
+            'submission_reference' => 'CASE-992',
+            'summary' => 'Early warning submitted.',
+            'notes' => 'Sent from security@org.example',
+        ])
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    $report = $incident->reports()->first();
+
+    expect($report)->not->toBeNull()
+        ->and($report->authority)->toBe('National CSIRT')
+        ->and($report->submission_channel->value)->toBe('email')
+        ->and($report->submission_reference)->toBe('CASE-992')
+        ->and($report->summary)->toBe('Early warning submitted.')
+        ->and($report->notes)->toBe('Sent from security@org.example')
+        ->and($report->submitted_by)->toBe($owner->id)
+        ->and($report->submitted_at->format('Y-m-d\TH:i'))->toBe($submittedAt);
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/incidents/Edit')
+            ->has('incident.authority_reports', 1)
+            ->where('incident.authority_reports.0.authority', 'National CSIRT')
+            ->where('incident.authority_reports.0.submission_channel', 'email')
+            ->where('incident.authority_reports.0.submitted_by', $owner->name));
+});
+
+test('read-only user cannot append authority report', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+    $viewer = makeIncidentsOrgReadOnly($organization);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer report block',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.incidents.reports.store', [$product, $incident]), [
+            'authority' => 'ENISA SRP',
+            'submitted_at' => '2026-07-22T11:00',
+            'submission_channel' => 'portal',
+        ])
+        ->assertForbidden();
+
+    expect($incident->reports()->count())->toBe(0);
+});
+
 test('owner can create vulnerability from incident with incident_investigation discovery', function () {
     [$organization, $owner] = makeIncidentsOrgWithOwner();
     [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);

@@ -33,6 +33,7 @@ import {
     update,
 } from '@/routes/products/incidents';
 import { store as storeTimelineEvent } from '@/routes/products/incidents/timeline';
+import { store as storeIncidentReport } from '@/routes/products/incidents/reports';
 import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
@@ -68,6 +69,19 @@ type TimelineEvent = {
     created_by: string | null;
     created_at: string | null;
 };
+type AuthorityReport = {
+    id: number;
+    authority: string;
+    submitted_at: string;
+    submission_channel: string;
+    submission_reference: string | null;
+    summary: string | null;
+    notes: string | null;
+    evidence_id: number | null;
+    evidence_title: string | null;
+    submitted_by: string | null;
+    created_at: string | null;
+};
 type IncidentDetail = {
     id: number;
     title: string;
@@ -93,6 +107,7 @@ type IncidentDetail = {
     product_vulnerability_id: number | null;
     linked_vulnerability: LinkedVulnerability | null;
     timeline_events: TimelineEvent[];
+    authority_reports: AuthorityReport[];
 };
 
 const props = defineProps<{
@@ -106,6 +121,7 @@ const props = defineProps<{
     options: {
         statuses: string[];
         severities: string[];
+        report_channels: string[];
     };
     canManage: boolean;
 }>();
@@ -166,6 +182,15 @@ const form = useForm({
 const timelineForm = useForm({
     occurred_at: nowLocalDatetime(),
     label: '',
+    notes: '',
+});
+
+const reportForm = useForm({
+    authority: '',
+    submitted_at: nowLocalDatetime(),
+    submission_channel: props.options.report_channels[0] ?? 'email',
+    submission_reference: '',
+    summary: '',
     notes: '',
 });
 
@@ -275,6 +300,31 @@ const submitTimeline = () => {
                 onSuccess: () => {
                     timelineForm.reset();
                     timelineForm.occurred_at = nowLocalDatetime();
+                },
+            },
+        );
+};
+
+const submitReport = () => {
+    reportForm
+        .transform((data) => ({
+            ...data,
+            submission_reference: data.submission_reference || null,
+            summary: data.summary || null,
+            notes: data.notes || null,
+        }))
+        .post(
+            storeIncidentReport({
+                product: props.product.id,
+                incident: props.incident.id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    reportForm.reset();
+                    reportForm.submitted_at = nowLocalDatetime();
+                    reportForm.submission_channel =
+                        props.options.report_channels[0] ?? 'email';
                 },
             },
         );
@@ -1212,6 +1262,222 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     <Button type="submit" :disabled="timelineForm.processing">
                         <Plus class="h-4 w-4" />
                         {{ t('products.incidents.timeline_add') }}
+                    </Button>
+                </div>
+            </form>
+        </section>
+
+        <section class="space-y-4 border-t pt-6">
+            <div>
+                <h2 class="text-base font-semibold">
+                    {{ t('products.incidents.reports_title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('products.incidents.reports_subtitle') }}
+                </p>
+            </div>
+
+            <div
+                v-if="incident.authority_reports.length === 0"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('products.incidents.reports_empty') }}
+            </div>
+
+            <div v-else class="space-y-3">
+                <div
+                    v-for="report in incident.authority_reports"
+                    :key="report.id"
+                    class="rounded-md border px-3 py-2 text-sm"
+                >
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
+                        <span class="font-medium">{{ report.authority }}</span>
+                        <span class="text-xs text-muted-foreground">
+                            {{ formatDateTime(report.submitted_at) }}
+                        </span>
+                    </div>
+                    <div class="mt-1 text-xs text-muted-foreground">
+                        {{
+                            enumLabel(
+                                'report_channels',
+                                report.submission_channel,
+                            )
+                        }}
+                        <template v-if="report.submission_reference">
+                            · {{ report.submission_reference }}
+                        </template>
+                    </div>
+                    <div
+                        v-if="report.submitted_by"
+                        class="mt-1 text-xs text-muted-foreground"
+                    >
+                        {{
+                            t('products.incidents.reports_recorded_by', {
+                                name: report.submitted_by,
+                            })
+                        }}
+                    </div>
+                    <p
+                        v-if="report.summary"
+                        class="mt-2 whitespace-pre-wrap text-muted-foreground"
+                    >
+                        {{ report.summary }}
+                    </p>
+                    <p
+                        v-if="report.notes"
+                        class="mt-2 whitespace-pre-wrap text-muted-foreground"
+                    >
+                        {{ report.notes }}
+                    </p>
+                    <p
+                        v-if="report.evidence_title"
+                        class="mt-2 text-xs text-muted-foreground"
+                    >
+                        {{ t('products.incidents.fields.report_evidence') }}:
+                        {{ report.evidence_title }}
+                    </p>
+                </div>
+            </div>
+
+            <form
+                v-if="canManage"
+                class="space-y-4 rounded-md border p-4"
+                @submit.prevent="submitReport"
+            >
+                <h3 class="text-sm font-medium">
+                    {{ t('products.incidents.reports_add') }}
+                </h3>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="report_authority"
+                            required
+                            :help="
+                                t('products.incidents.help.report_authority')
+                            "
+                        >
+                            {{
+                                t('products.incidents.fields.report_authority')
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="report_authority"
+                            v-model="reportForm.authority"
+                            required
+                        />
+                        <InputError :message="reportForm.errors.authority" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="report_submitted_at"
+                            required
+                            :help="
+                                t('products.incidents.help.report_submitted_at')
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.report_submitted_at',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="report_submitted_at"
+                            v-model="reportForm.submitted_at"
+                            type="datetime-local"
+                            required
+                        />
+                        <InputError :message="reportForm.errors.submitted_at" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="report_channel"
+                            required
+                            :help="t('products.incidents.help.report_channel')"
+                        >
+                            {{ t('products.incidents.fields.report_channel') }}
+                        </FieldLabel>
+                        <select
+                            id="report_channel"
+                            v-model="reportForm.submission_channel"
+                            :class="selectClass"
+                            required
+                        >
+                            <option
+                                v-for="channel in options.report_channels"
+                                :key="channel"
+                                :value="channel"
+                            >
+                                {{ enumLabel('report_channels', channel) }}
+                            </option>
+                        </select>
+                        <InputError
+                            :message="reportForm.errors.submission_channel"
+                        />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="report_reference"
+                            :help="
+                                t('products.incidents.help.report_reference')
+                            "
+                        >
+                            {{
+                                t('products.incidents.fields.report_reference')
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="report_reference"
+                            v-model="reportForm.submission_reference"
+                        />
+                        <InputError
+                            :message="reportForm.errors.submission_reference"
+                        />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="report_summary"
+                            :help="t('products.incidents.help.report_summary')"
+                        >
+                            {{ t('products.incidents.fields.report_summary') }}
+                        </FieldLabel>
+                        <textarea
+                            id="report_summary"
+                            v-model="reportForm.summary"
+                            :class="textareaClass"
+                            rows="3"
+                        />
+                        <InputError :message="reportForm.errors.summary" />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="report_notes"
+                            :help="t('products.incidents.help.report_notes')"
+                        >
+                            {{ t('products.incidents.fields.report_notes') }}
+                        </FieldLabel>
+                        <textarea
+                            id="report_notes"
+                            v-model="reportForm.notes"
+                            :class="textareaClass"
+                            rows="2"
+                        />
+                        <InputError :message="reportForm.errors.notes" />
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <Button type="submit" :disabled="reportForm.processing">
+                        <Plus class="h-4 w-4" />
+                        {{ t('products.incidents.reports_add') }}
                     </Button>
                 </div>
             </form>

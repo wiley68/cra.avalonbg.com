@@ -2624,7 +2624,14 @@
                 "deployments": "Affected deployments",
                 "timeline_occurred_at": "Occurred at",
                 "timeline_label": "Event label",
-                "timeline_notes": "Event notes"
+                "timeline_notes": "Event notes",
+                "report_authority": "Authority",
+                "report_submitted_at": "Submitted at",
+                "report_channel": "Submission channel",
+                "report_reference": "Submission reference",
+                "report_summary": "What was submitted",
+                "report_notes": "Internal notes",
+                "report_evidence": "Linked evidence"
             },
             "help": {
                 "title": "Short name for the incident record.",
@@ -2647,7 +2654,13 @@
                 "timeline_label": "Short label, e.g. Customer report or Mitigation applied.",
                 "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save.",
                 "vulnerability_link": "Choose an existing vulnerability on this product to link to the incident.",
-                "create_approval_task": "Creates an open task linked to this incident for post-closure review."
+                "create_approval_task": "Creates an open task linked to this incident for post-closure review.",
+                "report_authority": "Who received the report (e.g. national CSIRT, ENISA SRP).",
+                "report_submitted_at": "When the submission was sent to the authority.",
+                "report_channel": "How the report was submitted.",
+                "report_reference": "Ticket, receipt, or case identifier from the authority.",
+                "report_summary": "Short description of what was submitted.",
+                "report_notes": "Internal notes about the submission."
             },
             "statuses": {
                 "open": "Open",
@@ -2662,12 +2675,23 @@
                 "high": "High",
                 "critical": "Critical"
             },
+            "report_channels": {
+                "email": "Email",
+                "portal": "Portal",
+                "other": "Other"
+            },
             "timeline_added": "Timeline event added.",
             "timeline_title": "Incident timeline",
             "timeline_subtitle": "Core timestamps and append-only investigation events.",
             "timeline_empty": "No timeline events recorded yet.",
             "timeline_add": "Add timeline event",
             "timeline_recorded_by": "Recorded by :name",
+            "reports_title": "Authority reports",
+            "reports_subtitle": "Manual record of submissions to authorities. No auto-submit.",
+            "reports_empty": "No authority submissions recorded yet.",
+            "reports_add": "Record authority submission",
+            "reports_recorded_by": "Recorded by :name",
+            "report_added": "Authority submission recorded.",
             "core_timestamps_title": "Core timestamps",
             "core_timestamps_subtitle": "Start, detection, awareness, and classification times for this incident.",
             "investigation_title": "Investigation & remediation",
@@ -2850,7 +2874,8 @@
             "incident_status_updated": "Incident status updated",
             "incident_closed": "Incident closed",
             "incident_timeline_event_added": "Incident timeline event added",
-            "incident_exported": "Incident exported"
+            "incident_exported": "Incident exported",
+            "incident_report_added": "Incident authority report added"
         },
         "event_sources": {
             "workspace": "Workspace",

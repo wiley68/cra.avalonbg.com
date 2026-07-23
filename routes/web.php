@@ -271,6 +271,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductIncidentController::class, 'storeTimeline'],
         )->name('products.incidents.timeline.store')->scopeBindings();
         Route::post(
+            'products/{product}/incidents/{incident}/reports',
+            [ProductIncidentController::class, 'storeReport'],
+        )->name('products.incidents.reports.store')->scopeBindings();
+        Route::post(
             'products/{product}/incidents/{incident}/link-vulnerability',
             [ProductIncidentController::class, 'linkVulnerability'],
         )->name('products.incidents.link-vulnerability')->scopeBindings();

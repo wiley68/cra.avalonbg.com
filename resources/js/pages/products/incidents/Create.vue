@@ -35,6 +35,7 @@ const props = defineProps<{
     options: {
         statuses: string[];
         severities: string[];
+        report_channels?: string[];
     };
 }>();
 

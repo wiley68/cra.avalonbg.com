@@ -181,6 +181,20 @@ test('incident create update status and timeline write audit events', function (
         ->exists())->toBeTrue();
 
     $this->actingAs($owner)
+        ->post(route('products.incidents.reports.store', [$product, $incident]), [
+            'authority' => 'National CSIRT',
+            'submitted_at' => '2026-07-22T15:00',
+            'submission_channel' => 'other',
+            'summary' => 'Manual authority note',
+        ])
+        ->assertRedirect();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::IncidentReportAdded->value)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+
+    $this->actingAs($owner)
         ->delete(route('products.incidents.destroy', [$product, $incident]))
         ->assertRedirect(route('products.incidents.index', $product));
 

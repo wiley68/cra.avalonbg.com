@@ -114,6 +114,14 @@ class ProductIncident extends Model
             ->orderBy('id');
     }
 
+    /** @return HasMany<IncidentReport, $this> */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(IncidentReport::class, 'incident_id')
+            ->orderByDesc('submitted_at')
+            ->orderByDesc('id');
+    }
+
     /** @return BelongsToMany<ProductVersion, $this> */
     public function versions(): BelongsToMany
     {

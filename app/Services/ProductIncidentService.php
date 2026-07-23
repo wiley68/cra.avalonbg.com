@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\IncidentReportChannel;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\TaskPriority;
@@ -11,6 +12,7 @@ use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Customer;
+use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
 use App\Models\Organization;
 use App\Models\Product;
@@ -274,6 +276,43 @@ class ProductIncidentService
         return $event;
     }
 
+    /**
+     * @param  array{
+     *     authority: string,
+     *     submitted_at: mixed,
+     *     submission_channel: string,
+     *     submission_reference?: string|null,
+     *     summary?: string|null,
+     *     notes?: string|null,
+     *     evidence_id?: int|null
+     * }  $attributes
+     */
+    public function addAuthorityReport(
+        ProductIncident $incident,
+        array $attributes,
+        ?User $actor = null,
+    ): IncidentReport {
+        /** @var IncidentReport $report */
+        $report = $incident->reports()->create([
+            'authority' => $attributes['authority'],
+            'submitted_at' => $attributes['submitted_at'],
+            'submitted_by' => $actor?->id,
+            'submission_channel' => IncidentReportChannel::from($attributes['submission_channel']),
+            'submission_reference' => $attributes['submission_reference'] ?? null,
+            'summary' => $attributes['summary'] ?? null,
+            'notes' => $attributes['notes'] ?? null,
+            'evidence_id' => $attributes['evidence_id'] ?? null,
+        ]);
+
+        $report->load(['submitter', 'evidence']);
+
+        if ($actor instanceof User) {
+            AuditLogger::logIncidentReportAdded($incident, $report, $actor);
+        }
+
+        return $report;
+    }
+
     public function linkVulnerability(
         ProductIncident $incident,
         ProductVulnerability $vulnerability,
@@ -439,6 +478,15 @@ class ProductIncidentService
             $incident->load('closer');
         }
 
+        if (!$incident->relationLoaded('reports')) {
+            $incident->load(['reports.submitter', 'reports.evidence']);
+        } elseif (
+            $incident->reports->isNotEmpty()
+            && !$incident->reports->first()?->relationLoaded('submitter')
+        ) {
+            $incident->load(['reports.submitter', 'reports.evidence']);
+        }
+
         return [
             'id' => $incident->id,
             'title' => $incident->title,
@@ -467,6 +515,42 @@ class ProductIncidentService
                 ->map(fn(IncidentTimelineEvent $event) => $this->timelineEventPayload($event))
                 ->values()
                 ->all(),
+            'authority_reports' => $incident->reports
+                ->map(fn(IncidentReport $report) => $this->authorityReportPayload($report))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     authority: string,
+     *     submitted_at: string,
+     *     submission_channel: string,
+     *     submission_reference: string|null,
+     *     summary: string|null,
+     *     notes: string|null,
+     *     evidence_id: int|null,
+     *     evidence_title: string|null,
+     *     submitted_by: string|null,
+     *     created_at: string|null
+     * }
+     */
+    public function authorityReportPayload(IncidentReport $report): array
+    {
+        return [
+            'id' => $report->id,
+            'authority' => $report->authority,
+            'submitted_at' => $report->submitted_at->toIso8601String(),
+            'submission_channel' => $report->submission_channel->value,
+            'submission_reference' => $report->submission_reference,
+            'summary' => $report->summary,
+            'notes' => $report->notes,
+            'evidence_id' => $report->evidence_id,
+            'evidence_title' => $report->evidence?->title,
+            'submitted_by' => $report->submitter?->name,
+            'created_at' => $report->created_at?->toIso8601String(),
         ];
     }
 
