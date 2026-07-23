@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
+use App\Http\Requests\CreateIncidentVulnerabilityRequest;
+use App\Http\Requests\LinkIncidentVulnerabilityRequest;
 use App\Http\Requests\StoreIncidentTimelineEventRequest;
 use App\Http\Requests\StoreProductIncidentRequest;
 use App\Http\Requests\UpdateProductIncidentRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
+use App\Models\ProductVulnerability;
 use App\Services\ProductIncidentService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -79,7 +82,7 @@ class ProductIncidentController extends Controller
         $this->assertIncidentBelongsToProduct($incident, $product);
         $this->authorize('view', [$incident, $organization]);
 
-        $incident->load(['owner', 'versions', 'timelineEvents.creator']);
+        $incident->load(['owner', 'versions', 'timelineEvents.creator', 'vulnerability']);
 
         return Inertia::render('products/incidents/Edit', [
             'organization' => $this->organizationPayload($organization),
@@ -87,6 +90,7 @@ class ProductIncidentController extends Controller
             'incident' => $this->incidents->detailPayload($incident),
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
+            'vulnerabilities' => $this->incidents->linkableVulnerabilityOptions($product),
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageVulnerabilities($organization),
         ]);
@@ -117,6 +121,67 @@ class ProductIncidentController extends Controller
         ]);
 
         return redirect()->route('products.incidents.edit', [$product, $incident]);
+    }
+
+    public function linkVulnerability(
+        LinkIncidentVulnerabilityRequest $request,
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+
+        $vulnerability = ProductVulnerability::query()->findOrFail(
+            (int) $request->input('product_vulnerability_id'),
+        );
+
+        $this->incidents->linkVulnerability($incident, $vulnerability);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.vulnerability_linked'),
+        ]);
+
+        return redirect()->route('products.incidents.edit', [$product, $incident]);
+    }
+
+    public function unlinkVulnerability(
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+        $this->authorize('update', [$incident, $organization]);
+
+        $this->incidents->unlinkVulnerability($incident);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.vulnerability_unlinked'),
+        ]);
+
+        return redirect()->route('products.incidents.edit', [$product, $incident]);
+    }
+
+    public function createVulnerability(
+        CreateIncidentVulnerabilityRequest $request,
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+
+        $vulnerability = $this->incidents->createVulnerabilityFromIncident($incident);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.vulnerability_created'),
+        ]);
+
+        return redirect()->route('products.vulnerabilities.edit', [$product, $vulnerability]);
     }
 
     public function update(

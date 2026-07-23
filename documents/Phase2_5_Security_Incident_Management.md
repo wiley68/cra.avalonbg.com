@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 0.4  
+**Версия:** 0.5  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–3 done  
+**Статус:** Active — Must 1–4 done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -181,8 +181,10 @@ GET    /products/{product}/incidents/{incident}/edit
 PUT    /products/{product}/incidents/{incident}
 DELETE /products/{product}/incidents/{incident}
 POST   /products/{product}/incidents/{incident}/timeline
-POST   /products/{product}/incidents/{incident}/status
+POST   /products/{product}/incidents/{incident}/link-vulnerability
+DELETE /products/{product}/incidents/{incident}/vulnerability
 POST   /products/{product}/incidents/{incident}/create-vulnerability
+POST   /products/{product}/incidents/{incident}/status
 GET    /internal-api/products/{product}/incidents
 ```
 
@@ -202,7 +204,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 1. ~~Migrations + models + enums (incident, timeline, version pivot)~~ **Done**
 2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
 3. ~~Timeline UI (append events) + core timestamp fields~~ **Done**
-4. Link / create vulnerability (`incident_investigation` discovery)
+4. ~~Link / create vulnerability (`incident_investigation` discovery)~~ **Done**
 5. Task subject `incident` + basic audit events
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
 
@@ -284,6 +286,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                    |
 | ------ | ---------- | ---------------------------------------------------------- |
+| 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident      |
 | 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section |
 | 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests    |
 | 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests       |

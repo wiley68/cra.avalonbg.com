@@ -270,6 +270,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/incidents/{incident}/timeline',
             [ProductIncidentController::class, 'storeTimeline'],
         )->name('products.incidents.timeline.store')->scopeBindings();
+        Route::post(
+            'products/{product}/incidents/{incident}/link-vulnerability',
+            [ProductIncidentController::class, 'linkVulnerability'],
+        )->name('products.incidents.link-vulnerability')->scopeBindings();
+        Route::delete(
+            'products/{product}/incidents/{incident}/vulnerability',
+            [ProductIncidentController::class, 'unlinkVulnerability'],
+        )->name('products.incidents.unlink-vulnerability')->scopeBindings();
+        Route::post(
+            'products/{product}/incidents/{incident}/create-vulnerability',
+            [ProductIncidentController::class, 'createVulnerability'],
+        )->name('products.incidents.create-vulnerability')->scopeBindings();
         Route::get(
             'products/{product}/vulnerabilities/{vulnerability}/reporting',
             [VulnerabilityReportingController::class, 'show'],

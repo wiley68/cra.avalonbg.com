@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, Save, Trash2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    ExternalLink,
+    Link2,
+    Plus,
+    Save,
+    Trash2,
+    Unlink,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -10,17 +18,34 @@ import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
+    createVulnerability as createIncidentVulnerability,
     destroy as destroyProductIncident,
     edit as productIncidentsEdit,
     index as productIncidentsIndex,
+    linkVulnerability as linkIncidentVulnerability,
+    unlinkVulnerability as unlinkIncidentVulnerability,
     update,
 } from '@/routes/products/incidents';
 import { store as storeTimelineEvent } from '@/routes/products/incidents/timeline';
+import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
 type ProductSummary = { id: number; name: string; slug: string };
+type VulnerabilityOption = {
+    id: number;
+    title: string;
+    cve_id: string | null;
+    status: string;
+};
+type LinkedVulnerability = {
+    id: number;
+    title: string;
+    cve_id: string | null;
+    status: string;
+    business_severity: string;
+};
 type TimelineEvent = {
     id: number;
     occurred_at: string;
@@ -45,6 +70,8 @@ type IncidentDetail = {
     classified_at: string | null;
     notes: string | null;
     version_ids: number[];
+    product_vulnerability_id: number | null;
+    linked_vulnerability: LinkedVulnerability | null;
     timeline_events: TimelineEvent[];
 };
 
@@ -53,6 +80,7 @@ const props = defineProps<{
     incident: IncidentDetail;
     members: Member[];
     versions: VersionOption[];
+    vulnerabilities: VulnerabilityOption[];
     options: {
         statuses: string[];
         severities: string[];
@@ -116,6 +144,12 @@ const timelineForm = useForm({
     notes: '',
 });
 
+const linkForm = useForm({
+    product_vulnerability_id: '' as number | '',
+});
+
+const createVulnerabilityForm = useForm({});
+
 const coreTimestampRows = computed(
     () =>
         [
@@ -141,6 +175,19 @@ const coreTimestampRows = computed(
             },
         ] as const,
 );
+
+const linkedVulnerability = computed(() => props.incident.linked_vulnerability);
+
+const vulnerabilityEditUrl = computed(() => {
+    if (!linkedVulnerability.value) {
+        return null;
+    }
+
+    return editProductVulnerability({
+        product: props.product.id,
+        vulnerability: linkedVulnerability.value.id,
+    }).url;
+});
 
 const submit = () => {
     form.transform((data) => ({
@@ -177,6 +224,44 @@ const submitTimeline = () => {
                 },
             },
         );
+};
+
+const submitLinkVulnerability = () => {
+    linkForm
+        .transform((data) => ({
+            product_vulnerability_id: data.product_vulnerability_id || null,
+        }))
+        .post(
+            linkIncidentVulnerability({
+                product: props.product.id,
+                incident: props.incident.id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    linkForm.reset();
+                },
+            },
+        );
+};
+
+const unlinkVulnerability = () => {
+    router.delete(
+        unlinkIncidentVulnerability({
+            product: props.product.id,
+            incident: props.incident.id,
+        }).url,
+        { preserveScroll: true },
+    );
+};
+
+const createVulnerabilityFromIncident = () => {
+    createVulnerabilityForm.post(
+        createIncidentVulnerability({
+            product: props.product.id,
+            incident: props.incident.id,
+        }).url,
+    );
 };
 
 const confirmDelete = () => {
@@ -574,6 +659,144 @@ const toggleVersion = (id: number, checked: boolean) => {
                 </Button>
             </div>
         </form>
+
+        <section class="space-y-4 border-t pt-6">
+            <div>
+                <h2 class="text-base font-semibold">
+                    {{ t('products.incidents.vulnerability_title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('products.incidents.vulnerability_subtitle') }}
+                </p>
+            </div>
+
+            <div
+                v-if="linkedVulnerability"
+                class="rounded-md border px-3 py-3 text-sm"
+            >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="font-medium">
+                            {{ linkedVulnerability.title }}
+                        </div>
+                        <div class="text-xs text-muted-foreground">
+                            <span v-if="linkedVulnerability.cve_id">
+                                {{ linkedVulnerability.cve_id }} ·
+                            </span>
+                            {{
+                                t(
+                                    `products.vulnerabilities.statuses.${linkedVulnerability.status}`,
+                                )
+                            }}
+                            ·
+                            {{
+                                t(
+                                    `products.vulnerabilities.severities.${linkedVulnerability.business_severity}`,
+                                )
+                            }}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            v-if="vulnerabilityEditUrl"
+                            as-child
+                            variant="outline"
+                            size="sm"
+                        >
+                            <Link :href="vulnerabilityEditUrl">
+                                <ExternalLink class="h-4 w-4" />
+                                {{ t('products.incidents.vulnerability_open') }}
+                            </Link>
+                        </Button>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            @click="unlinkVulnerability"
+                        >
+                            <Unlink class="h-4 w-4" />
+                            {{ t('products.incidents.vulnerability_unlink') }}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <p v-else class="text-sm text-muted-foreground">
+                {{ t('products.incidents.vulnerability_empty') }}
+            </p>
+
+            <div
+                v-if="canManage"
+                class="grid gap-4 rounded-md border p-4 sm:grid-cols-2"
+            >
+                <form
+                    class="space-y-3"
+                    @submit.prevent="submitLinkVulnerability"
+                >
+                    <FieldLabel
+                        html-for="product_vulnerability_id"
+                        :help="t('products.incidents.help.vulnerability_link')"
+                    >
+                        {{ t('products.incidents.vulnerability_link') }}
+                    </FieldLabel>
+                    <select
+                        id="product_vulnerability_id"
+                        v-model="linkForm.product_vulnerability_id"
+                        required
+                        :class="selectClass"
+                    >
+                        <option value="">
+                            {{ t('products.incidents.vulnerability_none') }}
+                        </option>
+                        <option
+                            v-for="vulnerability in vulnerabilities"
+                            :key="vulnerability.id"
+                            :value="vulnerability.id"
+                        >
+                            {{ vulnerability.title }}
+                            <template v-if="vulnerability.cve_id">
+                                ({{ vulnerability.cve_id }})
+                            </template>
+                        </option>
+                    </select>
+                    <p
+                        v-if="vulnerabilities.length === 0"
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{ t('products.incidents.no_vulnerabilities') }}
+                    </p>
+                    <InputError
+                        :message="linkForm.errors.product_vulnerability_id"
+                    />
+                    <Button
+                        type="submit"
+                        size="sm"
+                        :disabled="
+                            linkForm.processing || vulnerabilities.length === 0
+                        "
+                    >
+                        <Link2 class="h-4 w-4" />
+                        {{ t('products.incidents.vulnerability_link') }}
+                    </Button>
+                </form>
+
+                <div class="space-y-3">
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('products.incidents.vulnerability_create_help') }}
+                    </p>
+                    <Button
+                        type="button"
+                        size="sm"
+                        :disabled="createVulnerabilityForm.processing"
+                        @click="createVulnerabilityFromIncident"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('products.incidents.vulnerability_create') }}
+                    </Button>
+                </div>
+            </div>
+        </section>
 
         <section class="space-y-4 border-t pt-6">
             <div>

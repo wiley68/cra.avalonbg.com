@@ -8,10 +8,15 @@ use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
 use App\Enums\ScopeStatus;
 use App\Enums\SupportStatus;
+use App\Enums\VulnerabilityBusinessSeverity;
+use App\Enums\VulnerabilityDiscoverySource;
+use App\Enums\VulnerabilityExploitationStatus;
+use App\Enums\VulnerabilityStatus;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
+use App\Models\ProductVulnerability;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -314,4 +319,102 @@ test('read-only user cannot append timeline event', function () {
         ->assertForbidden();
 
     expect($incident->timelineEvents()->count())->toBe(0);
+});
+
+test('owner can create vulnerability from incident with incident_investigation discovery', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Auth bypass incident',
+        'summary' => 'Suspicious session reuse.',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::Critical,
+        'awareness_at' => now()->subHours(5),
+        'detected_at' => now()->subHours(6),
+        'corrective_measures' => 'Revoke sessions',
+        'owner_user_id' => $owner->id,
+    ]);
+    $incident->versions()->attach($version->id);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.create-vulnerability', [$product, $incident]))
+        ->assertRedirect();
+
+    $incident->refresh();
+    $vulnerability = ProductVulnerability::query()->findOrFail($incident->product_vulnerability_id);
+
+    expect($vulnerability->title)->toBe('Auth bypass incident')
+        ->and($vulnerability->discovery_source)->toBe(VulnerabilityDiscoverySource::IncidentInvestigation)
+        ->and($vulnerability->business_severity)->toBe(VulnerabilityBusinessSeverity::Critical)
+        ->and($vulnerability->status)->toBe(VulnerabilityStatus::Reported)
+        ->and($vulnerability->owner_user_id)->toBe($owner->id)
+        ->and($vulnerability->corrective_action)->toBe('Revoke sessions')
+        ->and($vulnerability->affectedVersions()->pluck('product_versions.id')->all())->toContain($version->id);
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('incident.linked_vulnerability.id', $vulnerability->id)
+            ->where('incident.linked_vulnerability.title', 'Auth bypass incident'));
+});
+
+test('owner can link and unlink an existing vulnerability', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $vulnerability = ProductVulnerability::query()->create([
+        'product_id' => $product->id,
+        'title' => 'Existing vuln',
+        'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
+        'status' => VulnerabilityStatus::Triage,
+        'business_severity' => VulnerabilityBusinessSeverity::Medium,
+        'exploitation_status' => VulnerabilityExploitationStatus::Unknown,
+    ]);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Linkable incident',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Medium,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.link-vulnerability', [$product, $incident]), [
+            'product_vulnerability_id' => $vulnerability->id,
+        ])
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    expect($incident->fresh()->product_vulnerability_id)->toBe($vulnerability->id);
+
+    $this->actingAs($owner)
+        ->delete(route('products.incidents.unlink-vulnerability', [$product, $incident]))
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    expect($incident->fresh()->product_vulnerability_id)->toBeNull();
+});
+
+test('read-only user cannot create vulnerability from incident', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+    $viewer = makeIncidentsOrgReadOnly($organization);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer create block',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.incidents.create-vulnerability', [$product, $incident]))
+        ->assertForbidden();
+
+    expect($incident->fresh()->product_vulnerability_id)->toBeNull()
+        ->and(ProductVulnerability::query()->where('product_id', $product->id)->count())->toBe(0);
 });

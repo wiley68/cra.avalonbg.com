@@ -2,10 +2,16 @@
 
 namespace App\Services;
 
+use App\Enums\IncidentSeverity;
+use App\Enums\VulnerabilityBusinessSeverity;
+use App\Enums\VulnerabilityDiscoverySource;
+use App\Enums\VulnerabilityExploitationStatus;
+use App\Enums\VulnerabilityStatus;
+use App\Models\IncidentTimelineEvent;
 use App\Models\Product;
 use App\Models\ProductIncident;
-use App\Models\IncidentTimelineEvent;
 use App\Models\ProductVersion;
+use App\Models\ProductVulnerability;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +19,10 @@ use Illuminate\Validation\ValidationException;
 
 class ProductIncidentService
 {
+    public function __construct(
+        private readonly ProductVulnerabilityService $vulnerabilities,
+    ) {
+    }
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
@@ -121,6 +131,123 @@ class ProductIncidentService
         return $event->load('creator');
     }
 
+    public function linkVulnerability(
+        ProductIncident $incident,
+        ProductVulnerability $vulnerability,
+    ): ProductIncident {
+        if ($vulnerability->product_id !== $incident->product_id) {
+            throw ValidationException::withMessages([
+                'product_vulnerability_id' => [
+                    'The vulnerability must belong to the same product.',
+                ],
+            ]);
+        }
+
+        $incident->update([
+            'product_vulnerability_id' => $vulnerability->id,
+        ]);
+
+        return $incident->fresh(['owner', 'versions', 'vulnerability']);
+    }
+
+    public function unlinkVulnerability(ProductIncident $incident): ProductIncident
+    {
+        $incident->update([
+            'product_vulnerability_id' => null,
+        ]);
+
+        return $incident->fresh(['owner', 'versions', 'vulnerability']);
+    }
+
+    /**
+     * Create a vulnerability from the incident and link it.
+     * Discovery source is always incident_investigation.
+     */
+    public function createVulnerabilityFromIncident(ProductIncident $incident): ProductVulnerability
+    {
+        return DB::transaction(function () use ($incident) {
+            $incident->loadMissing(['versions', 'product']);
+
+            $versionIds = $incident->versions->pluck('id')->map(fn($id) => (int) $id)->all();
+
+            $vulnerability = $this->vulnerabilities->create(
+                $incident->product,
+                [
+                    'title' => $incident->title,
+                    'summary' => $incident->summary,
+                    'cve_id' => null,
+                    'advisory_url' => null,
+                    'discovery_source' => VulnerabilityDiscoverySource::IncidentInvestigation,
+                    'discovered_at' => $incident->detected_at,
+                    'awareness_at' => $incident->awareness_at,
+                    'status' => VulnerabilityStatus::Reported,
+                    'cvss_score' => null,
+                    'business_severity' => $this->mapSeverity($incident->severity),
+                    'exploitation_status' => VulnerabilityExploitationStatus::Unknown,
+                    'is_public' => false,
+                    'workaround' => null,
+                    'corrective_action' => $incident->corrective_measures,
+                    'owner_user_id' => $incident->owner_user_id,
+                    'substitute_owner_user_id' => null,
+                    'corrective_measure_available_at' => null,
+                    'notes' => $incident->notes,
+                ],
+                [],
+                $versionIds,
+                [],
+            );
+
+            $incident->update([
+                'product_vulnerability_id' => $vulnerability->id,
+            ]);
+
+            return $vulnerability;
+        });
+    }
+
+    /**
+     * @return array{id: int, title: string, cve_id: string|null, status: string, business_severity: string}|null
+     */
+    public function linkedVulnerabilityPayload(ProductIncident $incident): ?array
+    {
+        $vulnerability = $incident->vulnerability;
+
+        if ($vulnerability === null) {
+            return null;
+        }
+
+        return [
+            'id' => $vulnerability->id,
+            'title' => $vulnerability->title,
+            'cve_id' => $vulnerability->cve_id,
+            'status' => $vulnerability->status->value,
+            'business_severity' => $vulnerability->business_severity->value,
+        ];
+    }
+
+    /**
+     * @return list<array{id: int, title: string, cve_id: string|null, status: string}>
+     */
+    public function linkableVulnerabilityOptions(Product $product): array
+    {
+        return ProductVulnerability::query()
+            ->where('product_id', $product->id)
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'cve_id', 'status'])
+            ->map(fn(ProductVulnerability $vulnerability) => [
+                'id' => $vulnerability->id,
+                'title' => $vulnerability->title,
+                'cve_id' => $vulnerability->cve_id,
+                'status' => $vulnerability->status->value,
+            ])
+            ->all();
+    }
+
+    private function mapSeverity(IncidentSeverity $severity): VulnerabilityBusinessSeverity
+    {
+        return VulnerabilityBusinessSeverity::from($severity->value);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -135,6 +262,7 @@ class ProductIncidentService
             'awareness_at' => $incident->awareness_at?->toIso8601String(),
             'detected_at' => $incident->detected_at?->toIso8601String(),
             'classified_at' => $incident->classified_at?->toIso8601String(),
+            'product_vulnerability_id' => $incident->product_vulnerability_id,
         ];
     }
 
@@ -152,6 +280,10 @@ class ProductIncidentService
             $incident->load(['timelineEvents.creator']);
         }
 
+        if (!$incident->relationLoaded('vulnerability')) {
+            $incident->load('vulnerability');
+        }
+
         return [
             'id' => $incident->id,
             'title' => $incident->title,
@@ -162,6 +294,7 @@ class ProductIncidentService
             'corrective_measures' => $incident->corrective_measures,
             'lessons_learned' => $incident->lessons_learned,
             'product_vulnerability_id' => $incident->product_vulnerability_id,
+            'linked_vulnerability' => $this->linkedVulnerabilityPayload($incident),
             'owner_user_id' => $incident->owner_user_id,
             'actual_started_at' => $incident->actual_started_at?->format('Y-m-d\TH:i'),
             'detected_at' => $incident->detected_at?->format('Y-m-d\TH:i'),

@@ -2637,7 +2637,8 @@
                 "versions": "Product versions impacted by this incident.",
                 "timeline_occurred_at": "When this investigation event happened.",
                 "timeline_label": "Short label, e.g. Customer report or Mitigation applied.",
-                "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save."
+                "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save.",
+                "vulnerability_link": "Choose an existing vulnerability on this product to link to the incident."
             },
             "statuses": {
                 "open": "Open",
@@ -2659,7 +2660,20 @@
             "timeline_add": "Add timeline event",
             "timeline_recorded_by": "Recorded by :name",
             "core_timestamps_title": "Core timestamps",
-            "core_timestamps_subtitle": "Start, detection, awareness, and classification times for this incident."
+            "core_timestamps_subtitle": "Start, detection, awareness, and classification times for this incident.",
+            "vulnerability_title": "Linked vulnerability",
+            "vulnerability_subtitle": "Connect this incident to a vulnerability record, or create one from the investigation.",
+            "vulnerability_empty": "No vulnerability is linked yet.",
+            "vulnerability_link": "Link existing vulnerability",
+            "vulnerability_unlink": "Unlink",
+            "vulnerability_create": "Create vulnerability from incident",
+            "vulnerability_create_help": "Creates a vulnerability with discovery source “Incident investigation”, copies key fields, and opens it for review.",
+            "vulnerability_none": "Select a vulnerability…",
+            "vulnerability_linked": "Vulnerability linked.",
+            "vulnerability_unlinked": "Vulnerability unlinked.",
+            "vulnerability_created": "Vulnerability created from incident.",
+            "vulnerability_open": "Open vulnerability",
+            "no_vulnerabilities": "No vulnerabilities registered for this product yet."
         },
         "incidents_link": "Incidents"
     },
