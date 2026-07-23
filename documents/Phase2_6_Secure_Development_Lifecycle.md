@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 0.2  
+**Версия:** 0.4  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1 Done (schema + models + enums)  
+**Статус:** Active — Must 1–3 Done (schema + CRUD + stage checklist)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -191,8 +191,8 @@ GET    /internal-api/sdl
 ### Must
 
 1. ~~Migrations + models + enums (run, stages, status)~~ **Done**
-2. CRUD + Index DataTable (product-scoped)
-3. Stage checklist UI (complete / N/A + notes)
+2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
+3. ~~Stage checklist UI (complete / N/A + notes)~~ **Done**
 4. Evidence link на stage / run
 5. Release security approval gate + audit
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
@@ -275,5 +275,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 0.4    | 2026-07-23 | Must 3 Done — stage checklist UI (done/N/A/exception + notes)        |
+| 0.3    | 2026-07-23 | Must 2 Done — product SDL CRUD + DataTable + module card             |
 | 0.2    | 2026-07-23 | Must 1 Done — `sdl_runs` / `sdl_stage_entries` + enums + model tests |
 | 0.1    | 2026-07-23 | Skeleton след Phase 2.5 closeout — §5.14 SDL workspace (кандидат B)  |

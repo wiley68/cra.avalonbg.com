@@ -856,6 +856,9 @@
             },
             "incidents": {
                 "description": "Security incident tracking"
+            },
+            "sdl": {
+                "description": "Secure development lifecycle runs and release gates"
             }
         },
         "passport": {
@@ -2813,7 +2816,83 @@
                 "invalid_format": "Export format must be markdown or pdf."
             }
         },
-        "incidents_link": "Incidents"
+        "sdl": {
+            "index_title": "Secure development lifecycle",
+            "title": "SDL workspace",
+            "subtitle": "Track secure development stages and release security approval for this product",
+            "create": "New SDL run",
+            "create_title": "Create SDL run",
+            "edit_title": "Edit SDL run",
+            "created": "SDL run created.",
+            "updated": "SDL run updated.",
+            "deleted": "SDL run deleted.",
+            "confirm_delete": "Delete this SDL run permanently?",
+            "search_placeholder": "Search by title, status or stage...",
+            "version_none": "No version pin",
+            "none_selected": "— None —",
+            "stages_heading": "Stage checklist",
+            "stages_help": "Mark each §5.14 stage as done, N/A, or exception and add notes for reviewers.",
+            "stage_updated": "Stage checklist updated.",
+            "stage_save": "Save stage",
+            "stage_completed_meta": "Completed :when",
+            "stage_completed_by": "by :name",
+            "approved_banner": "Release security approval recorded",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "current_stage": "Current stage",
+                "version": "Version",
+                "updated_at": "Updated"
+            },
+            "fields": {
+                "title": "Title",
+                "status": "Status",
+                "current_stage": "Current stage",
+                "product_version": "Product version",
+                "owner": "Owner",
+                "notes": "Notes",
+                "stage_status": "Stage status",
+                "stage_notes": "Stage notes"
+            },
+            "help": {
+                "title": "Short label for this SDL run (feature, release, or security gate).",
+                "status": "Overall run status. Approval gate is enforced separately later.",
+                "current_stage": "Where the run is currently focused in the §5.14 stage workflow.",
+                "product_version": "Optional pin to a product version for this run.",
+                "owner": "Person responsible for driving this SDL run.",
+                "notes": "Free-form context for reviewers and auditors.",
+                "stage_status": "Pending until complete. Use N/A when the stage does not apply; exception documents a justified deviation.",
+                "stage_notes": "Threat considerations, checklist outcomes, or rationale for N/A / exception."
+            },
+            "statuses": {
+                "draft": "Draft",
+                "in_progress": "In progress",
+                "blocked": "Blocked",
+                "approved": "Approved",
+                "cancelled": "Cancelled"
+            },
+            "stages": {
+                "requirement": "Requirement",
+                "threat_review": "Threat review",
+                "design": "Design",
+                "development": "Development",
+                "code_review": "Code review",
+                "dependency_scan": "Dependency scan",
+                "security_test": "Security test",
+                "release_approval": "Release approval",
+                "publication": "Publication",
+                "monitoring": "Monitoring"
+            },
+            "stage_statuses": {
+                "pending": "Pending",
+                "done": "Done",
+                "na": "N/A",
+                "exception": "Exception"
+            }
+        },
+        "incidents_link": "Incidents",
+        "sdl_link": "SDL"
     },
     "audit_logs": {
         "title": "Audit",
@@ -2951,7 +3030,11 @@
             "incident_timeline_event_added": "Incident timeline event added",
             "incident_exported": "Incident exported",
             "incident_report_added": "Incident authority report added",
-            "incident_customer_communication_added": "Incident customer communication added"
+            "incident_customer_communication_added": "Incident customer communication added",
+            "sdl_run_created": "SDL run created",
+            "sdl_run_updated": "SDL run updated",
+            "sdl_run_deleted": "SDL run deleted",
+            "sdl_stage_updated": "SDL stage updated"
         },
         "event_sources": {
             "workspace": "Workspace",

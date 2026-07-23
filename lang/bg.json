@@ -856,6 +856,9 @@
             },
             "incidents": {
                 "description": "Проследяване на security инциденти"
+            },
+            "sdl": {
+                "description": "SDL runs и gate за сигурност преди release"
             }
         },
         "passport": {
@@ -2813,7 +2816,83 @@
                 "invalid_format": "Форматът за експорт трябва да е markdown или pdf."
             }
         },
-        "incidents_link": "Инциденти"
+        "sdl": {
+            "index_title": "Сигурен жизнен цикъл на разработка",
+            "title": "SDL работно пространство",
+            "subtitle": "Следете етапите на сигурна разработка и одобрението за сигурност преди release за този продукт",
+            "create": "Нов SDL run",
+            "create_title": "Създаване на SDL run",
+            "edit_title": "Редакция на SDL run",
+            "created": "SDL run е създаден.",
+            "updated": "SDL run е обновен.",
+            "deleted": "SDL run е изтрит.",
+            "confirm_delete": "Изтриване на този SDL run завинаги?",
+            "search_placeholder": "Търсене по заглавие, статус или етап...",
+            "version_none": "Без версия",
+            "none_selected": "— Няма —",
+            "stages_heading": "Чеклист по етапи",
+            "stages_help": "Маркирайте всеки §5.14 етап като готов, N/A или изключение и добавете бележки за ревюъри.",
+            "stage_updated": "Чеклистът по етап е обновен.",
+            "stage_save": "Запази етап",
+            "stage_completed_meta": "Завършен :when",
+            "stage_completed_by": "от :name",
+            "approved_banner": "Записано е одобрение за сигурност на release",
+            "columns": {
+                "id": "ID",
+                "title": "Заглавие",
+                "status": "Статус",
+                "current_stage": "Текущ етап",
+                "version": "Версия",
+                "updated_at": "Обновен"
+            },
+            "fields": {
+                "title": "Заглавие",
+                "status": "Статус",
+                "current_stage": "Текущ етап",
+                "product_version": "Продуктова версия",
+                "owner": "Собственик",
+                "notes": "Бележки",
+                "stage_status": "Статус на етапа",
+                "stage_notes": "Бележки към етапа"
+            },
+            "help": {
+                "title": "Кратко име на този SDL run (feature, release или security gate).",
+                "status": "Общ статус на run-а. Gate за одобрение се налага отделно по-късно.",
+                "current_stage": "Къде е фокусът в момента в §5.14 stage workflow.",
+                "product_version": "Опционално прикачване към продуктова версия.",
+                "owner": "Лице, отговорно за воденето на този SDL run.",
+                "notes": "Свободен контекст за ревюъри и одитори.",
+                "stage_status": "Чакащ до завършване. N/A когато етапът не се прилага; exception документира обосновано отклонение.",
+                "stage_notes": "Threat considerations, резултати от чеклист или обосновка за N/A / exception."
+            },
+            "statuses": {
+                "draft": "Чернова",
+                "in_progress": "В ход",
+                "blocked": "Блокиран",
+                "approved": "Одобрен",
+                "cancelled": "Отменен"
+            },
+            "stages": {
+                "requirement": "Изискване",
+                "threat_review": "Преглед на заплахи",
+                "design": "Дизайн",
+                "development": "Разработка",
+                "code_review": "Code review",
+                "dependency_scan": "Сканиране на зависимости",
+                "security_test": "Security тест",
+                "release_approval": "Одобрение за release",
+                "publication": "Публикация",
+                "monitoring": "Мониторинг"
+            },
+            "stage_statuses": {
+                "pending": "Чакащ",
+                "done": "Готов",
+                "na": "N/A",
+                "exception": "Изключение"
+            }
+        },
+        "incidents_link": "Инциденти",
+        "sdl_link": "SDL"
     },
     "audit_logs": {
         "title": "Одит",
@@ -2949,7 +3028,11 @@
             "incident_timeline_event_added": "Добавено събитие в timeline на инцидент",
             "incident_exported": "Инцидент експортиран",
             "incident_report_added": "Добавен доклад към орган за инцидент",
-            "incident_customer_communication_added": "Добавена комуникация с клиенти за инцидент"
+            "incident_customer_communication_added": "Добавена комуникация с клиенти за инцидент",
+            "sdl_run_created": "Създаден SDL run",
+            "sdl_run_updated": "Обновен SDL run",
+            "sdl_run_deleted": "Изтрит SDL run",
+            "sdl_stage_updated": "Обновен SDL етап"
         },
         "event_sources": {
             "workspace": "Workspace",

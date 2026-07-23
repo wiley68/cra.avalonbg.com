@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\ProductIncidentApiController;
+use App\Http\Controllers\Api\ProductSdlApiController;
 use App\Http\Controllers\Api\IncidentApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\OrgPolicyApiController;
@@ -61,6 +62,7 @@ use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVcsImportSuggestionController;
 use App\Http\Controllers\ProductVulnerabilityController;
 use App\Http\Controllers\ProductIncidentController;
+use App\Http\Controllers\ProductSdlController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TranslationController;
 use App\Http\Controllers\UserController;
@@ -271,6 +273,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.incidents', ProductIncidentController::class)
             ->except(['show'])
             ->scoped();
+        Route::resource('products.sdl', ProductSdlController::class)
+            ->except(['show'])
+            ->parameters(['sdl' => 'sdlRun'])
+            ->scoped();
+        Route::put(
+            'products/{product}/sdl/{sdlRun}/stages/{stage}',
+            [ProductSdlController::class, 'updateStage'],
+        )->name('products.sdl.stages.update')->scopeBindings();
         Route::post(
             'products/{product}/incidents/{incident}/timeline',
             [ProductIncidentController::class, 'storeTimeline'],
@@ -438,6 +448,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.vulnerabilities.index');
             Route::get('products/{product}/incidents', [ProductIncidentApiController::class, 'index'])
                 ->name('products.incidents.index');
+            Route::get('products/{product}/sdl', [ProductSdlApiController::class, 'index'])
+                ->name('products.sdl.index');
             Route::get('products/{product}/evidence', [EvidenceApiController::class, 'index'])
                 ->name('products.evidence.index');
             Route::get('products/{product}/tasks', [TaskApiController::class, 'index'])

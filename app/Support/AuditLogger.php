@@ -24,6 +24,8 @@ use App\Models\ProductIncident;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
+use App\Models\SdlRun;
+use App\Models\SdlStageEntry;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
@@ -459,6 +461,80 @@ class AuditLogger
             details: [
                 ['field' => 'incident_id', 'value' => (string) $incident->id],
                 ['field' => 'title', 'value' => $incident->title],
+            ],
+        );
+    }
+
+    public static function logSdlRunCreated(SdlRun $run, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::SdlRunCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+                ['field' => 'status', 'value' => $run->status->value],
+                ['field' => 'current_stage', 'value' => $run->current_stage->value],
+            ],
+        );
+    }
+
+    public static function logSdlRunUpdated(SdlRun $run, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::SdlRunUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+                ['field' => 'status', 'value' => $run->status->value],
+                ['field' => 'current_stage', 'value' => $run->current_stage->value],
+            ],
+        );
+    }
+
+    public static function logSdlRunDeleted(SdlRun $run, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::SdlRunDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+            ],
+        );
+    }
+
+    public static function logSdlStageUpdated(
+        SdlRun $run,
+        SdlStageEntry $entry,
+        User $actor,
+        string $previousStatus,
+    ): void {
+        self::persist(
+            type: AuditEventType::SdlStageUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'stage', 'value' => $entry->stage->value],
+                ['field' => 'previous_status', 'value' => $previousStatus],
+                ['field' => 'status', 'value' => $entry->status->value],
             ],
         );
     }

@@ -15,6 +15,7 @@ import {
     Server,
     Shield,
     ShieldAlert,
+    Workflow,
 } from '@lucide/vue';
 import type { LucideIcon } from '@lucide/vue';
 import { index as campaignsIndex } from '@/routes/products/campaigns';
@@ -29,6 +30,7 @@ import { show as productAssistantShow } from '@/routes/products/assistant';
 import { index as requirementsIndex } from '@/routes/products/requirements';
 import { index as productRisksIndex } from '@/routes/products/risks';
 import { index as securityInstructionsIndex } from '@/routes/products/security-instructions';
+import { index as productSdlIndex } from '@/routes/products/sdl';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 import { index as productTasksIndex } from '@/routes/products/tasks';
 import { index as versionsIndex } from '@/routes/products/versions';
@@ -58,6 +60,7 @@ export type ProductModuleKey =
     | 'components'
     | 'vulnerabilities'
     | 'incidents'
+    | 'sdl'
     | 'evidence'
     | 'tasks'
     | 'passport'
@@ -167,6 +170,14 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Siren,
         href: (productId) => productIncidentsIndex(productId).url,
         canViewFlag: 'can_view_incidents',
+    },
+    {
+        key: 'sdl',
+        labelKey: 'products.sdl_link',
+        descriptionKey: 'products.modules.sdl.description',
+        icon: Workflow,
+        href: (productId) => productSdlIndex(productId).url,
+        canViewFlag: 'can_view_products',
     },
     {
         key: 'evidence',
