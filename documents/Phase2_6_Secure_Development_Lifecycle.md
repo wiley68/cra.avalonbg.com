@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 1.5  
+**Версия:** 1.6  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–12 Done; Could 13–14 Done  
+**Статус:** Active — Must Done; Should 7–12 Done; Could 13–15 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -175,16 +175,10 @@ PUT    /products/{product}/sdl/{run}
 DELETE /products/{product}/sdl/{run}
 POST   /products/{product}/sdl/{run}/stages/{stage}
 POST   /products/{product}/sdl/{run}/approve
+GET    /products/{product}/sdl/{run}/export/{format}
 GET    /internal-api/products/{product}/sdl
 GET    /sdl
 GET    /internal-api/sdl
-```
-
-Should/Could (по-късно):
-
-```text
-POST   /products/{product}/sdl/{run}/exceptions
-GET    /products/{product}/sdl/{run}/export/{format}
 ```
 
 ---
@@ -213,7 +207,7 @@ GET    /products/{product}/sdl/{run}/export/{format}
 
 13. ~~Org-level cross-product SDL index~~ **Done**
 14. ~~AI draft for threat notes / checklist (human review)~~ **Done**
-15. Export PDF/Markdown SDL summary for release package
+15. ~~Export PDF/Markdown SDL summary for release package~~ **Done**
 16. Auto-suggest evidence from recent Git sync
 17. Post-release monitoring checklist + dashboard counts
 18. Link SDL run → published USI / tech-doc delta (light)
@@ -278,6 +272,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                    |
 | ------ | ---------- | ------------------------------------------------------------------------------------------ |
+| 1.6    | 2026-07-23 | Could 15 Done — PDF/Markdown SDL summary export for release package                        |
 | 1.5    | 2026-07-23 | Could 14 Done — AI draft for SDL stage notes / checklist (suggest → preview → apply local) |
 | 1.4    | 2026-07-23 | Could 13 Done — org-level cross-product SDL index + sidebar                                |
 | 1.3    | 2026-07-23 | Should 12 Done — `sdl.view` / `sdl.manage` + `can_view_sdl` nav card                       |

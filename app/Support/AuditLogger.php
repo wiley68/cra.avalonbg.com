@@ -573,6 +573,26 @@ class AuditLogger
         );
     }
 
+    public static function logSdlRunExported(
+        SdlRun $run,
+        User $actor,
+        string $format,
+    ): void {
+        self::persist(
+            type: AuditEventType::SdlRunExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+                ['field' => 'format', 'value' => $format],
+            ],
+        );
+    }
+
     public static function logSdlExceptionRecorded(
         SdlRun $run,
         SdlStageEntry $entry,

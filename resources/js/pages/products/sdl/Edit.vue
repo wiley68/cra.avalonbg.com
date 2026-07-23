@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     ExternalLink,
+    FileDown,
     FileText,
     Link2,
     Plus,
@@ -24,6 +25,7 @@ import {
     aiDraft as suggestSdlAiDraft,
     approve as approveSdlRun,
     edit as productSdlEdit,
+    exportMethod as exportSdlRun,
     index as productSdlIndex,
     linkExternalEvidence as linkSdlExternalEvidence,
     revokeApproval as revokeSdlApproval,
@@ -341,6 +343,24 @@ const editableStatuses = computed(() =>
 );
 
 const canEdit = computed(() => props.canManage && !isLocked.value);
+
+const exportMarkdownUrl = computed(
+    () =>
+        exportSdlRun({
+            product: props.product.id,
+            sdlRun: props.run.id,
+            format: 'markdown',
+        }).url,
+);
+
+const exportPdfUrl = computed(
+    () =>
+        exportSdlRun({
+            product: props.product.id,
+            sdlRun: props.run.id,
+            format: 'pdf',
+        }).url,
+);
 
 watch(
     () => props.run.stage_entries,
@@ -699,12 +719,26 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                     {{ t('products.sdl.version_none') }}
                 </p>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="productSdlIndex(props.product.id)">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="productSdlIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportMarkdownUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.sdl.export_markdown') }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.sdl.export_pdf') }}
+                    </a>
+                </Button>
+            </div>
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">

@@ -305,6 +305,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/sdl/{sdlRun}/ai-draft',
             [ProductSdlController::class, 'suggestAiDraft'],
         )->name('products.sdl.ai-draft')->scopeBindings();
+        Route::get(
+            'products/{product}/sdl/{sdlRun}/export/{format}',
+            [ProductSdlController::class, 'export'],
+        )->name('products.sdl.export')->scopeBindings()
+            ->whereIn('format', ['markdown', 'pdf']);
         Route::post(
             'products/{product}/incidents/{incident}/timeline',
             [ProductIncidentController::class, 'storeTimeline'],

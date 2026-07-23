@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Enums\EvidenceType;
 use App\Services\AiAssistantService;
 use App\Services\ProductRepositoryService;
+use App\Services\ProductSdlExportService;
 use App\Services\ProductSdlService;
 use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
@@ -25,6 +26,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -34,6 +36,7 @@ class ProductSdlController extends Controller
         private readonly ProductSdlService $sdl,
         private readonly ProductRepositoryService $repositories,
         private readonly AiAssistantService $assistant,
+        private readonly ProductSdlExportService $exports,
     ) {
     }
 
@@ -182,6 +185,25 @@ class ProductSdlController extends Controller
             'model' => $result['model'],
             'stage' => $stage->value,
         ]);
+    }
+
+    public function export(
+        Product $product,
+        SdlRun $sdlRun,
+        string $format,
+    ): Response {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+        $this->authorize('view', [$sdlRun, $organization]);
+
+        return $this->exports->export(
+            $sdlRun,
+            $product,
+            $organization,
+            $format,
+            request()->user(),
+        );
     }
 
     public function update(
