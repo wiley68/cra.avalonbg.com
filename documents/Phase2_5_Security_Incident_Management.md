@@ -12,7 +12,7 @@
 
 > **Цел на вълната:** product-scoped **Security Incident** register като **отделен обект** от vulnerability (§5.10), с одитируем timeline и връзки към vuln / tasks / evidence — след затворен Phase 2.4.
 
-> **Closeout:** [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md) — следва [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md).
+> **Closeout:** [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md) — следва [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) (Phase 2.6 SDL Closed).
 
 > **Граница с §5.11:** CRA vulnerability reporting wizard (24h/72h/final) остава **само върху `ProductVulnerability`**. Incident authority reporting е отделен Could — reuse на approval/export **pattern**, не на `VulnerabilityReportingService`.
 
@@ -296,7 +296,9 @@ Phase 2.4 User Security Instructions — Closed 2026-07-23
     ↓
 Phase 2.5 Security Incident Management — Closed 2026-07-23 (този документ)
     ↓
-Phase 2.6 Secure Development Lifecycle — Active
+Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23
+    ↓
+Phase 2.7 Technical Documentation — Active
 ```
 
 Reuse:

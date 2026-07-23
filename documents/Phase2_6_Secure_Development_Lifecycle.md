@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 1.9  
+**Версия:** 2.0  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–12 Done; Could 13–18 Done  
+**Статус:** Closed — Phase 2.6 exited (2026-07-23) → [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -10,10 +10,14 @@
 - [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md) (P2 #14 — deferred full SDL workspace)
 - [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md) (Closed — PR / CI / scan evidence hooks)
 - [Phase2_3_Policy_Auditor_AI.md](Phase2_3_Policy_Auditor_AI.md) (Closed — `secure_development` policy type)
+- [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md) (Closed — Phase 2.6 exited)
+- [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) (Active — следваща вълна)
 
 > **Цел на вълната:** product-scoped **SDL workspace** (§5.14) — проследим lifecycle от security requirement / threat review до release security approval и post-release monitoring — без да дублира Policy library, USI или Incident register.
 
-> **Ред на имплементация (предложен):** schema + stage model → CRUD / board UI → evidence & Git link hooks → release approval gate → checklist templates → readiness/tests → Should/Could.
+> **Ред на имплементация:** schema + stage model → CRUD / board UI → evidence & Git link hooks → release approval gate → checklist templates → readiness/tests → Should/Could — **всички Done**.
+
+> **Closeout:** [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md)
 
 > **Граница с вече доставеното:** org Policy `secure_development` остава **policy документ**; USI (§5.17) е customer-facing; GitHub/GitLab (2.1) е **източник на evidence**, не SDL board. Phase 2.6 свързва тези артефакти в operational workflow.
 
@@ -252,9 +256,9 @@ GET    /internal-api/sdl
 ```text
 Phase 2.5 Security Incident Management — Closed 2026-07-23
     ↓
-Phase 2.6 Secure Development Lifecycle (този документ)
+Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23 (този документ)
     ↓
-(по-късно) Tech docs polish / Integration wave 2 — TBD
+Phase 2.7 Technical Documentation — Active
 ```
 
 Reuse:
@@ -272,6 +276,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                    |
 | ------ | ---------- | ------------------------------------------------------------------------------------------ |
+| 2.0    | 2026-07-23 | Closed — Phase 2.6 exited; Must+Should+Could Done → Phase2_6_Release_Closeout; Phase 2.7   |
 | 1.9    | 2026-07-23 | Could 18 Done — light SDL → published USI link + tech-doc delta reviewed flag              |
 | 1.8    | 2026-07-23 | Could 17 Done — post-release monitoring checklist + dashboard counts                       |
 | 1.7    | 2026-07-23 | Could 16 Done — auto-suggest evidence from last Git sync (suggest → attach)                |
