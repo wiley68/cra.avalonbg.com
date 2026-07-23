@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\IncidentCommunicationChannel;
 use App\Enums\IncidentReportChannel;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Http\Requests\CloseProductIncidentRequest;
 use App\Http\Requests\CreateIncidentVulnerabilityRequest;
 use App\Http\Requests\LinkIncidentVulnerabilityRequest;
+use App\Http\Requests\StoreIncidentCustomerCommunicationRequest;
 use App\Http\Requests\StoreIncidentReportRequest;
 use App\Http\Requests\StoreIncidentTimelineEventRequest;
 use App\Http\Requests\StoreProductIncidentRequest;
@@ -104,6 +106,9 @@ class ProductIncidentController extends Controller
             'timelineEvents.creator',
             'reports.submitter',
             'reports.evidence',
+            'customerCommunications.recorder',
+            'customerCommunications.customer',
+            'customerCommunications.evidence',
             'vulnerability',
         ]);
 
@@ -176,6 +181,42 @@ class ProductIncidentController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.incidents.report_added'),
+        ]);
+
+        return redirect()->route('products.incidents.edit', [$product, $incident]);
+    }
+
+    public function storeCustomerCommunication(
+        StoreIncidentCustomerCommunicationRequest $request,
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+
+        $this->incidents->addCustomerCommunication(
+            $incident,
+            [
+                'communicated_at' => $request->input('communicated_at'),
+                'channel' => $request->string('channel')->toString(),
+                'customer_id' => $request->filled('customer_id')
+                    ? (int) $request->input('customer_id')
+                    : null,
+                'audience' => $request->input('audience'),
+                'subject' => $request->string('subject')->toString(),
+                'summary' => $request->input('summary'),
+                'notes' => $request->input('notes'),
+                'evidence_id' => $request->filled('evidence_id')
+                    ? (int) $request->input('evidence_id')
+                    : null,
+            ],
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.communication_added'),
         ]);
 
         return redirect()->route('products.incidents.edit', [$product, $incident]);
@@ -479,7 +520,12 @@ class ProductIncidentController extends Controller
     }
 
     /**
-     * @return array{statuses: list<string>, severities: list<string>, report_channels: list<string>}
+     * @return array{
+     *     statuses: list<string>,
+     *     severities: list<string>,
+     *     report_channels: list<string>,
+     *     communication_channels: list<string>
+     * }
      */
     private function enumOptions(): array
     {
@@ -487,6 +533,7 @@ class ProductIncidentController extends Controller
             'statuses' => array_column(IncidentStatus::cases(), 'value'),
             'severities' => array_column(IncidentSeverity::cases(), 'value'),
             'report_channels' => array_column(IncidentReportChannel::cases(), 'value'),
+            'communication_channels' => array_column(IncidentCommunicationChannel::cases(), 'value'),
         ];
     }
 }

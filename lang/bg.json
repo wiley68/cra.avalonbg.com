@@ -2631,7 +2631,15 @@
                 "report_reference": "Референция на подаването",
                 "report_summary": "Какво е подадено",
                 "report_notes": "Вътрешни бележки",
-                "report_evidence": "Свързано evidence"
+                "report_evidence": "Свързано evidence",
+                "communication_subject": "Тема",
+                "communication_communicated_at": "Комуникирано на",
+                "communication_channel": "Канал",
+                "communication_customer": "Клиент",
+                "communication_audience": "Аудитория",
+                "communication_summary": "Обобщение на съобщението",
+                "communication_notes": "Вътрешни бележки",
+                "communication_evidence": "Свързано evidence"
             },
             "help": {
                 "title": "Кратко име на записа за инцидента.",
@@ -2660,7 +2668,14 @@
                 "report_channel": "Как е подаден докладът.",
                 "report_reference": "Тикет, разписка или case идентификатор от органа.",
                 "report_summary": "Кратко описание на подаденото.",
-                "report_notes": "Вътрешни бележки за подаването."
+                "report_notes": "Вътрешни бележки за подаването.",
+                "communication_subject": "Кратка тема на комуникацията към клиенти.",
+                "communication_communicated_at": "Кога е изпратена или проведена комуникацията.",
+                "communication_channel": "Как са уведомени клиентите.",
+                "communication_customer": "Опционално свързан клиент на организацията.",
+                "communication_audience": "Свободен текст за аудитория, когато няма конкретен клиент (напр. всички засегнати).",
+                "communication_summary": "Какво е съобщено на клиентите.",
+                "communication_notes": "Вътрешни бележки за тази комуникация."
             },
             "statuses": {
                 "open": "Отворен",
@@ -2680,6 +2695,13 @@
                 "portal": "Портал",
                 "other": "Друго"
             },
+            "communication_channels": {
+                "email": "Имейл",
+                "phone": "Телефон",
+                "portal": "Портал",
+                "meeting": "Среща",
+                "other": "Друго"
+            },
             "timeline_added": "Събитието в timeline е добавено.",
             "timeline_title": "Timeline на инцидента",
             "timeline_subtitle": "Основни timestamps и append-only събития от разследването.",
@@ -2692,6 +2714,13 @@
             "reports_add": "Запиши подаване към орган",
             "reports_recorded_by": "Записано от :name",
             "report_added": "Подаването към орган е записано.",
+            "communications_title": "Комуникации с клиенти",
+            "communications_subtitle": "Ръчен лог на outreach към клиенти по инцидента. Отделно от patch campaigns.",
+            "communications_empty": "Все още няма записани комуникации с клиенти.",
+            "communications_add": "Запиши комуникация с клиенти",
+            "communications_recorded_by": "Записано от :name",
+            "communication_added": "Комуникацията с клиенти е записана.",
+            "communication_customer_none": "Без конкретен клиент…",
             "core_timestamps_title": "Основни timestamps",
             "core_timestamps_subtitle": "Старт, откриване, осведоменост и класификация за този инцидент.",
             "investigation_title": "Разследване и отстраняване",
@@ -2872,7 +2901,9 @@
             "incident_status_updated": "Статус на инцидент обновен",
             "incident_closed": "Инцидент затворен",
             "incident_timeline_event_added": "Добавено събитие в timeline на инцидент",
-            "incident_exported": "Инцидент експортиран"
+            "incident_exported": "Инцидент експортиран",
+            "incident_report_added": "Добавен доклад към орган за инцидент",
+            "incident_customer_communication_added": "Добавена комуникация с клиенти за инцидент"
         },
         "event_sources": {
             "workspace": "Workspace",

@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.4  
+**Версия:** 1.5  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13 done)  
+**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–14 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -182,7 +182,8 @@ flowchart TB
 
 ### Опционално по-късно (Could)
 
-- `incident_reports` (authority submission records)
+- ~~`incident_reports` (authority submission records)~~ **Done (Could 13)**
+- ~~`incident_customer_communications` (customer outreach log; ≠ patch campaigns)~~ **Done (Could 14)**
 - CIA impact + attack vector enums
 
 Aligns loosely with Nachalen §9 entity list (`incidents`, `incident_timelines`, `incident_reports`).
@@ -237,7 +238,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 ### Could
 
 13. ~~Authority reports (`incident_reports`) — manual submission record~~ **Done**
-14. Customer communications log (отделно от patch campaigns)
+14. ~~Customer communications log (отделно от patch campaigns)~~ **Done**
 15. CIA impacts + attack vector enums
 16. AI `incident_summary` draft (human review)
 17. Lessons learned → evidence / controls link
@@ -303,6 +304,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.5    | 2026-07-23 | Could 14 Done — incident customer communications log (append-only)    |
 | 1.4    | 2026-07-23 | Could 13 Done — manual authority reports (append-only log)            |
 | 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag    |
 | 1.2    | 2026-07-23 | Should 11 Done — PDF/Markdown incident summary export                 |

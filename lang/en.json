@@ -2631,7 +2631,15 @@
                 "report_reference": "Submission reference",
                 "report_summary": "What was submitted",
                 "report_notes": "Internal notes",
-                "report_evidence": "Linked evidence"
+                "report_evidence": "Linked evidence",
+                "communication_subject": "Subject",
+                "communication_communicated_at": "Communicated at",
+                "communication_channel": "Channel",
+                "communication_customer": "Customer",
+                "communication_audience": "Audience",
+                "communication_summary": "Message summary",
+                "communication_notes": "Internal notes",
+                "communication_evidence": "Linked evidence"
             },
             "help": {
                 "title": "Short name for the incident record.",
@@ -2660,7 +2668,14 @@
                 "report_channel": "How the report was submitted.",
                 "report_reference": "Ticket, receipt, or case identifier from the authority.",
                 "report_summary": "Short description of what was submitted.",
-                "report_notes": "Internal notes about the submission."
+                "report_notes": "Internal notes about the submission.",
+                "communication_subject": "Short subject of the customer communication.",
+                "communication_communicated_at": "When the communication was sent or held.",
+                "communication_channel": "How customers were contacted.",
+                "communication_customer": "Optional linked organization customer.",
+                "communication_audience": "Free-text audience when not linked to one customer (e.g. all affected).",
+                "communication_summary": "What was communicated to customers.",
+                "communication_notes": "Internal notes about this communication."
             },
             "statuses": {
                 "open": "Open",
@@ -2680,6 +2695,13 @@
                 "portal": "Portal",
                 "other": "Other"
             },
+            "communication_channels": {
+                "email": "Email",
+                "phone": "Phone",
+                "portal": "Portal",
+                "meeting": "Meeting",
+                "other": "Other"
+            },
             "timeline_added": "Timeline event added.",
             "timeline_title": "Incident timeline",
             "timeline_subtitle": "Core timestamps and append-only investigation events.",
@@ -2692,6 +2714,13 @@
             "reports_add": "Record authority submission",
             "reports_recorded_by": "Recorded by :name",
             "report_added": "Authority submission recorded.",
+            "communications_title": "Customer communications",
+            "communications_subtitle": "Manual log of incident-related customer outreach. Separate from patch campaigns.",
+            "communications_empty": "No customer communications recorded yet.",
+            "communications_add": "Record customer communication",
+            "communications_recorded_by": "Recorded by :name",
+            "communication_added": "Customer communication recorded.",
+            "communication_customer_none": "No specific customer…",
             "core_timestamps_title": "Core timestamps",
             "core_timestamps_subtitle": "Start, detection, awareness, and classification times for this incident.",
             "investigation_title": "Investigation & remediation",
@@ -2875,7 +2904,8 @@
             "incident_closed": "Incident closed",
             "incident_timeline_event_added": "Incident timeline event added",
             "incident_exported": "Incident exported",
-            "incident_report_added": "Incident authority report added"
+            "incident_report_added": "Incident authority report added",
+            "incident_customer_communication_added": "Incident customer communication added"
         },
         "event_sources": {
             "workspace": "Workspace",

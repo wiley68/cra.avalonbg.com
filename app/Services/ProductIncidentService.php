@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\IncidentCommunicationChannel;
 use App\Enums\IncidentReportChannel;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
@@ -12,6 +13,7 @@ use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Customer;
+use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
 use App\Models\Organization;
@@ -313,6 +315,45 @@ class ProductIncidentService
         return $report;
     }
 
+    /**
+     * @param  array{
+     *     communicated_at: string|\DateTimeInterface,
+     *     channel: string,
+     *     customer_id?: int|null,
+     *     audience?: string|null,
+     *     subject: string,
+     *     summary?: string|null,
+     *     notes?: string|null,
+     *     evidence_id?: int|null
+     * }  $attributes
+     */
+    public function addCustomerCommunication(
+        ProductIncident $incident,
+        array $attributes,
+        ?User $actor = null,
+    ): IncidentCustomerCommunication {
+        /** @var IncidentCustomerCommunication $communication */
+        $communication = $incident->customerCommunications()->create([
+            'communicated_at' => $attributes['communicated_at'],
+            'recorded_by' => $actor?->id,
+            'channel' => IncidentCommunicationChannel::from($attributes['channel']),
+            'customer_id' => $attributes['customer_id'] ?? null,
+            'audience' => $attributes['audience'] ?? null,
+            'subject' => $attributes['subject'],
+            'summary' => $attributes['summary'] ?? null,
+            'notes' => $attributes['notes'] ?? null,
+            'evidence_id' => $attributes['evidence_id'] ?? null,
+        ]);
+
+        $communication->load(['recorder', 'customer', 'evidence']);
+
+        if ($actor instanceof User) {
+            AuditLogger::logIncidentCustomerCommunicationAdded($incident, $communication, $actor);
+        }
+
+        return $communication;
+    }
+
     public function linkVulnerability(
         ProductIncident $incident,
         ProductVulnerability $vulnerability,
@@ -519,6 +560,10 @@ class ProductIncidentService
                 ->map(fn(IncidentReport $report) => $this->authorityReportPayload($report))
                 ->values()
                 ->all(),
+            'customer_communications' => $incident->customerCommunications
+                ->map(fn(IncidentCustomerCommunication $communication) => $this->customerCommunicationPayload($communication))
+                ->values()
+                ->all(),
         ];
     }
 
@@ -551,6 +596,42 @@ class ProductIncidentService
             'evidence_title' => $report->evidence?->title,
             'submitted_by' => $report->submitter?->name,
             'created_at' => $report->created_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     communicated_at: string,
+     *     channel: string,
+     *     customer_id: int|null,
+     *     customer_name: string|null,
+     *     audience: string|null,
+     *     subject: string,
+     *     summary: string|null,
+     *     notes: string|null,
+     *     evidence_id: int|null,
+     *     evidence_title: string|null,
+     *     recorded_by: string|null,
+     *     created_at: string|null
+     * }
+     */
+    public function customerCommunicationPayload(IncidentCustomerCommunication $communication): array
+    {
+        return [
+            'id' => $communication->id,
+            'communicated_at' => $communication->communicated_at->toIso8601String(),
+            'channel' => $communication->channel->value,
+            'customer_id' => $communication->customer_id,
+            'customer_name' => $communication->customer?->name,
+            'audience' => $communication->audience,
+            'subject' => $communication->subject,
+            'summary' => $communication->summary,
+            'notes' => $communication->notes,
+            'evidence_id' => $communication->evidence_id,
+            'evidence_title' => $communication->evidence?->title,
+            'recorded_by' => $communication->recorder?->name,
+            'created_at' => $communication->created_at?->toIso8601String(),
         ];
     }
 

@@ -11,6 +11,7 @@ use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Evidence;
+use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
 use App\Models\OrganizationVcsConnection;
@@ -540,6 +541,27 @@ class AuditLogger
                 ['field' => 'report_id', 'value' => (string) $report->id],
                 ['field' => 'authority', 'value' => $report->authority],
                 ['field' => 'submission_channel', 'value' => $report->submission_channel->value],
+            ],
+        );
+    }
+
+    public static function logIncidentCustomerCommunicationAdded(
+        ProductIncident $incident,
+        IncidentCustomerCommunication $communication,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::IncidentCustomerCommunicationAdded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'communication_id', 'value' => (string) $communication->id],
+                ['field' => 'subject', 'value' => $communication->subject],
+                ['field' => 'channel', 'value' => $communication->channel->value],
             ],
         );
     }

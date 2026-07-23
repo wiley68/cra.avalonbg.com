@@ -510,6 +510,77 @@ test('read-only user cannot append authority report', function () {
     expect($incident->reports()->count())->toBe(0);
 });
 
+test('owner can append customer communication', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Customer communication incident',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::High,
+    ]);
+
+    $communicatedAt = '2026-07-22T17:15';
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.communications.store', [$product, $incident]), [
+            'communicated_at' => $communicatedAt,
+            'channel' => 'email',
+            'audience' => 'All affected customers',
+            'subject' => 'Temporary mitigation available',
+            'summary' => 'Shared workaround steps.',
+            'notes' => 'Sent via support alias',
+        ])
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    $communication = $incident->customerCommunications()->first();
+
+    expect($communication)->not->toBeNull()
+        ->and($communication->subject)->toBe('Temporary mitigation available')
+        ->and($communication->channel->value)->toBe('email')
+        ->and($communication->audience)->toBe('All affected customers')
+        ->and($communication->summary)->toBe('Shared workaround steps.')
+        ->and($communication->notes)->toBe('Sent via support alias')
+        ->and($communication->recorded_by)->toBe($owner->id)
+        ->and($communication->communicated_at->format('Y-m-d\TH:i'))->toBe($communicatedAt);
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/incidents/Edit')
+            ->has('incident.customer_communications', 1)
+            ->where('incident.customer_communications.0.subject', 'Temporary mitigation available')
+            ->where('incident.customer_communications.0.channel', 'email')
+            ->where('incident.customer_communications.0.recorded_by', $owner->name));
+});
+
+test('read-only user cannot append customer communication', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+    $viewer = makeIncidentsOrgReadOnly($organization);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer communication block',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.incidents.communications.store', [$product, $incident]), [
+            'communicated_at' => '2026-07-22T12:00',
+            'channel' => 'phone',
+            'subject' => 'Forbidden outreach',
+        ])
+        ->assertForbidden();
+
+    expect($incident->customerCommunications()->count())->toBe(0);
+});
+
 test('owner can create vulnerability from incident with incident_investigation discovery', function () {
     [$organization, $owner] = makeIncidentsOrgWithOwner();
     [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);

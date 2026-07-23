@@ -36,6 +36,7 @@ const props = defineProps<{
         statuses: string[];
         severities: string[];
         report_channels?: string[];
+        communication_channels?: string[];
     };
 }>();
 

@@ -195,6 +195,20 @@ test('incident create update status and timeline write audit events', function (
         ->exists())->toBeTrue();
 
     $this->actingAs($owner)
+        ->post(route('products.incidents.communications.store', [$product, $incident]), [
+            'communicated_at' => '2026-07-22T16:30',
+            'channel' => 'meeting',
+            'subject' => 'Customer briefing',
+            'summary' => 'Explained containment status',
+        ])
+        ->assertRedirect();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::IncidentCustomerCommunicationAdded->value)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+
+    $this->actingAs($owner)
         ->delete(route('products.incidents.destroy', [$product, $incident]))
         ->assertRedirect(route('products.incidents.index', $product));
 

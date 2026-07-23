@@ -122,6 +122,14 @@ class ProductIncident extends Model
             ->orderByDesc('id');
     }
 
+    /** @return HasMany<IncidentCustomerCommunication, $this> */
+    public function customerCommunications(): HasMany
+    {
+        return $this->hasMany(IncidentCustomerCommunication::class, 'incident_id')
+            ->orderByDesc('communicated_at')
+            ->orderByDesc('id');
+    }
+
     /** @return BelongsToMany<ProductVersion, $this> */
     public function versions(): BelongsToMany
     {

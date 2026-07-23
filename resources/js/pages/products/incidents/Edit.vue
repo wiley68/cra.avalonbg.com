@@ -34,6 +34,7 @@ import {
 } from '@/routes/products/incidents';
 import { store as storeTimelineEvent } from '@/routes/products/incidents/timeline';
 import { store as storeIncidentReport } from '@/routes/products/incidents/reports';
+import { store as storeIncidentCommunication } from '@/routes/products/incidents/communications';
 import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
@@ -82,6 +83,21 @@ type AuthorityReport = {
     submitted_by: string | null;
     created_at: string | null;
 };
+type CustomerCommunication = {
+    id: number;
+    communicated_at: string;
+    channel: string;
+    customer_id: number | null;
+    customer_name: string | null;
+    audience: string | null;
+    subject: string;
+    summary: string | null;
+    notes: string | null;
+    evidence_id: number | null;
+    evidence_title: string | null;
+    recorded_by: string | null;
+    created_at: string | null;
+};
 type IncidentDetail = {
     id: number;
     title: string;
@@ -108,6 +124,7 @@ type IncidentDetail = {
     linked_vulnerability: LinkedVulnerability | null;
     timeline_events: TimelineEvent[];
     authority_reports: AuthorityReport[];
+    customer_communications: CustomerCommunication[];
 };
 
 const props = defineProps<{
@@ -122,6 +139,7 @@ const props = defineProps<{
         statuses: string[];
         severities: string[];
         report_channels: string[];
+        communication_channels: string[];
     };
     canManage: boolean;
 }>();
@@ -190,6 +208,16 @@ const reportForm = useForm({
     submitted_at: nowLocalDatetime(),
     submission_channel: props.options.report_channels[0] ?? 'email',
     submission_reference: '',
+    summary: '',
+    notes: '',
+});
+
+const communicationForm = useForm({
+    communicated_at: nowLocalDatetime(),
+    channel: props.options.communication_channels[0] ?? 'email',
+    customer_id: '' as number | '',
+    audience: '',
+    subject: '',
     summary: '',
     notes: '',
 });
@@ -325,6 +353,33 @@ const submitReport = () => {
                     reportForm.submitted_at = nowLocalDatetime();
                     reportForm.submission_channel =
                         props.options.report_channels[0] ?? 'email';
+                },
+            },
+        );
+};
+
+const submitCommunication = () => {
+    communicationForm
+        .transform((data) => ({
+            ...data,
+            customer_id: data.customer_id === '' ? null : data.customer_id,
+            audience: data.audience || null,
+            summary: data.summary || null,
+            notes: data.notes || null,
+        }))
+        .post(
+            storeIncidentCommunication({
+                product: props.product.id,
+                incident: props.incident.id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    communicationForm.reset();
+                    communicationForm.communicated_at = nowLocalDatetime();
+                    communicationForm.channel =
+                        props.options.communication_channels[0] ?? 'email';
+                    communicationForm.customer_id = '';
                 },
             },
         );
@@ -1478,6 +1533,307 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     <Button type="submit" :disabled="reportForm.processing">
                         <Plus class="h-4 w-4" />
                         {{ t('products.incidents.reports_add') }}
+                    </Button>
+                </div>
+            </form>
+        </section>
+
+        <section class="space-y-4 border-t pt-6">
+            <div>
+                <h2 class="text-base font-semibold">
+                    {{ t('products.incidents.communications_title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('products.incidents.communications_subtitle') }}
+                </p>
+            </div>
+
+            <div
+                v-if="incident.customer_communications.length === 0"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('products.incidents.communications_empty') }}
+            </div>
+
+            <div v-else class="space-y-3">
+                <div
+                    v-for="item in incident.customer_communications"
+                    :key="item.id"
+                    class="rounded-md border px-3 py-2 text-sm"
+                >
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
+                        <span class="font-medium">{{ item.subject }}</span>
+                        <span class="text-xs text-muted-foreground">
+                            {{ formatDateTime(item.communicated_at) }}
+                        </span>
+                    </div>
+                    <div class="mt-1 text-xs text-muted-foreground">
+                        {{ enumLabel('communication_channels', item.channel) }}
+                        <template v-if="item.customer_name">
+                            · {{ item.customer_name }}
+                        </template>
+                        <template v-else-if="item.audience">
+                            · {{ item.audience }}
+                        </template>
+                    </div>
+                    <div
+                        v-if="item.recorded_by"
+                        class="mt-1 text-xs text-muted-foreground"
+                    >
+                        {{
+                            t('products.incidents.communications_recorded_by', {
+                                name: item.recorded_by,
+                            })
+                        }}
+                    </div>
+                    <p
+                        v-if="item.summary"
+                        class="mt-2 whitespace-pre-wrap text-muted-foreground"
+                    >
+                        {{ item.summary }}
+                    </p>
+                    <p
+                        v-if="item.notes"
+                        class="mt-2 whitespace-pre-wrap text-muted-foreground"
+                    >
+                        {{ item.notes }}
+                    </p>
+                    <p
+                        v-if="item.evidence_title"
+                        class="mt-2 text-xs text-muted-foreground"
+                    >
+                        {{
+                            t(
+                                'products.incidents.fields.communication_evidence',
+                            )
+                        }}:
+                        {{ item.evidence_title }}
+                    </p>
+                </div>
+            </div>
+
+            <form
+                v-if="canManage"
+                class="space-y-4 rounded-md border p-4"
+                @submit.prevent="submitCommunication"
+            >
+                <h3 class="text-sm font-medium">
+                    {{ t('products.incidents.communications_add') }}
+                </h3>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="communication_subject"
+                            required
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_subject',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_subject',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="communication_subject"
+                            v-model="communicationForm.subject"
+                            required
+                        />
+                        <InputError
+                            :message="communicationForm.errors.subject"
+                        />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="communication_at"
+                            required
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_communicated_at',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_communicated_at',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="communication_at"
+                            v-model="communicationForm.communicated_at"
+                            type="datetime-local"
+                            required
+                        />
+                        <InputError
+                            :message="communicationForm.errors.communicated_at"
+                        />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="communication_channel"
+                            required
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_channel',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_channel',
+                                )
+                            }}
+                        </FieldLabel>
+                        <select
+                            id="communication_channel"
+                            v-model="communicationForm.channel"
+                            :class="selectClass"
+                            required
+                        >
+                            <option
+                                v-for="channel in options.communication_channels"
+                                :key="channel"
+                                :value="channel"
+                            >
+                                {{
+                                    enumLabel('communication_channels', channel)
+                                }}
+                            </option>
+                        </select>
+                        <InputError
+                            :message="communicationForm.errors.channel"
+                        />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="communication_customer"
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_customer',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_customer',
+                                )
+                            }}
+                        </FieldLabel>
+                        <select
+                            id="communication_customer"
+                            v-model="communicationForm.customer_id"
+                            :class="selectClass"
+                        >
+                            <option value="">
+                                {{
+                                    t(
+                                        'products.incidents.communication_customer_none',
+                                    )
+                                }}
+                            </option>
+                            <option
+                                v-for="customer in customers"
+                                :key="customer.id"
+                                :value="customer.id"
+                            >
+                                {{ customer.name }}
+                            </option>
+                        </select>
+                        <InputError
+                            :message="communicationForm.errors.customer_id"
+                        />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="communication_audience"
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_audience',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_audience',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="communication_audience"
+                            v-model="communicationForm.audience"
+                        />
+                        <InputError
+                            :message="communicationForm.errors.audience"
+                        />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="communication_summary"
+                            :help="
+                                t(
+                                    'products.incidents.help.communication_summary',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_summary',
+                                )
+                            }}
+                        </FieldLabel>
+                        <textarea
+                            id="communication_summary"
+                            v-model="communicationForm.summary"
+                            :class="textareaClass"
+                            rows="3"
+                        />
+                        <InputError
+                            :message="communicationForm.errors.summary"
+                        />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="communication_notes"
+                            :help="
+                                t('products.incidents.help.communication_notes')
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.communication_notes',
+                                )
+                            }}
+                        </FieldLabel>
+                        <textarea
+                            id="communication_notes"
+                            v-model="communicationForm.notes"
+                            :class="textareaClass"
+                            rows="2"
+                        />
+                        <InputError :message="communicationForm.errors.notes" />
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <Button
+                        type="submit"
+                        :disabled="communicationForm.processing"
+                    >
+                        <Plus class="h-4 w-4" />
+                        {{ t('products.incidents.communications_add') }}
                     </Button>
                 </div>
             </form>
