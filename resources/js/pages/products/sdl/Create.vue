@@ -16,12 +16,14 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
+type EvidenceOption = { id: number; title: string };
 type ProductSummary = { id: number; name: string; slug: string };
 
 const props = defineProps<{
     product: ProductSummary;
     members: Member[];
     versions: VersionOption[];
+    evidence: EvidenceOption[];
     options: {
         statuses: string[];
         stages: string[];
@@ -56,6 +58,7 @@ const form = useForm({
     product_version_id: '' as number | '',
     owner_user_id: '' as number | '',
     notes: '',
+    evidence_ids: [] as number[],
 });
 
 const submit = () => {
@@ -71,6 +74,18 @@ const enumLabel = (group: string, value: string): string => {
     const translated = t(key);
 
     return translated === key ? value : translated;
+};
+
+const toggleEvidence = (id: number, checked: boolean) => {
+    if (checked) {
+        if (!form.evidence_ids.includes(id)) {
+            form.evidence_ids.push(id);
+        }
+
+        return;
+    }
+
+    form.evidence_ids = form.evidence_ids.filter((value) => value !== id);
 };
 </script>
 
@@ -231,6 +246,41 @@ const enumLabel = (group: string, value: string): string => {
                     rows="4"
                 />
                 <InputError :message="form.errors.notes" />
+            </div>
+
+            <div class="space-y-2">
+                <FieldLabel :help="t('products.sdl.help.evidence')">
+                    {{ t('products.sdl.fields.evidence') }}
+                </FieldLabel>
+                <div
+                    class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                >
+                    <p
+                        v-if="props.evidence.length === 0"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('products.sdl.no_evidence') }}
+                    </p>
+                    <label
+                        v-for="item in props.evidence"
+                        :key="item.id"
+                        class="flex items-start gap-2 text-sm"
+                    >
+                        <input
+                            type="checkbox"
+                            class="mt-1"
+                            :checked="form.evidence_ids.includes(item.id)"
+                            @change="
+                                toggleEvidence(
+                                    item.id,
+                                    ($event.target as HTMLInputElement).checked,
+                                )
+                            "
+                        />
+                        <span>{{ item.title }}</span>
+                    </label>
+                </div>
+                <InputError :message="form.errors.evidence_ids" />
             </div>
 
             <div class="flex justify-end">

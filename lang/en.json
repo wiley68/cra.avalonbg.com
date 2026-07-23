@@ -2830,6 +2830,7 @@
             "search_placeholder": "Search by title, status or stage...",
             "version_none": "No version pin",
             "none_selected": "— None —",
+            "no_evidence": "No evidence records yet.",
             "stages_heading": "Stage checklist",
             "stages_help": "Mark each §5.14 stage as done, N/A, or exception and add notes for reviewers.",
             "stage_updated": "Stage checklist updated.",
@@ -2852,8 +2853,10 @@
                 "product_version": "Product version",
                 "owner": "Owner",
                 "notes": "Notes",
+                "evidence": "Linked evidence",
                 "stage_status": "Stage status",
-                "stage_notes": "Stage notes"
+                "stage_notes": "Stage notes",
+                "stage_evidence": "Stage evidence"
             },
             "help": {
                 "title": "Short label for this SDL run (feature, release, or security gate).",
@@ -2862,8 +2865,10 @@
                 "product_version": "Optional pin to a product version for this run.",
                 "owner": "Person responsible for driving this SDL run.",
                 "notes": "Free-form context for reviewers and auditors.",
+                "evidence": "Product evidence supporting this SDL run overall (PR, CI, scan, test report).",
                 "stage_status": "Pending until complete. Use N/A when the stage does not apply; exception documents a justified deviation.",
-                "stage_notes": "Threat considerations, checklist outcomes, or rationale for N/A / exception."
+                "stage_notes": "Threat considerations, checklist outcomes, or rationale for N/A / exception.",
+                "stage_evidence": "Evidence specific to this stage (peer review, scan result, test report)."
             },
             "statuses": {
                 "draft": "Draft",

@@ -7,6 +7,7 @@ use App\Enums\SdlStageStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -53,6 +54,17 @@ class SdlStageEntry extends Model
     public function completer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    /** @return BelongsToMany<Evidence, $this> */
+    public function evidence(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Evidence::class,
+            'sdl_stage_evidence',
+            'sdl_stage_entry_id',
+            'evidence_id',
+        )->withTimestamps();
     }
 
     public function isComplete(): bool

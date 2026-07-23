@@ -18,6 +18,7 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
+type EvidenceOption = { id: number; title: string };
 type ProductSummary = { id: number; name: string; slug: string };
 type StageEntry = {
     id: number | null;
@@ -27,10 +28,12 @@ type StageEntry = {
     completed_by: number | null;
     completed_by_name: string | null;
     notes: string | null;
+    evidence_ids: number[];
 };
 type StageDraft = {
     status: string;
     notes: string;
+    evidence_ids: number[];
 };
 type SdlRunDetail = {
     id: number;
@@ -44,6 +47,7 @@ type SdlRunDetail = {
     approved_by_name: string | null;
     is_terminal: boolean;
     is_approved: boolean;
+    evidence_ids: number[];
     stage_entries: StageEntry[];
 };
 
@@ -52,6 +56,7 @@ const props = defineProps<{
     run: SdlRunDetail;
     members: Member[];
     versions: VersionOption[];
+    evidence: EvidenceOption[];
     canManage: boolean;
     options: {
         statuses: string[];
@@ -91,6 +96,7 @@ const form = useForm({
     product_version_id: (props.run.product_version_id ?? '') as number | '',
     owner_user_id: (props.run.owner_user_id ?? '') as number | '',
     notes: props.run.notes ?? '',
+    evidence_ids: [...props.run.evidence_ids],
 });
 
 const buildStageDrafts = (entries: StageEntry[]): Record<string, StageDraft> =>
@@ -100,6 +106,7 @@ const buildStageDrafts = (entries: StageEntry[]): Record<string, StageDraft> =>
             {
                 status: entry.status,
                 notes: entry.notes ?? '',
+                evidence_ids: [...(entry.evidence_ids ?? [])],
             },
         ]),
     );
@@ -116,6 +123,13 @@ watch(
         Object.assign(stageDrafts, buildStageDrafts(entries));
     },
     { deep: true },
+);
+
+watch(
+    () => props.run.evidence_ids,
+    (ids) => {
+        form.evidence_ids = [...ids];
+    },
 );
 
 const submit = () => {
@@ -158,6 +172,7 @@ const saveStage = (stage: string) => {
         {
             status: draft.status,
             notes: draft.notes || null,
+            evidence_ids: draft.evidence_ids,
         },
         {
             preserveScroll: true,
@@ -169,6 +184,36 @@ const saveStage = (stage: string) => {
             },
         },
     );
+};
+
+const toggleRunEvidence = (id: number, checked: boolean) => {
+    if (checked) {
+        if (!form.evidence_ids.includes(id)) {
+            form.evidence_ids.push(id);
+        }
+
+        return;
+    }
+
+    form.evidence_ids = form.evidence_ids.filter((value) => value !== id);
+};
+
+const toggleStageEvidence = (stage: string, id: number, checked: boolean) => {
+    const draft = stageDrafts[stage];
+
+    if (!draft) {
+        return;
+    }
+
+    if (checked) {
+        if (!draft.evidence_ids.includes(id)) {
+            draft.evidence_ids.push(id);
+        }
+
+        return;
+    }
+
+    draft.evidence_ids = draft.evidence_ids.filter((value) => value !== id);
 };
 
 const enumLabel = (group: string, value: string): string => {
@@ -372,6 +417,42 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                     />
                     <InputError :message="form.errors.notes" />
                 </div>
+
+                <div class="space-y-2">
+                    <FieldLabel :help="t('products.sdl.help.evidence')">
+                        {{ t('products.sdl.fields.evidence') }}
+                    </FieldLabel>
+                    <div
+                        class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                    >
+                        <p
+                            v-if="props.evidence.length === 0"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.sdl.no_evidence') }}
+                        </p>
+                        <label
+                            v-for="item in props.evidence"
+                            :key="item.id"
+                            class="flex items-start gap-2 text-sm"
+                        >
+                            <input
+                                type="checkbox"
+                                class="mt-1"
+                                :checked="form.evidence_ids.includes(item.id)"
+                                @change="
+                                    toggleRunEvidence(
+                                        item.id,
+                                        ($event.target as HTMLInputElement)
+                                            .checked,
+                                    )
+                                "
+                            />
+                            <span>{{ item.title }}</span>
+                        </label>
+                    </div>
+                    <InputError :message="form.errors.evidence_ids" />
+                </div>
             </fieldset>
 
             <div
@@ -469,6 +550,54 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                             />
                             <InputError
                                 :message="stageErrors[entry.stage]?.notes"
+                            />
+                        </div>
+
+                        <div class="space-y-2 sm:col-span-2">
+                            <FieldLabel
+                                :help="t('products.sdl.help.stage_evidence')"
+                            >
+                                {{ t('products.sdl.fields.stage_evidence') }}
+                            </FieldLabel>
+                            <div
+                                class="max-h-36 space-y-2 overflow-y-auto rounded-md border p-3"
+                            >
+                                <p
+                                    v-if="props.evidence.length === 0"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ t('products.sdl.no_evidence') }}
+                                </p>
+                                <label
+                                    v-for="item in props.evidence"
+                                    :key="`${entry.stage}-${item.id}`"
+                                    class="flex items-start gap-2 text-sm"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        class="mt-1"
+                                        :checked="
+                                            stageDrafts[
+                                                entry.stage
+                                            ].evidence_ids.includes(item.id)
+                                        "
+                                        @change="
+                                            toggleStageEvidence(
+                                                entry.stage,
+                                                item.id,
+                                                (
+                                                    $event.target as HTMLInputElement
+                                                ).checked,
+                                            )
+                                        "
+                                    />
+                                    <span>{{ item.title }}</span>
+                                </label>
+                            </div>
+                            <InputError
+                                :message="
+                                    stageErrors[entry.stage]?.evidence_ids
+                                "
                             />
                         </div>
                     </fieldset>

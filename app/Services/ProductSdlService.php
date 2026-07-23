@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\SdlRunStatus;
 use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
+use App\Models\Evidence;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\SdlRun;
@@ -64,16 +65,22 @@ class ProductSdlService
 
     /**
      * @param  array<string, mixed>  $attributes
+     * @param  list<int>  $evidenceIds
      */
-    public function create(Product $product, array $attributes, User $actor): SdlRun
-    {
-        $run = DB::transaction(function () use ($product, $attributes) {
+    public function create(
+        Product $product,
+        array $attributes,
+        array $evidenceIds,
+        User $actor,
+    ): SdlRun {
+        $run = DB::transaction(function () use ($product, $attributes, $evidenceIds) {
             $this->assertVersionBelongsToProduct(
                 $product,
                 isset($attributes['product_version_id'])
                 ? (int) $attributes['product_version_id']
                 : null,
             );
+            $this->assertEvidenceBelongToProduct($product, $evidenceIds);
 
             /** @var SdlRun $run */
             $run = SdlRun::query()->create([
@@ -85,8 +92,9 @@ class ProductSdlService
             ]);
 
             $run->ensureStageEntries();
+            $run->evidence()->sync($evidenceIds);
 
-            return $run->load(['owner', 'version', 'stageEntries']);
+            return $run->load(['owner', 'version', 'stageEntries', 'evidence']);
         });
 
         AuditLogger::logSdlRunCreated($run, $actor);
@@ -96,10 +104,15 @@ class ProductSdlService
 
     /**
      * @param  array<string, mixed>  $attributes
+     * @param  list<int>  $evidenceIds
      */
-    public function update(SdlRun $run, array $attributes, User $actor): SdlRun
-    {
-        $run = DB::transaction(function () use ($run, $attributes) {
+    public function update(
+        SdlRun $run,
+        array $attributes,
+        array $evidenceIds,
+        User $actor,
+    ): SdlRun {
+        $run = DB::transaction(function () use ($run, $attributes, $evidenceIds) {
             $run->loadMissing('product');
 
             $this->assertVersionBelongsToProduct(
@@ -110,10 +123,12 @@ class ProductSdlService
                     : null)
                 : $run->product_version_id,
             );
+            $this->assertEvidenceBelongToProduct($run->product, $evidenceIds);
 
             $run->update($attributes);
+            $run->evidence()->sync($evidenceIds);
 
-            return $run->fresh(['owner', 'version', 'stageEntries']) ?? $run;
+            return $run->fresh(['owner', 'version', 'stageEntries.evidence', 'evidence']) ?? $run;
         });
 
         AuditLogger::logSdlRunUpdated($run, $actor);
@@ -128,9 +143,9 @@ class ProductSdlService
     }
 
     /**
-     * Update a single stage checklist entry (status + notes).
+     * Update a single stage checklist entry (status + notes + evidence links).
      *
-     * @param  array{status: SdlStageStatus|string, notes?: string|null}  $attributes
+     * @param  array{status: SdlStageStatus|string, notes?: string|null, evidence_ids?: list<int>}  $attributes
      */
     public function updateStage(
         SdlRun $run,
@@ -139,6 +154,7 @@ class ProductSdlService
         User $actor,
     ): SdlStageEntry {
         $run->ensureStageEntries();
+        $run->loadMissing('product');
 
         /** @var SdlStageEntry $entry */
         $entry = $run->stageEntries()
@@ -150,7 +166,11 @@ class ProductSdlService
             ? $attributes['status']
             : SdlStageStatus::from((string) $attributes['status']);
 
-        $entry = DB::transaction(function () use ($run, $entry, $status, $attributes, $actor, $stage) {
+        $evidenceIds = array_key_exists('evidence_ids', $attributes)
+            ? array_values(array_map('intval', $attributes['evidence_ids'] ?? []))
+            : null;
+
+        $entry = DB::transaction(function () use ($run, $entry, $status, $attributes, $actor, $stage, $evidenceIds) {
             $wasComplete = $entry->status->isComplete();
             $isComplete = $status->isComplete();
 
@@ -171,9 +191,14 @@ class ProductSdlService
 
             $entry->save();
 
+            if ($evidenceIds !== null) {
+                $this->assertEvidenceBelongToProduct($run->product, $evidenceIds);
+                $entry->evidence()->sync($evidenceIds);
+            }
+
             $this->syncCurrentStageAfterChecklistChange($run, $stage, $status);
 
-            return $entry->fresh(['completer']) ?? $entry;
+            return $entry->fresh(['completer', 'evidence']) ?? $entry;
         });
 
         AuditLogger::logSdlStageUpdated($run, $entry, $actor, $previousStatus);
@@ -264,12 +289,15 @@ class ProductSdlService
     public function detailPayload(SdlRun $run): array
     {
         if (!$run->relationLoaded('stageEntries')) {
-            $run->load(['stageEntries.completer']);
+            $run->load(['stageEntries.completer', 'stageEntries.evidence']);
         } elseif (
             $run->stageEntries->isNotEmpty()
-            && !$run->stageEntries->first()?->relationLoaded('completer')
+            && (
+                !$run->stageEntries->first()?->relationLoaded('completer')
+                || !$run->stageEntries->first()?->relationLoaded('evidence')
+            )
         ) {
-            $run->load(['stageEntries.completer']);
+            $run->load(['stageEntries.completer', 'stageEntries.evidence']);
         }
 
         if (!$run->relationLoaded('owner')) {
@@ -282,6 +310,10 @@ class ProductSdlService
 
         if (!$run->relationLoaded('approver')) {
             $run->load('approver');
+        }
+
+        if (!$run->relationLoaded('evidence')) {
+            $run->load('evidence');
         }
 
         $orderedStages = SdlStage::ordered();
@@ -302,6 +334,7 @@ class ProductSdlService
             'approved_by_name' => $run->approver?->name,
             'is_terminal' => $run->isTerminal(),
             'is_approved' => $run->isApproved(),
+            'evidence_ids' => $run->evidence->pluck('id')->all(),
             'stage_entries' => collect($orderedStages)
                 ->map(function (SdlStage $stage) use ($entriesByStage) {
                     $entry = $entriesByStage->get($stage->value);
@@ -314,6 +347,7 @@ class ProductSdlService
                         'completed_by' => $entry?->completed_by,
                         'completed_by_name' => $entry?->completer?->name,
                         'notes' => $entry?->notes,
+                        'evidence_ids' => $entry?->evidence->pluck('id')->all() ?? [],
                     ];
                 })
                 ->values()
@@ -335,6 +369,30 @@ class ProductSdlService
         if (!$exists) {
             throw ValidationException::withMessages([
                 'product_version_id' => 'The selected version does not belong to this product.',
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $evidenceIds
+     */
+    private function assertEvidenceBelongToProduct(Product $product, array $evidenceIds): void
+    {
+        if ($evidenceIds === []) {
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $evidenceIds)));
+
+        $count = Evidence::query()
+            ->where('organization_id', $product->organization_id)
+            ->where('product_id', $product->id)
+            ->whereIn('id', $uniqueIds)
+            ->count();
+
+        if ($count !== count($uniqueIds)) {
+            throw ValidationException::withMessages([
+                'evidence_ids' => ['One or more evidence records do not belong to this product.'],
             ]);
         }
     }

@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateSdlStageRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
+use App\Models\Evidence;
 use App\Models\SdlRun;
 use App\Models\User;
 use App\Services\ProductSdlService;
@@ -52,6 +53,7 @@ class ProductSdlController extends Controller
             'product' => $this->productPayload($product),
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
+            'evidence' => $this->evidenceOptions($product),
             'options' => $this->enumOptions(),
         ]);
     }
@@ -64,6 +66,7 @@ class ProductSdlController extends Controller
         $run = $this->sdl->create(
             $product,
             $this->validatedAttributes($request),
+            array_map('intval', $request->input('evidence_ids', [])),
             $request->user(),
         );
 
@@ -82,7 +85,7 @@ class ProductSdlController extends Controller
         $this->assertRunBelongsToProduct($sdlRun, $product);
         $this->authorize('view', [$sdlRun, $organization]);
 
-        $sdlRun->load(['owner', 'version', 'approver', 'stageEntries.completer']);
+        $sdlRun->load(['owner', 'version', 'approver', 'evidence', 'stageEntries.completer', 'stageEntries.evidence']);
 
         return Inertia::render('products/sdl/Edit', [
             'organization' => $this->organizationPayload($organization),
@@ -90,6 +93,7 @@ class ProductSdlController extends Controller
             'run' => $this->sdl->detailPayload($sdlRun),
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
+            'evidence' => $this->evidenceOptions($product),
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
@@ -107,6 +111,7 @@ class ProductSdlController extends Controller
         $this->sdl->update(
             $sdlRun,
             $this->validatedAttributes($request),
+            array_map('intval', $request->input('evidence_ids', [])),
             $request->user(),
         );
 
@@ -157,6 +162,7 @@ class ProductSdlController extends Controller
             [
                 'status' => SdlStageStatus::from($request->string('status')->toString()),
                 'notes' => $request->input('notes'),
+                'evidence_ids' => array_map('intval', $request->input('evidence_ids', [])),
             ],
             $request->user(),
         );
@@ -246,6 +252,23 @@ class ProductSdlController extends Controller
             ->map(fn(ProductVersion $version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, title: string}>
+     */
+    private function evidenceOptions(Product $product): array
+    {
+        return Evidence::query()
+            ->where('product_id', $product->id)
+            ->where('organization_id', $product->organization_id)
+            ->orderBy('title')
+            ->get(['id', 'title'])
+            ->map(fn(Evidence $item) => [
+                'id' => $item->id,
+                'title' => $item->title,
             ])
             ->all();
     }

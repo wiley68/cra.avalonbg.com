@@ -2,6 +2,9 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceConfidentiality;
+use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\EvidenceType;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
@@ -11,6 +14,7 @@ use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
 use App\Enums\SupportStatus;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
@@ -20,6 +24,7 @@ use App\Models\SdlStageEntry;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -368,4 +373,90 @@ test('read-only viewer cannot update sdl stage checklist', function () {
             'notes' => 'Nope',
         ])
         ->assertForbidden();
+});
+
+test('owner can link evidence to sdl run and stage', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $runEvidence = Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'type' => EvidenceType::Document,
+        'title' => 'Release security checklist',
+        'confidentiality' => EvidenceConfidentiality::Internal,
+        'freshness_status' => EvidenceFreshnessStatus::Current,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $stageEvidence = Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'type' => EvidenceType::Document,
+        'title' => 'Code review record',
+        'confidentiality' => EvidenceConfidentiality::Internal,
+        'freshness_status' => EvidenceFreshnessStatus::Current,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.sdl.store', $product), [
+            'title' => 'Evidence-linked run',
+            'status' => SdlRunStatus::Draft->value,
+            'current_stage' => SdlStage::CodeReview->value,
+            'evidence_ids' => [$runEvidence->id],
+        ])
+        ->assertRedirect();
+
+    $run = SdlRun::query()
+        ->where('product_id', $product->id)
+        ->where('title', 'Evidence-linked run')
+        ->firstOrFail();
+
+    expect($run->evidence()->pluck('evidence.id')->all())->toContain($runEvidence->id);
+
+    $this->actingAs($owner)
+        ->put(route('products.sdl.update', [$product, $run]), [
+            'title' => 'Evidence-linked run',
+            'status' => SdlRunStatus::InProgress->value,
+            'current_stage' => SdlStage::CodeReview->value,
+            'evidence_ids' => [$runEvidence->id, $stageEvidence->id],
+        ])
+        ->assertRedirect();
+
+    expect($run->fresh()->evidence()->pluck('evidence.id')->sort()->values()->all())
+        ->toEqual(collect([$runEvidence->id, $stageEvidence->id])->sort()->values()->all());
+
+    $this->actingAs($owner)
+        ->put(route('products.sdl.stages.update', [
+            'product' => $product,
+            'sdlRun' => $run,
+            'stage' => SdlStage::CodeReview->value,
+        ]), [
+            'status' => SdlStageStatus::Done->value,
+            'notes' => 'Peer review complete.',
+            'evidence_ids' => [$stageEvidence->id],
+        ])
+        ->assertRedirect();
+
+    $entry = SdlStageEntry::query()
+        ->where('sdl_run_id', $run->id)
+        ->where('stage', SdlStage::CodeReview->value)
+        ->firstOrFail();
+
+    expect($entry->evidence()->pluck('evidence.id')->all())->toContain($stageEvidence->id)
+        ->and(
+            DB::table('sdl_stage_evidence')
+                ->where('sdl_stage_entry_id', $entry->id)
+                ->where('evidence_id', $stageEvidence->id)
+                ->exists(),
+        )->toBeTrue();
+
+    $runId = $run->id;
+    $this->actingAs($owner)
+        ->delete(route('products.sdl.destroy', [$product, $run]))
+        ->assertRedirect();
+
+    expect(DB::table('sdl_run_evidence')->where('sdl_run_id', $runId)->exists())->toBeFalse()
+        ->and(DB::table('sdl_stage_evidence')->where('sdl_stage_entry_id', $entry->id)->exists())->toBeFalse();
 });

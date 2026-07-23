@@ -45,6 +45,15 @@ class StoreSdlRunRequest extends FormRequest
             ],
             'owner_user_id' => ['nullable', 'integer', $memberRule],
             'notes' => ['nullable', 'string'],
+            'evidence_ids' => ['nullable', 'array'],
+            'evidence_ids.*' => [
+                'integer',
+                Rule::exists('evidence', 'id')->where(
+                    fn($query) => $query
+                        ->where('organization_id', $organization?->id)
+                        ->where('product_id', $product->id),
+                ),
+            ],
         ];
     }
 

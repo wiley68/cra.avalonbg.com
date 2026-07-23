@@ -2830,6 +2830,7 @@
             "search_placeholder": "Търсене по заглавие, статус или етап...",
             "version_none": "Без версия",
             "none_selected": "— Няма —",
+            "no_evidence": "Все още няма evidence записи.",
             "stages_heading": "Чеклист по етапи",
             "stages_help": "Маркирайте всеки §5.14 етап като готов, N/A или изключение и добавете бележки за ревюъри.",
             "stage_updated": "Чеклистът по етап е обновен.",
@@ -2852,8 +2853,10 @@
                 "product_version": "Продуктова версия",
                 "owner": "Собственик",
                 "notes": "Бележки",
+                "evidence": "Свързани evidence",
                 "stage_status": "Статус на етапа",
-                "stage_notes": "Бележки към етапа"
+                "stage_notes": "Бележки към етапа",
+                "stage_evidence": "Evidence за етапа"
             },
             "help": {
                 "title": "Кратко име на този SDL run (feature, release или security gate).",
@@ -2862,8 +2865,10 @@
                 "product_version": "Опционално прикачване към продуктова версия.",
                 "owner": "Лице, отговорно за воденето на този SDL run.",
                 "notes": "Свободен контекст за ревюъри и одитори.",
+                "evidence": "Product evidence в подкрепа на целия SDL run (PR, CI, scan, test report).",
                 "stage_status": "Чакащ до завършване. N/A когато етапът не се прилага; exception документира обосновано отклонение.",
-                "stage_notes": "Threat considerations, резултати от чеклист или обосновка за N/A / exception."
+                "stage_notes": "Threat considerations, резултати от чеклист или обосновка за N/A / exception.",
+                "stage_evidence": "Evidence конкретно за този етап (peer review, scan, test report)."
             },
             "statuses": {
                 "draft": "Чернова",

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\SdlStageStatus;
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\SdlRun;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,9 +27,22 @@ class UpdateSdlStageRequest extends FormRequest
      */
     public function rules(): array
     {
+        $organization = $this->currentOrganization();
+        /** @var Product $product */
+        $product = $this->route('product');
+
         return [
             'status' => ['required', Rule::enum(SdlStageStatus::class)],
             'notes' => ['nullable', 'string'],
+            'evidence_ids' => ['nullable', 'array'],
+            'evidence_ids.*' => [
+                'integer',
+                Rule::exists('evidence', 'id')->where(
+                    fn($query) => $query
+                        ->where('organization_id', $organization?->id)
+                        ->where('product_id', $product->id),
+                ),
+            ],
         ];
     }
 

@@ -8,6 +8,7 @@ use App\Enums\SdlStageStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,17 @@ class SdlRun extends Model
     public function stageEntries(): HasMany
     {
         return $this->hasMany(SdlStageEntry::class, 'sdl_run_id');
+    }
+
+    /** @return BelongsToMany<Evidence, $this> */
+    public function evidence(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Evidence::class,
+            'sdl_run_evidence',
+            'sdl_run_id',
+            'evidence_id',
+        )->withTimestamps();
     }
 
     public function isActive(): bool
