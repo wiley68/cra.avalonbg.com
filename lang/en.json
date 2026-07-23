@@ -2918,6 +2918,7 @@
             "stage_completed_meta": "Completed :when",
             "stage_completed_by": "by :name",
             "approved_banner": "Release security approval recorded",
+            "approved_post_release_help": "Publication and post-release monitoring stages can still be completed while this run stays approved.",
             "approval_heading": "Release security approval",
             "approval_help": "Approve only after stages through Release approval are complete and the release approval stage is marked Done. Approved status cannot be set from the status field.",
             "approve": "Approve release security",
@@ -3195,7 +3196,9 @@
             "risks": "Risks",
             "overdue_reporting": "Overdue reporting",
             "open_incidents": "Open incidents",
-            "unclassified_incidents": "Unclassified incidents"
+            "unclassified_incidents": "Unclassified incidents",
+            "sdl_approved": "Approved SDL runs",
+            "sdl_pending_monitoring": "SDL pending monitoring"
         },
         "actions": {
             "manage_organizations": "Manage organizations",
@@ -3214,7 +3217,8 @@
             "open_tasks": "Open corrective tasks",
             "overdue_tasks": "Overdue corrective tasks",
             "releases_awaiting_approval": "Versions awaiting security / release approval",
-            "overdue_reporting": "Overdue vulnerability reporting deadlines"
+            "overdue_reporting": "Overdue vulnerability reporting deadlines",
+            "sdl_pending_monitoring": "Approved SDL runs with pending post-release monitoring"
         }
     },
     "settings": {

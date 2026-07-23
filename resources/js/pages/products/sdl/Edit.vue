@@ -266,7 +266,7 @@ const xsrfToken = (): string => {
 };
 
 const requestAiStageDraft = async (stage: string): Promise<void> => {
-    if (!canEdit.value || !props.aiEnabled) {
+    if (!canEditStage(stage) || !props.aiEnabled) {
         return;
     }
 
@@ -362,6 +362,14 @@ const editableStatuses = computed(() =>
 
 const canEdit = computed(() => props.canManage && !isLocked.value);
 
+const POST_RELEASE_STAGES = ['publication', 'monitoring'] as const;
+
+const isPostReleaseStage = (stage: string): boolean =>
+    (POST_RELEASE_STAGES as readonly string[]).includes(stage);
+
+const canEditStage = (stage: string): boolean =>
+    props.canManage && (!isLocked.value || isPostReleaseStage(stage));
+
 const exportMarkdownUrl = computed(
     () =>
         exportSdlRun({
@@ -413,7 +421,7 @@ const submit = () => {
 };
 
 const saveStage = (stage: string) => {
-    if (!canEdit.value) {
+    if (!canEditStage(stage)) {
         return;
     }
 
@@ -545,7 +553,7 @@ const fillStageTemplate = (stage: string): void => {
 };
 
 const requestApplyTemplate = (stage: string): void => {
-    if (!canEdit.value || !hasStageTemplate(stage)) {
+    if (!canEditStage(stage) || !hasStageTemplate(stage)) {
         return;
     }
 
@@ -1055,16 +1063,13 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                         }}
                                     </p>
                                     <p class="text-sm text-muted-foreground">
-                                        {{
-                                            t('products.sdl.git_suggest_help')
-                                        }}
+                                        {{ t('products.sdl.git_suggest_help') }}
                                     </p>
                                 </div>
                                 <ul class="space-y-3">
                                     <li
-                                        v-for="(
-                                            item, index
-                                        ) in props.git_suggestions.items"
+                                        v-for="(item, index) in props
+                                            .git_suggestions.items"
                                         :key="`${item.kind}-${item.evidence_id ?? item.url ?? index}`"
                                         class="space-y-2 rounded-md border p-2 text-sm"
                                     >
@@ -1086,9 +1091,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                                 class="text-xs text-muted-foreground"
                                             >
                                                 <template
-                                                    v-if="
-                                                        item.ci_conclusion
-                                                    "
+                                                    v-if="item.ci_conclusion"
                                                 >
                                                     {{
                                                         t(
@@ -1129,9 +1132,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                                 class="mt-1 inline-flex items-center gap-1 text-xs underline-offset-4 hover:underline"
                                             >
                                                 {{ item.url }}
-                                                <ExternalLink
-                                                    class="h-3 w-3"
-                                                />
+                                                <ExternalLink class="h-3 w-3" />
                                             </a>
                                         </div>
                                         <div
@@ -1140,8 +1141,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                         >
                                             <template
                                                 v-if="
-                                                    item.kind ===
-                                                        'snapshot' &&
+                                                    item.kind === 'snapshot' &&
                                                     item.evidence_id
                                                 "
                                             >
@@ -1453,6 +1453,12 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                         ({{ formatDateTime(props.run.approved_at) }})
                     </span>
                 </p>
+                <p
+                    v-if="props.canManage"
+                    class="mt-2 text-emerald-800 dark:text-emerald-200"
+                >
+                    {{ t('products.sdl.approved_post_release_help') }}
+                </p>
             </div>
 
             <section
@@ -1535,7 +1541,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
 
                     <fieldset
                         class="grid gap-3 sm:grid-cols-2"
-                        :disabled="!canEdit"
+                        :disabled="!canEditStage(entry.stage)"
                     >
                         <div class="space-y-2">
                             <FieldLabel
@@ -1576,7 +1582,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                 <div class="flex flex-wrap gap-2">
                                     <Button
                                         v-if="
-                                            canEdit &&
+                                            canEditStage(entry.stage) &&
                                             hasStageTemplate(entry.stage)
                                         "
                                         type="button"
@@ -1590,7 +1596,10 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                         {{ t('products.sdl.apply_template') }}
                                     </Button>
                                     <Button
-                                        v-if="canEdit && aiEnabled"
+                                        v-if="
+                                            canEditStage(entry.stage) &&
+                                            aiEnabled
+                                        "
                                         type="button"
                                         variant="outline"
                                         size="sm"
@@ -1820,7 +1829,10 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                         </div>
                     </fieldset>
 
-                    <div v-if="canEdit" class="flex justify-end">
+                    <div
+                        v-if="canEditStage(entry.stage)"
+                        class="flex justify-end"
+                    >
                         <Button
                             type="button"
                             variant="outline"

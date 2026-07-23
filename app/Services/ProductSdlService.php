@@ -345,7 +345,7 @@ class ProductSdlService
         ?SdlStage $stage,
         User $actor,
     ): Evidence {
-        $this->assertRunEditable($run);
+        $this->assertStageEditable($run, $stage);
         $run->loadMissing('product');
 
         $normalizedUrl = $this->normalizeExternalEvidenceUrl($url);
@@ -591,7 +591,7 @@ class ProductSdlService
         array $attributes,
         User $actor,
     ): SdlStageEntry {
-        $this->assertRunEditable($run);
+        $this->assertStageEditable($run, $stage);
         $run->ensureStageEntries();
         $run->loadMissing('product');
 
@@ -1058,6 +1058,25 @@ class ProductSdlService
                 'status' => [Translations::get('products.sdl.approved_locked')],
             ]);
         }
+    }
+
+    /**
+     * Stage checklist (and stage-targeted Git evidence) may still be edited for
+     * post-release stages after approval; pre-gate stages stay locked.
+     */
+    private function assertStageEditable(SdlRun $run, ?SdlStage $stage): void
+    {
+        if ($run->status !== SdlRunStatus::Approved) {
+            return;
+        }
+
+        if ($stage === null || $stage->isPostRelease()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'status' => [Translations::get('products.sdl.approved_locked')],
+        ]);
     }
 
     private function assertStatusNotApprovedViaForm(mixed $status): void

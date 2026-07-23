@@ -141,6 +141,22 @@ const severityClass = (severity: string): string => {
                     {{ dashboard.counts.overdue_reporting ?? 0 }}
                 </p>
             </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.sdl_approved') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.sdl_approved ?? 0 }}
+                </p>
+            </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.sdl_pending_monitoring') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.sdl_pending_monitoring ?? 0 }}
+                </p>
+            </div>
         </div>
 
         <div class="space-y-3">

@@ -219,7 +219,7 @@ test('stage templates endpoint returns markdown payloads', function () {
         ->assertInertia(fn($page) => $page
             ->component('products/sdl/Create')
             ->where('options.default_locale', 'en')
-            ->has('options.template_stages', 6));
+            ->has('options.template_stages', 8));
 
     $run = SdlRun::query()->create([
         'organization_id' => $organization->id,

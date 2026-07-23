@@ -6,6 +6,9 @@ use App\Enums\ClassificationStatus;
 use App\Enums\EvidenceFreshnessStatus;
 use App\Enums\IncidentStatus;
 use App\Enums\ProductVersionState;
+use App\Enums\SdlRunStatus;
+use App\Enums\SdlStage;
+use App\Enums\SdlStageStatus;
 use App\Enums\SupportPeriodStartBasis;
 use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
@@ -18,6 +21,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductSupportPeriod;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
+use App\Models\SdlRun;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -42,7 +46,7 @@ class DashboardService
             return $this->emptyDashboard();
         }
 
-        return $this->organizationDashboard($organization);
+        return $this->organizationDashboard($organization, $user);
     }
 
     /**
@@ -87,7 +91,7 @@ class DashboardService
     /**
      * @return array<string, mixed>
      */
-    private function organizationDashboard(Organization $organization): array
+    private function organizationDashboard(Organization $organization, User $user): array
     {
         /** @var Collection<int, int|string> $productIds */
         $productIds = Product::query()
@@ -102,6 +106,8 @@ class DashboardService
         $unclassifiedIncidents = $this->unclassifiedIncidentCount($productIds);
         $openTasksAction = $this->openTasksAction($productIds);
         $supportBuckets = $this->supportEndingBuckets($productIds);
+        $sdlPendingMonitoring = $this->sdlPendingMonitoringCount($organization);
+        $sdlApproved = $this->sdlApprovedCount($organization);
 
         $actions = array_values(array_filter([
             $this->countAction(
@@ -171,6 +177,14 @@ class DashboardService
                 'fail',
                 $overdueReporting,
             ),
+            $user->canViewSdl($organization)
+            ? $this->countAction(
+                'sdl_pending_monitoring',
+                'warn',
+                $sdlPendingMonitoring,
+                route('sdl.index'),
+            )
+            : null,
         ]));
 
         return [
@@ -189,6 +203,8 @@ class DashboardService
                 'overdue_reporting' => $overdueReporting,
                 'open_incidents' => $openIncidents,
                 'unclassified_incidents' => $unclassifiedIncidents,
+                'sdl_approved' => $sdlApproved,
+                'sdl_pending_monitoring' => $sdlPendingMonitoring,
             ],
             'actions' => $actions,
         ];
@@ -197,8 +213,12 @@ class DashboardService
     /**
      * @return array<string, mixed>|null
      */
-    private function countAction(string $key, string $severity, int $count): ?array
-    {
+    private function countAction(
+        string $key,
+        string $severity,
+        int $count,
+        ?string $href = null,
+    ): ?array {
         if ($count <= 0) {
             return null;
         }
@@ -208,8 +228,29 @@ class DashboardService
             'severity' => $severity,
             'title_key' => 'dashboard.actions.' . $key,
             'count' => $count,
-            'href' => route('products.index'),
+            'href' => $href ?? route('products.index'),
         ];
+    }
+
+    private function sdlApprovedCount(Organization $organization): int
+    {
+        return SdlRun::query()
+            ->where('organization_id', $organization->id)
+            ->where('status', SdlRunStatus::Approved)
+            ->count();
+    }
+
+    private function sdlPendingMonitoringCount(Organization $organization): int
+    {
+        return SdlRun::query()
+            ->where('organization_id', $organization->id)
+            ->where('status', SdlRunStatus::Approved)
+            ->whereHas('stageEntries', function ($query): void {
+                $query
+                    ->where('stage', SdlStage::Monitoring)
+                    ->where('status', SdlStageStatus::Pending);
+            })
+            ->count();
     }
 
     private function unclassifiedProductCount(Organization $organization): int

@@ -57,4 +57,20 @@ enum SdlStage: string
     {
         return $this === self::ReleaseApproval;
     }
+
+    /**
+     * Stages that remain editable after release security approval (post-release ops).
+     */
+    public function isPostRelease(): bool
+    {
+        return in_array($this, [self::Publication, self::Monitoring], true);
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function postRelease(): array
+    {
+        return [self::Publication, self::Monitoring];
+    }
 }

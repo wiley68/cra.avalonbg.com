@@ -20,6 +20,8 @@ class SdlStageNoteTemplates
             SdlStage::CodeReview,
             SdlStage::DependencyScan,
             SdlStage::SecurityTest,
+            SdlStage::Publication,
+            SdlStage::Monitoring,
         ];
     }
 
@@ -43,6 +45,8 @@ class SdlStageNoteTemplates
             SdlStage::CodeReview => self::codeReview($locale),
             SdlStage::DependencyScan => self::dependencyScan($locale),
             SdlStage::SecurityTest => self::securityTest($locale),
+            SdlStage::Publication => self::publication($locale),
+            SdlStage::Monitoring => self::monitoring($locale),
             default => null,
         };
     }
@@ -264,6 +268,72 @@ MD;
 - [ ] Evidence (test report) linked to this stage
 
 > If no test applies, mark N/A with clear rationale.
+MD;
+    }
+
+    private static function publication(string $locale): string
+    {
+        if ($locale === 'bg') {
+            return <<<'MD'
+## Публикация / release
+
+Проверки около публикуването след одобрение за сигурност.
+
+- [ ] Release артефактите съответстват на одобрената версия
+- [ ] Release notes / известни ограничения са готови
+- [ ] Customer / support комуникацията е планирана (ако е приложимо)
+- [ ] Rollback / hotfix път е ясен
+- [ ] Evidence (tag, package, changelog) е свързано
+
+> Този етап може да се попълни след release security approval.
+MD;
+        }
+
+        return <<<'MD'
+## Publication / release
+
+Checks around shipping after release security approval.
+
+- [ ] Release artifacts match the approved version
+- [ ] Release notes / known limitations are ready
+- [ ] Customer / support communication is planned (if applicable)
+- [ ] Rollback / hotfix path is clear
+- [ ] Evidence (tag, package, changelog) is linked
+
+> This stage can be completed after release security approval.
+MD;
+    }
+
+    private static function monitoring(string $locale): string
+    {
+        if ($locale === 'bg') {
+            return <<<'MD'
+## Post-release мониторинг
+
+Лек checklist след публикация (без SIEM).
+
+- [ ] Наблюдението на грешки / health signals е активно за периода след release
+- [ ] Канал за сигнали (on-call / triage) е известен
+- [ ] Критични инциденти / regressions се ескалират към Incident / Vulnerability workspace
+- [ ] Прозорецът за първоначален мониторинг е дефиниран (напр. 7 / 14 дни)
+- [ ] Остатъчни actions или N/A са записани с owner
+
+> Не изисква SIEM — запишете какво се наблюдава и къде.
+MD;
+        }
+
+        return <<<'MD'
+## Post-release monitoring
+
+Lightweight checklist after publication (no SIEM).
+
+- [ ] Error / health signal watching is active for the post-release window
+- [ ] Alert / triage channel is known
+- [ ] Critical incidents / regressions escalate to Incident / Vulnerability workspace
+- [ ] Initial monitoring window is defined (e.g. 7 / 14 days)
+- [ ] Residual actions or N/A are recorded with an owner
+
+> Does not require SIEM — record what is watched and where.
 MD;
     }
 }

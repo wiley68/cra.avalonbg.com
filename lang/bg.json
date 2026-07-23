@@ -2918,6 +2918,7 @@
             "stage_completed_meta": "Завършен :when",
             "stage_completed_by": "от :name",
             "approved_banner": "Записано е одобрение за сигурност на изданието",
+            "approved_post_release_help": "Етапите „Публикация“ и post-release мониторинг все още могат да се попълнят, докато записът остава одобрен.",
             "approval_heading": "Одобрение за сигурност на изданието",
             "approval_help": "Одобрявайте само след като етапите до „Одобрение за release“ са завършени и този етап е маркиран като Готов. Статус „одобрен“ не се задава от полето за статус.",
             "approve": "Одобри сигурността на изданието",
@@ -3193,7 +3194,9 @@
             "risks": "Рискове",
             "overdue_reporting": "Просрочено докладване",
             "open_incidents": "Отворени инциденти",
-            "unclassified_incidents": "Некласифицирани инциденти"
+            "unclassified_incidents": "Некласифицирани инциденти",
+            "sdl_approved": "Одобрени SDL записи",
+            "sdl_pending_monitoring": "SDL с чакащ мониторинг"
         },
         "actions": {
             "manage_organizations": "Управление на организации",
@@ -3212,7 +3215,8 @@
             "open_tasks": "Отворени коригиращи задачи",
             "overdue_tasks": "Просрочени коригиращи задачи",
             "releases_awaiting_approval": "Версии, чакащи security / release одобрение",
-            "overdue_reporting": "Просрочени срокове за докладване на уязвимости"
+            "overdue_reporting": "Просрочени срокове за докладване на уязвимости",
+            "sdl_pending_monitoring": "Одобрени SDL записи с чакащ post-release мониторинг"
         }
     },
     "settings": {

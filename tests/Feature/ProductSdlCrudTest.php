@@ -574,15 +574,33 @@ test('owner can approve sdl run when release gate is ready and edits lock', func
         ->put(route('products.sdl.stages.update', [
             'product' => $product,
             'sdlRun' => $run,
-            'stage' => SdlStage::Publication->value,
+            'stage' => SdlStage::CodeReview->value,
         ]), [
-            'status' => SdlStageStatus::Done->value,
-            'notes' => 'Locked',
+            'status' => SdlStageStatus::Na->value,
+            'notes' => 'Pre-gate stays locked',
         ])
         ->assertRedirect(route('products.sdl.edit', [$product, $run]))
         ->assertSessionHasErrors('status');
 
-    expect($run->fresh()->title)->toBe('Ready to approve');
+    $this->actingAs($owner)
+        ->put(route('products.sdl.stages.update', [
+            'product' => $product,
+            'sdlRun' => $run,
+            'stage' => SdlStage::Publication->value,
+        ]), [
+            'status' => SdlStageStatus::Done->value,
+            'notes' => 'Post-release still editable',
+            'evidence_ids' => [],
+        ])
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]));
+
+    expect($run->fresh()->title)->toBe('Ready to approve')
+        ->and(
+            $run->stageEntries()
+                ->where('stage', SdlStage::Publication)
+                ->firstOrFail()
+                ->status,
+        )->toBe(SdlStageStatus::Done);
 });
 
 test('owner cannot set approved status via create or update form', function () {
