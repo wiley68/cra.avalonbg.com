@@ -843,6 +843,9 @@
             },
             "user_security_instructions": {
                 "description": "Structured §5.17 security instructions and exports"
+            },
+            "incidents": {
+                "description": "Security incident tracking"
             }
         },
         "passport": {
@@ -2576,7 +2579,75 @@
             "pair_product_mismatch": "Translations must belong to the same product.",
             "pair_version_mismatch": "Translations must share the same product version scope.",
             "pair_same_locale": "Linked translations must use different locales."
-        }
+        },
+        "incidents": {
+            "index_title": "Security incidents",
+            "title": "Security incident register",
+            "subtitle": "Track security incidents separately from vulnerabilities for this product",
+            "create": "Register incident",
+            "create_title": "Register security incident",
+            "edit_title": "Edit security incident",
+            "created": "Incident registered.",
+            "updated": "Incident updated.",
+            "deleted": "Incident deleted.",
+            "confirm_delete": "Delete this incident permanently?",
+            "search_placeholder": "Search by title, status or severity...",
+            "no_versions": "No product versions yet.",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "severity": "Severity",
+                "awareness_at": "Awareness",
+                "detected_at": "Detected"
+            },
+            "fields": {
+                "title": "Title",
+                "summary": "Summary",
+                "status": "Status",
+                "severity": "Severity",
+                "owner": "Owner",
+                "actual_started_at": "Actual start",
+                "detected_at": "Detected at",
+                "awareness_at": "Awareness timestamp",
+                "classified_at": "Classified at",
+                "root_cause": "Root cause",
+                "corrective_measures": "Corrective measures",
+                "lessons_learned": "Lessons learned",
+                "notes": "Notes",
+                "versions": "Affected versions"
+            },
+            "help": {
+                "title": "Short name for the incident record.",
+                "summary": "What happened and why it matters.",
+                "status": "Lifecycle status of this incident.",
+                "severity": "Internal severity for prioritisation.",
+                "owner": "Organization member accountable for this incident.",
+                "actual_started_at": "When the security event actually started.",
+                "detected_at": "When the event was first detected.",
+                "awareness_at": "When the organization became aware of the incident.",
+                "classified_at": "When the event was classified as a security incident.",
+                "root_cause": "Known or suspected root cause.",
+                "corrective_measures": "Actions taken or planned to contain and remediate.",
+                "lessons_learned": "Post-incident learnings for future prevention.",
+                "notes": "Internal notes for investigation and follow-up.",
+                "versions": "Product versions impacted by this incident."
+            },
+            "statuses": {
+                "open": "Open",
+                "investigating": "Investigating",
+                "contained": "Contained",
+                "closed": "Closed",
+                "cancelled": "Cancelled"
+            },
+            "severities": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High",
+                "critical": "Critical"
+            }
+        },
+        "incidents_link": "Incidents"
     },
     "audit_logs": {
         "title": "Audit",

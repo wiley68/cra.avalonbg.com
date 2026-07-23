@@ -11,6 +11,7 @@ import {
     IdCard,
     ListChecks,
     Megaphone,
+    Siren,
     Server,
     Shield,
     ShieldAlert,
@@ -21,6 +22,7 @@ import { index as productComponentsIndex } from '@/routes/products/components';
 import { index as productControlsIndex } from '@/routes/products/controls';
 import { index as deploymentsIndex } from '@/routes/products/deployments';
 import { index as productEvidenceIndex } from '@/routes/products/evidence';
+import { index as productIncidentsIndex } from '@/routes/products/incidents';
 import { show as productPassportShow } from '@/routes/products/passport';
 import { show as productReadinessShow } from '@/routes/products/readiness';
 import { show as productAssistantShow } from '@/routes/products/assistant';
@@ -55,6 +57,7 @@ export type ProductModuleKey =
     | 'risks'
     | 'components'
     | 'vulnerabilities'
+    | 'incidents'
     | 'evidence'
     | 'tasks'
     | 'passport'
@@ -154,6 +157,14 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.vulnerabilities.description',
         icon: Bug,
         href: (productId) => productVulnerabilitiesIndex(productId).url,
+        canViewFlag: 'can_view_vulnerabilities',
+    },
+    {
+        key: 'incidents',
+        labelKey: 'products.incidents_link',
+        descriptionKey: 'products.modules.incidents.description',
+        icon: Siren,
+        href: (productId) => productIncidentsIndex(productId).url,
         canViewFlag: 'can_view_vulnerabilities',
     },
     {

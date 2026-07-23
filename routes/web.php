@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\UserSecurityInstructionApiController;
 use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
+use App\Http\Controllers\Api\ProductIncidentApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\OrgPolicyApiController;
 use App\Http\Controllers\Api\AuditorReviewPackageApiController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\ProductSupportPeriodController;
 use App\Http\Controllers\ProductVersionController;
 use App\Http\Controllers\ProductVcsImportSuggestionController;
 use App\Http\Controllers\ProductVulnerabilityController;
+use App\Http\Controllers\ProductIncidentController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TranslationController;
 use App\Http\Controllers\UserController;
@@ -261,6 +263,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.vulnerabilities', ProductVulnerabilityController::class)
             ->except(['show'])
             ->scoped();
+        Route::resource('products.incidents', ProductIncidentController::class)
+            ->except(['show'])
+            ->scoped();
         Route::get(
             'products/{product}/vulnerabilities/{vulnerability}/reporting',
             [VulnerabilityReportingController::class, 'show'],
@@ -387,6 +392,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('products.components.index');
             Route::get('products/{product}/vulnerabilities', [ProductVulnerabilityApiController::class, 'index'])
                 ->name('products.vulnerabilities.index');
+            Route::get('products/{product}/incidents', [ProductIncidentApiController::class, 'index'])
+                ->name('products.incidents.index');
             Route::get('products/{product}/evidence', [EvidenceApiController::class, 'index'])
                 ->name('products.evidence.index');
             Route::get('products/{product}/tasks', [TaskApiController::class, 'index'])
