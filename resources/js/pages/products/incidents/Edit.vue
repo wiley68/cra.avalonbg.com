@@ -177,6 +177,8 @@ const closeForm = useForm({
     create_approval_task: false,
     // Server-only validation keys (not submitted; typed for InputError).
     awareness_at: null as string | null,
+    root_cause: null as string | null,
+    corrective_measures: null as string | null,
     status: null as string | null,
 });
 
@@ -601,63 +603,86 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     </div>
                 </div>
 
+                <div class="space-y-3">
+                    <div>
+                        <h2 class="text-base font-semibold">
+                            {{ t('products.incidents.investigation_title') }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('products.incidents.investigation_subtitle') }}
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="grid gap-2 sm:col-span-2">
+                            <FieldLabel
+                                html-for="root_cause"
+                                :help="t('products.incidents.help.root_cause')"
+                            >
+                                {{ t('products.incidents.fields.root_cause') }}
+                            </FieldLabel>
+                            <textarea
+                                id="root_cause"
+                                v-model="form.root_cause"
+                                :class="textareaClass"
+                                rows="3"
+                            />
+                            <InputError :message="form.errors.root_cause" />
+                        </div>
+
+                        <div class="grid gap-2 sm:col-span-2">
+                            <FieldLabel
+                                html-for="corrective_measures"
+                                :help="
+                                    t(
+                                        'products.incidents.help.corrective_measures',
+                                    )
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.incidents.fields.corrective_measures',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <textarea
+                                id="corrective_measures"
+                                v-model="form.corrective_measures"
+                                :class="textareaClass"
+                                rows="3"
+                            />
+                            <InputError
+                                :message="form.errors.corrective_measures"
+                            />
+                        </div>
+
+                        <div class="grid gap-2 sm:col-span-2">
+                            <FieldLabel
+                                html-for="lessons_learned"
+                                :help="
+                                    t('products.incidents.help.lessons_learned')
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.incidents.fields.lessons_learned',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <textarea
+                                id="lessons_learned"
+                                v-model="form.lessons_learned"
+                                :class="textareaClass"
+                                rows="3"
+                            />
+                            <InputError
+                                :message="form.errors.lessons_learned"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel
-                            html-for="root_cause"
-                            :help="t('products.incidents.help.root_cause')"
-                        >
-                            {{ t('products.incidents.fields.root_cause') }}
-                        </FieldLabel>
-                        <textarea
-                            id="root_cause"
-                            v-model="form.root_cause"
-                            :class="textareaClass"
-                            rows="3"
-                        />
-                        <InputError :message="form.errors.root_cause" />
-                    </div>
-
-                    <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel
-                            html-for="corrective_measures"
-                            :help="
-                                t('products.incidents.help.corrective_measures')
-                            "
-                        >
-                            {{
-                                t(
-                                    'products.incidents.fields.corrective_measures',
-                                )
-                            }}
-                        </FieldLabel>
-                        <textarea
-                            id="corrective_measures"
-                            v-model="form.corrective_measures"
-                            :class="textareaClass"
-                            rows="3"
-                        />
-                        <InputError
-                            :message="form.errors.corrective_measures"
-                        />
-                    </div>
-
-                    <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel
-                            html-for="lessons_learned"
-                            :help="t('products.incidents.help.lessons_learned')"
-                        >
-                            {{ t('products.incidents.fields.lessons_learned') }}
-                        </FieldLabel>
-                        <textarea
-                            id="lessons_learned"
-                            v-model="form.lessons_learned"
-                            :class="textareaClass"
-                            rows="3"
-                        />
-                        <InputError :message="form.errors.lessons_learned" />
-                    </div>
-
                     <div class="grid gap-2 sm:col-span-2">
                         <FieldLabel
                             html-for="notes"
@@ -862,6 +887,8 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 </div>
                 <InputError :message="closeForm.errors.create_approval_task" />
                 <InputError :message="closeForm.errors.awareness_at" />
+                <InputError :message="closeForm.errors.root_cause" />
+                <InputError :message="closeForm.errors.corrective_measures" />
                 <InputError :message="closeForm.errors.status" />
 
                 <div class="flex justify-end">

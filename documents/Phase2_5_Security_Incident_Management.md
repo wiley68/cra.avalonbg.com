@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 0.9  
+**Версия:** 1.0  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Should in progress (Must 1–6 done; Should 7–8 done)  
+**Статус:** Active — Should in progress (Must 1–6 done; Should 7–9 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -229,7 +229,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 
 7. ~~Affected customers / deployments multi-select~~ **Done**
 8. ~~Closure flow (closed_at / closed_by + optional approval task)~~ **Done**
-9. Root cause + corrective measures on Edit (if not already in Must form)
+9. ~~Root cause + corrective measures on Edit (if not already in Must form)~~ **Done**
 10. Dashboard counts (`open_incidents`, unclassified)
 11. PDF/Markdown incident summary export
 12. Product module nav card + dedicated `incidents.*` permissions
@@ -301,14 +301,15 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                          |
-| ------ | ---------- | ---------------------------------------------------------------- |
-| 0.9    | 2026-07-23 | Should 8 Done — close flow, closed_at/by, optional approval task |
-| 0.8    | 2026-07-23 | Should 7 Done — affected customers / deployments multi-select    |
-| 0.7    | 2026-07-23 | Must 6 Done — i18n parity + RBAC/CRUD feature coverage           |
-| 0.6    | 2026-07-23 | Must 5 Done — task subject incident + audit events               |
-| 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident            |
-| 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section       |
-| 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests          |
-| 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests             |
-| 0.1    | 2026-07-23 | Първоначален skeleton след Phase 2.4 closeout (кандидат A)       |
+| Версия | Дата       | Промяна                                                               |
+| ------ | ---------- | --------------------------------------------------------------------- |
+| 1.0    | 2026-07-23 | Should 9 Done — investigation section; close requires root/corrective |
+| 0.9    | 2026-07-23 | Should 8 Done — close flow, closed_at/by, optional approval task      |
+| 0.8    | 2026-07-23 | Should 7 Done — affected customers / deployments multi-select         |
+| 0.7    | 2026-07-23 | Must 6 Done — i18n parity + RBAC/CRUD feature coverage                |
+| 0.6    | 2026-07-23 | Must 5 Done — task subject incident + audit events                    |
+| 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident                 |
+| 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section            |
+| 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests               |
+| 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests                  |
+| 0.1    | 2026-07-23 | Първоначален skeleton след Phase 2.4 closeout (кандидат A)            |

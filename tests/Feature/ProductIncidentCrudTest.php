@@ -548,6 +548,8 @@ test('owner can close incident with closed_at closed_by and optional approval ta
         'status' => IncidentStatus::Contained,
         'severity' => IncidentSeverity::High,
         'awareness_at' => now()->subHour(),
+        'root_cause' => 'Misconfigured auth rate limits',
+        'corrective_measures' => 'Tightened WAF rules and rotated keys',
         'owner_user_id' => $owner->id,
     ]);
 
@@ -586,11 +588,41 @@ test('close requires awareness timestamp and rejects already closed incidents', 
         'title' => 'Missing awareness',
         'status' => IncidentStatus::Open,
         'severity' => IncidentSeverity::Low,
+        'root_cause' => 'Unknown',
+        'corrective_measures' => 'Pending',
     ]);
 
     $this->actingAs($owner)
         ->post(route('products.incidents.close', [$product, $withoutAwareness]))
         ->assertSessionHasErrors('awareness_at');
+
+    $withoutRootCause = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Missing root cause',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now(),
+        'corrective_measures' => 'Pending',
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.close', [$product, $withoutRootCause]))
+        ->assertSessionHasErrors('root_cause');
+
+    $withoutCorrective = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Missing corrective measures',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now(),
+        'root_cause' => 'Known cause',
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.close', [$product, $withoutCorrective]))
+        ->assertSessionHasErrors('corrective_measures');
 
     $closed = ProductIncident::query()->create([
         'organization_id' => $organization->id,
@@ -599,6 +631,8 @@ test('close requires awareness timestamp and rejects already closed incidents', 
         'status' => IncidentStatus::Closed,
         'severity' => IncidentSeverity::Low,
         'awareness_at' => now()->subDay(),
+        'root_cause' => 'Resolved',
+        'corrective_measures' => 'Patched',
         'closed_at' => now()->subHour(),
         'closed_by' => $owner->id,
     ]);
@@ -606,6 +640,41 @@ test('close requires awareness timestamp and rejects already closed incidents', 
     $this->actingAs($owner)
         ->post(route('products.incidents.close', [$product, $closed]))
         ->assertSessionHasErrors('status');
+});
+
+test('owner can update root cause and corrective measures on edit', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Investigation fields',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::Medium,
+        'awareness_at' => now()->subHours(2),
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Investigation fields',
+            'status' => IncidentStatus::Investigating->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'awareness_at' => now()->subHours(2)->format('Y-m-d\TH:i'),
+            'root_cause' => 'Exposed admin endpoint',
+            'corrective_measures' => 'Disabled endpoint and rotated credentials',
+            'lessons_learned' => 'Add authz regression tests',
+            'version_ids' => [$version->id],
+            'customer_ids' => [],
+            'deployment_ids' => [],
+        ])
+        ->assertRedirect();
+
+    $fresh = $incident->fresh();
+
+    expect($fresh->root_cause)->toBe('Exposed admin endpoint')
+        ->and($fresh->corrective_measures)->toBe('Disabled endpoint and rotated credentials')
+        ->and($fresh->lessons_learned)->toBe('Add authz regression tests');
 });
 
 test('updating status to closed stamps closed_at and closed_by', function () {
@@ -652,6 +721,8 @@ test('read-only user cannot close incident', function () {
         'status' => IncidentStatus::Open,
         'severity' => IncidentSeverity::Low,
         'awareness_at' => now(),
+        'root_cause' => 'n/a',
+        'corrective_measures' => 'n/a',
     ]);
 
     $this->actingAs($viewer)

@@ -177,6 +177,20 @@ class ProductIncidentService
             ]);
         }
 
+        if (blank($incident->root_cause)) {
+            throw ValidationException::withMessages([
+                'root_cause' => [Translations::get('products.incidents.close_requires_root_cause')],
+            ]);
+        }
+
+        if (blank($incident->corrective_measures)) {
+            throw ValidationException::withMessages([
+                'corrective_measures' => [
+                    Translations::get('products.incidents.close_requires_corrective_measures'),
+                ],
+            ]);
+        }
+
         if ($assigneeUserId !== null) {
             $this->assertAssigneeBelongsToOrganization($incident->organization_id, $assigneeUserId);
         }
