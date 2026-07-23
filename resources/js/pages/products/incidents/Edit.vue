@@ -175,6 +175,9 @@ const createVulnerabilityForm = useForm({});
 
 const closeForm = useForm({
     create_approval_task: false,
+    // Server-only validation keys (not submitted; typed for InputError).
+    awareness_at: null as string | null,
+    status: null as string | null,
 });
 
 const isTerminal = computed(() => props.incident.is_terminal);
@@ -305,13 +308,17 @@ const confirmDelete = () => {
 
 const confirmClose = () => {
     showCloseDialog.value = false;
-    closeForm.post(
-        closeProductIncident({
-            product: props.product.id,
-            incident: props.incident.id,
-        }).url,
-        { preserveScroll: true },
-    );
+    closeForm
+        .transform((data) => ({
+            create_approval_task: data.create_approval_task,
+        }))
+        .post(
+            closeProductIncident({
+                product: props.product.id,
+                incident: props.incident.id,
+            }).url,
+            { preserveScroll: true },
+        );
 };
 
 const enumLabel = (group: string, value: string): string => {
