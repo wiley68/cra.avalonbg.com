@@ -12,6 +12,7 @@ use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -81,6 +82,7 @@ class ProductSdlService
                 : null,
             );
             $this->assertEvidenceBelongToProduct($product, $evidenceIds);
+            $this->assertStatusNotApprovedViaForm($attributes['status'] ?? null);
 
             /** @var SdlRun $run */
             $run = SdlRun::query()->create([
@@ -112,6 +114,9 @@ class ProductSdlService
         array $evidenceIds,
         User $actor,
     ): SdlRun {
+        $this->assertRunEditable($run);
+        $this->assertStatusNotApprovedViaForm($attributes['status'] ?? null);
+
         $run = DB::transaction(function () use ($run, $attributes, $evidenceIds) {
             $run->loadMissing('product');
 
@@ -143,6 +148,72 @@ class ProductSdlService
     }
 
     /**
+     * Release security approval gate — sets status to approved with audit trail.
+     */
+    public function approve(SdlRun $run, User $actor): SdlRun
+    {
+        $run->ensureStageEntries();
+        $run->load(['stageEntries', 'approver']);
+        $this->assertReadyForApproval($run);
+
+        $run = DB::transaction(function () use ($run, $actor) {
+            $run->update([
+                'status' => SdlRunStatus::Approved,
+                'approved_at' => now(),
+                'approved_by' => $actor->id,
+                'current_stage' => SdlStage::Publication,
+            ]);
+
+            return $run->fresh([
+                'owner',
+                'version',
+                'approver',
+                'evidence',
+                'stageEntries.completer',
+                'stageEntries.evidence',
+            ]) ?? $run;
+        });
+
+        AuditLogger::logSdlRunApproved($run, $actor);
+
+        return $run;
+    }
+
+    /**
+     * Revoke release security approval and reopen the run for editing.
+     */
+    public function revokeApproval(SdlRun $run, User $actor): SdlRun
+    {
+        if ($run->status !== SdlRunStatus::Approved) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.sdl.only_approved_revocable')],
+            ]);
+        }
+
+        $run = DB::transaction(function () use ($run) {
+            $run->update([
+                'status' => SdlRunStatus::InProgress,
+                'approved_at' => null,
+                'approved_by' => null,
+                'current_stage' => SdlStage::ReleaseApproval,
+            ]);
+
+            return $run->fresh([
+                'owner',
+                'version',
+                'approver',
+                'evidence',
+                'stageEntries.completer',
+                'stageEntries.evidence',
+            ]) ?? $run;
+        });
+
+        AuditLogger::logSdlRunApprovalRevoked($run, $actor);
+
+        return $run;
+    }
+
+    /**
      * Update a single stage checklist entry (status + notes + evidence links).
      *
      * @param  array{status: SdlStageStatus|string, notes?: string|null, evidence_ids?: list<int>}  $attributes
@@ -153,6 +224,7 @@ class ProductSdlService
         array $attributes,
         User $actor,
     ): SdlStageEntry {
+        $this->assertRunEditable($run);
         $run->ensureStageEntries();
         $run->loadMissing('product');
 
@@ -334,6 +406,7 @@ class ProductSdlService
             'approved_by_name' => $run->approver?->name,
             'is_terminal' => $run->isTerminal(),
             'is_approved' => $run->isApproved(),
+            'can_approve' => $this->isReadyForApproval($run),
             'evidence_ids' => $run->evidence->pluck('id')->all(),
             'stage_entries' => collect($orderedStages)
                 ->map(function (SdlStage $stage) use ($entriesByStage) {
@@ -395,5 +468,86 @@ class ProductSdlService
                 'evidence_ids' => ['One or more evidence records do not belong to this product.'],
             ]);
         }
+    }
+
+    private function assertRunEditable(SdlRun $run): void
+    {
+        if ($run->status === SdlRunStatus::Approved) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.sdl.approved_locked')],
+            ]);
+        }
+    }
+
+    private function assertStatusNotApprovedViaForm(mixed $status): void
+    {
+        $value = $status instanceof SdlRunStatus ? $status : (
+            is_string($status) ? SdlRunStatus::tryFrom($status) : null
+        );
+
+        if ($value === SdlRunStatus::Approved) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.sdl.approve_via_gate')],
+            ]);
+        }
+    }
+
+    private function assertReadyForApproval(SdlRun $run): void
+    {
+        $errors = $this->approvalGateErrors($run);
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    public function isReadyForApproval(SdlRun $run): bool
+    {
+        $run->ensureStageEntries();
+        $run->loadMissing('stageEntries');
+
+        return $this->approvalGateErrors($run) === [];
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    private function approvalGateErrors(SdlRun $run): array
+    {
+        $errors = [];
+
+        if ($run->status === SdlRunStatus::Cancelled) {
+            $errors['status'] = [Translations::get('products.sdl.approve_cancelled')];
+        }
+
+        if ($run->status === SdlRunStatus::Approved) {
+            $errors['status'] = [Translations::get('products.sdl.already_approved')];
+        }
+
+        $entriesByStage = $run->stageEntries->keyBy(
+            fn(SdlStageEntry $entry) => $entry->stage->value,
+        );
+
+        foreach (SdlStage::ordered() as $stage) {
+            $entry = $entriesByStage->get($stage->value);
+
+            if ($entry === null || !$entry->status->isComplete()) {
+                $errors['stages'] = [Translations::get('products.sdl.approve_requires_stages')];
+            }
+
+            if ($stage === SdlStage::ReleaseApproval) {
+                break;
+            }
+        }
+
+        $releaseEntry = $entriesByStage->get(SdlStage::ReleaseApproval->value);
+
+        if ($releaseEntry === null || $releaseEntry->status !== SdlStageStatus::Done) {
+            $errors['release_approval'] = [
+                Translations::get('products.sdl.approve_requires_release_stage_done'),
+            ];
+        }
+
+        return $errors;
     }
 }

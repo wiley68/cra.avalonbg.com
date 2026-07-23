@@ -175,6 +175,40 @@ class ProductSdlController extends Controller
         return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
     }
 
+    public function approve(Product $product, SdlRun $sdlRun): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+        $this->authorize('update', [$sdlRun, $organization]);
+
+        $this->sdl->approve($sdlRun, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.sdl.approved'),
+        ]);
+
+        return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
+    }
+
+    public function revokeApproval(Product $product, SdlRun $sdlRun): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+        $this->authorize('update', [$sdlRun, $organization]);
+
+        $this->sdl->revokeApproval($sdlRun, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.sdl.approval_revoked'),
+        ]);
+
+        return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
+    }
+
     private function currentOrganization(): Organization
     {
         $organization = request()->user()?->currentOrganization();

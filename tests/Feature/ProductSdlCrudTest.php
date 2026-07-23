@@ -460,3 +460,251 @@ test('owner can link evidence to sdl run and stage', function () {
     expect(DB::table('sdl_run_evidence')->where('sdl_run_id', $runId)->exists())->toBeFalse()
         ->and(DB::table('sdl_stage_evidence')->where('sdl_stage_entry_id', $entry->id)->exists())->toBeFalse();
 });
+
+/**
+ * Complete every stage through Release approval; mark Release approval as Done.
+ */
+function prepareSdlRunForApproval(SdlRun $run, User $actor): void
+{
+    $run->ensureStageEntries();
+
+    foreach (SdlStage::ordered() as $stage) {
+        if ($stage === SdlStage::Publication || $stage === SdlStage::Monitoring) {
+            break;
+        }
+
+        SdlStageEntry::query()
+            ->where('sdl_run_id', $run->id)
+            ->where('stage', $stage->value)
+            ->update([
+                'status' => SdlStageStatus::Done->value,
+                'completed_at' => now(),
+                'completed_by' => $actor->id,
+                'notes' => 'Gate ready',
+            ]);
+
+        if ($stage === SdlStage::ReleaseApproval) {
+            break;
+        }
+    }
+
+    $run->update([
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::ReleaseApproval,
+    ]);
+}
+
+test('owner cannot approve sdl run until release gate stages are complete', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Not ready',
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::Requirement,
+    ]);
+    $run->ensureStageEntries();
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.edit', [$product, $run]))
+        ->post(route('products.sdl.approve', [$product, $run]))
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]))
+        ->assertSessionHasErrors(['stages', 'release_approval']);
+
+    expect($run->fresh()->status)->toBe(SdlRunStatus::InProgress)
+        ->and($run->fresh()->approved_at)->toBeNull();
+});
+
+test('owner can approve sdl run when release gate is ready and edits lock', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Ready to approve',
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::ReleaseApproval,
+    ]);
+    prepareSdlRunForApproval($run, $owner);
+
+    $this->actingAs($owner)
+        ->post(route('products.sdl.approve', [$product, $run]))
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]));
+
+    $run->refresh();
+
+    expect($run->status)->toBe(SdlRunStatus::Approved)
+        ->and($run->approved_by)->toBe($owner->id)
+        ->and($run->approved_at)->not->toBeNull()
+        ->and($run->current_stage)->toBe(SdlStage::Publication)
+        ->and(
+            AuditLog::query()
+                ->where('event_type', AuditEventType::SdlRunApproved->value)
+                ->where('product_id', $product->id)
+                ->exists(),
+        )->toBeTrue();
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.edit', [$product, $run]))
+        ->put(route('products.sdl.update', [$product, $run]), [
+            'title' => 'Should stay locked',
+            'status' => SdlRunStatus::InProgress->value,
+            'current_stage' => SdlStage::Publication->value,
+        ])
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]))
+        ->assertSessionHasErrors('status');
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.edit', [$product, $run]))
+        ->put(route('products.sdl.stages.update', [
+            'product' => $product,
+            'sdlRun' => $run,
+            'stage' => SdlStage::Publication->value,
+        ]), [
+            'status' => SdlStageStatus::Done->value,
+            'notes' => 'Locked',
+        ])
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]))
+        ->assertSessionHasErrors('status');
+
+    expect($run->fresh()->title)->toBe('Ready to approve');
+});
+
+test('owner cannot set approved status via create or update form', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.create', $product))
+        ->post(route('products.sdl.store', $product), [
+            'title' => 'Bypass approve',
+            'status' => SdlRunStatus::Approved->value,
+            'current_stage' => SdlStage::ReleaseApproval->value,
+        ])
+        ->assertRedirect(route('products.sdl.create', $product))
+        ->assertSessionHasErrors('status');
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Editable',
+        'status' => SdlRunStatus::Draft,
+        'current_stage' => SdlStage::Requirement,
+    ]);
+    $run->ensureStageEntries();
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.edit', [$product, $run]))
+        ->put(route('products.sdl.update', [$product, $run]), [
+            'title' => 'Editable',
+            'status' => SdlRunStatus::Approved->value,
+            'current_stage' => SdlStage::ReleaseApproval->value,
+        ])
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]))
+        ->assertSessionHasErrors('status');
+});
+
+test('owner can revoke sdl approval and reopen editing', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Approved run',
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::ReleaseApproval,
+    ]);
+    prepareSdlRunForApproval($run, $owner);
+
+    $this->actingAs($owner)
+        ->post(route('products.sdl.approve', [$product, $run]))
+        ->assertRedirect();
+
+    $this->actingAs($owner)
+        ->post(route('products.sdl.revoke-approval', [$product, $run]))
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]));
+
+    $run->refresh();
+
+    expect($run->status)->toBe(SdlRunStatus::InProgress)
+        ->and($run->approved_at)->toBeNull()
+        ->and($run->approved_by)->toBeNull()
+        ->and($run->current_stage)->toBe(SdlStage::ReleaseApproval)
+        ->and(
+            AuditLog::query()
+                ->where('event_type', AuditEventType::SdlRunApprovalRevoked->value)
+                ->where('product_id', $product->id)
+                ->exists(),
+        )->toBeTrue();
+
+    $this->actingAs($owner)
+        ->put(route('products.sdl.update', [$product, $run]), [
+            'title' => 'Reopened title',
+            'status' => SdlRunStatus::InProgress->value,
+            'current_stage' => SdlStage::ReleaseApproval->value,
+        ])
+        ->assertRedirect();
+
+    expect($run->fresh()->title)->toBe('Reopened title');
+});
+
+test('read-only viewer cannot approve or revoke sdl run', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+    $viewer = makeSdlOrgReadOnly($organization);
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer approve',
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::ReleaseApproval,
+    ]);
+    prepareSdlRunForApproval($run, $owner);
+
+    $this->actingAs($viewer)
+        ->post(route('products.sdl.approve', [$product, $run]))
+        ->assertForbidden();
+
+    $run->update([
+        'status' => SdlRunStatus::Approved,
+        'approved_at' => now(),
+        'approved_by' => $owner->id,
+        'current_stage' => SdlStage::Publication,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.sdl.revoke-approval', [$product, $run]))
+        ->assertForbidden();
+});
+
+test('release approval stage must be done not na for approval gate', function () {
+    [$organization, $owner] = makeSdlOrgWithOwner();
+    [$product] = makeProductWithVersionForSdl($organization, $owner);
+
+    $run = SdlRun::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'NA release gate',
+        'status' => SdlRunStatus::InProgress,
+        'current_stage' => SdlStage::ReleaseApproval,
+    ]);
+    prepareSdlRunForApproval($run, $owner);
+
+    SdlStageEntry::query()
+        ->where('sdl_run_id', $run->id)
+        ->where('stage', SdlStage::ReleaseApproval->value)
+        ->update([
+            'status' => SdlStageStatus::Na->value,
+        ]);
+
+    $this->actingAs($owner)
+        ->from(route('products.sdl.edit', [$product, $run]))
+        ->post(route('products.sdl.approve', [$product, $run]))
+        ->assertRedirect(route('products.sdl.edit', [$product, $run]))
+        ->assertSessionHasErrors('release_approval');
+});

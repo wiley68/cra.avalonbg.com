@@ -2838,6 +2838,22 @@
             "stage_completed_meta": "Завършен :when",
             "stage_completed_by": "от :name",
             "approved_banner": "Записано е одобрение за сигурност на release",
+            "approval_heading": "Одобрение за сигурност на release",
+            "approval_help": "Одобрявайте само след като етапите до Release approval са завършени и етапът Release approval е Done. Статус approved не се задава от полето за статус.",
+            "approve": "Одобри сигурността на release",
+            "approved": "Записано е одобрение за сигурност на release.",
+            "revoke_approval": "Отмени одобрението",
+            "approval_revoked": "Одобрението за сигурност на release е отменено.",
+            "confirm_revoke_title": "Отмяна на одобрението?",
+            "confirm_revoke": "Run-ът ще се върне във „в ход“ и отново ще може да се редактира.",
+            "approve_via_gate": "Използвайте действието за одобрение на сигурност, вместо да задавате статус approved.",
+            "approved_locked": "Този SDL run е одобрен и заключен. Отменете одобрението за редакция.",
+            "approve_cancelled": "Отменен SDL run не може да бъде одобрен.",
+            "already_approved": "Този SDL run вече е одобрен.",
+            "only_approved_revocable": "Само одобрени SDL runs могат да имат отменено одобрение.",
+            "approve_requires_stages": "Завършете всички етапи до Release approval (Done, N/A или Exception) преди одобрение.",
+            "approve_requires_release_stage_done": "Маркирайте етапа Release approval като Done преди одобрение.",
+            "approve_not_ready": "Gate за одобрение на release все още не е готов.",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
@@ -3037,7 +3053,9 @@
             "sdl_run_created": "Създаден SDL run",
             "sdl_run_updated": "Обновен SDL run",
             "sdl_run_deleted": "Изтрит SDL run",
-            "sdl_stage_updated": "Обновен SDL етап"
+            "sdl_stage_updated": "Обновен SDL етап",
+            "sdl_run_approved": "Одобрен SDL run",
+            "sdl_run_approval_revoked": "Отменено одобрение на SDL run"
         },
         "event_sources": {
             "workspace": "Workspace",

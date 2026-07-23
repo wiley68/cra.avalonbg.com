@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
-import { reactive, ref, watch } from 'vue';
+import { ArrowLeft, Save, ShieldCheck } from '@lucide/vue';
+import { computed, reactive, ref, watch } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -9,8 +10,10 @@ import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
+    approve as approveSdlRun,
     edit as productSdlEdit,
     index as productSdlIndex,
+    revokeApproval as revokeSdlApproval,
     update,
 } from '@/routes/products/sdl';
 import { update as updateSdlStage } from '@/routes/products/sdl/stages';
@@ -47,6 +50,7 @@ type SdlRunDetail = {
     approved_by_name: string | null;
     is_terminal: boolean;
     is_approved: boolean;
+    can_approve: boolean;
     evidence_ids: number[];
     stage_entries: StageEntry[];
 };
@@ -116,6 +120,21 @@ const stageDrafts = reactive<Record<string, StageDraft>>(
 );
 const savingStage = ref<string | null>(null);
 const stageErrors = reactive<Record<string, Record<string, string>>>({});
+const approving = ref(false);
+const revoking = ref(false);
+const showRevokeDialog = ref(false);
+
+const isLocked = computed(
+    () => props.run.is_approved || props.run.status === 'approved',
+);
+
+const editableStatuses = computed(() =>
+    props.options.statuses.filter(
+        (status) => status !== 'approved' || isLocked.value,
+    ),
+);
+
+const canEdit = computed(() => props.canManage && !isLocked.value);
 
 watch(
     () => props.run.stage_entries,
@@ -133,7 +152,7 @@ watch(
 );
 
 const submit = () => {
-    if (!props.canManage) {
+    if (!canEdit.value) {
         return;
     }
 
@@ -150,7 +169,7 @@ const submit = () => {
 };
 
 const saveStage = (stage: string) => {
-    if (!props.canManage) {
+    if (!canEdit.value) {
         return;
     }
 
@@ -216,6 +235,51 @@ const toggleStageEvidence = (stage: string, id: number, checked: boolean) => {
     draft.evidence_ids = draft.evidence_ids.filter((value) => value !== id);
 };
 
+const approveRun = () => {
+    if (!props.canManage || !props.run.can_approve || isLocked.value) {
+        return;
+    }
+
+    approving.value = true;
+
+    router.post(
+        approveSdlRun({
+            product: props.product.id,
+            sdlRun: props.run.id,
+        }).url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                approving.value = false;
+            },
+        },
+    );
+};
+
+const confirmRevoke = () => {
+    if (!props.canManage || !isLocked.value) {
+        return;
+    }
+
+    showRevokeDialog.value = false;
+    revoking.value = true;
+
+    router.post(
+        revokeSdlApproval({
+            product: props.product.id,
+            sdlRun: props.run.id,
+        }).url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                revoking.value = false;
+            },
+        },
+    );
+};
+
 const enumLabel = (group: string, value: string): string => {
     const key = `products.sdl.${group}.${value}`;
     const translated = t(key);
@@ -278,7 +342,7 @@ const stageCompletedLabel = (entry: StageEntry): string => {
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
-            <fieldset class="space-y-4" :disabled="!props.canManage">
+            <fieldset class="space-y-4" :disabled="!canEdit">
                 <div class="space-y-2">
                     <FieldLabel
                         html-for="title"
@@ -312,7 +376,7 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                             required
                         >
                             <option
-                                v-for="status in props.options.statuses"
+                                v-for="status in editableStatuses"
                                 :key="status"
                                 :value="status"
                             >
@@ -456,18 +520,61 @@ const stageCompletedLabel = (entry: StageEntry): string => {
             </fieldset>
 
             <div
-                v-if="props.run.is_approved || props.run.approved_at"
-                class="rounded-md border p-3 text-sm text-muted-foreground"
+                v-if="isLocked"
+                class="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"
             >
                 <p>
                     {{ t('products.sdl.approved_banner') }}
                     <span v-if="props.run.approved_by_name">
                         — {{ props.run.approved_by_name }}
                     </span>
+                    <span v-if="props.run.approved_at">
+                        ({{ formatDateTime(props.run.approved_at) }})
+                    </span>
                 </p>
             </div>
 
-            <div v-if="props.canManage" class="flex justify-end">
+            <section
+                v-if="props.canManage"
+                class="space-y-3 rounded-md border p-3"
+            >
+                <div>
+                    <h2 class="text-sm font-medium">
+                        {{ t('products.sdl.approval_heading') }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('products.sdl.approval_help') }}
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <Button
+                        v-if="!isLocked"
+                        type="button"
+                        :disabled="!props.run.can_approve || approving"
+                        @click="approveRun"
+                    >
+                        <ShieldCheck class="h-4 w-4" />
+                        {{ t('products.sdl.approve') }}
+                    </Button>
+                    <p
+                        v-if="!isLocked && !props.run.can_approve"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('products.sdl.approve_not_ready') }}
+                    </p>
+                    <Button
+                        v-if="isLocked"
+                        type="button"
+                        variant="outline"
+                        :disabled="revoking"
+                        @click="showRevokeDialog = true"
+                    >
+                        {{ t('products.sdl.revoke_approval') }}
+                    </Button>
+                </div>
+            </section>
+
+            <div v-if="canEdit" class="flex justify-end">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
@@ -507,7 +614,7 @@ const stageCompletedLabel = (entry: StageEntry): string => {
 
                     <fieldset
                         class="grid gap-3 sm:grid-cols-2"
-                        :disabled="!props.canManage"
+                        :disabled="!canEdit"
                     >
                         <div class="space-y-2">
                             <FieldLabel
@@ -602,7 +709,7 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                         </div>
                     </fieldset>
 
-                    <div v-if="props.canManage" class="flex justify-end">
+                    <div v-if="canEdit" class="flex justify-end">
                         <Button
                             type="button"
                             variant="outline"
@@ -616,5 +723,15 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                 </li>
             </ul>
         </section>
+
+        <AppAlertDialog
+            v-model:open="showRevokeDialog"
+            variant="default"
+            :title="t('products.sdl.confirm_revoke_title')"
+            :description="t('products.sdl.confirm_revoke')"
+            :loading="revoking"
+            @confirm="confirmRevoke"
+            @cancel="showRevokeDialog = false"
+        />
     </div>
 </template>

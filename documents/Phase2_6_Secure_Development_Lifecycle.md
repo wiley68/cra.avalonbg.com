@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 0.5  
+**Версия:** 0.6  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–4 Done (schema + CRUD + stages + evidence)  
+**Статус:** Active — Must 1–5 Done (schema + CRUD + stages + evidence + approval gate)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -195,7 +195,7 @@ GET    /internal-api/sdl
 2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
 3. ~~Stage checklist UI (complete / N/A + notes)~~ **Done**
 4. ~~Evidence link на stage / run~~ **Done**
-5. Release security approval gate + audit
+5. ~~Release security approval gate + audit~~ **Done**
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
 
 ### Should
@@ -276,6 +276,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 0.6    | 2026-07-23 | Must 5 Done — release security approval gate, lock, revoke + audit   |
 | 0.5    | 2026-07-23 | Must 4 Done — evidence links on SDL run + stage entries              |
 | 0.4    | 2026-07-23 | Must 3 Done — stage checklist UI (done/N/A/exception + notes)        |
 | 0.3    | 2026-07-23 | Must 2 Done — product SDL CRUD + DataTable + module card             |

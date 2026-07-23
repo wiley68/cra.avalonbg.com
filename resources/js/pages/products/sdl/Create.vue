@@ -53,13 +53,19 @@ const selectClass =
 
 const form = useForm({
     title: '',
-    status: props.options.statuses[0] ?? 'draft',
+    status:
+        props.options.statuses.find((status) => status !== 'approved') ??
+        'draft',
     current_stage: props.options.stages[0] ?? 'requirement',
     product_version_id: '' as number | '',
     owner_user_id: '' as number | '',
     notes: '',
     evidence_ids: [] as number[],
 });
+
+const createStatuses = props.options.statuses.filter(
+    (status) => status !== 'approved',
+);
 
 const submit = () => {
     form.transform((data) => ({
@@ -144,7 +150,7 @@ const toggleEvidence = (id: number, checked: boolean) => {
                         required
                     >
                         <option
-                            v-for="status in props.options.statuses"
+                            v-for="status in createStatuses"
                             :key="status"
                             :value="status"
                         >

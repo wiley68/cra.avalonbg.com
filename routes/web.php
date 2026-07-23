@@ -282,6 +282,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductSdlController::class, 'updateStage'],
         )->name('products.sdl.stages.update')->scopeBindings();
         Route::post(
+            'products/{product}/sdl/{sdlRun}/approve',
+            [ProductSdlController::class, 'approve'],
+        )->name('products.sdl.approve')->scopeBindings();
+        Route::post(
+            'products/{product}/sdl/{sdlRun}/revoke-approval',
+            [ProductSdlController::class, 'revokeApproval'],
+        )->name('products.sdl.revoke-approval')->scopeBindings();
+        Route::post(
             'products/{product}/incidents/{incident}/timeline',
             [ProductIncidentController::class, 'storeTimeline'],
         )->name('products.incidents.timeline.store')->scopeBindings();

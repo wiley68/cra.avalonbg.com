@@ -539,6 +539,39 @@ class AuditLogger
         );
     }
 
+    public static function logSdlRunApproved(SdlRun $run, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::SdlRunApproved,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+                ['field' => 'approved_at', 'value' => $run->approved_at?->toIso8601String() ?? ''],
+            ],
+        );
+    }
+
+    public static function logSdlRunApprovalRevoked(SdlRun $run, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::SdlRunApprovalRevoked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'title', 'value' => $run->title],
+            ],
+        );
+    }
+
     public static function logIncidentStatusUpdated(
         ProductIncident $incident,
         User $actor,

@@ -2838,6 +2838,22 @@
             "stage_completed_meta": "Completed :when",
             "stage_completed_by": "by :name",
             "approved_banner": "Release security approval recorded",
+            "approval_heading": "Release security approval",
+            "approval_help": "Approve only after stages through Release approval are complete and the release approval stage is marked Done. Approved status cannot be set from the status field.",
+            "approve": "Approve release security",
+            "approved": "Release security approval recorded.",
+            "revoke_approval": "Revoke approval",
+            "approval_revoked": "Release security approval revoked.",
+            "confirm_revoke_title": "Revoke release security approval?",
+            "confirm_revoke": "The run will return to in progress and can be edited again.",
+            "approve_via_gate": "Use the release security approval action instead of setting status to approved.",
+            "approved_locked": "This SDL run is approved and locked. Revoke approval to edit.",
+            "approve_cancelled": "A cancelled SDL run cannot be approved.",
+            "already_approved": "This SDL run is already approved.",
+            "only_approved_revocable": "Only approved SDL runs can have approval revoked.",
+            "approve_requires_stages": "Complete all stages through Release approval (Done, N/A, or Exception) before approving.",
+            "approve_requires_release_stage_done": "Mark the Release approval stage as Done before approving.",
+            "approve_not_ready": "Release approval gate is not ready yet.",
             "columns": {
                 "id": "ID",
                 "title": "Title",
@@ -3039,7 +3055,9 @@
             "sdl_run_created": "SDL run created",
             "sdl_run_updated": "SDL run updated",
             "sdl_run_deleted": "SDL run deleted",
-            "sdl_stage_updated": "SDL stage updated"
+            "sdl_stage_updated": "SDL stage updated",
+            "sdl_run_approved": "SDL run approved",
+            "sdl_run_approval_revoked": "SDL run approval revoked"
         },
         "event_sources": {
             "workspace": "Workspace",
