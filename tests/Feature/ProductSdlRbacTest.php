@@ -236,23 +236,29 @@ test('viewer can view sdl index and edit but cannot manage', function () {
     expect(SdlRun::query()->whereKey($run->id)->exists())->toBeTrue();
 });
 
-test('must v1 sdl access reuses products view and manage permissions', function () {
+test('seeded roles include dedicated sdl permissions', function () {
     test()->seed([RolePermissionSeeder::class]);
+
+    expect(Permission::query()->pluck('slug'))
+        ->toContain(
+            PermissionSlug::SdlView->value,
+            PermissionSlug::SdlManage->value,
+        );
 
     $owner = Role::query()->where('slug', 'organization_owner')->with('permissions')->firstOrFail();
     $viewer = Role::query()->where('slug', 'read_only')->with('permissions')->firstOrFail();
 
     expect($owner->permissions->pluck('slug'))
         ->toContain(
-            PermissionSlug::ProductsView->value,
-            PermissionSlug::ProductsManage->value,
+            PermissionSlug::SdlView->value,
+            PermissionSlug::SdlManage->value,
         )
         ->and($viewer->permissions->pluck('slug'))
-        ->toContain(PermissionSlug::ProductsView->value)
-        ->not->toContain(PermissionSlug::ProductsManage->value);
+        ->toContain(PermissionSlug::SdlView->value)
+        ->not->toContain(PermissionSlug::SdlManage->value);
 });
 
-test('products view alone does not grant sdl manage', function () {
+test('products manage alone does not grant sdl manage', function () {
     [
         'organization' => $organization,
         'product' => $product,
@@ -267,16 +273,92 @@ test('products view alone does not grant sdl manage', function () {
     ]);
 
     $role = Role::query()->create([
-        'slug' => 'products-view-only-' . uniqid(),
-        'name' => 'Products view only',
-        'description' => 'View products without manage',
+        'slug' => 'products-manage-no-sdl-' . uniqid(),
+        'name' => 'Products manage without SDL',
+        'description' => 'Products access without dedicated SDL permissions',
         'scope' => RoleScope::Organization,
         'is_default' => false,
     ]);
 
     $role->permissions()->sync(
         Permission::query()
-            ->where('slug', PermissionSlug::ProductsView->value)
+            ->whereIn('slug', [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::ProductsManage->value,
+            ])
+            ->pluck('id'),
+    );
+
+    $organization->users()->attach($user->id, [
+        'role_id' => $role->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('products.sdl.index', $product))
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->get(route('products.sdl.edit', [$product, $run]))
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->post(route('products.sdl.store', $product), [
+            'title' => 'Should fail',
+            'status' => SdlRunStatus::Draft->value,
+            'current_stage' => SdlStage::Requirement->value,
+        ])
+        ->assertForbidden();
+});
+
+test('shared auth exposes can_view_sdl and can_manage_sdl', function () {
+    ['owner' => $owner, 'viewer' => $viewer, 'product' => $product] = makeSdlRbacFixture();
+
+    $this->actingAs($owner)
+        ->get(route('products.sdl.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('auth.user.can_view_sdl', true)
+            ->where('auth.user.can_manage_sdl', true));
+
+    $this->actingAs($viewer)
+        ->get(route('products.sdl.index', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('auth.user.can_view_sdl', true)
+            ->where('auth.user.can_manage_sdl', false));
+});
+
+test('sdl view alone does not grant sdl manage', function () {
+    [
+        'organization' => $organization,
+        'product' => $product,
+        'run' => $run,
+    ] = makeSdlRbacFixture();
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'is_platform_admin' => false,
+        'must_change_password' => false,
+        'two_factor_confirmed_at' => now(),
+    ]);
+
+    $role = Role::query()->create([
+        'slug' => 'sdl-view-only-' . uniqid(),
+        'name' => 'SDL view only',
+        'description' => 'View products and SDL without manage',
+        'scope' => RoleScope::Organization,
+        'is_default' => false,
+    ]);
+
+    $role->permissions()->sync(
+        Permission::query()
+            ->whereIn('slug', [
+                PermissionSlug::ProductsView->value,
+                PermissionSlug::SdlView->value,
+            ])
             ->pluck('id'),
     );
 

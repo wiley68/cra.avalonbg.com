@@ -11,30 +11,30 @@ class SdlRunPolicy
 {
     public function viewAny(User $user, Organization $organization): bool
     {
-        return $user->hasPermission(PermissionSlug::ProductsView->value, $organization);
+        return $user->hasPermission(PermissionSlug::SdlView->value, $organization);
     }
 
     public function view(User $user, SdlRun $run, Organization $organization): bool
     {
         return $this->belongsToOrganization($run, $organization)
-            && $user->hasPermission(PermissionSlug::ProductsView->value, $organization);
+            && $user->hasPermission(PermissionSlug::SdlView->value, $organization);
     }
 
     public function create(User $user, Organization $organization): bool
     {
-        return $user->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+        return $user->hasPermission(PermissionSlug::SdlManage->value, $organization);
     }
 
     public function update(User $user, SdlRun $run, Organization $organization): bool
     {
         return $this->belongsToOrganization($run, $organization)
-            && $user->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+            && $user->hasPermission(PermissionSlug::SdlManage->value, $organization);
     }
 
     public function delete(User $user, SdlRun $run, Organization $organization): bool
     {
         return $this->belongsToOrganization($run, $organization)
-            && $user->hasPermission(PermissionSlug::ProductsManage->value, $organization);
+            && $user->hasPermission(PermissionSlug::SdlManage->value, $organization);
     }
 
     private function belongsToOrganization(SdlRun $run, Organization $organization): bool

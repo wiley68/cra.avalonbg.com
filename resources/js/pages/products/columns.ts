@@ -86,6 +86,7 @@ export type ProductModuleDefinition = {
         | 'can_view_components'
         | 'can_view_vulnerabilities'
         | 'can_view_incidents'
+        | 'can_view_sdl'
         | 'can_view_evidence'
         | 'can_view_tasks';
 };
@@ -177,7 +178,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.sdl.description',
         icon: Workflow,
         href: (productId) => productSdlIndex(productId).url,
-        canViewFlag: 'can_view_products',
+        canViewFlag: 'can_view_sdl',
     },
     {
         key: 'evidence',

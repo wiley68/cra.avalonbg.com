@@ -266,6 +266,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasPermission(PermissionSlug::IncidentsManage->value, $organization);
     }
 
+    public function canViewSdl(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::SdlView->value, $organization);
+    }
+
+    public function canManageSdl(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->hasPermission(PermissionSlug::SdlManage->value, $organization);
+    }
+
     public function canViewEvidence(?Organization $organization = null): bool
     {
         $organization ??= $this->currentOrganization();

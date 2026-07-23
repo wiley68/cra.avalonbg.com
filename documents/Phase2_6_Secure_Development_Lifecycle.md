@@ -99,12 +99,14 @@ flowchart TB
   Pol -.-> Run
 ```
 
-### Права (предложение)
+### Права
 
-| Действие         | Permission (предложение)                       |
+| Действие         | Permission                                     |
 | ---------------- | ---------------------------------------------- |
-| View             | `sdl.view` или reuse `products.view` в Must v1 |
-| Manage / approve | `sdl.manage` / `sdl.approve` (Should)          |
+| View             | `sdl.view`                                     |
+| Manage / approve | `sdl.manage` (approve gate included in manage) |
+
+Nav card: `can_view_sdl` (product modules).
 
 ### UI conventions
 
@@ -205,7 +207,7 @@ GET    /internal-api/sdl
 9. ~~GitHub/GitLab PR / CI artifact quick-link (reuse 2.1)~~ **Done**
 10. ~~Exception handling (owner + expiry + task)~~ **Done**
 11. ~~Readiness gap `sdl_release_approval_missing` (за in-scope release)~~ **Done**
-12. Dedicated `sdl.*` permissions + product nav card
+12. ~~Dedicated `sdl.*` permissions + product nav card~~ **Done**
 
 ### Could
 
@@ -276,6 +278,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.3    | 2026-07-23 | Should 12 Done — `sdl.view` / `sdl.manage` + `can_view_sdl` nav card |
 | 1.2    | 2026-07-23 | Should 11 Done — readiness gap `sdl_release_approval_missing`        |
 | 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task           |
 | 1.0    | 2026-07-23 | Should 9 Done — Git/CI quick-link (sync snapshots + PR URL evidence) |

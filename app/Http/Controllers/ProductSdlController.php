@@ -45,7 +45,7 @@ class ProductSdlController extends Controller
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
             'versions' => $this->versionOptions($product),
-            'canManage' => request()->user()->canManageProducts($organization),
+            'canManage' => request()->user()->canManageSdl($organization),
             'options' => $this->enumOptions(),
         ]);
     }
@@ -138,7 +138,7 @@ class ProductSdlController extends Controller
                 $organization->resolvedLocale(),
             ),
             'template_locale' => $organization->resolvedLocale(),
-            'canManage' => request()->user()->canManageProducts($organization),
+            'canManage' => request()->user()->canManageSdl($organization),
         ]);
     }
 
