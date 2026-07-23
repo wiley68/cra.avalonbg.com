@@ -9,6 +9,7 @@ use App\Enums\AiDraftType;
 use App\Enums\AiMessageRole;
 use App\Enums\AiProviderDriver;
 use App\Enums\EmbeddingProviderDriver;
+use App\Enums\SdlStage;
 use App\Enums\UserSecurityInstructionSectionKey;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
@@ -17,6 +18,7 @@ use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
 use App\Models\ProductVulnerability;
+use App\Models\SdlRun;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Services\Ai\AiDocumentAnalysePrompt;
@@ -25,6 +27,8 @@ use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
 use App\Services\Ai\AiIncidentSummaryDraftParser;
 use App\Services\Ai\AiIncidentSummaryDraftPrompt;
+use App\Services\Ai\AiSdlStageNotesDraftParser;
+use App\Services\Ai\AiSdlStageNotesDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
 use App\Services\Ai\AiUsiSectionDraftParser;
 use App\Services\Ai\AiUsiSectionDraftPrompt;
@@ -613,6 +617,88 @@ class AiAssistantService
         }
 
         AuditLogger::logAiIncidentSummaryDraftSuggested($incident, $user, [
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $resolvedLocale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
+    }
+
+    /**
+     * @return array{
+     *     draft: array{
+     *         notes_markdown: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestSdlStageNotesDraft(
+        Product $product,
+        SdlRun $run,
+        User $user,
+        SdlStage $stage,
+        ?string $currentNotes = null,
+        ?string $note = null,
+        ?string $locale = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($run->product_id !== $product->id) {
+            abort(404);
+        }
+
+        $resolvedLocale = $locale
+            ?? $product->organization?->locale
+            ?? app()->getLocale()
+            ?? 'en';
+
+        if (!in_array($resolvedLocale, ['en', 'bg'], true)) {
+            $resolvedLocale = 'en';
+        }
+
+        $context = $this->contextBuilder->forProduct($product);
+        $runContext = AiSdlStageNotesDraftPrompt::runContext($run, $stage);
+        $stageLabel = Translations::get('products.sdl.stages.' . $stage->value);
+        $prompt = AiSdlStageNotesDraftPrompt::userPrompt(
+            $resolvedLocale,
+            $context,
+            $runContext,
+            $stage->value,
+            is_string($stageLabel) && $stageLabel !== '' ? $stageLabel : $stage->value,
+            $currentNotes,
+            $note,
+            AiSdlStageNotesDraftPrompt::templateHint($stage, $resolvedLocale),
+        );
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'sdl_stage_notes',
+            'locale' => $resolvedLocale,
+            'sdl_run_id' => $run->id,
+            'sdl_run_title' => $run->title,
+            'stage' => $stage->value,
+        ]);
+
+        $draft = AiSdlStageNotesDraftParser::parse($completion['content']);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiSdlStageNotesDraftSuggested($run, $user, [
+            'stage' => $stage->value,
             'provider' => $completion['provider'],
             'model' => $completion['model'],
             'draft_parsed' => true,

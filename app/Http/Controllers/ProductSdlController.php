@@ -16,10 +16,12 @@ use App\Models\Evidence;
 use App\Models\SdlRun;
 use App\Models\User;
 use App\Enums\EvidenceType;
+use App\Services\AiAssistantService;
 use App\Services\ProductRepositoryService;
 use App\Services\ProductSdlService;
 use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +33,7 @@ class ProductSdlController extends Controller
     public function __construct(
         private readonly ProductSdlService $sdl,
         private readonly ProductRepositoryService $repositories,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -139,6 +142,45 @@ class ProductSdlController extends Controller
             ),
             'template_locale' => $organization->resolvedLocale(),
             'canManage' => request()->user()->canManageSdl($organization),
+            'aiEnabled' => $this->assistant->isEnabled(),
+        ]);
+    }
+
+    public function suggestAiDraft(
+        Request $request,
+        Product $product,
+        SdlRun $sdlRun,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+        $this->authorize('update', [$sdlRun, $organization]);
+
+        $validated = $request->validate([
+            'stage' => ['required', 'string', Rule::enum(SdlStage::class)],
+            'current_notes' => ['nullable', 'string', 'max:50000'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $stage = SdlStage::from($validated['stage']);
+
+        $result = $this->assistant->suggestSdlStageNotesDraft(
+            $product,
+            $sdlRun,
+            $request->user(),
+            $stage,
+            $validated['current_notes'] ?? null,
+            $validated['note'] ?? null,
+            $organization->resolvedLocale(),
+        );
+
+        return response()->json([
+            'notes_markdown' => $result['draft']['notes_markdown'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
+            'stage' => $stage->value,
         ]);
     }
 

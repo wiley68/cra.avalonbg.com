@@ -1660,6 +1660,32 @@ class AuditLogger
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $meta
+     */
+    public static function logAiSdlStageNotesDraftSuggested(
+        SdlRun $run,
+        User $actor,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiSdlStageNotesDraftSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'stage', 'value' => (string) ($meta['stage'] ?? '')],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+            ],
+        );
+    }
+
     public static function logAiVulnerabilityTriageSuggested(
         AiConversation $conversation,
         User $actor,

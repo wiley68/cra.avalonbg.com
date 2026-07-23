@@ -9,16 +9,19 @@ import {
     RefreshCw,
     Save,
     ShieldCheck,
+    Sparkles,
 } from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
+    aiDraft as suggestSdlAiDraft,
     approve as approveSdlRun,
     edit as productSdlEdit,
     index as productSdlIndex,
@@ -124,6 +127,7 @@ const props = defineProps<{
     repository: RepositoryPayload | null;
     git_evidence: GitEvidenceOption[];
     canManage: boolean;
+    aiEnabled: boolean;
     stage_note_templates: Record<string, string>;
     template_locale: string;
     options: {
@@ -203,6 +207,128 @@ const externalErrors = reactive<{
     title?: string;
     stage?: string;
 }>({});
+
+type AiStageDraftState = {
+    loading: boolean;
+    error: string;
+    notes_markdown: string;
+    disclaimer: string;
+};
+
+const emptyAiStageDraft = (): AiStageDraftState => ({
+    loading: false,
+    error: '',
+    notes_markdown: '',
+    disclaimer: '',
+});
+
+const aiStageDrafts = reactive<Record<string, AiStageDraftState>>(
+    Object.fromEntries(
+        props.run.stage_entries.map((entry) => [
+            entry.stage,
+            emptyAiStageDraft(),
+        ]),
+    ),
+);
+
+const ensureAiStageDraft = (stage: string): AiStageDraftState => {
+    if (!aiStageDrafts[stage]) {
+        aiStageDrafts[stage] = emptyAiStageDraft();
+    }
+
+    return aiStageDrafts[stage];
+};
+
+const xsrfToken = (): string => {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    return match ? decodeURIComponent(match[1]) : '';
+};
+
+const requestAiStageDraft = async (stage: string): Promise<void> => {
+    if (!canEdit.value || !props.aiEnabled) {
+        return;
+    }
+
+    const draft = ensureAiStageDraft(stage);
+    draft.loading = true;
+    draft.error = '';
+    draft.notes_markdown = '';
+    draft.disclaimer = '';
+
+    try {
+        const response = await fetch(
+            suggestSdlAiDraft({
+                product: props.product.id,
+                sdlRun: props.run.id,
+            }).url,
+            {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                },
+                body: JSON.stringify({
+                    stage,
+                    current_notes: stageDrafts[stage]?.notes ?? '',
+                }),
+            },
+        );
+
+        const payload = (await response.json().catch(() => ({}))) as {
+            notes_markdown?: string;
+            disclaimer?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            const firstError = payload.errors
+                ? Object.values(payload.errors).flat()[0]
+                : undefined;
+            draft.error =
+                firstError ||
+                payload.message ||
+                t('products.sdl.ai_draft_error');
+
+            return;
+        }
+
+        draft.notes_markdown = payload.notes_markdown ?? '';
+        draft.disclaimer =
+            payload.disclaimer || t('products.sdl.ai_draft_disclaimer');
+
+        if (!draft.notes_markdown) {
+            draft.error = t('products.sdl.ai_draft_error');
+        }
+    } catch {
+        draft.error = t('products.sdl.ai_draft_error');
+    } finally {
+        draft.loading = false;
+    }
+};
+
+const applyAiStageDraft = (stage: string): void => {
+    const draft = aiStageDrafts[stage];
+
+    if (!draft?.notes_markdown || !stageDrafts[stage]) {
+        return;
+    }
+
+    stageDrafts[stage].notes = draft.notes_markdown;
+    discardAiStageDraft(stage);
+};
+
+const discardAiStageDraft = (stage: string): void => {
+    const draft = ensureAiStageDraft(stage);
+    draft.notes_markdown = '';
+    draft.disclaimer = '';
+    draft.error = '';
+    draft.loading = false;
+};
 
 const isLocked = computed(
     () => props.run.is_approved || props.run.status === 'approved',
@@ -1124,18 +1250,48 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                 >
                                     {{ t('products.sdl.fields.stage_notes') }}
                                 </FieldLabel>
-                                <Button
-                                    v-if="
-                                        canEdit && hasStageTemplate(entry.stage)
-                                    "
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="requestApplyTemplate(entry.stage)"
-                                >
-                                    <FileText class="h-4 w-4" />
-                                    {{ t('products.sdl.apply_template') }}
-                                </Button>
+                                <div class="flex flex-wrap gap-2">
+                                    <Button
+                                        v-if="
+                                            canEdit &&
+                                            hasStageTemplate(entry.stage)
+                                        "
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="
+                                            requestApplyTemplate(entry.stage)
+                                        "
+                                    >
+                                        <FileText class="h-4 w-4" />
+                                        {{ t('products.sdl.apply_template') }}
+                                    </Button>
+                                    <Button
+                                        v-if="canEdit && aiEnabled"
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        :disabled="
+                                            ensureAiStageDraft(entry.stage)
+                                                .loading
+                                        "
+                                        @click="
+                                            requestAiStageDraft(entry.stage)
+                                        "
+                                    >
+                                        <Sparkles class="h-4 w-4" />
+                                        {{
+                                            ensureAiStageDraft(entry.stage)
+                                                .loading
+                                                ? t(
+                                                      'products.sdl.ai_draft_loading',
+                                                  )
+                                                : t(
+                                                      'products.sdl.ai_draft_suggest',
+                                                  )
+                                        }}
+                                    </Button>
+                                </div>
                             </div>
                             <textarea
                                 :id="`stage-notes-${entry.stage}`"
@@ -1146,6 +1302,55 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                             <InputError
                                 :message="stageErrors[entry.stage]?.notes"
                             />
+                            <div
+                                v-if="ensureAiStageDraft(entry.stage).error"
+                                class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                            >
+                                {{ ensureAiStageDraft(entry.stage).error }}
+                            </div>
+                            <div
+                                v-if="
+                                    ensureAiStageDraft(entry.stage)
+                                        .notes_markdown
+                                "
+                                class="space-y-3 rounded-md border border-border bg-muted/30 p-4"
+                            >
+                                <p class="text-sm text-muted-foreground">
+                                    {{
+                                        ensureAiStageDraft(entry.stage)
+                                            .disclaimer ||
+                                        t('products.sdl.ai_draft_disclaimer')
+                                    }}
+                                </p>
+                                <MarkdownPreview
+                                    :source="
+                                        ensureAiStageDraft(entry.stage)
+                                            .notes_markdown
+                                    "
+                                    :empty-label="
+                                        t('products.sdl.ai_draft_empty')
+                                    "
+                                />
+                                <div class="flex flex-wrap gap-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        @click="applyAiStageDraft(entry.stage)"
+                                    >
+                                        {{ t('products.sdl.ai_draft_apply') }}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="
+                                            discardAiStageDraft(entry.stage)
+                                        "
+                                    >
+                                        {{ t('products.sdl.ai_draft_discard') }}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
                         <template

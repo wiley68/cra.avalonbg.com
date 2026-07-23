@@ -302,6 +302,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductSdlController::class, 'linkExternalEvidence'],
         )->name('products.sdl.link-external-evidence')->scopeBindings();
         Route::post(
+            'products/{product}/sdl/{sdlRun}/ai-draft',
+            [ProductSdlController::class, 'suggestAiDraft'],
+        )->name('products.sdl.ai-draft')->scopeBindings();
+        Route::post(
             'products/{product}/incidents/{incident}/timeline',
             [ProductIncidentController::class, 'storeTimeline'],
         )->name('products.incidents.timeline.store')->scopeBindings();

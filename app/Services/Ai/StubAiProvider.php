@@ -146,6 +146,27 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'sdl_stage_notes') {
+            $locale = (string) ($options['locale'] ?? 'en');
+            $title = (string) ($options['sdl_run_title'] ?? 'SDL run');
+            $stage = (string) ($options['stage'] ?? 'stage');
+            $notes = $locale === 'bg'
+                ? "## {$title} — {$stage}\n\nТова е stub чернова за бележки / чеклист на SDL етап.\n\n- Прегледайте съдържанието преди запис на етапа\n- Не одобрявайте release security без human review\n- Заменете с реални threat / checklist резултати"
+                : "## {$title} — {$stage}\n\nThis is a stub draft for SDL stage notes / checklist outcomes.\n\n- Review the content before saving the stage\n- Do not grant release security approval without human review\n- Replace with real threat / checklist outcomes";
+
+            $payload = [
+                'notes_markdown' => $notes,
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; human review required before save.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         if (($options['mode'] ?? null) === 'vulnerability_triage') {
             $vulnerabilityId = (int) ($options['vulnerability_id'] ?? 0);
             $componentIds = [];

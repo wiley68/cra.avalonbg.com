@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 1.0  
+**Версия:** 1.5  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–9 Done  
+**Статус:** Active — Must Done; Should 7–12 Done; Could 13–14 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -212,7 +212,7 @@ GET    /products/{product}/sdl/{run}/export/{format}
 ### Could
 
 13. ~~Org-level cross-product SDL index~~ **Done**
-14. AI draft for threat notes / checklist (human review)
+14. ~~AI draft for threat notes / checklist (human review)~~ **Done**
 15. Export PDF/Markdown SDL summary for release package
 16. Auto-suggest evidence from recent Git sync
 17. Post-release monitoring checklist + dashboard counts
@@ -276,19 +276,20 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                              |
-| ------ | ---------- | -------------------------------------------------------------------- |
-| 1.4    | 2026-07-23 | Could 13 Done — org-level cross-product SDL index + sidebar          |
-| 1.3    | 2026-07-23 | Should 12 Done — `sdl.view` / `sdl.manage` + `can_view_sdl` nav card |
-| 1.2    | 2026-07-23 | Should 11 Done — readiness gap `sdl_release_approval_missing`        |
-| 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task           |
-| 1.0    | 2026-07-23 | Should 9 Done — Git/CI quick-link (sync snapshots + PR URL evidence) |
-| 0.9    | 2026-07-23 | Should 8 Done — EN/BG secure coding & threat checklist templates     |
-| 0.8    | 2026-07-23 | Should 7 Done — version-pinned SDL runs + index/API filter           |
-| 0.7    | 2026-07-23 | Must 6 Done — EN/BG i18n parity + RBAC/CRUD feature tests            |
-| 0.6    | 2026-07-23 | Must 5 Done — release security approval gate, lock, revoke + audit   |
-| 0.5    | 2026-07-23 | Must 4 Done — evidence links on SDL run + stage entries              |
-| 0.4    | 2026-07-23 | Must 3 Done — stage checklist UI (done/N/A/exception + notes)        |
-| 0.3    | 2026-07-23 | Must 2 Done — product SDL CRUD + DataTable + module card             |
-| 0.2    | 2026-07-23 | Must 1 Done — `sdl_runs` / `sdl_stage_entries` + enums + model tests |
-| 0.1    | 2026-07-23 | Skeleton след Phase 2.5 closeout — §5.14 SDL workspace (кандидат B)  |
+| Версия | Дата       | Промяна                                                                                    |
+| ------ | ---------- | ------------------------------------------------------------------------------------------ |
+| 1.5    | 2026-07-23 | Could 14 Done — AI draft for SDL stage notes / checklist (suggest → preview → apply local) |
+| 1.4    | 2026-07-23 | Could 13 Done — org-level cross-product SDL index + sidebar                                |
+| 1.3    | 2026-07-23 | Should 12 Done — `sdl.view` / `sdl.manage` + `can_view_sdl` nav card                       |
+| 1.2    | 2026-07-23 | Should 11 Done — readiness gap `sdl_release_approval_missing`                              |
+| 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task                                 |
+| 1.0    | 2026-07-23 | Should 9 Done — Git/CI quick-link (sync snapshots + PR URL evidence)                       |
+| 0.9    | 2026-07-23 | Should 8 Done — EN/BG secure coding & threat checklist templates                           |
+| 0.8    | 2026-07-23 | Should 7 Done — version-pinned SDL runs + index/API filter                                 |
+| 0.7    | 2026-07-23 | Must 6 Done — EN/BG i18n parity + RBAC/CRUD feature tests                                  |
+| 0.6    | 2026-07-23 | Must 5 Done — release security approval gate, lock, revoke + audit                         |
+| 0.5    | 2026-07-23 | Must 4 Done — evidence links on SDL run + stage entries                                    |
+| 0.4    | 2026-07-23 | Must 3 Done — stage checklist UI (done/N/A/exception + notes)                              |
+| 0.3    | 2026-07-23 | Must 2 Done — product SDL CRUD + DataTable + module card                                   |
+| 0.2    | 2026-07-23 | Must 1 Done — `sdl_runs` / `sdl_stage_entries` + enums + model tests                       |
+| 0.1    | 2026-07-23 | Skeleton след Phase 2.5 closeout — §5.14 SDL workspace (кандидат B)                        |
