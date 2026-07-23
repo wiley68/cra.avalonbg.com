@@ -3,20 +3,24 @@
 namespace App\Services;
 
 use App\Enums\IncidentSeverity;
+use App\Enums\IncidentStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Customer;
 use App\Models\IncidentTimelineEvent;
+use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\User;
-use App\Services\ProductVulnerabilityService;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +30,7 @@ class ProductIncidentService
 {
     public function __construct(
         private readonly ProductVulnerabilityService $vulnerabilities,
+        private readonly TaskService $tasks,
     ) {
     }
     /**
@@ -127,6 +132,7 @@ class ProductIncidentService
         User $actor,
     ): ProductIncident {
         $previousStatus = $incident->status->value;
+        $attributes = $this->applyClosureTimestamps($incident, $attributes, $actor);
 
         $incident = DB::transaction(function () use ($incident, $attributes, $versionIds, $customerIds, $deploymentIds) {
             $this->assertVersionsBelongToProduct($incident->product, $versionIds);
@@ -138,7 +144,7 @@ class ProductIncidentService
             $incident->customers()->sync($customerIds);
             $incident->deployments()->sync($deploymentIds);
 
-            return $incident->fresh(['owner', 'versions', 'customers', 'deployments']);
+            return $incident->fresh(['owner', 'versions', 'customers', 'deployments', 'closer']);
         });
 
         if ($incident->status->value !== $previousStatus) {
@@ -148,6 +154,74 @@ class ProductIncidentService
         }
 
         return $incident;
+    }
+
+    /**
+     * Close an active incident, stamp closed_at/closed_by, optionally create a follow-up approval task.
+     */
+    public function close(
+        ProductIncident $incident,
+        User $actor,
+        bool $createApprovalTask = false,
+        ?int $assigneeUserId = null,
+    ): ProductIncident {
+        if ($incident->isTerminal()) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.incidents.only_active_closable')],
+            ]);
+        }
+
+        if ($incident->awareness_at === null) {
+            throw ValidationException::withMessages([
+                'awareness_at' => [Translations::get('products.incidents.close_requires_awareness')],
+            ]);
+        }
+
+        if ($assigneeUserId !== null) {
+            $this->assertAssigneeBelongsToOrganization($incident->organization_id, $assigneeUserId);
+        }
+
+        $previousStatus = $incident->status->value;
+
+        return DB::transaction(function () use ($incident, $actor, $createApprovalTask, $assigneeUserId, $previousStatus, ) {
+            $incident->update([
+                'status' => IncidentStatus::Closed,
+                'closed_at' => now(),
+                'closed_by' => $actor->id,
+            ]);
+
+            $fresh = $incident->fresh([
+                'owner',
+                'versions',
+                'customers',
+                'deployments',
+                'closer',
+                'product',
+            ]);
+
+            if ($createApprovalTask) {
+                $this->tasks->create($fresh->product, [
+                    'title' => Translations::get('products.incidents.closure_task_title', [
+                        'title' => $fresh->title,
+                    ]),
+                    'description' => Translations::get('products.incidents.closure_task_description', [
+                        'title' => $fresh->title,
+                    ]),
+                    'status' => TaskStatus::Open,
+                    'priority' => TaskPriority::Medium,
+                    'assignee_user_id' => $assigneeUserId
+                        ?? $fresh->owner_user_id
+                        ?? $actor->id,
+                    'due_at' => now()->addDays(7),
+                    'subject_type' => 'incident',
+                    'subject_id' => $fresh->id,
+                ], $actor);
+            }
+
+            AuditLogger::logIncidentClosed($fresh, $actor, $previousStatus);
+
+            return $fresh;
+        });
     }
 
     public function delete(ProductIncident $incident, ?User $actor = null): void
@@ -347,6 +421,10 @@ class ProductIncidentService
             $incident->load('deployments');
         }
 
+        if (!$incident->relationLoaded('closer')) {
+            $incident->load('closer');
+        }
+
         return [
             'id' => $incident->id,
             'title' => $incident->title,
@@ -363,7 +441,10 @@ class ProductIncidentService
             'detected_at' => $incident->detected_at?->format('Y-m-d\TH:i'),
             'awareness_at' => $incident->awareness_at?->format('Y-m-d\TH:i'),
             'classified_at' => $incident->classified_at?->format('Y-m-d\TH:i'),
-            'closed_at' => $incident->closed_at?->format('Y-m-d\TH:i'),
+            'closed_at' => $incident->closed_at?->toIso8601String(),
+            'closed_by' => $incident->closed_by,
+            'closed_by_name' => $incident->closer?->name,
+            'is_terminal' => $incident->isTerminal(),
             'notes' => $incident->notes,
             'version_ids' => $incident->versions->pluck('id')->all(),
             'customer_ids' => $incident->customers->pluck('id')->all(),
@@ -460,6 +541,56 @@ class ProductIncidentService
         if ($count !== count($uniqueIds)) {
             throw ValidationException::withMessages([
                 'deployment_ids' => ['One or more deployments do not belong to this product.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    private function applyClosureTimestamps(
+        ProductIncident $incident,
+        array $attributes,
+        User $actor,
+    ): array {
+        $nextStatus = $attributes['status'] ?? $incident->status;
+
+        if (!$nextStatus instanceof IncidentStatus) {
+            $nextStatus = IncidentStatus::from((string) $nextStatus);
+        }
+
+        $wasTerminal = $incident->status->isTerminal();
+        $willBeTerminal = $nextStatus->isTerminal();
+
+        if ($willBeTerminal && $incident->closed_at === null) {
+            $attributes['closed_at'] = $attributes['closed_at'] ?? now();
+            $attributes['closed_by'] = $attributes['closed_by'] ?? $actor->id;
+        }
+
+        if ($wasTerminal && !$willBeTerminal) {
+            $attributes['closed_at'] = null;
+            $attributes['closed_by'] = null;
+        }
+
+        return $attributes;
+    }
+
+    private function assertAssigneeBelongsToOrganization(int $organizationId, int $assigneeUserId): void
+    {
+        $belongs = Organization::query()
+            ->whereKey($organizationId)
+            ->whereHas(
+                'users',
+                fn($query) => $query->where('users.id', $assigneeUserId),
+            )
+            ->exists();
+
+        if (!$belongs) {
+            throw ValidationException::withMessages([
+                'assignee_user_id' => [
+                    Translations::get('products.incidents.close_assignee_invalid'),
+                ],
             ]);
         }
     }

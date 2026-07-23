@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
+use App\Http\Requests\CloseProductIncidentRequest;
 use App\Http\Requests\CreateIncidentVulnerabilityRequest;
 use App\Http\Requests\LinkIncidentVulnerabilityRequest;
 use App\Http\Requests\StoreIncidentTimelineEventRequest;
@@ -94,6 +95,7 @@ class ProductIncidentController extends Controller
             'versions',
             'customers',
             'deployments',
+            'closer',
             'timelineEvents.creator',
             'vulnerability',
         ]);
@@ -198,6 +200,32 @@ class ProductIncidentController extends Controller
         ]);
 
         return redirect()->route('products.vulnerabilities.edit', [$product, $vulnerability]);
+    }
+
+    public function close(
+        CloseProductIncidentRequest $request,
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+
+        $this->incidents->close(
+            $incident,
+            $request->user(),
+            $request->boolean('create_approval_task'),
+            $request->filled('assignee_user_id')
+            ? (int) $request->input('assignee_user_id')
+            : null,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.closed'),
+        ]);
+
+        return redirect()->route('products.incidents.edit', [$product, $incident]);
     }
 
     public function update(

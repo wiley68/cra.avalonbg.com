@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
 use App\Enums\CustomerCriticality;
 use App\Enums\DeploymentEnvironment;
@@ -10,10 +11,12 @@ use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
 use App\Enums\ScopeStatus;
 use App\Enums\SupportStatus;
+use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
+use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
@@ -22,6 +25,7 @@ use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\Role;
+use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -531,4 +535,129 @@ test('read-only user cannot create vulnerability from incident', function () {
 
     expect($incident->fresh()->product_vulnerability_id)->toBeNull()
         ->and(ProductVulnerability::query()->where('product_id', $product->id)->count())->toBe(0);
+});
+
+test('owner can close incident with closed_at closed_by and optional approval task', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Ready to close',
+        'status' => IncidentStatus::Contained,
+        'severity' => IncidentSeverity::High,
+        'awareness_at' => now()->subHour(),
+        'owner_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.close', [$product, $incident]), [
+            'create_approval_task' => true,
+        ])
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    $fresh = $incident->fresh();
+
+    expect($fresh->status)->toBe(IncidentStatus::Closed)
+        ->and($fresh->closed_at)->not->toBeNull()
+        ->and($fresh->closed_by)->toBe($owner->id);
+
+    $task = Task::query()
+        ->where('product_id', $product->id)
+        ->where('subject_type', ProductIncident::class)
+        ->where('subject_id', $incident->id)
+        ->first();
+
+    expect($task)->not->toBeNull()
+        ->and($task->status)->toBe(TaskStatus::Open)
+        ->and($task->assignee_user_id)->toBe($owner->id);
+
+    expect(AuditLog::query()->where('event_type', AuditEventType::IncidentClosed->value)->exists())->toBeTrue();
+});
+
+test('close requires awareness timestamp and rejects already closed incidents', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $withoutAwareness = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Missing awareness',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.close', [$product, $withoutAwareness]))
+        ->assertSessionHasErrors('awareness_at');
+
+    $closed = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Already closed',
+        'status' => IncidentStatus::Closed,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now()->subDay(),
+        'closed_at' => now()->subHour(),
+        'closed_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.close', [$product, $closed]))
+        ->assertSessionHasErrors('status');
+});
+
+test('updating status to closed stamps closed_at and closed_by', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Status close stamp',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::Medium,
+        'awareness_at' => now()->subHours(3),
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Status close stamp',
+            'status' => IncidentStatus::Closed->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'awareness_at' => now()->subHours(3)->format('Y-m-d\TH:i'),
+            'version_ids' => [$version->id],
+            'customer_ids' => [],
+            'deployment_ids' => [],
+        ])
+        ->assertRedirect();
+
+    $fresh = $incident->fresh();
+
+    expect($fresh->status)->toBe(IncidentStatus::Closed)
+        ->and($fresh->closed_at)->not->toBeNull()
+        ->and($fresh->closed_by)->toBe($owner->id);
+});
+
+test('read-only user cannot close incident', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+    $viewer = makeIncidentsOrgReadOnly($organization);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer close block',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now(),
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.incidents.close', [$product, $incident]))
+        ->assertForbidden();
+
+    expect($incident->fresh()->status)->toBe(IncidentStatus::Open)
+        ->and($incident->fresh()->closed_at)->toBeNull();
 });

@@ -282,6 +282,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/incidents/{incident}/create-vulnerability',
             [ProductIncidentController::class, 'createVulnerability'],
         )->name('products.incidents.create-vulnerability')->scopeBindings();
+        Route::post(
+            'products/{product}/incidents/{incident}/close',
+            [ProductIncidentController::class, 'close'],
+        )->name('products.incidents.close')->scopeBindings();
         Route::get(
             'products/{product}/vulnerabilities/{vulnerability}/reporting',
             [VulnerabilityReportingController::class, 'show'],

@@ -4,6 +4,7 @@ import {
     ArrowLeft,
     ExternalLink,
     Link2,
+    Lock,
     Plus,
     Save,
     Trash2,
@@ -15,9 +16,12 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
+    close as closeProductIncident,
     createVulnerability as createIncidentVulnerability,
     destroy as destroyProductIncident,
     edit as productIncidentsEdit,
@@ -76,6 +80,10 @@ type IncidentDetail = {
     detected_at: string | null;
     awareness_at: string | null;
     classified_at: string | null;
+    closed_at: string | null;
+    closed_by: number | null;
+    closed_by_name: string | null;
+    is_terminal: boolean;
     notes: string | null;
     version_ids: number[];
     customer_ids: number[];
@@ -125,6 +133,7 @@ const selectClass =
     'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
 
 const showDeleteDialog = ref(false);
+const showCloseDialog = ref(false);
 
 const nowLocalDatetime = (): string => {
     const date = new Date();
@@ -163,6 +172,12 @@ const linkForm = useForm({
 });
 
 const createVulnerabilityForm = useForm({});
+
+const closeForm = useForm({
+    create_approval_task: false,
+});
+
+const isTerminal = computed(() => props.incident.is_terminal);
 
 const coreTimestampRows = computed(
     () =>
@@ -285,6 +300,17 @@ const confirmDelete = () => {
             product: props.product.id,
             incident: props.incident.id,
         }).url,
+    );
+};
+
+const confirmClose = () => {
+    showCloseDialog.value = false;
+    closeForm.post(
+        closeProductIncident({
+            product: props.product.id,
+            incident: props.incident.id,
+        }).url,
+        { preserveScroll: true },
     );
 };
 
@@ -779,6 +805,75 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
         <section class="space-y-4 border-t pt-6">
             <div>
                 <h2 class="text-base font-semibold">
+                    {{ t('products.incidents.closure_title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('products.incidents.closure_subtitle') }}
+                </p>
+            </div>
+
+            <div
+                v-if="isTerminal"
+                class="space-y-1 rounded-md border px-3 py-3 text-sm"
+            >
+                <p>{{ t('products.incidents.already_closed') }}</p>
+                <p>
+                    <span class="text-muted-foreground">
+                        {{ t('products.incidents.fields.closed_at') }}:
+                    </span>
+                    {{ formatDateTime(props.incident.closed_at) }}
+                </p>
+                <p v-if="props.incident.closed_by_name">
+                    {{
+                        t('products.incidents.closed_by', {
+                            name: props.incident.closed_by_name,
+                        })
+                    }}
+                </p>
+            </div>
+
+            <template v-else-if="canManage">
+                <div
+                    class="flex items-center justify-between gap-4 rounded-lg border p-4"
+                >
+                    <div class="space-y-0.5">
+                        <Label for="create_approval_task">
+                            {{ t('products.incidents.create_approval_task') }}
+                        </Label>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'products.incidents.help.create_approval_task',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <Switch
+                        id="create_approval_task"
+                        v-model="closeForm.create_approval_task"
+                    />
+                </div>
+                <InputError :message="closeForm.errors.create_approval_task" />
+                <InputError :message="closeForm.errors.awareness_at" />
+                <InputError :message="closeForm.errors.status" />
+
+                <div class="flex justify-end">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        :disabled="closeForm.processing"
+                        @click="showCloseDialog = true"
+                    >
+                        <Lock class="h-4 w-4" />
+                        {{ t('products.incidents.close') }}
+                    </Button>
+                </div>
+            </template>
+        </section>
+
+        <section class="space-y-4 border-t pt-6">
+            <div>
+                <h2 class="text-base font-semibold">
                     {{ t('products.incidents.vulnerability_title') }}
                 </h2>
                 <p class="text-sm text-muted-foreground">
@@ -1055,6 +1150,13 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 </div>
             </form>
         </section>
+
+        <AppAlertDialog
+            v-model:open="showCloseDialog"
+            :title="t('products.incidents.confirm_close_title')"
+            :description="t('products.incidents.confirm_close')"
+            @confirm="confirmClose"
+        />
 
         <AppAlertDialog
             v-model:open="showDeleteDialog"

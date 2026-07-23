@@ -481,6 +481,27 @@ class AuditLogger
         );
     }
 
+    public static function logIncidentClosed(
+        ProductIncident $incident,
+        User $actor,
+        string $previousStatus,
+    ): void {
+        self::persist(
+            type: AuditEventType::IncidentClosed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'previous_status', 'value' => $previousStatus],
+                ['field' => 'status', 'value' => $incident->status->value],
+                ['field' => 'closed_by', 'value' => (string) ($incident->closed_by ?? $actor->id)],
+            ],
+        );
+    }
+
     public static function logIncidentTimelineEventAdded(
         ProductIncident $incident,
         IncidentTimelineEvent $event,

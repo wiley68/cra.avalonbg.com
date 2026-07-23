@@ -2614,6 +2614,7 @@
                 "detected_at": "Detected at",
                 "awareness_at": "Awareness timestamp",
                 "classified_at": "Classified at",
+                "closed_at": "Closed at",
                 "root_cause": "Root cause",
                 "corrective_measures": "Corrective measures",
                 "lessons_learned": "Lessons learned",
@@ -2645,7 +2646,8 @@
                 "timeline_occurred_at": "When this investigation event happened.",
                 "timeline_label": "Short label, e.g. Customer report or Mitigation applied.",
                 "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save.",
-                "vulnerability_link": "Choose an existing vulnerability on this product to link to the incident."
+                "vulnerability_link": "Choose an existing vulnerability on this product to link to the incident.",
+                "create_approval_task": "Creates an open task linked to this incident for post-closure review."
             },
             "statuses": {
                 "open": "Open",
@@ -2680,7 +2682,21 @@
             "vulnerability_unlinked": "Vulnerability unlinked.",
             "vulnerability_created": "Vulnerability created from incident.",
             "vulnerability_open": "Open vulnerability",
-            "no_vulnerabilities": "No vulnerabilities registered for this product yet."
+            "no_vulnerabilities": "No vulnerabilities registered for this product yet.",
+            "close": "Close incident",
+            "closed": "Incident closed.",
+            "confirm_close_title": "Close this incident?",
+            "confirm_close": "Marks the incident as closed and records who closed it. This can be reopened later by changing the status.",
+            "closure_title": "Closure",
+            "closure_subtitle": "Close the incident with an audit trail. Optionally create a follow-up approval task.",
+            "create_approval_task": "Create closure approval task",
+            "only_active_closable": "Only open, investigating, or contained incidents can be closed.",
+            "close_requires_awareness": "Set the awareness timestamp before closing the incident.",
+            "close_assignee_invalid": "The assignee must be a member of this organization.",
+            "closure_task_title": "Review closed incident: :title",
+            "closure_task_description": "Post-closure review for security incident.\nTitle: :title",
+            "closed_by": "Closed by :name",
+            "already_closed": "This incident is closed."
         },
         "incidents_link": "Incidents"
     },
@@ -2815,6 +2831,7 @@
             "incident_updated": "Incident updated",
             "incident_deleted": "Incident deleted",
             "incident_status_updated": "Incident status updated",
+            "incident_closed": "Incident closed",
             "incident_timeline_event_added": "Incident timeline event added"
         },
         "event_sources": {
