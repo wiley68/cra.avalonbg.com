@@ -9,6 +9,7 @@ import {
     Eye,
     FileDown,
     FileUp,
+    Languages,
     Pencil,
     Save,
     Send,
@@ -54,6 +55,7 @@ import {
     exportMethod as instructionsExport,
     index as instructionsIndex,
     aiDraft as suggestAiDraft,
+    createPair,
     publish as publishInstruction,
     publishEvidence,
     retire as retireInstruction,
@@ -112,6 +114,11 @@ type InstructionDetail = {
     supersedes_id: number | null;
     supersedes_title: string | null;
     supersedes_sections: Record<string, SupersedesSection>;
+    paired_instruction_id: number | null;
+    paired_locale: string | null;
+    paired_title: string | null;
+    paired_status: string | null;
+    paired_version_label: string | null;
     sections: SectionPayload[];
 };
 
@@ -348,6 +355,36 @@ const reviewTaskHref = computed(() => {
     }).url;
 });
 
+const pairedHref = computed(() => {
+    if (!props.instruction.paired_instruction_id) {
+        return null;
+    }
+
+    return instructionsEdit({
+        product: props.product.id,
+        instruction: props.instruction.paired_instruction_id,
+    }).url;
+});
+
+const oppositeLocale = computed(() => {
+    if (props.instruction.locale === 'en') {
+        return 'bg';
+    }
+
+    if (props.instruction.locale === 'bg') {
+        return 'en';
+    }
+
+    return null;
+});
+
+const canCreatePair = computed(
+    () =>
+        props.canManage &&
+        props.instruction.paired_instruction_id === null &&
+        oppositeLocale.value !== null,
+);
+
 const canExport = computed(
     () =>
         props.canManage ||
@@ -557,6 +594,10 @@ const doPublishEvidence = () => {
     router.post(publishEvidence(routeArgs).url, {}, { preserveScroll: true });
 };
 
+const doCreatePair = () => {
+    router.post(createPair(routeArgs).url, {}, { preserveScroll: true });
+};
+
 const previousSectionBody = (sectionKey: string): string | null => {
     const previous = props.instruction.supersedes_sections?.[sectionKey];
 
@@ -614,8 +655,45 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                     }}:
                     {{ instruction.supersedes_title }}
                 </p>
+                <p
+                    v-if="pairedHref && instruction.paired_locale"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{
+                        t(
+                            'products.user_security_instructions.fields.paired_translation',
+                        )
+                    }}:
+                    <Link
+                        :href="pairedHref"
+                        class="underline underline-offset-2"
+                    >
+                        {{ localeLabel(instruction.paired_locale) }}
+                        —
+                        {{ instruction.paired_title }}
+                        ({{ statusLabel(instruction.paired_status ?? '') }}
+                        ·
+                        {{ instruction.paired_version_label }})
+                    </Link>
+                </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <Button
+                    v-if="canCreatePair"
+                    type="button"
+                    variant="outline"
+                    @click="doCreatePair"
+                >
+                    <Languages class="h-4 w-4" />
+                    {{
+                        t(
+                            'products.user_security_instructions.create_translation',
+                            {
+                                locale: localeLabel(oppositeLocale ?? ''),
+                            },
+                        )
+                    }}
+                </Button>
                 <Button v-if="canExport" as-child variant="outline">
                     <a :href="exportHtmlUrl" rel="noopener">
                         <FileDown class="h-4 w-4" />

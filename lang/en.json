@@ -2443,6 +2443,7 @@
                 "version_label": "Doc version",
                 "product_version_number": "Product version",
                 "locale": "Locale",
+                "paired_locale": "Translation",
                 "updated_at": "Updated"
             },
             "fields": {
@@ -2460,7 +2461,8 @@
                 "deployment_optional": "Deployment (optional)",
                 "export_format": "Format",
                 "supersedes": "Supersedes",
-                "assignee": "Assignee"
+                "assignee": "Assignee",
+                "paired_translation": "Translation"
             },
             "help": {
                 "title": "Document title shown in exports and lists.",
@@ -2566,7 +2568,14 @@
             "ai_draft_discard": "Discard suggestion",
             "ai_draft_disclaimer": "Draft only; human review required before save or publish. Nothing is saved until you apply and click Save.",
             "ai_draft_error": "Could not generate an AI draft for this section.",
-            "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current)."
+            "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current).",
+            "create_translation": "Create :locale translation",
+            "pair_created": "Locale translation linked.",
+            "already_paired": "These instructions already have a linked translation.",
+            "pair_locale_unsupported": "Only English and Bulgarian documents can be paired.",
+            "pair_product_mismatch": "Translations must belong to the same product.",
+            "pair_version_mismatch": "Translations must share the same product version scope.",
+            "pair_same_locale": "Linked translations must use different locales."
         }
     },
     "audit_logs": {

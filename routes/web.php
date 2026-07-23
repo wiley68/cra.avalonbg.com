@@ -249,6 +249,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/security-instructions/{instruction}/ai-draft',
             [UserSecurityInstructionController::class, 'suggestAiDraft'],
         )->name('products.security-instructions.ai-draft')->scopeBindings();
+        Route::post(
+            'products/{product}/security-instructions/{instruction}/create-pair',
+            [UserSecurityInstructionController::class, 'createPair'],
+        )->name('products.security-instructions.create-pair')->scopeBindings();
         Route::get(
             'products/{product}/security-instructions/{instruction}/export/{format}',
             [UserSecurityInstructionController::class, 'export'],

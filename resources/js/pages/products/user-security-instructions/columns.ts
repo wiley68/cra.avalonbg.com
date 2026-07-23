@@ -14,6 +14,8 @@ export type UserSecurityInstructionListItem = {
     locale: string;
     product_version_id: number | null;
     product_version_number: string | null;
+    paired_instruction_id: number | null;
+    paired_locale: string | null;
     published_at: string | null;
     updated_at: string | null;
 };
@@ -34,6 +36,9 @@ export function createUserSecurityInstructionColumnTitleMap(
             'products.user_security_instructions.columns.product_version_number',
         ),
         locale: t('products.user_security_instructions.columns.locale'),
+        paired_locale: t(
+            'products.user_security_instructions.columns.paired_locale',
+        ),
         updated_at: t('products.user_security_instructions.columns.updated_at'),
         actions: t('common.actions'),
     };
@@ -150,6 +155,37 @@ export const createUserSecurityInstructionColumns = ({
                     { class: 'uppercase text-muted-foreground' },
                     String(row.getValue('locale')),
                 ),
+        },
+        {
+            accessorKey: 'paired_locale',
+            header: () =>
+                t('products.user_security_instructions.columns.paired_locale'),
+            enableSorting: false,
+            cell: ({ row }) => {
+                const pairedId = row.original.paired_instruction_id;
+                const pairedLocale = row.original.paired_locale;
+
+                if (!pairedId || !pairedLocale) {
+                    return h('div', { class: 'text-muted-foreground' }, '—');
+                }
+
+                return h(
+                    'button',
+                    {
+                        type: 'button',
+                        class: 'uppercase text-muted-foreground underline underline-offset-2',
+                        onClick: () => {
+                            router.visit(
+                                editInstruction({
+                                    product: productId,
+                                    instruction: pairedId,
+                                }).url,
+                            );
+                        },
+                    },
+                    pairedLocale,
+                );
+            },
         },
         {
             accessorKey: 'updated_at',

@@ -1,8 +1,8 @@
 # Phase 2.4 — User Security Instructions
 
-**Версия:** 0.16  
+**Версия:** 0.17  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must + Should Done; Could 12–15 Done  
+**Статус:** Active — Must + Should + Could Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.17 User Security Instructions, §14)
@@ -125,22 +125,23 @@ flowchart TB
 
 ### `user_security_instructions`
 
-| Колона             | Тип                | Бележки                                    |
-| ------------------ | ------------------ | ------------------------------------------ |
-| id                 | bigint PK          |                                            |
-| organization_id    | FK                 | tenant                                     |
-| product_id         | FK                 |                                            |
-| product_version_id | FK nullable        | null = product-wide                        |
-| title              | string             |                                            |
-| status             | string             | draft / under_review / published / retired |
-| version_label      | string             | e.g. `1.0`                                 |
-| locale             | string             | `en` / `bg`                                |
-| supersedes_id      | FK nullable        | previous revision                          |
-| published_at       | timestamp nullable |                                            |
-| published_by       | FK nullable        |                                            |
-| evidence_id        | FK nullable        | after publish                              |
-| notes              | text nullable      |                                            |
-| timestamps         |                    |                                            |
+| Колона                | Тип                | Бележки                                    |
+| --------------------- | ------------------ | ------------------------------------------ |
+| id                    | bigint PK          |                                            |
+| organization_id       | FK                 | tenant                                     |
+| product_id            | FK                 |                                            |
+| product_version_id    | FK nullable        | null = product-wide                        |
+| title                 | string             |                                            |
+| status                | string             | draft / under_review / published / retired |
+| version_label         | string             | e.g. `1.0`                                 |
+| locale                | string             | `en` / `bg`                                |
+| supersedes_id         | FK nullable        | previous revision                          |
+| paired_instruction_id | FK nullable        | linked opposite-locale document (en↔bg)    |
+| published_at          | timestamp nullable |                                            |
+| published_by          | FK nullable        |                                            |
+| evidence_id           | FK nullable        | after publish                              |
+| notes                 | text nullable      |                                            |
+| timestamps            |                    |                                            |
 
 ### `user_security_instruction_sections`
 
@@ -170,6 +171,7 @@ POST   /products/{product}/security-instructions/{instruction}/submit-review
 POST   /products/{product}/security-instructions/{instruction}/publish
 POST   /products/{product}/security-instructions/{instruction}/publish-evidence
 POST   /products/{product}/security-instructions/{instruction}/retire
+POST   /products/{product}/security-instructions/{instruction}/create-pair
 POST   /products/{product}/security-instructions/{instruction}/ai-draft
 GET    /products/{product}/security-instructions/{instruction}/export/{format}
 GET    /internal-api/products/{product}/security-instructions
@@ -202,7 +204,7 @@ GET    /internal-api/products/{product}/security-instructions
 13. AI draft per section (human review; reuse AiProvider) — **Done** (2026-07-23)
 14. Diff between superseding versions — **Done** (2026-07-23)
 15. Task on submit-for-review — **Done** (2026-07-23)
-16. Multi-locale document pairs (en/bg linked)
+16. Multi-locale document pairs (en/bg linked) — **Done** (2026-07-23)
 
 ---
 
@@ -262,6 +264,7 @@ Reuse от Phase 2.3:
 
 | Версия | Дата       | Промяна                                                          |
 | ------ | ---------- | ---------------------------------------------------------------- |
+| 0.17   | 2026-07-23 | Could 16: multi-locale EN/BG pairs (`paired_instruction_id`)     |
 | 0.16   | 2026-07-23 | Could 15: Task on submit-for-review (closes on publish)          |
 | 0.15   | 2026-07-23 | Could 14: diff between superseding versions (PolicyBodyField)    |
 | 0.14   | 2026-07-23 | Could 13: AI draft per section (suggest → apply; no auto-save)   |

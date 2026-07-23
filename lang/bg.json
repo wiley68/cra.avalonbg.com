@@ -2443,6 +2443,7 @@
                 "version_label": "Версия на документа",
                 "product_version_number": "Версия на продукта",
                 "locale": "Език",
+                "paired_locale": "Превод",
                 "updated_at": "Обновено"
             },
             "fields": {
@@ -2460,7 +2461,8 @@
                 "deployment_optional": "Deployment (опционално)",
                 "export_format": "Формат",
                 "supersedes": "Замества",
-                "assignee": "Изпълнител"
+                "assignee": "Изпълнител",
+                "paired_translation": "Превод"
             },
             "help": {
                 "title": "Заглавие на документа в експорти и списъци.",
@@ -2566,7 +2568,14 @@
             "ai_draft_discard": "Отхвърли предложението",
             "ai_draft_disclaimer": "Само чернова; нужен е human review преди запис или publish. Нищо не се записва, докато не приложите и натиснете Запази.",
             "ai_draft_error": "Неуспешно генериране на AI чернова за тази секция.",
-            "diff_applicable_changed": "Applicable е променено спрямо предишната версия (:previous → :current)."
+            "diff_applicable_changed": "Applicable е променено спрямо предишната версия (:previous → :current).",
+            "create_translation": "Създай превод на :locale",
+            "pair_created": "Преводът е свързан.",
+            "already_paired": "Тези инструкции вече имат свързан превод.",
+            "pair_locale_unsupported": "Могат да се свързват само английски и български документи.",
+            "pair_product_mismatch": "Преводите трябва да принадлежат на същия продукт.",
+            "pair_version_mismatch": "Преводите трябва да споделят същия обхват на продуктова версия.",
+            "pair_same_locale": "Свързаните преводи трябва да са на различни езици."
         }
     },
     "audit_logs": {

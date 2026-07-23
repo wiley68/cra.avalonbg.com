@@ -215,6 +215,23 @@ class UserSecurityInstructionController extends Controller
         return redirect()->route('products.security-instructions.index', $product);
     }
 
+    public function createPair(Product $product, UserSecurityInstruction $instruction): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('create', [UserSecurityInstruction::class, $organization]);
+
+        $paired = $this->instructions->createPairedTranslation($instruction, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.user_security_instructions.pair_created'),
+        ]);
+
+        return redirect()->route('products.security-instructions.edit', [$product, $paired]);
+    }
+
     public function submitReview(
         Request $request,
         Product $product,

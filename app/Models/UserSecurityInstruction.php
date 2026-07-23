@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $version_label
  * @property string $locale
  * @property int|null $supersedes_id
+ * @property int|null $paired_instruction_id
  * @property Carbon|null $published_at
  * @property int|null $published_by
  * @property int|null $evidence_id
@@ -31,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property-read Product|null $product
  * @property-read ProductVersion|null $productVersion
  * @property-read UserSecurityInstruction|null $supersedes
+ * @property-read UserSecurityInstruction|null $pairedInstruction
  * @property-read User|null $publisher
  * @property-read Evidence|null $evidence
  */
@@ -43,6 +45,7 @@ use Illuminate\Support\Carbon;
     'version_label',
     'locale',
     'supersedes_id',
+    'paired_instruction_id',
     'published_at',
     'published_by',
     'evidence_id',
@@ -80,6 +83,12 @@ class UserSecurityInstruction extends Model
     public function supersedes(): BelongsTo
     {
         return $this->belongsTo(self::class, 'supersedes_id');
+    }
+
+    /** @return BelongsTo<UserSecurityInstruction, $this> */
+    public function pairedInstruction(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'paired_instruction_id');
     }
 
     /** @return BelongsTo<User, $this> */

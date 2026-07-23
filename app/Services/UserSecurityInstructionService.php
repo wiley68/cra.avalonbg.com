@@ -51,7 +51,7 @@ class UserSecurityInstructionService
         bool $productWideOnly = false,
     ): LengthAwarePaginator {
         $query = UserSecurityInstruction::query()
-            ->with('productVersion:id,version_number')
+            ->with(['productVersion:id,version_number', 'pairedInstruction:id,locale,title,status'])
             ->where('product_id', $product->id);
 
         if ($productWideOnly) {
@@ -163,6 +163,125 @@ class UserSecurityInstructionService
     }
 
     /**
+     * Create or link the opposite-locale document for the same product / version pin.
+     */
+    public function createPairedTranslation(
+        UserSecurityInstruction $instruction,
+        User $actor,
+    ): UserSecurityInstruction {
+        $instruction->loadMissing('product');
+
+        if ($instruction->paired_instruction_id !== null) {
+            throw ValidationException::withMessages([
+                'paired_instruction_id' => [Translations::get('products.user_security_instructions.already_paired')],
+            ]);
+        }
+
+        $oppositeLocale = $this->oppositeLocale($instruction->locale);
+        if ($oppositeLocale === null) {
+            throw ValidationException::withMessages([
+                'locale' => [Translations::get('products.user_security_instructions.pair_locale_unsupported')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($instruction, $actor, $oppositeLocale): UserSecurityInstruction {
+            $existing = $this->findUnpairedOppositeLocaleSibling($instruction, $oppositeLocale);
+
+            if ($existing !== null) {
+                $this->linkPair($instruction, $existing);
+
+                return $existing->fresh(['sections', 'pairedInstruction']);
+            }
+
+            $paired = $this->create(
+                $instruction->product,
+                [
+                    'title' => '',
+                    'version_label' => $instruction->version_label,
+                    'locale' => $oppositeLocale,
+                    'notes' => $instruction->notes,
+                    'use_template' => true,
+                    'product_version_id' => $instruction->product_version_id,
+                ],
+                $actor,
+            );
+
+            $this->linkPair($instruction, $paired);
+
+            return $paired->fresh(['sections', 'pairedInstruction']);
+        });
+    }
+
+    private function linkPair(
+        UserSecurityInstruction $left,
+        UserSecurityInstruction $right,
+    ): void {
+        if ($left->product_id !== $right->product_id) {
+            throw ValidationException::withMessages([
+                'paired_instruction_id' => [Translations::get('products.user_security_instructions.pair_product_mismatch')],
+            ]);
+        }
+
+        if ($left->product_version_id !== $right->product_version_id) {
+            throw ValidationException::withMessages([
+                'paired_instruction_id' => [Translations::get('products.user_security_instructions.pair_version_mismatch')],
+            ]);
+        }
+
+        if ($left->locale === $right->locale) {
+            throw ValidationException::withMessages([
+                'paired_instruction_id' => [Translations::get('products.user_security_instructions.pair_same_locale')],
+            ]);
+        }
+
+        if (
+            ($left->paired_instruction_id !== null && $left->paired_instruction_id !== $right->id)
+            || ($right->paired_instruction_id !== null && $right->paired_instruction_id !== $left->id)
+        ) {
+            throw ValidationException::withMessages([
+                'paired_instruction_id' => [Translations::get('products.user_security_instructions.already_paired')],
+            ]);
+        }
+
+        $left->update(['paired_instruction_id' => $right->id]);
+        $right->update(['paired_instruction_id' => $left->id]);
+    }
+
+    private function oppositeLocale(string $locale): ?string
+    {
+        return match ($locale) {
+            'en' => 'bg',
+            'bg' => 'en',
+            default => null,
+        };
+    }
+
+    private function findUnpairedOppositeLocaleSibling(
+        UserSecurityInstruction $instruction,
+        string $oppositeLocale,
+    ): ?UserSecurityInstruction {
+        $query = UserSecurityInstruction::query()
+            ->where('product_id', $instruction->product_id)
+            ->where('locale', $oppositeLocale)
+            ->whereNull('paired_instruction_id')
+            ->whereKeyNot($instruction->id)
+            ->whereIn('status', [
+                UserSecurityInstructionStatus::Draft->value,
+                UserSecurityInstructionStatus::UnderReview->value,
+                UserSecurityInstructionStatus::Published->value,
+            ])
+            ->orderByDesc('id');
+
+        if ($instruction->product_version_id === null) {
+            $query->whereNull('product_version_id');
+        } else {
+            $query->where('product_version_id', $instruction->product_version_id);
+        }
+
+        return $query->first();
+    }
+
+    /**
      * @return array{
      *     title: string,
      *     version_label: string,
@@ -202,6 +321,22 @@ class UserSecurityInstructionService
             $productVersionId = array_key_exists('product_version_id', $attributes)
                 ? $attributes['product_version_id']
                 : $instruction->product_version_id;
+
+            $instruction->loadMissing('pairedInstruction');
+            $paired = $instruction->pairedInstruction;
+            if ($paired !== null) {
+                if ($locale === $paired->locale) {
+                    throw ValidationException::withMessages([
+                        'locale' => [Translations::get('products.user_security_instructions.pair_same_locale')],
+                    ]);
+                }
+
+                if ($productVersionId !== $paired->product_version_id) {
+                    throw ValidationException::withMessages([
+                        'product_version_id' => [Translations::get('products.user_security_instructions.pair_version_mismatch')],
+                    ]);
+                }
+            }
 
             $scopeChanged = $locale !== $instruction->locale
                 || $productVersionId !== $instruction->product_version_id;
@@ -548,9 +683,11 @@ class UserSecurityInstructionService
             'evidence',
             'productVersion:id,version_number',
             'supersedes.sections',
+            'pairedInstruction',
         ]);
 
         $previous = $instruction->supersedes;
+        $paired = $instruction->pairedInstruction;
 
         return [
             'id' => $instruction->id,
@@ -580,6 +717,11 @@ class UserSecurityInstructionService
                     ])
                     ->all()
                 : [],
+            'paired_instruction_id' => $paired?->id,
+            'paired_locale' => $paired?->locale,
+            'paired_title' => $paired?->title,
+            'paired_status' => $paired?->status->value,
+            'paired_version_label' => $paired?->version_label,
             'sections' => $instruction->sections
                 ->sortBy('sort_order')
                 ->values()
@@ -638,7 +780,7 @@ class UserSecurityInstructionService
      */
     public function listItemPayload(UserSecurityInstruction $instruction): array
     {
-        $instruction->loadMissing('productVersion:id,version_number');
+        $instruction->loadMissing(['productVersion:id,version_number', 'pairedInstruction:id,locale,title,status']);
 
         return [
             'id' => $instruction->id,
@@ -648,6 +790,8 @@ class UserSecurityInstructionService
             'locale' => $instruction->locale,
             'product_version_id' => $instruction->product_version_id,
             'product_version_number' => $instruction->productVersion?->version_number,
+            'paired_instruction_id' => $instruction->paired_instruction_id,
+            'paired_locale' => $instruction->pairedInstruction?->locale,
             'published_at' => $instruction->published_at?->toIso8601String(),
             'updated_at' => $instruction->updated_at?->toIso8601String(),
         ];
