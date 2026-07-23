@@ -266,6 +266,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('products.incidents', ProductIncidentController::class)
             ->except(['show'])
             ->scoped();
+        Route::post(
+            'products/{product}/incidents/{incident}/timeline',
+            [ProductIncidentController::class, 'storeTimeline'],
+        )->name('products.incidents.timeline.store')->scopeBindings();
         Route::get(
             'products/{product}/vulnerabilities/{vulnerability}/reporting',
             [VulnerabilityReportingController::class, 'show'],

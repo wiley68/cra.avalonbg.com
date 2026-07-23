@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\ProductIncident;
+use App\Models\IncidentTimelineEvent;
 use App\Models\ProductVersion;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -101,6 +103,25 @@ class ProductIncidentService
     }
 
     /**
+     * @param  array{occurred_at: mixed, label: string, notes?: string|null}  $attributes
+     */
+    public function addTimelineEvent(
+        ProductIncident $incident,
+        array $attributes,
+        ?User $actor = null,
+    ): IncidentTimelineEvent {
+        /** @var IncidentTimelineEvent $event */
+        $event = $incident->timelineEvents()->create([
+            'occurred_at' => $attributes['occurred_at'],
+            'label' => $attributes['label'],
+            'notes' => $attributes['notes'] ?? null,
+            'created_by' => $actor?->id,
+        ]);
+
+        return $event->load('creator');
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function listItemPayload(ProductIncident $incident): array
@@ -122,6 +143,15 @@ class ProductIncidentService
      */
     public function detailPayload(ProductIncident $incident): array
     {
+        if (!$incident->relationLoaded('timelineEvents')) {
+            $incident->load(['timelineEvents.creator']);
+        } elseif (
+            $incident->timelineEvents->isNotEmpty()
+            && !$incident->timelineEvents->first()?->relationLoaded('creator')
+        ) {
+            $incident->load(['timelineEvents.creator']);
+        }
+
         return [
             'id' => $incident->id,
             'title' => $incident->title,
@@ -140,6 +170,32 @@ class ProductIncidentService
             'closed_at' => $incident->closed_at?->format('Y-m-d\TH:i'),
             'notes' => $incident->notes,
             'version_ids' => $incident->versions->pluck('id')->all(),
+            'timeline_events' => $incident->timelineEvents
+                ->map(fn(IncidentTimelineEvent $event) => $this->timelineEventPayload($event))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     occurred_at: string,
+     *     label: string,
+     *     notes: string|null,
+     *     created_by: string|null,
+     *     created_at: string|null
+     * }
+     */
+    public function timelineEventPayload(IncidentTimelineEvent $event): array
+    {
+        return [
+            'id' => $event->id,
+            'occurred_at' => $event->occurred_at->toIso8601String(),
+            'label' => $event->label,
+            'notes' => $event->notes,
+            'created_by' => $event->creator?->name,
+            'created_at' => $event->created_at?->toIso8601String(),
         ];
     }
 

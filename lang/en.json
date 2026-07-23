@@ -2615,7 +2615,10 @@
                 "corrective_measures": "Corrective measures",
                 "lessons_learned": "Lessons learned",
                 "notes": "Notes",
-                "versions": "Affected versions"
+                "versions": "Affected versions",
+                "timeline_occurred_at": "Occurred at",
+                "timeline_label": "Event label",
+                "timeline_notes": "Event notes"
             },
             "help": {
                 "title": "Short name for the incident record.",
@@ -2631,7 +2634,10 @@
                 "corrective_measures": "Actions taken or planned to contain and remediate.",
                 "lessons_learned": "Post-incident learnings for future prevention.",
                 "notes": "Internal notes for investigation and follow-up.",
-                "versions": "Product versions impacted by this incident."
+                "versions": "Product versions impacted by this incident.",
+                "timeline_occurred_at": "When this investigation event happened.",
+                "timeline_label": "Short label, e.g. Customer report or Mitigation applied.",
+                "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save."
             },
             "statuses": {
                 "open": "Open",
@@ -2645,7 +2651,15 @@
                 "medium": "Medium",
                 "high": "High",
                 "critical": "Critical"
-            }
+            },
+            "timeline_added": "Timeline event added.",
+            "timeline_title": "Incident timeline",
+            "timeline_subtitle": "Core timestamps and append-only investigation events.",
+            "timeline_empty": "No timeline events recorded yet.",
+            "timeline_add": "Add timeline event",
+            "timeline_recorded_by": "Recorded by :name",
+            "core_timestamps_title": "Core timestamps",
+            "core_timestamps_subtitle": "Start, detection, awareness, and classification times for this incident."
         },
         "incidents_link": "Incidents"
     },

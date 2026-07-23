@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
+use App\Http\Requests\StoreIncidentTimelineEventRequest;
 use App\Http\Requests\StoreProductIncidentRequest;
 use App\Http\Requests\UpdateProductIncidentRequest;
 use App\Models\Organization;
@@ -78,7 +79,7 @@ class ProductIncidentController extends Controller
         $this->assertIncidentBelongsToProduct($incident, $product);
         $this->authorize('view', [$incident, $organization]);
 
-        $incident->load(['owner', 'versions']);
+        $incident->load(['owner', 'versions', 'timelineEvents.creator']);
 
         return Inertia::render('products/incidents/Edit', [
             'organization' => $this->organizationPayload($organization),
@@ -89,6 +90,33 @@ class ProductIncidentController extends Controller
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageVulnerabilities($organization),
         ]);
+    }
+
+    public function storeTimeline(
+        StoreIncidentTimelineEventRequest $request,
+        Product $product,
+        ProductIncident $incident,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+
+        $this->incidents->addTimelineEvent(
+            $incident,
+            [
+                'occurred_at' => $request->input('occurred_at'),
+                'label' => $request->string('label')->toString(),
+                'notes' => $request->input('notes'),
+            ],
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.incidents.timeline_added'),
+        ]);
+
+        return redirect()->route('products.incidents.edit', [$product, $incident]);
     }
 
     public function update(

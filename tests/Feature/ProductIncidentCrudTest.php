@@ -238,6 +238,8 @@ test('incident edit page is available for owner', function () {
         'title' => 'Edit page incident',
         'status' => IncidentStatus::Open,
         'severity' => IncidentSeverity::Medium,
+        'awareness_at' => now()->subHours(3),
+        'detected_at' => now()->subHours(4),
     ]);
 
     $this->actingAs($owner)
@@ -246,5 +248,70 @@ test('incident edit page is available for owner', function () {
         ->assertInertia(fn($page) => $page
             ->component('products/incidents/Edit')
             ->where('incident.id', $incident->id)
-            ->where('canManage', true));
+            ->where('canManage', true)
+            ->has('incident.timeline_events', 0)
+            ->where('incident.awareness_at', $incident->awareness_at?->format('Y-m-d\TH:i')));
+});
+
+test('owner can append timeline event', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Timeline append incident',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::High,
+    ]);
+
+    $occurredAt = '2026-07-22T14:30';
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.timeline.store', [$product, $incident]), [
+            'occurred_at' => $occurredAt,
+            'label' => 'Customer report',
+            'notes' => 'Support ticket #441 received.',
+        ])
+        ->assertRedirect(route('products.incidents.edit', [$product, $incident]));
+
+    $event = $incident->timelineEvents()->first();
+
+    expect($event)->not->toBeNull()
+        ->and($event->label)->toBe('Customer report')
+        ->and($event->notes)->toBe('Support ticket #441 received.')
+        ->and($event->created_by)->toBe($owner->id)
+        ->and($event->occurred_at->format('Y-m-d\TH:i'))->toBe($occurredAt);
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/incidents/Edit')
+            ->has('incident.timeline_events', 1)
+            ->where('incident.timeline_events.0.label', 'Customer report')
+            ->where('incident.timeline_events.0.created_by', $owner->name));
+});
+
+test('read-only user cannot append timeline event', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product] = makeProductWithVersionForIncidents($organization, $owner);
+    $viewer = makeIncidentsOrgReadOnly($organization);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Viewer timeline block',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::Low,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('products.incidents.timeline.store', [$product, $incident]), [
+            'occurred_at' => '2026-07-22T10:00',
+            'label' => 'Forbidden event',
+        ])
+        ->assertForbidden();
+
+    expect($incident->timelineEvents()->count())->toBe(0);
 });

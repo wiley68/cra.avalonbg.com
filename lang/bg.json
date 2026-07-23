@@ -2615,7 +2615,10 @@
                 "corrective_measures": "Коригиращи мерки",
                 "lessons_learned": "Поуки",
                 "notes": "Бележки",
-                "versions": "Засегнати версии"
+                "versions": "Засегнати версии",
+                "timeline_occurred_at": "Настъпило на",
+                "timeline_label": "Етикет на събитието",
+                "timeline_notes": "Бележки към събитието"
             },
             "help": {
                 "title": "Кратко име на записа за инцидента.",
@@ -2631,7 +2634,10 @@
                 "corrective_measures": "Действия за ограничаване и отстраняване.",
                 "lessons_learned": "Поуки след инцидента за бъдеща превенция.",
                 "notes": "Вътрешни бележки за разследване и проследяване.",
-                "versions": "Версии на продукта, засегнати от инцидента."
+                "versions": "Версии на продукта, засегнати от инцидента.",
+                "timeline_occurred_at": "Кога е настъпило това събитие от разследването.",
+                "timeline_label": "Кратък етикет, напр. Доклад от клиент или Приложена мярка.",
+                "timeline_notes": "Опционални детайли. След запис събитията не се редактират."
             },
             "statuses": {
                 "open": "Отворен",
@@ -2645,7 +2651,15 @@
                 "medium": "Средна",
                 "high": "Висока",
                 "critical": "Критична"
-            }
+            },
+            "timeline_added": "Събитието в timeline е добавено.",
+            "timeline_title": "Timeline на инцидента",
+            "timeline_subtitle": "Основни timestamps и append-only събития от разследването.",
+            "timeline_empty": "Все още няма записани timeline събития.",
+            "timeline_add": "Добави timeline събитие",
+            "timeline_recorded_by": "Записано от :name",
+            "core_timestamps_title": "Основни timestamps",
+            "core_timestamps_subtitle": "Старт, откриване, осведоменост и класификация за този инцидент."
         },
         "incidents_link": "Инциденти"
     },
