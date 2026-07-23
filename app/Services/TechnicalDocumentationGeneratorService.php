@@ -99,16 +99,17 @@ class TechnicalDocumentationGeneratorService
     ): array {
         $product = $package->product;
         $versionId = $package->product_version_id;
+        $locale = $package->locale;
 
         [$sourceModule, $facts, $markdown] = match ($key) {
-            TechnicalDocumentationSectionKey::ProductIdentification => $this->productIdentification($product),
-            TechnicalDocumentationSectionKey::CybersecurityRiskAssessment => $this->riskAssessment($product, $versionId),
-            TechnicalDocumentationSectionKey::Sbom => $this->sbom($product, $versionId),
-            TechnicalDocumentationSectionKey::ComponentInventory => $this->componentInventory($product, $versionId),
-            TechnicalDocumentationSectionKey::SupportPeriod => $this->supportPeriod($product),
-            TechnicalDocumentationSectionKey::ReleaseHistory => $this->releaseHistory($product),
-            TechnicalDocumentationSectionKey::EssentialRequirementsMatrix => $this->requirementsMatrix($product),
-            TechnicalDocumentationSectionKey::DesignDevelopmentControls => $this->controls($product),
+            TechnicalDocumentationSectionKey::ProductIdentification => $this->productIdentification($product, $locale),
+            TechnicalDocumentationSectionKey::CybersecurityRiskAssessment => $this->riskAssessment($product, $versionId, $locale),
+            TechnicalDocumentationSectionKey::Sbom => $this->sbom($product, $versionId, $locale),
+            TechnicalDocumentationSectionKey::ComponentInventory => $this->componentInventory($product, $versionId, $locale),
+            TechnicalDocumentationSectionKey::SupportPeriod => $this->supportPeriod($product, $locale),
+            TechnicalDocumentationSectionKey::ReleaseHistory => $this->releaseHistory($product, $locale),
+            TechnicalDocumentationSectionKey::EssentialRequirementsMatrix => $this->requirementsMatrix($product, $locale),
+            TechnicalDocumentationSectionKey::DesignDevelopmentControls => $this->controls($product, $locale),
             default => throw new \InvalidArgumentException('Section is not generated: ' . $key->value),
         };
 
@@ -125,7 +126,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function productIdentification(Product $product): array
+    private function productIdentification(Product $product, string $locale): array
     {
         $facts = [
             'name' => $product->name,
@@ -147,33 +148,33 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.product_identification'),
+            '# ' . $this->sectionTitle('product_identification', $locale),
             '',
-            '- **Name:** ' . $facts['name'],
-            '- **Slug:** ' . $facts['slug'],
-            '- **Type:** ' . $facts['product_type'],
-            '- **Manufacturer:** ' . ($facts['manufacturer'] ?: '—'),
-            '- **Product line:** ' . ($facts['product_line'] ?: '—'),
-            '- **Licensing:** ' . $facts['licensing_model'],
-            '- **Network connectivity:** ' . ($facts['has_network_connectivity'] ? 'yes' : 'no'),
-            '- **Remote data processing:** ' . ($facts['has_remote_data_processing'] ? 'yes' : 'no'),
-            '- **Deployment model:** ' . ($facts['deployment_model'] ?: '—'),
-            '- **Scope status:** ' . $facts['scope_status'],
-            '- **Classification:** ' . $facts['classification_status'],
-            '- **Product owner:** ' . ($facts['product_owner'] ?: '—'),
-            '- **Security contact:** ' . ($facts['security_contact'] ?: '—'),
+            $this->bullet($locale, 'label_name', $facts['name']),
+            $this->bullet($locale, 'label_slug', $facts['slug']),
+            $this->bullet($locale, 'label_type', $facts['product_type']),
+            $this->bullet($locale, 'label_manufacturer', $facts['manufacturer'] ?: '—'),
+            $this->bullet($locale, 'label_product_line', $facts['product_line'] ?: '—'),
+            $this->bullet($locale, 'label_licensing', $facts['licensing_model']),
+            $this->bullet($locale, 'label_network_connectivity', $this->yesNo($facts['has_network_connectivity'], $locale)),
+            $this->bullet($locale, 'label_remote_data_processing', $this->yesNo($facts['has_remote_data_processing'], $locale)),
+            $this->bullet($locale, 'label_deployment_model', $facts['deployment_model'] ?: '—'),
+            $this->bullet($locale, 'label_scope_status', $facts['scope_status']),
+            $this->bullet($locale, 'label_classification', $facts['classification_status']),
+            $this->bullet($locale, 'label_product_owner', $facts['product_owner'] ?: '—'),
+            $this->bullet($locale, 'label_security_contact', $facts['security_contact'] ?: '—'),
             '',
         ];
 
         if (filled($facts['description'])) {
-            $lines[] = '## Description';
+            $lines[] = '## ' . $this->g('heading_description', $locale);
             $lines[] = '';
             $lines[] = (string) $facts['description'];
             $lines[] = '';
         }
 
         if (filled($facts['intended_purpose'])) {
-            $lines[] = '## Intended purpose';
+            $lines[] = '## ' . $this->g('heading_intended_purpose', $locale);
             $lines[] = '';
             $lines[] = (string) $facts['intended_purpose'];
             $lines[] = '';
@@ -185,7 +186,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function riskAssessment(Product $product, ?int $versionId): array
+    private function riskAssessment(Product $product, ?int $versionId, string $locale): array
     {
         $query = ProductRisk::query()
             ->with('owner:id,name')
@@ -221,17 +222,24 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.cybersecurity_risk_assessment'),
+            '# ' . $this->sectionTitle('cybersecurity_risk_assessment', $locale),
             '',
-            '- **Risk records:** ' . $facts['count'],
+            $this->bullet($locale, 'label_risk_records', (string) $facts['count']),
             '',
         ];
 
         if ($rows === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Title | Category | Status | Initial | Residual | Owner |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_title', $locale),
+                $this->g('col_category', $locale),
+                $this->g('col_status', $locale),
+                $this->g('col_initial', $locale),
+                $this->g('col_residual', $locale),
+                $this->g('col_owner', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- | --- | --- |';
             foreach ($rows as $row) {
                 $lines[] = sprintf(
@@ -253,7 +261,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function sbom(Product $product, ?int $versionId): array
+    private function sbom(Product $product, ?int $versionId, string $locale): array
     {
         $query = Sbom::query()
             ->with('productVersion:id,version_number')
@@ -282,18 +290,24 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.sbom'),
+            '# ' . $this->sectionTitle('sbom', $locale),
             '',
-            '- **SBOM records:** ' . $facts['count'],
-            '- **Listed components (sum):** ' . $facts['total_components'],
+            $this->bullet($locale, 'label_sbom_records', (string) $facts['count']),
+            $this->bullet($locale, 'label_listed_components', (string) $facts['total_components']),
             '',
         ];
 
         if ($rows === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| File | Format | Version | Components | Imported |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_file', $locale),
+                $this->g('col_format', $locale),
+                $this->g('col_version', $locale),
+                $this->g('col_components', $locale),
+                $this->g('col_imported', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- | --- |';
             foreach ($rows as $row) {
                 $lines[] = sprintf(
@@ -314,7 +328,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function componentInventory(Product $product, ?int $versionId): array
+    private function componentInventory(Product $product, ?int $versionId, string $locale): array
     {
         $query = ProductComponent::query()
             ->with('productVersion:id,version_number')
@@ -350,22 +364,32 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.component_inventory'),
+            '# ' . $this->sectionTitle('component_inventory', $locale),
             '',
-            '- **Components:** ' . $facts['count'],
+            $this->bullet($locale, 'label_components', (string) $facts['count']),
             '',
         ];
 
         if ($facts['truncated']) {
-            $lines[] = '> Showing first ' . self::COMPONENT_LIMIT . ' of ' . $total . ' components.';
+            $lines[] = '> ' . $this->g('components_truncated', $locale, [
+                'shown' => (string) self::COMPONENT_LIMIT,
+                'total' => (string) $total,
+            ]);
             $lines[] = '';
         }
 
         if ($rows === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Name | Version | Ecosystem | Licence | Direct | Support |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_name', $locale),
+                $this->g('col_version', $locale),
+                $this->g('col_ecosystem', $locale),
+                $this->g('col_licence', $locale),
+                $this->g('col_direct', $locale),
+                $this->g('col_support', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- | --- | --- |';
             foreach ($rows as $row) {
                 $lines[] = sprintf(
@@ -374,7 +398,7 @@ class TechnicalDocumentationGeneratorService
                     $this->cell($row['version'] ?? '—'),
                     $this->cell($row['package_ecosystem']),
                     $this->cell($row['licence'] ?? '—'),
-                    $row['is_direct'] ? 'yes' : 'no',
+                    $this->yesNo($row['is_direct'], $locale),
                     $this->cell($row['support_status']),
                 );
             }
@@ -387,7 +411,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function supportPeriod(Product $product): array
+    private function supportPeriod(Product $product, string $locale): array
     {
         $periods = ProductSupportPeriod::query()
             ->with('versions:id,version_number')
@@ -420,31 +444,38 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.support_period'),
+            '# ' . $this->sectionTitle('support_period', $locale),
             '',
-            '- **Support periods:** ' . $facts['count'],
+            $this->bullet($locale, 'label_support_periods', (string) $facts['count']),
             '',
         ];
 
         if (filled($facts['support_period_notes'])) {
-            $lines[] = '## Product notes';
+            $lines[] = '## ' . $this->g('heading_product_notes', $locale);
             $lines[] = '';
             $lines[] = (string) $facts['support_period_notes'];
             $lines[] = '';
         }
 
         if (filled($facts['end_of_support_policy'])) {
-            $lines[] = '## End-of-support policy';
+            $lines[] = '## ' . $this->g('heading_end_of_support_policy', $locale);
             $lines[] = '';
             $lines[] = (string) $facts['end_of_support_policy'];
             $lines[] = '';
         }
 
         if ($periods === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Type | Duration (months) | Starts | Ends | Active | Versions |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_type', $locale),
+                $this->g('col_duration_months', $locale),
+                $this->g('col_starts', $locale),
+                $this->g('col_ends', $locale),
+                $this->g('col_active', $locale),
+                $this->g('col_versions', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- | --- | --- |';
             foreach ($periods as $period) {
                 $versionLabels = collect($period['versions'])
@@ -456,7 +487,7 @@ class TechnicalDocumentationGeneratorService
                     $this->cell((string) $period['duration_months']),
                     $this->cell($period['effective_starts_at'] ?? '—'),
                     $this->cell($period['effective_ends_at'] ?? '—'),
-                    $period['is_active'] ? 'yes' : 'no',
+                    $this->yesNo($period['is_active'], $locale),
                     $this->cell($versionLabels !== '' ? $versionLabels : '—'),
                 );
             }
@@ -469,7 +500,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function releaseHistory(Product $product): array
+    private function releaseHistory(Product $product, string $locale): array
     {
         $versions = ProductVersion::query()
             ->where('product_id', $product->id)
@@ -492,17 +523,23 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.release_history'),
+            '# ' . $this->sectionTitle('release_history', $locale),
             '',
-            '- **Versions:** ' . $facts['count'],
+            $this->bullet($locale, 'label_versions', (string) $facts['count']),
             '',
         ];
 
         if ($versions === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Version | Released | State | Support | Security support until |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_version', $locale),
+                $this->g('col_released', $locale),
+                $this->g('col_state', $locale),
+                $this->g('col_support', $locale),
+                $this->g('col_security_support_until', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- | --- |';
             foreach ($versions as $version) {
                 $lines[] = sprintf(
@@ -523,7 +560,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function requirementsMatrix(Product $product): array
+    private function requirementsMatrix(Product $product, string $locale): array
     {
         $rows = ProductRequirement::query()
             ->with('requirement')
@@ -544,17 +581,22 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.essential_requirements_matrix'),
+            '# ' . $this->sectionTitle('essential_requirements_matrix', $locale),
             '',
-            '- **Mapped requirements:** ' . $facts['count'],
+            $this->bullet($locale, 'label_mapped_requirements', (string) $facts['count']),
             '',
         ];
 
         if ($rows === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Code | Article | Status | Rationale |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_code', $locale),
+                $this->g('col_article', $locale),
+                $this->g('col_status', $locale),
+                $this->g('col_rationale', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- | --- |';
             foreach ($rows as $row) {
                 $lines[] = sprintf(
@@ -574,7 +616,7 @@ class TechnicalDocumentationGeneratorService
     /**
      * @return array{0: string, 1: array<string, mixed>, 2: string}
      */
-    private function controls(Product $product): array
+    private function controls(Product $product, string $locale): array
     {
         $rows = ProductControl::query()
             ->with('control')
@@ -594,17 +636,21 @@ class TechnicalDocumentationGeneratorService
         ];
 
         $lines = [
-            '# ' . Translations::get('products.technical_documentation.sections.design_development_controls'),
+            '# ' . $this->sectionTitle('design_development_controls', $locale),
             '',
-            '- **Mapped controls:** ' . $facts['count'],
+            $this->bullet($locale, 'label_mapped_controls', (string) $facts['count']),
             '',
         ];
 
         if ($rows === []) {
-            $lines[] = '*' . Translations::get('products.technical_documentation.generated_empty') . '*';
+            $lines[] = '*' . $this->g('empty', $locale) . '*';
             $lines[] = '';
         } else {
-            $lines[] = '| Code | Name | Status |';
+            $lines[] = '| ' . implode(' | ', [
+                $this->g('col_code', $locale),
+                $this->g('col_name', $locale),
+                $this->g('col_status', $locale),
+            ]) . ' |';
             $lines[] = '| --- | --- | --- |';
             foreach ($rows as $row) {
                 $lines[] = sprintf(
@@ -618,6 +664,37 @@ class TechnicalDocumentationGeneratorService
         }
 
         return ['controls', $facts, implode("\n", $lines)];
+    }
+
+    /**
+     * @param  array<string, string>  $replace
+     */
+    private function g(string $key, string $locale, array $replace = []): string
+    {
+        return Translations::get(
+            'products.technical_documentation.generated.' . $key,
+            $replace,
+            $locale,
+        );
+    }
+
+    private function sectionTitle(string $sectionKey, string $locale): string
+    {
+        return Translations::get(
+            'products.technical_documentation.sections.' . $sectionKey,
+            [],
+            $locale,
+        );
+    }
+
+    private function bullet(string $locale, string $labelKey, string $value): string
+    {
+        return '- **' . $this->g($labelKey, $locale) . ':** ' . $value;
+    }
+
+    private function yesNo(bool $value, string $locale): string
+    {
+        return $this->g($value ? 'yes' : 'no', $locale);
     }
 
     private function cell(?string $value): string

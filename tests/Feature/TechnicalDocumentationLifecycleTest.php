@@ -265,3 +265,69 @@ test('edit page exposes lifecycle props', function () {
             ->where('reviewTask', null)
             ->where('package.status', 'draft'));
 });
+
+test('published package cannot be updated deleted or refreshed', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocLifecycleOrg();
+    $package = createTechDocDraftPackage($owner, $product, 'Locked package');
+    prepareTechDocPackageForPublish($package);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.publish', [$product, $package]))
+        ->assertRedirect();
+
+    $package->refresh()->load('sections');
+
+    $this->actingAs($owner)
+        ->put(route('products.technical-documentation.update', [$product, $package]), [
+            'title' => 'Should stay locked',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'sections' => $package->sections->map(fn($section) => [
+                'section_key' => $section->section_key->value,
+                'body_markdown' => $section->body_markdown,
+                'is_applicable' => $section->is_applicable,
+                'override_reason' => $section->override_reason,
+                'sort_order' => $section->sort_order,
+            ])->all(),
+        ])
+        ->assertSessionHasErrors('status');
+
+    expect($package->fresh()->title)->toBe('Locked package');
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
+        ->assertSessionHasErrors('status');
+
+    $this->actingAs($owner)
+        ->delete(route('products.technical-documentation.destroy', [$product, $package]))
+        ->assertForbidden();
+
+    expect(TechnicalDocumentationPackage::query()->whereKey($package->id)->exists())->toBeTrue();
+});
+
+test('generated markdown uses package locale labels', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocLifecycleOrg();
+
+    $product->update(['manufacturer' => 'Avalon Labs']);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'BG locale package',
+            'version_label' => '1.0',
+            'locale' => 'bg',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->where('title', 'BG locale package')
+        ->firstOrFail()
+        ->load('sections');
+
+    $identification = $package->sections
+        ->firstWhere('section_key', TechnicalDocumentationSectionKey::ProductIdentification);
+
+    expect($identification?->generated_payload['markdown'] ?? '')->toContain('Производител')
+        ->and($identification?->generated_payload['markdown'] ?? '')->toContain('Avalon Labs')
+        ->and($identification?->generated_payload['markdown'] ?? '')->not->toContain('**Manufacturer:**');
+});

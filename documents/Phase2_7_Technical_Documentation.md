@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–5 Done  
+**Статус:** Active — Must 1–6 Done (Should/Could remaining)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -151,7 +151,7 @@ GET    /internal-api/products/{product}/technical-documentation
 3. ~~Section editor UI (authored + generated placeholders)~~ **Done** (2026-07-23)
 4. ~~Generate-from-modules for core sections (identification, risks, SBOM, support, versions)~~ **Done** (2026-07-23)
 5. ~~Publish lifecycle + audit~~ **Done** (2026-07-23)
-6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
+6. ~~i18n EN/BG + feature tests (CRUD + viewer forbidden manage)~~ **Done** (2026-07-23)
 
 ### Should
 
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                          |
 | ------ | ---------- | -------------------------------------------------------------------------------- |
+| 0.7    | 2026-07-23 | Must 6 Done — EN/BG polish, generator locale labels, viewer/locked tests         |
 | 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                  |
 | 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)       |
 | 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders) |

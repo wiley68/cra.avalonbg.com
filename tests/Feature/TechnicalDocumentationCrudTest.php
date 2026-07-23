@@ -394,7 +394,10 @@ test('viewer can open index and api but cannot create', function () {
 
     $this->actingAs($viewer)
         ->get(route('products.technical-documentation.index', $product))
-        ->assertOk();
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/technical-documentation/Index')
+            ->where('canManage', false));
 
     $this->actingAs($viewer)
         ->getJson(route('internal.products.technical-documentation.index', $product))
@@ -408,6 +411,50 @@ test('viewer can open index and api but cannot create', function () {
             'locale' => 'en',
         ])
         ->assertForbidden();
+});
+
+test('viewer cannot update or delete technical documentation', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+    $viewer = makeTechDocOrgViewer($organization);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Managed package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $this->actingAs($viewer)
+        ->get(route('products.technical-documentation.edit', [$product, $package]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/technical-documentation/Edit')
+            ->where('canManage', false));
+
+    $sections = techDocSectionUpdatePayload($package->sections);
+
+    $this->actingAs($viewer)
+        ->put(route('products.technical-documentation.update', [$product, $package]), [
+            'title' => 'Hacked title',
+            'version_label' => '9.9',
+            'locale' => 'en',
+            'sections' => $sections,
+        ])
+        ->assertForbidden();
+
+    expect($package->fresh()->title)->toBe('Managed package');
+
+    $this->actingAs($viewer)
+        ->delete(route('products.technical-documentation.destroy', [$product, $package]))
+        ->assertForbidden();
+
+    expect(TechnicalDocumentationPackage::query()->whereKey($package->id)->exists())->toBeTrue();
 });
 
 test('edit page lists seeded sections', function () {
