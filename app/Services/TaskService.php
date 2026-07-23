@@ -8,6 +8,7 @@ use App\Models\AuditorFinding;
 use App\Models\Evidence;
 use App\Models\OrgPolicy;
 use App\Models\Product;
+use App\Models\ProductIncident;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
@@ -34,6 +35,7 @@ class TaskService
             'org_policy' => OrgPolicy::class,
             'auditor_finding' => AuditorFinding::class,
             'user_security_instruction' => UserSecurityInstruction::class,
+            'incident' => ProductIncident::class,
         ];
     }
 
@@ -296,6 +298,7 @@ class TaskService
                 $task->subject instanceof AuditorFinding => $task->subject->title,
                 $task->subject instanceof UserSecurityInstruction => $task->subject->title
                 . ' (' . $task->subject->version_label . ' · ' . $task->subject->locale . ')',
+                $task->subject instanceof ProductIncident => $task->subject->title,
                 default => '#' . $task->subject_id,
             };
         }
@@ -367,6 +370,10 @@ class TaskService
                 )
                 ->exists(),
             UserSecurityInstruction::class => UserSecurityInstruction::query()
+                ->where('id', $id)
+                ->where('product_id', $product->id)
+                ->exists(),
+            ProductIncident::class => ProductIncident::query()
                 ->where('id', $id)
                 ->where('product_id', $product->id)
                 ->exists(),

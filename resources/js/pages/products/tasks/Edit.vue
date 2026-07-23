@@ -53,6 +53,7 @@ const props = defineProps<{
         org_policies: SubjectOption[];
         auditor_findings: SubjectOption[];
         user_security_instructions: SubjectOption[];
+        incidents: SubjectOption[];
     };
     options: {
         statuses: string[];
@@ -136,6 +137,10 @@ const subjectOptions = computed((): SubjectOption[] => {
 
     if (form.subject_type === 'user_security_instruction') {
         return props.subjects.user_security_instructions;
+    }
+
+    if (form.subject_type === 'incident') {
+        return props.subjects.incidents;
     }
 
     return [];

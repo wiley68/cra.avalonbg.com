@@ -65,6 +65,7 @@ class ProductIncidentController extends Controller
             $product,
             $this->validatedAttributes($request),
             array_map('intval', $request->input('version_ids', [])),
+            $request->user(),
         );
 
         Inertia::flash('toast', [
@@ -197,6 +198,7 @@ class ProductIncidentController extends Controller
             $incident,
             $this->validatedAttributes($request),
             array_map('intval', $request->input('version_ids', [])),
+            $request->user(),
         );
 
         Inertia::flash('toast', [
@@ -214,7 +216,7 @@ class ProductIncidentController extends Controller
         $this->assertIncidentBelongsToProduct($incident, $product);
         $this->authorize('delete', [$incident, $organization]);
 
-        $this->incidents->delete($incident);
+        $this->incidents->delete($incident, request()->user());
 
         Inertia::flash('toast', [
             'type' => 'success',

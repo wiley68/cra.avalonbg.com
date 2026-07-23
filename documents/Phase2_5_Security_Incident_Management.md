@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 0.5  
+**Версия:** 0.6  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–4 done  
+**Статус:** Active — Must 1–5 done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -205,7 +205,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
 3. ~~Timeline UI (append events) + core timestamp fields~~ **Done**
 4. ~~Link / create vulnerability (`incident_investigation` discovery)~~ **Done**
-5. Task subject `incident` + basic audit events
+5. ~~Task subject `incident` + basic audit events~~ **Done**
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
 
 ### Should
@@ -286,6 +286,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                    |
 | ------ | ---------- | ---------------------------------------------------------- |
+| 0.6    | 2026-07-23 | Must 5 Done — task subject incident + audit events         |
 | 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident      |
 | 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section |
 | 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests    |

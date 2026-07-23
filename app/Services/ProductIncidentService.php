@@ -13,7 +13,10 @@ use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\User;
+use App\Services\ProductVulnerabilityService;
+use App\Support\AuditLogger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -73,9 +76,13 @@ class ProductIncidentService
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $versionIds
      */
-    public function create(Product $product, array $attributes, array $versionIds): ProductIncident
-    {
-        return DB::transaction(function () use ($product, $attributes, $versionIds) {
+    public function create(
+        Product $product,
+        array $attributes,
+        array $versionIds,
+        User $actor,
+    ): ProductIncident {
+        $incident = DB::transaction(function () use ($product, $attributes, $versionIds) {
             $this->assertVersionsBelongToProduct($product, $versionIds);
 
             /** @var ProductIncident $incident */
@@ -89,15 +96,25 @@ class ProductIncidentService
 
             return $incident->load(['owner', 'versions']);
         });
+
+        AuditLogger::logIncidentCreated($incident, $actor);
+
+        return $incident;
     }
 
     /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $versionIds
      */
-    public function update(ProductIncident $incident, array $attributes, array $versionIds): ProductIncident
-    {
-        return DB::transaction(function () use ($incident, $attributes, $versionIds) {
+    public function update(
+        ProductIncident $incident,
+        array $attributes,
+        array $versionIds,
+        User $actor,
+    ): ProductIncident {
+        $previousStatus = $incident->status->value;
+
+        $incident = DB::transaction(function () use ($incident, $attributes, $versionIds) {
             $this->assertVersionsBelongToProduct($incident->product, $versionIds);
 
             $incident->update($attributes);
@@ -105,10 +122,24 @@ class ProductIncidentService
 
             return $incident->fresh(['owner', 'versions']);
         });
+
+        if ($incident->status->value !== $previousStatus) {
+            AuditLogger::logIncidentStatusUpdated($incident, $actor, $previousStatus);
+        } else {
+            AuditLogger::logIncidentUpdated($incident, $actor);
+        }
+
+        return $incident;
     }
 
-    public function delete(ProductIncident $incident): void
+    public function delete(ProductIncident $incident, ?User $actor = null): void
     {
+        $actor ??= Auth::user();
+
+        if ($actor instanceof User) {
+            AuditLogger::logIncidentDeleted($incident, $actor);
+        }
+
         $incident->delete();
     }
 
@@ -128,7 +159,13 @@ class ProductIncidentService
             'created_by' => $actor?->id,
         ]);
 
-        return $event->load('creator');
+        $event->load('creator');
+
+        if ($actor instanceof User) {
+            AuditLogger::logIncidentTimelineEventAdded($incident, $event, $actor);
+        }
+
+        return $event;
     }
 
     public function linkVulnerability(

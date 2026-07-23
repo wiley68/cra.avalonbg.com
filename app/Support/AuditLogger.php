@@ -11,12 +11,14 @@ use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Evidence;
+use App\Models\IncidentTimelineEvent;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
 use App\Models\ProductDeployment;
+use App\Models\ProductIncident;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -404,6 +406,97 @@ class AuditLogger
                 ['field' => 'evidence_id', 'value' => (string) $evidence->id],
                 ['field' => 'locale', 'value' => $instruction->locale],
                 ['field' => 'version_label', 'value' => $instruction->version_label],
+            ],
+        );
+    }
+
+    public static function logIncidentCreated(ProductIncident $incident, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IncidentCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'title', 'value' => $incident->title],
+                ['field' => 'status', 'value' => $incident->status->value],
+                ['field' => 'severity', 'value' => $incident->severity->value],
+            ],
+        );
+    }
+
+    public static function logIncidentUpdated(ProductIncident $incident, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IncidentUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'title', 'value' => $incident->title],
+                ['field' => 'status', 'value' => $incident->status->value],
+            ],
+        );
+    }
+
+    public static function logIncidentDeleted(ProductIncident $incident, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IncidentDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'title', 'value' => $incident->title],
+            ],
+        );
+    }
+
+    public static function logIncidentStatusUpdated(
+        ProductIncident $incident,
+        User $actor,
+        string $previousStatus,
+    ): void {
+        self::persist(
+            type: AuditEventType::IncidentStatusUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'previous_status', 'value' => $previousStatus],
+                ['field' => 'status', 'value' => $incident->status->value],
+            ],
+        );
+    }
+
+    public static function logIncidentTimelineEventAdded(
+        ProductIncident $incident,
+        IncidentTimelineEvent $event,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::IncidentTimelineEventAdded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'timeline_event_id', 'value' => (string) $event->id],
+                ['field' => 'label', 'value' => $event->label],
             ],
         );
     }

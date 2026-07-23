@@ -13,6 +13,7 @@ use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrgPolicy;
 use App\Models\Product;
+use App\Models\ProductIncident;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
@@ -298,7 +299,8 @@ class TaskController extends Controller
      *     evidence: list<array{id: int, label: string}>,
      *     org_policies: list<array{id: int, label: string}>,
      *     auditor_findings: list<array{id: int, label: string}>,
-     *     user_security_instructions: list<array{id: int, label: string}>
+     *     user_security_instructions: list<array{id: int, label: string}>,
+     *     incidents: list<array{id: int, label: string}>
      * }
      */
     private function subjectOptions(Product $product): array
@@ -364,6 +366,16 @@ class TaskController extends Controller
                 ->map(fn(UserSecurityInstruction $instruction) => [
                     'id' => $instruction->id,
                     'label' => "{$instruction->title} ({$instruction->version_label} · {$instruction->locale})",
+                ])
+                ->all(),
+            'incidents' => ProductIncident::query()
+                ->where('product_id', $product->id)
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(['id', 'title', 'severity'])
+                ->map(fn(ProductIncident $incident) => [
+                    'id' => $incident->id,
+                    'label' => "{$incident->title} ({$incident->severity->value})",
                 ])
                 ->all(),
         ];

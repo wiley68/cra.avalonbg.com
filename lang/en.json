@@ -2108,7 +2108,8 @@
                 "evidence": "Evidence",
                 "org_policy": "Organization policy",
                 "auditor_finding": "Auditor finding",
-                "user_security_instruction": "User security instructions"
+                "user_security_instruction": "User security instructions",
+                "incident": "Incident"
             }
         },
         "readiness": {
@@ -2803,7 +2804,12 @@
             "user_security_instruction_published": "User security instructions published",
             "user_security_instruction_retired": "User security instructions retired",
             "user_security_instruction_exported": "User security instructions exported",
-            "user_security_instruction_published_evidence": "User security instructions published as evidence"
+            "user_security_instruction_published_evidence": "User security instructions published as evidence",
+            "incident_created": "Incident created",
+            "incident_updated": "Incident updated",
+            "incident_deleted": "Incident deleted",
+            "incident_status_updated": "Incident status updated",
+            "incident_timeline_event_added": "Incident timeline event added"
         },
         "event_sources": {
             "workspace": "Workspace",

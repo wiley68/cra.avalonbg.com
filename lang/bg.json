@@ -2108,7 +2108,8 @@
                 "evidence": "Доказателство",
                 "org_policy": "Организационна политика",
                 "auditor_finding": "Одиторски finding",
-                "user_security_instruction": "Инструкции за сигурност на потребителя"
+                "user_security_instruction": "Инструкции за сигурност на потребителя",
+                "incident": "Инцидент"
             }
         },
         "readiness": {
@@ -2801,7 +2802,12 @@
             "user_security_instruction_published": "Инструкции за сигурност публикувани",
             "user_security_instruction_retired": "Инструкции за сигурност оттеглени",
             "user_security_instruction_exported": "Инструкции за сигурност експортирани",
-            "user_security_instruction_published_evidence": "Инструкции за сигурност публикувани като evidence"
+            "user_security_instruction_published_evidence": "Инструкции за сигурност публикувани като evidence",
+            "incident_created": "Инцидент създаден",
+            "incident_updated": "Инцидент обновен",
+            "incident_deleted": "Инцидент изтрит",
+            "incident_status_updated": "Статус на инцидент обновен",
+            "incident_timeline_event_added": "Добавено събитие в timeline на инцидент"
         },
         "event_sources": {
             "workspace": "Workspace",
