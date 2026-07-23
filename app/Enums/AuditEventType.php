@@ -62,6 +62,7 @@ enum AuditEventType: string
     case TechnicalDocumentationCreated = 'technical_documentation_created';
     case TechnicalDocumentationUpdated = 'technical_documentation_updated';
     case TechnicalDocumentationDeleted = 'technical_documentation_deleted';
+    case TechnicalDocumentationGeneratedRefreshed = 'technical_documentation_generated_refreshed';
     case OrgPolicySubmitted = 'org_policy_submitted';
     case OrgPolicyApproved = 'org_policy_approved';
     case OrgPolicyRetired = 'org_policy_retired';

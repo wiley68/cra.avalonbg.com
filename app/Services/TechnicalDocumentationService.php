@@ -16,6 +16,11 @@ use Illuminate\Validation\ValidationException;
 
 class TechnicalDocumentationService
 {
+    public function __construct(
+        private readonly TechnicalDocumentationGeneratorService $generator,
+    ) {
+    }
+
     /**
      * @return LengthAwarePaginator<int, array{
      *     id: int,
@@ -133,9 +138,12 @@ class TechnicalDocumentationService
                 ]);
             }
 
+            $package->load(['sections', 'product.productOwner:id,name', 'product.securityContact:id,name']);
+            $this->generator->refreshPackage($package);
+
             AuditLogger::logTechnicalDocumentationCreated($package, $actor);
 
-            return $package->load('sections');
+            return $package->fresh(['sections']);
         });
     }
 
@@ -237,6 +245,50 @@ class TechnicalDocumentationService
 
         AuditLogger::logTechnicalDocumentationDeleted($package, $actor);
         $package->delete();
+    }
+
+    /**
+     * Refresh generated section snapshots from product modules.
+     *
+     * Does not overwrite authored/linked sections or supplemental body_markdown notes.
+     *
+     * @param  list<string>|null  $sectionKeys
+     */
+    public function refreshGenerated(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+        ?array $sectionKeys = null,
+    ): TechnicalDocumentationPackage {
+        $this->assertEditable($package);
+
+        $keys = null;
+        if ($sectionKeys !== null) {
+            $keys = [];
+            foreach ($sectionKeys as $value) {
+                $keys[] = TechnicalDocumentationSectionKey::from($value);
+            }
+        }
+
+        return DB::transaction(function () use ($package, $actor, $keys): TechnicalDocumentationPackage {
+            $package->loadMissing(['product.productOwner:id,name', 'product.securityContact:id,name', 'sections']);
+            $result = $this->generator->refreshPackage($package, $keys);
+
+            $fresh = $package->fresh([
+                'sections',
+                'productVersion:id,version_number',
+                'publisher:id,name',
+                'supersedes',
+            ]);
+
+            AuditLogger::logTechnicalDocumentationGeneratedRefreshed(
+                $fresh,
+                $actor,
+                $result['refreshed'],
+                $result['skipped'],
+            );
+
+            return $fresh;
+        });
     }
 
     /**

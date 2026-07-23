@@ -145,6 +145,25 @@ class TechnicalDocumentationController extends Controller
         return redirect()->route('products.technical-documentation.index', $product);
     }
 
+    public function refreshGenerated(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $this->packages->refreshGenerated($package, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.technical_documentation.generated_refreshed'),
+        ]);
+
+        return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
     /**
      * @return array{
      *     locales: list<string>,

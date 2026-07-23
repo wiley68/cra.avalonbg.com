@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, RefreshCcw, Save } from '@lucide/vue';
 import { computed } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     edit as packagesEdit,
     index as packagesIndex,
+    refreshGenerated,
     update,
 } from '@/routes/products/technical-documentation';
 
@@ -114,6 +116,36 @@ const generatedPayloadByKey = computed(() => {
     return map;
 });
 
+const generatedMarkdown = (sectionKey: string): string => {
+    const payload = generatedPayloadByKey.value[sectionKey];
+
+    if (
+        payload !== null &&
+        !Array.isArray(payload) &&
+        typeof payload === 'object' &&
+        typeof payload.markdown === 'string'
+    ) {
+        return payload.markdown;
+    }
+
+    return '';
+};
+
+const generatedAtLabel = (sectionKey: string): string | null => {
+    const payload = generatedPayloadByKey.value[sectionKey];
+
+    if (
+        payload !== null &&
+        !Array.isArray(payload) &&
+        typeof payload === 'object' &&
+        typeof payload.generated_at === 'string'
+    ) {
+        return payload.generated_at;
+    }
+
+    return null;
+};
+
 const readOnly = computed(() => !props.package.is_editable || !props.canManage);
 
 const localeLabel = (value: string): string => {
@@ -165,6 +197,21 @@ const generatedPayloadPreview = (
     }
 };
 
+const doRefreshGenerated = () => {
+    if (readOnly.value) {
+        return;
+    }
+
+    router.post(
+        refreshGenerated({
+            product: props.product.id,
+            package: props.package.id,
+        }).url,
+        {},
+        { preserveScroll: true },
+    );
+};
+
 const submit = () => {
     if (readOnly.value) {
         return;
@@ -209,12 +256,25 @@ const submit = () => {
                     · {{ props.package.version_label }}
                 </p>
             </div>
-            <Button as-child variant="outline">
-                <Link :href="packagesIndex(props.product.id)">
-                    <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button
+                    v-if="!readOnly"
+                    type="button"
+                    variant="outline"
+                    @click="doRefreshGenerated"
+                >
+                    <RefreshCcw class="h-4 w-4" />
+                    {{
+                        t('products.technical_documentation.refresh_generated')
+                    }}
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="packagesIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <p
@@ -484,8 +544,39 @@ const submit = () => {
                                 }}
                             </p>
 
-                            <pre
+                            <p
+                                v-if="generatedAtLabel(section.section_key)"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.generated_at',
+                                    )
+                                }}:
+                                {{
+                                    new Date(
+                                        generatedAtLabel(
+                                            section.section_key,
+                                        ) as string,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+
+                            <MarkdownPreview
                                 v-if="
+                                    section.source === 'generated' &&
+                                    generatedMarkdown(section.section_key)
+                                "
+                                :source="generatedMarkdown(section.section_key)"
+                                :empty-label="
+                                    t(
+                                        'products.technical_documentation.generated_empty',
+                                    )
+                                "
+                            />
+
+                            <pre
+                                v-else-if="
                                     generatedPayloadByKey[section.section_key]
                                 "
                                 class="max-h-48 overflow-auto rounded-md bg-muted/40 p-3 font-mono text-xs"

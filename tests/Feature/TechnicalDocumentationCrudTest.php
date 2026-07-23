@@ -3,16 +3,28 @@
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
 use App\Enums\LicensingModel;
+use App\Enums\ProductRiskStatus;
 use App\Enums\ProductType;
+use App\Enums\ProductVersionState;
+use App\Enums\RiskCategory;
+use App\Enums\RiskImpact;
+use App\Enums\RiskLikelihood;
+use App\Enums\RiskTreatment;
+use App\Enums\SbomFormat;
 use App\Enums\ScopeStatus;
+use App\Enums\SupportStatus;
 use App\Enums\TechnicalDocumentationSectionKey;
 use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\TechnicalDocumentationStatus;
 use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductRisk;
+use App\Models\ProductVersion;
 use App\Models\Role;
+use App\Models\Sbom;
 use App\Models\TechnicalDocumentationPackage;
+use App\Models\TechnicalDocumentationSection;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,6 +95,82 @@ function makeTechDocOrgViewer(Organization $organization): User
     return $viewer;
 }
 
+function seedTechDocModuleFacts(Product $product, User $owner): ProductVersion
+{
+    $product->update([
+        'manufacturer' => 'Avalon Labs',
+        'intended_purpose' => 'Secure industrial gateway',
+    ]);
+
+    $version = ProductVersion::query()->create([
+        'product_id' => $product->id,
+        'version_number' => '2.1.0',
+        'state' => ProductVersionState::Released,
+        'support_status' => SupportStatus::Supported,
+        'release_date' => now()->toDateString(),
+    ]);
+
+    ProductRisk::query()->create([
+        'product_id' => $product->id,
+        'product_version_id' => $version->id,
+        'title' => 'Weak default credentials',
+        'category' => RiskCategory::SecretsExposure,
+        'likelihood' => RiskLikelihood::High,
+        'impact' => RiskImpact::High,
+        'treatment' => RiskTreatment::Mitigate,
+        'status' => ProductRiskStatus::Open,
+    ]);
+
+    Sbom::query()->create([
+        'product_id' => $product->id,
+        'product_version_id' => $version->id,
+        'format' => SbomFormat::CycloneDxJson,
+        'source_filename' => 'sbom-2.1.0.json',
+        'checksum_sha256' => str_repeat('a', 64),
+        'component_count' => 42,
+        'imported_by' => $owner->id,
+        'imported_at' => now(),
+    ]);
+
+    return $version;
+}
+
+/**
+ * @param  iterable<int, TechnicalDocumentationSection>  $sections
+ * @param  array<string, array{body_markdown?: string|null, is_applicable?: bool, override_reason?: string|null}>  $overrides
+ * @return list<array{
+ *     section_key: string,
+ *     body_markdown: string|null,
+ *     is_applicable: bool,
+ *     override_reason: string|null,
+ *     sort_order: int
+ * }>
+ */
+function techDocSectionUpdatePayload(iterable $sections, array $overrides = []): array
+{
+    return collect($sections)->map(function (TechnicalDocumentationSection $section) use ($overrides): array {
+        $key = $section->section_key->value;
+        $override = $overrides[$key] ?? [];
+
+        return [
+            'section_key' => $key,
+            'body_markdown' => array_key_exists('body_markdown', $override)
+                ? $override['body_markdown']
+                : $section->body_markdown,
+            'is_applicable' => $override['is_applicable'] ?? true,
+            'override_reason' => $override['override_reason'] ?? null,
+            'sort_order' => $section->sort_order,
+        ];
+    })->all();
+}
+
+function techDocSectionByKey(
+    TechnicalDocumentationPackage $package,
+    TechnicalDocumentationSectionKey $key,
+): ?TechnicalDocumentationSection {
+    return $package->sections->firstWhere('section_key', $key);
+}
+
 test('owner can view technical documentation index', function () {
     ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
 
@@ -115,12 +203,22 @@ test('owner can create technical documentation package with seeded sections', fu
     $sbom = $package->sections
         ->firstWhere('section_key', TechnicalDocumentationSectionKey::Sbom);
 
-    expect($sbom?->source)->toBe(TechnicalDocumentationSectionSource::Generated);
+    expect($sbom?->source)->toBe(TechnicalDocumentationSectionSource::Generated)
+        ->and($sbom?->generated_payload)->toBeArray()
+        ->and($sbom?->generated_payload['source_module'] ?? null)->toBe('sbom')
+        ->and($sbom?->generated_payload['markdown'] ?? null)->toBeString();
+
+    $identification = $package->sections
+        ->firstWhere('section_key', TechnicalDocumentationSectionKey::ProductIdentification);
+
+    expect($identification?->generated_payload['facts']['name'] ?? null)
+        ->toBe('Tech Doc CRUD Product');
 
     $architecture = $package->sections
         ->firstWhere('section_key', TechnicalDocumentationSectionKey::Architecture);
 
-    expect($architecture?->source)->toBe(TechnicalDocumentationSectionSource::Authored);
+    expect($architecture?->source)->toBe(TechnicalDocumentationSectionSource::Authored)
+        ->and($architecture?->generated_payload)->toBeNull();
 
     expect(AuditLog::query()
         ->where('event_type', AuditEventType::TechnicalDocumentationCreated)
@@ -241,7 +339,7 @@ test('owner can edit authored section body and mark generated section not applic
         ->and($architecture?->source)->toBe(TechnicalDocumentationSectionSource::Authored)
         ->and($sbom?->is_applicable)->toBeFalse()
         ->and($sbom?->override_reason)->toContain('SBOM tracked')
-        ->and($sbom?->generated_payload)->toBeNull();
+        ->and($sbom?->generated_payload)->toBeArray();
 
     $this->actingAs($owner)
         ->get(route('products.technical-documentation.edit', [$product, $package]))
@@ -334,4 +432,161 @@ test('edit page lists seeded sections', function () {
             ->component('products/technical-documentation/Edit')
             ->has('package.sections', 18)
             ->where('package.title', 'Edit me'));
+});
+
+test('create populates generated sections from product modules', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+    $version = seedTechDocModuleFacts($product, $owner);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Generated package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'product_version_id' => $version->id,
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $identification = techDocSectionByKey($package, TechnicalDocumentationSectionKey::ProductIdentification);
+    $risks = techDocSectionByKey($package, TechnicalDocumentationSectionKey::CybersecurityRiskAssessment);
+    $sbom = techDocSectionByKey($package, TechnicalDocumentationSectionKey::Sbom);
+    $releases = techDocSectionByKey($package, TechnicalDocumentationSectionKey::ReleaseHistory);
+
+    expect($identification?->generated_payload['facts']['manufacturer'] ?? null)->toBe('Avalon Labs');
+    expect($identification?->generated_payload['markdown'] ?? '')->toContain('Avalon Labs');
+    expect($risks?->generated_payload['facts']['count'] ?? 0)->toBe(1);
+    expect($risks?->generated_payload['markdown'] ?? '')->toContain('Weak default credentials');
+    expect($sbom?->generated_payload['facts']['count'] ?? 0)->toBe(1);
+    expect($sbom?->generated_payload['facts']['total_components'] ?? 0)->toBe(42);
+    expect($sbom?->generated_payload['markdown'] ?? '')->toContain('sbom-2.1.0.json');
+    expect($releases?->generated_payload['facts']['count'] ?? 0)->toBe(1);
+    expect($releases?->generated_payload['markdown'] ?? '')->toContain('2.1.0');
+});
+
+test('refresh updates generated payload and preserves supplemental notes', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+    $version = seedTechDocModuleFacts($product, $owner);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Generated package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'product_version_id' => $version->id,
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $this->actingAs($owner)
+        ->put(route('products.technical-documentation.update', [$product, $package]), [
+            'title' => 'Generated package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'product_version_id' => $version->id,
+            'sections' => techDocSectionUpdatePayload($package->sections, [
+                'sbom' => ['body_markdown' => 'Supplemental SBOM notes for auditors.'],
+            ]),
+        ])
+        ->assertRedirect();
+
+    ProductRisk::query()->create([
+        'product_id' => $product->id,
+        'title' => 'Unpatched dependency',
+        'category' => RiskCategory::DependencyCompromise,
+        'likelihood' => RiskLikelihood::Medium,
+        'impact' => RiskImpact::Medium,
+        'treatment' => RiskTreatment::Mitigate,
+        'status' => ProductRiskStatus::Open,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
+        ->assertRedirect(route('products.technical-documentation.edit', [$product, $package]));
+
+    $package->refresh()->load('sections');
+    $risks = techDocSectionByKey($package, TechnicalDocumentationSectionKey::CybersecurityRiskAssessment);
+    $sbom = techDocSectionByKey($package, TechnicalDocumentationSectionKey::Sbom);
+
+    expect($risks?->generated_payload['facts']['count'] ?? 0)->toBe(2);
+    expect($risks?->generated_payload['markdown'] ?? '')->toContain('Unpatched dependency');
+    expect($sbom?->body_markdown)->toBe('Supplemental SBOM notes for auditors.');
+    expect($sbom?->generated_payload['facts']['total_components'] ?? 0)->toBe(42);
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::TechnicalDocumentationGeneratedRefreshed)
+        ->exists())->toBeTrue();
+});
+
+test('refresh skips not-applicable generated sections and preserves supplemental notes', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Skip N/A package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $this->actingAs($owner)
+        ->put(route('products.technical-documentation.update', [$product, $package]), [
+            'title' => 'Skip N/A package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'sections' => techDocSectionUpdatePayload($package->sections, [
+                'sbom' => [
+                    'is_applicable' => false,
+                    'override_reason' => 'Tracked externally.',
+                    'body_markdown' => 'Do not overwrite me.',
+                ],
+            ]),
+        ])
+        ->assertRedirect();
+
+    $before = techDocSectionByKey($package->fresh()->load('sections'), TechnicalDocumentationSectionKey::Sbom);
+    $beforeGeneratedAt = $before?->generated_payload['generated_at'] ?? null;
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
+        ->assertRedirect();
+
+    $after = techDocSectionByKey($package->fresh()->load('sections'), TechnicalDocumentationSectionKey::Sbom);
+
+    expect($after?->is_applicable)->toBeFalse();
+    expect($after?->body_markdown)->toBe('Do not overwrite me.');
+    expect($after?->generated_payload['generated_at'] ?? null)->toBe($beforeGeneratedAt);
+});
+
+test('viewer cannot refresh generated technical documentation', function () {
+    ['organization' => $organization, 'owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+    $viewer = makeTechDocOrgViewer($organization);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Locked refresh',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail();
+
+    $this->actingAs($viewer)
+        ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
+        ->assertForbidden();
 });

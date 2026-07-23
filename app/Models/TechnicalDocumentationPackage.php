@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property-read ProductVersion|null $productVersion
  * @property-read TechnicalDocumentationPackage|null $supersedes
  * @property-read User|null $publisher
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, TechnicalDocumentationSection> $sections
  */
 #[Fillable([
     'organization_id',

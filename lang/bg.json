@@ -3055,9 +3055,13 @@
             "cannot_edit_locked": "Публикувани или оттеглени пакети не могат да се редактират.",
             "read_only_notice": "Този пакет е само за четене в текущия статус.",
             "sections_heading": "Секции",
-            "sections_help": "Авторските секции са Markdown. Generated и linked секциите показват placeholders до refresh от модули; можете да добавите допълнителни бележки или да маркирате секция като неприложима.",
-            "generated_placeholder": "Тази секция се генерира от продуктовите модули. Refresh ще дойде в следващ slice; snapshot-ът по-долу остава празен дотогава.",
+            "sections_help": "Авторските секции са Markdown. Generated секциите теглят snapshot от продуктовите модули (Обнови generated). Linked секциите остават placeholders до следващ slice. Допълнителните бележки не се презаписват при refresh.",
+            "generated_placeholder": "Тази секция се генерира от продуктовите модули. Използвайте „Обнови generated“ за нов snapshot. Допълнителните бележки по-долу се пазят отделно.",
             "linked_placeholder": "Тази секция е свързана с публикувани user security instructions. Автоматичното резюме ще дойде в следващ slice.",
+            "generated_empty": "Все още няма модулни данни за тази секция.",
+            "generated_at": "Генерирано на",
+            "refresh_generated": "Обнови generated",
+            "generated_refreshed": "Generated секциите са обновени от продуктовите модули.",
             "not_applicable": "Не е приложимо",
             "product_wide": "За целия продукт",
             "filter_all_versions": "Всички обхвати",
@@ -3278,7 +3282,8 @@
             "sdl_exception_cleared": "Премахнато SDL изключение",
             "technical_documentation_created": "Техническа документация създадена",
             "technical_documentation_updated": "Техническа документация обновена",
-            "technical_documentation_deleted": "Техническа документация изтрита"
+            "technical_documentation_deleted": "Техническа документация изтрита",
+            "technical_documentation_generated_refreshed": "Generated секции на техническата документация обновени"
         },
         "event_sources": {
             "workspace": "Workspace",

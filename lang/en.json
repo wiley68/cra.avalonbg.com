@@ -3055,9 +3055,13 @@
             "cannot_edit_locked": "Published or retired packages cannot be edited.",
             "read_only_notice": "This package is read-only in its current status.",
             "sections_heading": "Sections",
-            "sections_help": "Authored sections use Markdown. Generated and linked sections show placeholders until module refresh is available; you can still add supplemental notes or mark a section not applicable.",
-            "generated_placeholder": "This section is generated from product modules. Refresh will arrive in a later slice; the snapshot below stays empty until then.",
+            "sections_help": "Authored sections use Markdown. Generated sections pull snapshots from product modules (Refresh generated). Linked sections stay as placeholders until a later slice. Supplemental notes are never overwritten by refresh.",
+            "generated_placeholder": "This section is generated from product modules. Use Refresh generated to update the snapshot. Supplemental notes below are kept separately.",
             "linked_placeholder": "This section links to published user security instructions. Automatic summary will arrive in a later slice.",
+            "generated_empty": "No module data found for this section yet.",
+            "generated_at": "Generated at",
+            "refresh_generated": "Refresh generated",
+            "generated_refreshed": "Generated sections refreshed from product modules.",
             "not_applicable": "Not applicable",
             "product_wide": "Product-wide",
             "filter_all_versions": "All scopes",
@@ -3280,7 +3284,8 @@
             "sdl_exception_cleared": "SDL exception cleared",
             "technical_documentation_created": "Technical documentation created",
             "technical_documentation_updated": "Technical documentation updated",
-            "technical_documentation_deleted": "Technical documentation deleted"
+            "technical_documentation_deleted": "Technical documentation deleted",
+            "technical_documentation_generated_refreshed": "Technical documentation generated sections refreshed"
         },
         "event_sources": {
             "workspace": "Workspace",

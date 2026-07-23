@@ -694,6 +694,33 @@ class AuditLogger
         );
     }
 
+    /**
+     * @param  list<string>  $refreshed
+     * @param  list<string>  $skipped
+     */
+    public static function logTechnicalDocumentationGeneratedRefreshed(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+        array $refreshed,
+        array $skipped,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationGeneratedRefreshed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'refreshed', 'value' => implode(',', $refreshed)],
+                ['field' => 'skipped', 'value' => implode(',', $skipped)],
+                ['field' => 'refreshed_count', 'value' => (string) count($refreshed)],
+            ],
+        );
+    }
+
     public static function logIncidentStatusUpdated(
         ProductIncident $incident,
         User $actor,

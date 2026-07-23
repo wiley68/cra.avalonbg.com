@@ -244,6 +244,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->parameters(['technical-documentation' => 'package'])
             ->scoped();
+        Route::post(
+            'products/{product}/technical-documentation/{package}/refresh-generated',
+            [TechnicalDocumentationController::class, 'refreshGenerated'],
+        )->name('products.technical-documentation.refresh-generated')->scopeBindings();
         Route::get(
             'products/{product}/security-instructions-template',
             [UserSecurityInstructionController::class, 'template'],
