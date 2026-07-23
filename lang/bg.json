@@ -3062,6 +3062,25 @@
             "generated_at": "Генерирано на",
             "refresh_generated": "Обнови generated",
             "generated_refreshed": "Generated секциите са обновени от продуктовите модули.",
+            "submit_review": "Изпрати за преглед",
+            "submit_review_title": "Изпрати техническата документация за преглед",
+            "submit_review_help": "Създава отворена продуктова задача, за да може рецензент да публикува пакета.",
+            "select_assignee": "Изберете изпълнител (по избор)",
+            "view_review_task": "Виж задачата за преглед",
+            "submit_assignee_invalid": "Избраният изпълнител не е член на тази организация.",
+            "review_task_title": "Преглед на техническа документация: :title (:version)",
+            "review_task_description": "Пакет техническа документация чака преглед.\nЗаглавие: :title\nВерсия: :version\nЕзик: :locale",
+            "publish": "Публикувай",
+            "retire": "Извади от употреба",
+            "submitted": "Техническата документация е изпратена за преглед.",
+            "published": "Техническата документация е публикувана.",
+            "retired": "Техническата документация е извадена от употреба.",
+            "only_draft_submit": "Само чернови могат да се изпращат за преглед.",
+            "only_editable_publish": "Само чернови или пакети в преглед могат да се публикуват.",
+            "only_published_retire": "Само публикувани пакети могат да се извадят от употреба.",
+            "publish_sections_incomplete": "Попълнете всички приложими authored/generated секции преди публикуване (:sections).",
+            "confirm_retire_title": "Изваждане от употреба?",
+            "confirm_retire": "Извадените пакети остават в историята, но вече не са публикуваната версия.",
             "not_applicable": "Не е приложимо",
             "product_wide": "За целия продукт",
             "filter_all_versions": "Всички обхвати",
@@ -3087,7 +3106,8 @@
                 "body": "Съдържание на секцията",
                 "supplemental_notes": "Допълнителни бележки",
                 "is_applicable": "Приложима",
-                "override_reason": "Причина за неприложимост"
+                "override_reason": "Причина за неприложимост",
+                "assignee": "Изпълнител"
             },
             "help": {
                 "title": "Заглавие на пакета в списъци и експорти.",
@@ -3096,7 +3116,8 @@
                 "notes": "Вътрешни бележки; не са задължителни в assessment експортите.",
                 "body": "Markdown съдържание за тази авторска секция.",
                 "supplemental_notes": "Опционални Markdown бележки към generated или linked съдържание. Refresh на модулите няма да ги презапише.",
-                "override_reason": "Обяснете защо секцията не е приложима за продукта."
+                "override_reason": "Обяснете защо секцията не е приложима за продукта.",
+                "assignee_user_id": "Опционален рецензент. Ако е празно, задачата се възлага на вас."
             },
             "statuses": {
                 "draft": "Чернова",
@@ -3283,7 +3304,10 @@
             "technical_documentation_created": "Техническа документация създадена",
             "technical_documentation_updated": "Техническа документация обновена",
             "technical_documentation_deleted": "Техническа документация изтрита",
-            "technical_documentation_generated_refreshed": "Generated секции на техническата документация обновени"
+            "technical_documentation_generated_refreshed": "Generated секции на техническата документация обновени",
+            "technical_documentation_submitted": "Техническа документация изпратена за преглед",
+            "technical_documentation_published": "Техническа документация публикувана",
+            "technical_documentation_retired": "Техническа документация извадена от употреба"
         },
         "event_sources": {
             "workspace": "Workspace",

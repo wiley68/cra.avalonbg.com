@@ -3062,6 +3062,25 @@
             "generated_at": "Generated at",
             "refresh_generated": "Refresh generated",
             "generated_refreshed": "Generated sections refreshed from product modules.",
+            "submit_review": "Submit for review",
+            "submit_review_title": "Submit technical documentation for review",
+            "submit_review_help": "Creates an open product task so a reviewer can publish this package.",
+            "select_assignee": "Select assignee (optional)",
+            "view_review_task": "View review task",
+            "submit_assignee_invalid": "Selected assignee is not a member of this organization.",
+            "review_task_title": "Review technical documentation: :title (:version)",
+            "review_task_description": "Technical documentation package awaiting review.\nTitle: :title\nVersion: :version\nLocale: :locale",
+            "publish": "Publish",
+            "retire": "Retire",
+            "submitted": "Technical documentation submitted for review.",
+            "published": "Technical documentation published.",
+            "retired": "Technical documentation retired.",
+            "only_draft_submit": "Only draft packages can be submitted for review.",
+            "only_editable_publish": "Only draft or under-review packages can be published.",
+            "only_published_retire": "Only published packages can be retired.",
+            "publish_sections_incomplete": "Complete all applicable authored/generated sections before publishing (:sections).",
+            "confirm_retire_title": "Retire technical documentation?",
+            "confirm_retire": "Retired packages stay in history but are no longer the published version.",
             "not_applicable": "Not applicable",
             "product_wide": "Product-wide",
             "filter_all_versions": "All scopes",
@@ -3087,7 +3106,8 @@
                 "body": "Section body",
                 "supplemental_notes": "Supplemental notes",
                 "is_applicable": "Applicable",
-                "override_reason": "Not-applicable reason"
+                "override_reason": "Not-applicable reason",
+                "assignee": "Assignee"
             },
             "help": {
                 "title": "Package title shown in lists and exports.",
@@ -3096,7 +3116,8 @@
                 "notes": "Internal notes; not required in assessment exports.",
                 "body": "Markdown content for this authored section.",
                 "supplemental_notes": "Optional Markdown notes kept alongside generated or linked content. Module refresh will not overwrite these notes.",
-                "override_reason": "Explain why this section does not apply to the product."
+                "override_reason": "Explain why this section does not apply to the product.",
+                "assignee_user_id": "Optional reviewer. Defaults to you if left empty."
             },
             "statuses": {
                 "draft": "Draft",
@@ -3285,7 +3306,10 @@
             "technical_documentation_created": "Technical documentation created",
             "technical_documentation_updated": "Technical documentation updated",
             "technical_documentation_deleted": "Technical documentation deleted",
-            "technical_documentation_generated_refreshed": "Technical documentation generated sections refreshed"
+            "technical_documentation_generated_refreshed": "Technical documentation generated sections refreshed",
+            "technical_documentation_submitted": "Technical documentation submitted for review",
+            "technical_documentation_published": "Technical documentation published",
+            "technical_documentation_retired": "Technical documentation retired"
         },
         "event_sources": {
             "workspace": "Workspace",

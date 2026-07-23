@@ -13,6 +13,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\SdlException;
 use App\Models\Task;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
@@ -36,6 +37,7 @@ class TaskService
             'org_policy' => OrgPolicy::class,
             'auditor_finding' => AuditorFinding::class,
             'user_security_instruction' => UserSecurityInstruction::class,
+            'technical_documentation_package' => TechnicalDocumentationPackage::class,
             'incident' => ProductIncident::class,
             'sdl_exception' => SdlException::class,
         ];
@@ -300,6 +302,8 @@ class TaskService
                 $task->subject instanceof AuditorFinding => $task->subject->title,
                 $task->subject instanceof UserSecurityInstruction => $task->subject->title
                 . ' (' . $task->subject->version_label . ' · ' . $task->subject->locale . ')',
+                $task->subject instanceof TechnicalDocumentationPackage => $task->subject->title
+                . ' (' . $task->subject->version_label . ' · ' . $task->subject->locale . ')',
                 $task->subject instanceof ProductIncident => $task->subject->title,
                 $task->subject instanceof SdlException => $this->sdlExceptionSubjectLabel($task->subject),
                 default => '#' . $task->subject_id,
@@ -373,6 +377,10 @@ class TaskService
                 )
                 ->exists(),
             UserSecurityInstruction::class => UserSecurityInstruction::query()
+                ->where('id', $id)
+                ->where('product_id', $product->id)
+                ->exists(),
+            TechnicalDocumentationPackage::class => TechnicalDocumentationPackage::query()
                 ->where('id', $id)
                 ->where('product_id', $product->id)
                 ->exists(),

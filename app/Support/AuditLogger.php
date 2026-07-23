@@ -721,6 +721,62 @@ class AuditLogger
         );
     }
 
+    public static function logTechnicalDocumentationSubmitted(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationSubmitted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
+    public static function logTechnicalDocumentationPublished(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationPublished,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'version_label', 'value' => $package->version_label],
+                ['field' => 'locale', 'value' => $package->locale],
+            ],
+        );
+    }
+
+    public static function logTechnicalDocumentationRetired(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationRetired,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+            ],
+        );
+    }
+
     public static function logIncidentStatusUpdated(
         ProductIncident $incident,
         User $actor,

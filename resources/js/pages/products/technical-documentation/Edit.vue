@@ -1,12 +1,29 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, RefreshCcw, Save } from '@lucide/vue';
-import { computed } from 'vue';
+import {
+    Archive,
+    ArrowLeft,
+    CheckCircle2,
+    Pencil,
+    RefreshCcw,
+    Save,
+    Send,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,15 +37,26 @@ import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as editTask } from '@/routes/products/tasks';
 import {
     edit as packagesEdit,
     index as packagesIndex,
+    publish as publishPackage,
     refreshGenerated,
+    retire as retirePackage,
+    submitReview,
     update,
 } from '@/routes/products/technical-documentation';
 
 type ProductSummary = { id: number; name: string; slug: string };
 type VersionOption = { id: number; version_number: string };
+type MemberOption = { id: number; name: string };
+type ReviewTask = {
+    id: number;
+    product_id: number;
+    title: string;
+    status: string;
+};
 
 type SectionPayload = {
     id: number;
@@ -70,6 +98,8 @@ const props = defineProps<{
         default_locale: string;
     };
     canManage: boolean;
+    memberOptions: MemberOption[];
+    reviewTask: ReviewTask | null;
 }>();
 
 const { t } = useTranslations();
@@ -105,6 +135,17 @@ const form = useForm({
         override_reason: section.override_reason ?? '',
     })),
 });
+
+const showSubmitDialog = ref(false);
+const showRetireDialog = ref(false);
+const submitForm = useForm({
+    assignee_user_id: '' as number | '',
+});
+
+const routeArgs = {
+    product: props.product.id,
+    package: props.package.id,
+};
 
 const generatedPayloadByKey = computed(() => {
     const map: Record<string, Record<string, unknown> | unknown[] | null> = {};
@@ -147,6 +188,32 @@ const generatedAtLabel = (sectionKey: string): string | null => {
 };
 
 const readOnly = computed(() => !props.package.is_editable || !props.canManage);
+
+const canSubmit = computed(
+    () => props.canManage && props.package.status === 'draft',
+);
+
+const canPublish = computed(
+    () =>
+        props.canManage &&
+        (props.package.status === 'draft' ||
+            props.package.status === 'under_review'),
+);
+
+const canRetire = computed(
+    () => props.canManage && props.package.status === 'published',
+);
+
+const reviewTaskHref = computed(() => {
+    if (props.reviewTask === null) {
+        return null;
+    }
+
+    return editTask({
+        product: props.reviewTask.product_id,
+        task: props.reviewTask.id,
+    }).url;
+});
 
 const localeLabel = (value: string): string => {
     const key = `products.technical_documentation.locales.${value}`;
@@ -202,14 +269,35 @@ const doRefreshGenerated = () => {
         return;
     }
 
-    router.post(
-        refreshGenerated({
-            product: props.product.id,
-            package: props.package.id,
-        }).url,
-        {},
-        { preserveScroll: true },
-    );
+    router.post(refreshGenerated(routeArgs).url, {}, { preserveScroll: true });
+};
+
+const openSubmitDialog = () => {
+    submitForm.clearErrors();
+    showSubmitDialog.value = true;
+};
+
+const doSubmitReview = () => {
+    submitForm
+        .transform((data) => ({
+            assignee_user_id: data.assignee_user_id || null,
+        }))
+        .post(submitReview(routeArgs).url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSubmitDialog.value = false;
+                submitForm.reset();
+            },
+        });
+};
+
+const doPublish = () => {
+    router.post(publishPackage(routeArgs).url, {}, { preserveScroll: true });
+};
+
+const doRetire = () => {
+    showRetireDialog.value = false;
+    router.post(retirePackage(routeArgs).url, {}, { preserveScroll: true });
 };
 
 const submit = () => {
@@ -230,12 +318,7 @@ const submit = () => {
                 : section.override_reason || null,
             sort_order: section.sort_order,
         })),
-    })).put(
-        update({
-            product: props.product.id,
-            package: props.package.id,
-        }).url,
-    );
+    })).put(update(routeArgs).url);
 };
 </script>
 
@@ -275,6 +358,45 @@ const submit = () => {
                     </Link>
                 </Button>
             </div>
+        </div>
+
+        <div
+            v-if="canManage"
+            class="flex flex-wrap gap-2 rounded-lg border p-3"
+        >
+            <Button
+                v-if="canSubmit"
+                type="button"
+                variant="outline"
+                @click="openSubmitDialog"
+            >
+                <Send class="h-4 w-4" />
+                {{ t('products.technical_documentation.submit_review') }}
+            </Button>
+            <Button v-if="reviewTaskHref" as-child variant="outline">
+                <Link :href="reviewTaskHref">
+                    <Pencil class="h-4 w-4" />
+                    {{ t('products.technical_documentation.view_review_task') }}
+                </Link>
+            </Button>
+            <Button
+                v-if="canPublish"
+                type="button"
+                variant="outline"
+                @click="doPublish"
+            >
+                <CheckCircle2 class="h-4 w-4" />
+                {{ t('products.technical_documentation.publish') }}
+            </Button>
+            <Button
+                v-if="canRetire"
+                type="button"
+                variant="outline"
+                @click="showRetireDialog = true"
+            >
+                <Archive class="h-4 w-4" />
+                {{ t('products.technical_documentation.retire') }}
+            </Button>
         </div>
 
         <p
@@ -618,5 +740,99 @@ const submit = () => {
                 </Button>
             </div>
         </form>
+
+        <Dialog
+            :open="showSubmitDialog"
+            @update:open="
+                (open: boolean) => {
+                    showSubmitDialog = open;
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            t(
+                                'products.technical_documentation.submit_review_title',
+                            )
+                        }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            t(
+                                'products.technical_documentation.submit_review_help',
+                            )
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="grid min-w-0 gap-2 py-2">
+                    <FieldLabel
+                        html-for="assignee_user_id"
+                        :help="
+                            t(
+                                'products.technical_documentation.help.assignee_user_id',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.fields.assignee',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select v-model="submitForm.assignee_user_id">
+                        <SelectTrigger id="assignee_user_id" class="w-full">
+                            <SelectValue
+                                :placeholder="
+                                    t(
+                                        'products.technical_documentation.select_assignee',
+                                    )
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="member in memberOptions"
+                                :key="member.id"
+                                :value="String(member.id)"
+                            >
+                                {{ member.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="submitForm.errors.assignee_user_id" />
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showSubmitDialog = false"
+                    >
+                        {{ t('common.cancel') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        :disabled="submitForm.processing"
+                        @click="doSubmitReview"
+                    >
+                        <Send class="h-4 w-4" />
+                        {{
+                            t('products.technical_documentation.submit_review')
+                        }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <AppAlertDialog
+            v-model:open="showRetireDialog"
+            :title="t('products.technical_documentation.confirm_retire_title')"
+            :description="t('products.technical_documentation.confirm_retire')"
+            @confirm="doRetire"
+            @cancel="showRetireDialog = false"
+        />
     </div>
 </template>

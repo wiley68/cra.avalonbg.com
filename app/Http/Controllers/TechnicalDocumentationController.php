@@ -13,6 +13,8 @@ use App\Models\TechnicalDocumentationPackage;
 use App\Services\TechnicalDocumentationService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -93,6 +95,8 @@ class TechnicalDocumentationController extends Controller
             'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
+            'memberOptions' => $this->memberOptions($organization),
+            'reviewTask' => $this->packages->openReviewTaskPayload($package),
         ]);
     }
 
@@ -164,6 +168,80 @@ class TechnicalDocumentationController extends Controller
         return redirect()->route('products.technical-documentation.edit', [$product, $package]);
     }
 
+    public function submitReview(
+        Request $request,
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $validated = $request->validate([
+            'assignee_user_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('organization_user', 'user_id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+        ]);
+
+        $this->packages->submitForReview(
+            $package,
+            $request->user(),
+            isset($validated['assignee_user_id'])
+            ? (int) $validated['assignee_user_id']
+            : null,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.technical_documentation.submitted'),
+        ]);
+
+        return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
+    public function publish(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $this->packages->publish($package, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.technical_documentation.published'),
+        ]);
+
+        return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
+    public function retire(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $this->packages->retire($package, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.technical_documentation.retired'),
+        ]);
+
+        return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
     /**
      * @return array{
      *     locales: list<string>,
@@ -200,6 +278,21 @@ class TechnicalDocumentationController extends Controller
             ->map(fn(ProductVersion $version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function memberOptions(Organization $organization): array
+    {
+        return $organization->users()
+            ->orderBy('name')
+            ->get(['users.id', 'users.name'])
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
             ])
             ->all();
     }

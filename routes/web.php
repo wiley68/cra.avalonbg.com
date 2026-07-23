@@ -248,6 +248,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/technical-documentation/{package}/refresh-generated',
             [TechnicalDocumentationController::class, 'refreshGenerated'],
         )->name('products.technical-documentation.refresh-generated')->scopeBindings();
+        Route::post(
+            'products/{product}/technical-documentation/{package}/submit-review',
+            [TechnicalDocumentationController::class, 'submitReview'],
+        )->name('products.technical-documentation.submit-review')->scopeBindings();
+        Route::post(
+            'products/{product}/technical-documentation/{package}/publish',
+            [TechnicalDocumentationController::class, 'publish'],
+        )->name('products.technical-documentation.publish')->scopeBindings();
+        Route::post(
+            'products/{product}/technical-documentation/{package}/retire',
+            [TechnicalDocumentationController::class, 'retire'],
+        )->name('products.technical-documentation.retire')->scopeBindings();
         Route::get(
             'products/{product}/security-instructions-template',
             [UserSecurityInstructionController::class, 'template'],

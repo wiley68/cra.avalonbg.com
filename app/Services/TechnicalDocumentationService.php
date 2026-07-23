@@ -3,8 +3,13 @@
 namespace App\Services;
 
 use App\Enums\TechnicalDocumentationSectionKey;
+use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\TechnicalDocumentationStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
+use App\Models\Organization;
 use App\Models\Product;
+use App\Models\Task;
 use App\Models\TechnicalDocumentationPackage;
 use App\Models\TechnicalDocumentationSection;
 use App\Models\User;
@@ -18,6 +23,7 @@ class TechnicalDocumentationService
 {
     public function __construct(
         private readonly TechnicalDocumentationGeneratorService $generator,
+        private readonly TaskService $tasks,
     ) {
     }
 
@@ -289,6 +295,228 @@ class TechnicalDocumentationService
 
             return $fresh;
         });
+    }
+
+    public function submitForReview(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+        ?int $assigneeUserId = null,
+    ): TechnicalDocumentationPackage {
+        if ($package->status !== TechnicalDocumentationStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.technical_documentation.only_draft_submit')],
+            ]);
+        }
+
+        $package->loadMissing('product');
+
+        if ($assigneeUserId !== null) {
+            $assigneeBelongs = Organization::query()
+                ->whereKey($package->organization_id)
+                ->whereHas(
+                    'users',
+                    fn($query) => $query->where('users.id', $assigneeUserId),
+                )
+                ->exists();
+
+            if (!$assigneeBelongs) {
+                throw ValidationException::withMessages([
+                    'assignee_user_id' => [Translations::get('products.technical_documentation.submit_assignee_invalid')],
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($package, $actor, $assigneeUserId): TechnicalDocumentationPackage {
+            $package->update(['status' => TechnicalDocumentationStatus::UnderReview]);
+            $fresh = $package->fresh([
+                'sections',
+                'productVersion:id,version_number',
+                'publisher:id,name',
+                'product',
+            ]);
+
+            $this->tasks->create($fresh->product, [
+                'title' => Translations::get('products.technical_documentation.review_task_title', [
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                ]),
+                'description' => Translations::get('products.technical_documentation.review_task_description', [
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                    'locale' => $fresh->locale,
+                ]),
+                'status' => TaskStatus::Open,
+                'priority' => TaskPriority::Medium,
+                'assignee_user_id' => $assigneeUserId ?? $actor->id,
+                'due_at' => now()->addDays(7),
+                'subject_type' => 'technical_documentation_package',
+                'subject_id' => $fresh->id,
+            ], $actor);
+
+            AuditLogger::logTechnicalDocumentationSubmitted($fresh, $actor);
+
+            return $fresh;
+        });
+    }
+
+    /**
+     * @return array{id: int, product_id: int, title: string, status: string}|null
+     */
+    public function openReviewTaskPayload(TechnicalDocumentationPackage $package): ?array
+    {
+        $task = Task::query()
+            ->where('subject_type', TechnicalDocumentationPackage::class)
+            ->where('subject_id', $package->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->latest('id')
+            ->first(['id', 'product_id', 'title', 'status']);
+
+        if ($task === null) {
+            return null;
+        }
+
+        return [
+            'id' => $task->id,
+            'product_id' => $task->product_id,
+            'title' => $task->title,
+            'status' => $task->status->value,
+        ];
+    }
+
+    public function publish(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): TechnicalDocumentationPackage {
+        if (
+            !in_array($package->status, [
+                TechnicalDocumentationStatus::Draft,
+                TechnicalDocumentationStatus::UnderReview,
+            ], true)
+        ) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.technical_documentation.only_editable_publish')],
+            ]);
+        }
+
+        $this->assertPublishableSections($package);
+
+        return DB::transaction(function () use ($package, $actor): TechnicalDocumentationPackage {
+            $package->loadMissing('product');
+
+            $previous = $this->findPublishedSibling(
+                $package->product,
+                $package->locale,
+                $package->product_version_id,
+                $package->id,
+            );
+
+            $siblings = TechnicalDocumentationPackage::query()
+                ->where('product_id', $package->product_id)
+                ->where('locale', $package->locale)
+                ->where('status', TechnicalDocumentationStatus::Published->value)
+                ->whereKeyNot($package->id);
+
+            if ($package->product_version_id === null) {
+                $siblings->whereNull('product_version_id');
+            } else {
+                $siblings->where('product_version_id', $package->product_version_id);
+            }
+
+            $siblings->update([
+                'status' => TechnicalDocumentationStatus::Retired->value,
+            ]);
+
+            $package->update([
+                'status' => TechnicalDocumentationStatus::Published,
+                'published_at' => now(),
+                'published_by' => $actor->id,
+                'supersedes_id' => $previous?->id ?? $package->supersedes_id,
+            ]);
+
+            $this->completeOpenReviewTasks($package);
+
+            $fresh = $package->fresh([
+                'sections',
+                'productVersion:id,version_number',
+                'publisher:id,name',
+                'supersedes',
+            ]);
+            AuditLogger::logTechnicalDocumentationPublished($fresh, $actor);
+
+            return $fresh;
+        });
+    }
+
+    public function retire(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): TechnicalDocumentationPackage {
+        if ($package->status !== TechnicalDocumentationStatus::Published) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.technical_documentation.only_published_retire')],
+            ]);
+        }
+
+        $package->update(['status' => TechnicalDocumentationStatus::Retired]);
+        $fresh = $package->fresh([
+            'sections',
+            'productVersion:id,version_number',
+            'publisher:id,name',
+            'supersedes',
+        ]);
+        AuditLogger::logTechnicalDocumentationRetired($fresh, $actor);
+
+        return $fresh;
+    }
+
+    private function completeOpenReviewTasks(TechnicalDocumentationPackage $package): void
+    {
+        Task::query()
+            ->where('subject_type', TechnicalDocumentationPackage::class)
+            ->where('subject_id', $package->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->update([
+                'status' => TaskStatus::Completed->value,
+            ]);
+    }
+
+    private function assertPublishableSections(TechnicalDocumentationPackage $package): void
+    {
+        $package->loadMissing('sections');
+
+        $incomplete = $package->sections
+            ->filter(function (TechnicalDocumentationSection $section): bool {
+                if (!$section->is_applicable) {
+                    return false;
+                }
+
+                return match ($section->source) {
+                    TechnicalDocumentationSectionSource::Authored => trim((string) $section->body_markdown) === '',
+                    TechnicalDocumentationSectionSource::Generated => $section->generated_payload === null,
+                    TechnicalDocumentationSectionSource::Linked => false,
+                };
+            })
+            ->map(fn(TechnicalDocumentationSection $section) => $section->section_key->value)
+            ->values()
+            ->all();
+
+        if ($incomplete !== []) {
+            throw ValidationException::withMessages([
+                'sections' => [
+                    Translations::get('products.technical_documentation.publish_sections_incomplete', [
+                        'sections' => implode(', ', $incomplete),
+                    ]),
+                ],
+            ]);
+        }
     }
 
     /**

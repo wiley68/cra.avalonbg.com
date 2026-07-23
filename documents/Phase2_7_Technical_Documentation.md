@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 0.5  
+**Версия:** 0.6  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–4 Done  
+**Статус:** Active — Must 1–5 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -150,7 +150,7 @@ GET    /internal-api/products/{product}/technical-documentation
 2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
 3. ~~Section editor UI (authored + generated placeholders)~~ **Done** (2026-07-23)
 4. ~~Generate-from-modules for core sections (identification, risks, SBOM, support, versions)~~ **Done** (2026-07-23)
-5. Publish lifecycle + audit
+5. ~~Publish lifecycle + audit~~ **Done** (2026-07-23)
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
 
 ### Should
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                          |
 | ------ | ---------- | -------------------------------------------------------------------------------- |
+| 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                  |
 | 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)       |
 | 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders) |
 | 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                   |
