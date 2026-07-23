@@ -14,6 +14,7 @@ import {
     ShieldAlert,
     User,
     Users,
+    Workflow,
 } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
@@ -37,6 +38,7 @@ import { index as adminRequirementsIndex } from '@/routes/admin/requirements';
 import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
+import { index as sdlIndex } from '@/routes/sdl';
 import type { NavItem } from '@/types';
 import { index as controlsIndex } from '@/routes/controls';
 import { index as customersIndex } from '@/routes/customers';
@@ -105,6 +107,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.incidents'),
             href: incidentsIndex(),
             icon: ShieldAlert,
+        });
+    }
+
+    if (user.can_view_sdl) {
+        items.push({
+            title: t('nav.sdl'),
+            href: sdlIndex(),
+            icon: Workflow,
         });
     }
 

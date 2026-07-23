@@ -388,6 +388,7 @@
         "policies": "Policies",
         "auditor": "Auditor reviews",
         "incidents": "Incidents",
+        "sdl": "SDL",
         "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
@@ -400,6 +401,15 @@
         "title": "Security incidents",
         "subtitle": "Cross-product incident register for your organization",
         "search_placeholder": "Search by title, product, status or severity...",
+        "columns": {
+            "product": "Product"
+        }
+    },
+    "sdl": {
+        "index_title": "Secure development lifecycle",
+        "title": "Secure development lifecycle",
+        "subtitle": "Cross-product SDL runs and release security gates for your organization",
+        "search_placeholder": "Search by title, product, status or stage...",
         "columns": {
             "product": "Product"
         }

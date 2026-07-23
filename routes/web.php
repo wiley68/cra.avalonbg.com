@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\ProductIncidentApiController;
 use App\Http\Controllers\Api\ProductSdlApiController;
 use App\Http\Controllers\Api\IncidentApiController;
+use App\Http\Controllers\Api\SdlApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\OrgPolicyApiController;
 use App\Http\Controllers\Api\AuditorReviewPackageApiController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\SdlController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\OrgPolicyController;
 use App\Http\Controllers\ProductClassificationController;
@@ -114,6 +116,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('incidents', [IncidentController::class, 'index'])
             ->name('incidents.index');
+        Route::get('sdl', [SdlController::class, 'index'])
+            ->name('sdl.index');
 
         Route::get('policies/template', [OrgPolicyController::class, 'template'])
             ->name('policies.template');
@@ -436,6 +440,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('customers.index');
             Route::get('incidents', [IncidentApiController::class, 'index'])
                 ->name('incidents.index');
+            Route::get('sdl', [SdlApiController::class, 'index'])
+                ->name('sdl.index');
             Route::get('policies', [OrgPolicyApiController::class, 'index'])
                 ->name('policies.index');
             Route::get('auditor/packages', [AuditorReviewPackageApiController::class, 'index'])

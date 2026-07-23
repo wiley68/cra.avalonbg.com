@@ -114,13 +114,13 @@ Nav card: `can_view_sdl` (product modules).
 - Edit: stage checklist + evidence links + approval panel.
 - shadcn-vue; Switch за booleans; стандартни Lucide icons.
 
-### Navigation (предложение)
+### Navigation
 
 | Къде           | Route                                |
 | -------------- | ------------------------------------ |
 | Product module | `/products/{product}/sdl`            |
 | Edit           | `/products/{product}/sdl/{run}/edit` |
-| Org (Could)    | `/sdl` cross-product index           |
+| Org index      | `/sdl` cross-product index           |
 
 ---
 
@@ -176,6 +176,8 @@ DELETE /products/{product}/sdl/{run}
 POST   /products/{product}/sdl/{run}/stages/{stage}
 POST   /products/{product}/sdl/{run}/approve
 GET    /internal-api/products/{product}/sdl
+GET    /sdl
+GET    /internal-api/sdl
 ```
 
 Should/Could (по-късно):
@@ -183,8 +185,6 @@ Should/Could (по-късно):
 ```text
 POST   /products/{product}/sdl/{run}/exceptions
 GET    /products/{product}/sdl/{run}/export/{format}
-GET    /sdl
-GET    /internal-api/sdl
 ```
 
 ---
@@ -211,7 +211,7 @@ GET    /internal-api/sdl
 
 ### Could
 
-13. Org-level cross-product SDL index
+13. ~~Org-level cross-product SDL index~~ **Done**
 14. AI draft for threat notes / checklist (human review)
 15. Export PDF/Markdown SDL summary for release package
 16. Auto-suggest evidence from recent Git sync
@@ -278,6 +278,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.4    | 2026-07-23 | Could 13 Done — org-level cross-product SDL index + sidebar          |
 | 1.3    | 2026-07-23 | Should 12 Done — `sdl.view` / `sdl.manage` + `can_view_sdl` nav card |
 | 1.2    | 2026-07-23 | Should 11 Done — readiness gap `sdl_release_approval_missing`        |
 | 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task           |

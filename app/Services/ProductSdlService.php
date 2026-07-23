@@ -11,6 +11,7 @@ use App\Enums\SdlStageStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Models\Evidence;
+use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\SdlException;
@@ -84,6 +85,67 @@ class ProductSdlService
             'approved_at' => 'approved_at',
             'updated_at' => 'updated_at',
             'version_number' => 'product_version_id',
+            default => 'title',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(SdlRun $run) => $this->listItemPayload($run));
+    }
+
+    /**
+     * Org-level cross-product SDL run listing.
+     *
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function paginateForOrganization(
+        Organization $organization,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'title',
+        string $sortOrder = 'asc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = SdlRun::query()
+            ->where('organization_id', $organization->id)
+            ->with(['owner', 'version:id,version_number', 'product:id,name']);
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('current_stage', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'product',
+                        fn($productQuery) => $productQuery->where('name', 'like', "%{$search}%"),
+                    )
+                    ->orWhereHas(
+                        'version',
+                        fn($versionQuery) => $versionQuery->where(
+                            'version_number',
+                            'like',
+                            "%{$search}%",
+                        ),
+                    );
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'id' => 'id',
+            'status' => 'status',
+            'current_stage' => 'current_stage',
+            'approved_at' => 'approved_at',
+            'updated_at' => 'updated_at',
+            'version_number' => 'product_version_id',
+            'product_name' => 'product_id',
             default => 'title',
         };
 
