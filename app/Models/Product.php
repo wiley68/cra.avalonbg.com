@@ -169,6 +169,11 @@ class Product extends Model
         return $this->productVulnerabilities();
     }
 
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(ProductIncident::class);
+    }
+
     public function evidence(): HasMany
     {
         return $this->hasMany(Evidence::class);

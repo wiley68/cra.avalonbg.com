@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 0.1  
+**Версия:** 0.2  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — skeleton  
+**Статус:** Active — Must 1 done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -199,7 +199,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 
 ### Must
 
-1. Migrations + models + enums (incident, timeline, version pivot)
+1. ~~Migrations + models + enums (incident, timeline, version pivot)~~ **Done**
 2. CRUD + Index DataTable (product-scoped)
 3. Timeline UI (append events) + core timestamp fields
 4. Link / create vulnerability (`incident_investigation` discovery)
@@ -284,4 +284,5 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                    |
 | ------ | ---------- | ---------------------------------------------------------- |
+| 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests       |
 | 0.1    | 2026-07-23 | Първоначален skeleton след Phase 2.4 closeout (кандидат A) |
