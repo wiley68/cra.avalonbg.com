@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
+use App\Models\UserSecurityInstruction;
 use App\Services\TaskService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -296,7 +297,8 @@ class TaskController extends Controller
      *     vulnerabilities: list<array{id: int, label: string}>,
      *     evidence: list<array{id: int, label: string}>,
      *     org_policies: list<array{id: int, label: string}>,
-     *     auditor_findings: list<array{id: int, label: string}>
+     *     auditor_findings: list<array{id: int, label: string}>,
+     *     user_security_instructions: list<array{id: int, label: string}>
      * }
      */
     private function subjectOptions(Product $product): array
@@ -352,6 +354,16 @@ class TaskController extends Controller
                 ->map(fn(AuditorFinding $finding) => [
                     'id' => $finding->id,
                     'label' => "{$finding->title} ({$finding->severity->value})",
+                ])
+                ->all(),
+            'user_security_instructions' => UserSecurityInstruction::query()
+                ->where('product_id', $product->id)
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(['id', 'title', 'version_label', 'locale'])
+                ->map(fn(UserSecurityInstruction $instruction) => [
+                    'id' => $instruction->id,
+                    'label' => "{$instruction->title} ({$instruction->version_label} · {$instruction->locale})",
                 ])
                 ->all(),
         ];

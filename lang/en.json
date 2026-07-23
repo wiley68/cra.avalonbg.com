@@ -2104,7 +2104,8 @@
                 "vulnerability": "Vulnerability",
                 "evidence": "Evidence",
                 "org_policy": "Organization policy",
-                "auditor_finding": "Auditor finding"
+                "auditor_finding": "Auditor finding",
+                "user_security_instruction": "User security instructions"
             }
         },
         "readiness": {
@@ -2458,7 +2459,8 @@
                 "customer": "Customer",
                 "deployment_optional": "Deployment (optional)",
                 "export_format": "Format",
-                "supersedes": "Supersedes"
+                "supersedes": "Supersedes",
+                "assignee": "Assignee"
             },
             "help": {
                 "title": "Document title shown in exports and lists.",
@@ -2467,7 +2469,8 @@
                 "notes": "Internal notes; not required in customer-facing exports.",
                 "title_override": "Optional override for the default section title.",
                 "body": "Markdown content for this section.",
-                "use_template": "Prefill document title and all section bodies with EN/BG starter content for the selected locale."
+                "use_template": "Prefill document title and all section bodies with EN/BG starter content for the selected locale.",
+                "assignee_user_id": "Optional reviewer. Defaults to you if left empty."
             },
             "product_wide": "Product-wide",
             "filter_all_versions": "All scopes",
@@ -2503,6 +2506,13 @@
                 "known_limitations": "Known limitations"
             },
             "submit_review": "Submit for review",
+            "submit_review_title": "Submit instructions for review",
+            "submit_review_help": "Creates an open product task so a reviewer can publish these instructions.",
+            "select_assignee": "Select assignee (optional)",
+            "view_review_task": "View review task",
+            "submit_assignee_invalid": "Selected assignee is not a member of this organization.",
+            "review_task_title": "Review user security instructions: :title (:version)",
+            "review_task_description": "User security instructions awaiting review.\nTitle: :title\nVersion: :version\nLocale: :locale",
             "publish": "Publish",
             "retire": "Retire",
             "submitted": "Instructions submitted for review.",

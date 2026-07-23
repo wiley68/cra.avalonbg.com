@@ -12,6 +12,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,7 @@ class TaskService
             'evidence' => Evidence::class,
             'org_policy' => OrgPolicy::class,
             'auditor_finding' => AuditorFinding::class,
+            'user_security_instruction' => UserSecurityInstruction::class,
         ];
     }
 
@@ -292,6 +294,8 @@ class TaskService
                 $task->subject instanceof OrgPolicy => $task->subject->title
                 . ' (' . $task->subject->version_label . ')',
                 $task->subject instanceof AuditorFinding => $task->subject->title,
+                $task->subject instanceof UserSecurityInstruction => $task->subject->title
+                . ' (' . $task->subject->version_label . ' · ' . $task->subject->locale . ')',
                 default => '#' . $task->subject_id,
             };
         }
@@ -361,6 +365,10 @@ class TaskService
                     'package',
                     fn($query) => $query->where('product_id', $product->id),
                 )
+                ->exists(),
+            UserSecurityInstruction::class => UserSecurityInstruction::query()
+                ->where('id', $id)
+                ->where('product_id', $product->id)
                 ->exists(),
             default => throw new InvalidArgumentException('Unsupported subject class.'),
         };

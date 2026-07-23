@@ -124,6 +124,8 @@ class UserSecurityInstructionController extends Controller
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
             'aiEnabled' => $this->assistant->isEnabled(),
+            'memberOptions' => $this->memberOptions($organization),
+            'reviewTask' => $this->instructions->openReviewTaskPayload($instruction),
         ]);
     }
 
@@ -213,14 +215,33 @@ class UserSecurityInstructionController extends Controller
         return redirect()->route('products.security-instructions.index', $product);
     }
 
-    public function submitReview(Product $product, UserSecurityInstruction $instruction): RedirectResponse
-    {
+    public function submitReview(
+        Request $request,
+        Product $product,
+        UserSecurityInstruction $instruction,
+    ): RedirectResponse {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
         $this->assertInstructionBelongsToProduct($instruction, $product);
         $this->authorize('update', [$instruction, $organization]);
 
-        $this->instructions->submitForReview($instruction, request()->user());
+        $validated = $request->validate([
+            'assignee_user_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('organization_user', 'user_id')->where(
+                    fn($query) => $query->where('organization_id', $organization->id),
+                ),
+            ],
+        ]);
+
+        $this->instructions->submitForReview(
+            $instruction,
+            $request->user(),
+            isset($validated['assignee_user_id'])
+            ? (int) $validated['assignee_user_id']
+            : null,
+        );
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -424,6 +445,21 @@ class UserSecurityInstructionController extends Controller
                 'environment' => $deployment->environment->value,
                 'product_version_number' => $deployment->productVersion?->version_number,
                 'notes' => $deployment->notes,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function memberOptions(Organization $organization): array
+    {
+        return $organization->users()
+            ->orderBy('name')
+            ->get(['users.id', 'users.name'])
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
             ])
             ->all();
     }

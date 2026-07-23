@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Enums\UserSecurityInstructionSectionKey;
 use App\Enums\UserSecurityInstructionStatus;
+use App\Models\Organization;
 use App\Models\Product;
+use App\Models\Task;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Models\UserSecurityInstructionSection;
@@ -19,6 +23,7 @@ class UserSecurityInstructionService
 {
     public function __construct(
         private readonly EvidenceService $evidence,
+        private readonly TaskService $tasks,
     ) {
     }
 
@@ -272,19 +277,104 @@ class UserSecurityInstructionService
         $instruction->delete();
     }
 
-    public function submitForReview(UserSecurityInstruction $instruction, User $actor): UserSecurityInstruction
-    {
+    public function submitForReview(
+        UserSecurityInstruction $instruction,
+        User $actor,
+        ?int $assigneeUserId = null,
+    ): UserSecurityInstruction {
         if ($instruction->status !== UserSecurityInstructionStatus::Draft) {
             throw ValidationException::withMessages([
                 'status' => [Translations::get('products.user_security_instructions.only_draft_submit')],
             ]);
         }
 
-        $instruction->update(['status' => UserSecurityInstructionStatus::UnderReview]);
-        $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
-        AuditLogger::logUserSecurityInstructionSubmitted($fresh, $actor);
+        $instruction->loadMissing('product');
 
-        return $fresh;
+        if ($assigneeUserId !== null) {
+            $assigneeBelongs = Organization::query()
+                ->whereKey($instruction->organization_id)
+                ->whereHas(
+                    'users',
+                    fn($query) => $query->where('users.id', $assigneeUserId),
+                )
+                ->exists();
+
+            if (!$assigneeBelongs) {
+                throw ValidationException::withMessages([
+                    'assignee_user_id' => [Translations::get('products.user_security_instructions.submit_assignee_invalid')],
+                ]);
+            }
+        }
+
+        return DB::transaction(function () use ($instruction, $actor, $assigneeUserId): UserSecurityInstruction {
+            $instruction->update(['status' => UserSecurityInstructionStatus::UnderReview]);
+            $fresh = $instruction->fresh(['sections', 'publisher:id,name', 'product']);
+
+            $this->tasks->create($fresh->product, [
+                'title' => Translations::get('products.user_security_instructions.review_task_title', [
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                ]),
+                'description' => Translations::get('products.user_security_instructions.review_task_description', [
+                    'title' => $fresh->title,
+                    'version' => $fresh->version_label,
+                    'locale' => $fresh->locale,
+                ]),
+                'status' => TaskStatus::Open,
+                'priority' => TaskPriority::Medium,
+                'assignee_user_id' => $assigneeUserId ?? $actor->id,
+                'due_at' => now()->addDays(7),
+                'subject_type' => 'user_security_instruction',
+                'subject_id' => $fresh->id,
+            ], $actor);
+
+            AuditLogger::logUserSecurityInstructionSubmitted($fresh, $actor);
+
+            return $fresh;
+        });
+    }
+
+    /**
+     * @return array{id: int, product_id: int, title: string, status: string}|null
+     */
+    public function openReviewTaskPayload(UserSecurityInstruction $instruction): ?array
+    {
+        $task = Task::query()
+            ->where('subject_type', UserSecurityInstruction::class)
+            ->where('subject_id', $instruction->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->latest('id')
+            ->first(['id', 'product_id', 'title', 'status']);
+
+        if ($task === null) {
+            return null;
+        }
+
+        return [
+            'id' => $task->id,
+            'product_id' => $task->product_id,
+            'title' => $task->title,
+            'status' => $task->status->value,
+        ];
+    }
+
+    private function completeOpenReviewTasks(UserSecurityInstruction $instruction): void
+    {
+        Task::query()
+            ->where('subject_type', UserSecurityInstruction::class)
+            ->where('subject_id', $instruction->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->update([
+                'status' => TaskStatus::Completed->value,
+            ]);
     }
 
     public function publish(UserSecurityInstruction $instruction, User $actor): UserSecurityInstruction
@@ -332,6 +422,8 @@ class UserSecurityInstructionService
                 'published_by' => $actor->id,
                 'supersedes_id' => $previous?->id ?? $instruction->supersedes_id,
             ]);
+
+            $this->completeOpenReviewTasks($instruction);
 
             $fresh = $instruction->fresh(['sections', 'publisher:id,name', 'supersedes.sections']);
             AuditLogger::logUserSecurityInstructionPublished($fresh, $actor);

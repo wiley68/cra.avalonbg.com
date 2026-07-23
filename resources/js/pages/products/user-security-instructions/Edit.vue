@@ -60,10 +60,18 @@ import {
     submitReview,
     update,
 } from '@/routes/products/security-instructions';
+import { edit as editTask } from '@/routes/products/tasks';
 
 type ProductSummary = { id: number; name: string; slug: string };
 type VersionOption = { id: number; version_number: string };
 type CustomerOption = { id: number; name: string; is_active: boolean };
+type MemberOption = { id: number; name: string };
+type ReviewTask = {
+    id: number;
+    product_id: number;
+    title: string;
+    status: string;
+};
 type DeploymentOption = {
     id: number;
     customer_id: number;
@@ -115,6 +123,8 @@ const props = defineProps<{
     deployments: DeploymentOption[];
     canManage: boolean;
     aiEnabled: boolean;
+    memberOptions: MemberOption[];
+    reviewTask: ReviewTask | null;
     options: {
         locales: string[];
         statuses: string[];
@@ -160,6 +170,11 @@ const form = useForm({
 const showRetireDialog = ref(false);
 const showPublishEvidenceDialog = ref(false);
 const showDocumentPreview = ref(false);
+const showSubmitDialog = ref(false);
+
+const submitForm = useForm({
+    assignee_user_id: '' as string,
+});
 
 type AiSectionDraftState = {
     loading: boolean;
@@ -319,6 +334,17 @@ const evidenceHref = computed(() => {
     return editEvidence({
         product: props.product.id,
         evidence: props.instruction.evidence_id,
+    }).url;
+});
+
+const reviewTaskHref = computed(() => {
+    if (!props.reviewTask) {
+        return null;
+    }
+
+    return editTask({
+        product: props.reviewTask.product_id,
+        task: props.reviewTask.id,
     }).url;
 });
 
@@ -495,7 +521,22 @@ const submit = () => {
 };
 
 const doSubmitReview = () => {
-    router.post(submitReview(routeArgs).url, {}, { preserveScroll: true });
+    submitForm
+        .transform((data) => ({
+            assignee_user_id: data.assignee_user_id || null,
+        }))
+        .post(submitReview(routeArgs).url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSubmitDialog.value = false;
+                submitForm.reset();
+            },
+        });
+};
+
+const openSubmitDialog = () => {
+    submitForm.clearErrors();
+    showSubmitDialog.value = true;
 };
 
 const doPublish = () => {
@@ -641,10 +682,20 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 v-if="canSubmit"
                 type="button"
                 variant="outline"
-                @click="doSubmitReview"
+                @click="openSubmitDialog"
             >
                 <Send class="h-4 w-4" />
                 {{ t('products.user_security_instructions.submit_review') }}
+            </Button>
+            <Button v-if="reviewTaskHref" as-child variant="outline">
+                <Link :href="reviewTaskHref">
+                    <Pencil class="h-4 w-4" />
+                    {{
+                        t(
+                            'products.user_security_instructions.view_review_task',
+                        )
+                    }}
+                </Link>
             </Button>
             <Button
                 v-if="canPublish"
@@ -1115,6 +1166,94 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 </Button>
             </div>
         </form>
+
+        <Dialog
+            :open="showSubmitDialog"
+            @update:open="
+                (open: boolean) => {
+                    showSubmitDialog = open;
+                }
+            "
+        >
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            t(
+                                'products.user_security_instructions.submit_review_title',
+                            )
+                        }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            t(
+                                'products.user_security_instructions.submit_review_help',
+                            )
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="grid min-w-0 gap-2 py-2">
+                    <FieldLabel
+                        html-for="assignee_user_id"
+                        :help="
+                            t(
+                                'products.user_security_instructions.help.assignee_user_id',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.fields.assignee',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select v-model="submitForm.assignee_user_id">
+                        <SelectTrigger id="assignee_user_id" class="w-full">
+                            <SelectValue
+                                :placeholder="
+                                    t(
+                                        'products.user_security_instructions.select_assignee',
+                                    )
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="member in memberOptions"
+                                :key="member.id"
+                                :value="String(member.id)"
+                            >
+                                {{ member.name }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="submitForm.errors.assignee_user_id" />
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="showSubmitDialog = false"
+                    >
+                        {{ t('common.cancel') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        :disabled="submitForm.processing"
+                        @click="doSubmitReview"
+                    >
+                        <Send class="h-4 w-4" />
+                        {{
+                            t(
+                                'products.user_security_instructions.submit_review',
+                            )
+                        }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         <AppAlertDialog
             v-model:open="showRetireDialog"
