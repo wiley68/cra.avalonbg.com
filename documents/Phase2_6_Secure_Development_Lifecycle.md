@@ -204,7 +204,7 @@ GET    /internal-api/sdl
 8. ~~Secure coding / threat checklist templates EN/BG~~ **Done**
 9. ~~GitHub/GitLab PR / CI artifact quick-link (reuse 2.1)~~ **Done**
 10. ~~Exception handling (owner + expiry + task)~~ **Done**
-11. Readiness gap `sdl_release_approval_missing` (за in-scope release)
+11. ~~Readiness gap `sdl_release_approval_missing` (за in-scope release)~~ **Done**
 12. Dedicated `sdl.*` permissions + product nav card
 
 ### Could
@@ -276,6 +276,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.2    | 2026-07-23 | Should 11 Done — readiness gap `sdl_release_approval_missing`        |
 | 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task           |
 | 1.0    | 2026-07-23 | Should 9 Done — Git/CI quick-link (sync snapshots + PR URL evidence) |
 | 0.9    | 2026-07-23 | Should 8 Done — EN/BG secure coding & threat checklist templates     |

@@ -28,6 +28,7 @@ import { index as policiesIndex } from '@/routes/policies';
 import { index as productsIndex } from '@/routes/products';
 import { show as readinessShow } from '@/routes/products/readiness';
 import { index as securityInstructionsIndex } from '@/routes/products/security-instructions';
+import { index as productSdlIndex } from '@/routes/products/sdl';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -146,6 +147,8 @@ const resolveLink = (link: string | null): string | null => {
             return policiesIndex().url;
         case 'security-instructions':
             return securityInstructionsIndex(id).url;
+        case 'sdl':
+            return productSdlIndex(id).url;
         default:
             return null;
     }

@@ -2159,6 +2159,7 @@
                 "support": "Период на поддръжка",
                 "policies": "Организационни политики",
                 "security_instructions": "Инструкции за сигурност за потребителя",
+                "sdl": "Сигурен жизнен цикъл на разработка",
                 "requirements": "Покритие на изисквания",
                 "controls": "Контроли",
                 "risks": "Статус на рискове",
@@ -2241,6 +2242,12 @@
                     "published": "Има публикувани инструкции за сигурност за потребителя.",
                     "not_required": "Не се изискват за продукти извън обхвата."
                 },
+                "sdl": {
+                    "missing": "In-scope изданието чака SDL одобрение за сигурност преди release.",
+                    "approved": "SDL одобрението за сигурност покрива версиите в security review / release candidate.",
+                    "not_required": "Не се изисква за продукти извън обхвата.",
+                    "no_release_in_progress": "Няма версия в security review или release candidate."
+                },
                 "deployments": {
                     "unresolved_high": "Активна patch кампания все още има висококритични инсталации без update.",
                     "campaigns_clear": "Активните patch кампании нямат неразрешени висококритични цели.",
@@ -2313,6 +2320,7 @@
                 "policies_missing": "Одобрете задължителните организационни политики (CVD, SDL, support, update, incident response, third-party).",
                 "policies_review_due": "Завършете прегледа на организационните политики, които са все още under review.",
                 "security_instructions_missing": "Публикувайте инструкции за сигурност за потребителя за този продукт в обхват.",
+                "sdl_release_approval_missing": "Запишете SDL одобрение за сигурност преди release за in-scope версията в security review или release candidate.",
                 "evidence": "Добавете доказателства за съответствие.",
                 "evidence_expired": "Подновете или заменете изтеклите доказателства.",
                 "evidence_review": "Прегледайте доказателствата с дължим преглед.",

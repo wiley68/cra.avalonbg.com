@@ -13,6 +13,7 @@ use App\Enums\ProductRiskStatus;
 use App\Enums\ProductVersionState;
 use App\Enums\RequirementApplicabilityStatus;
 use App\Enums\ScopeStatus;
+use App\Enums\SdlRunStatus;
 use App\Enums\SupportStatus;
 use App\Enums\TaskStatus;
 use App\Enums\UserSecurityInstructionStatus;
@@ -29,6 +30,7 @@ use App\Models\ProductRequirement;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\Sbom;
+use App\Models\SdlRun;
 use App\Models\Task;
 use App\Models\UserSecurityInstruction;
 use Illuminate\Support\Carbon;
@@ -73,7 +75,7 @@ class ProductReadinessService
 
     /**
      * Readiness card color: incomplete when passport modules are incomplete, or when
-     * readiness-only sections (policies / security instructions) have gaps.
+     * readiness-only sections (policies / security instructions / SDL) have gaps.
      *
      * @param  'empty'|'complete'|'incomplete'  $passportAggregate
      * @return 'empty'|'complete'|'incomplete'
@@ -83,6 +85,7 @@ class ProductReadinessService
         foreach ([
             $this->policiesSection($product),
             $this->securityInstructionsSection($product),
+            $this->sdlSection($product),
         ] as $section) {
             if (in_array($section['status'], ['fail', 'warn'], true)) {
                 return 'incomplete';
@@ -179,6 +182,7 @@ class ProductReadinessService
             $this->tasksSection($product),
             $this->responsiblePersonsSection($product),
             $this->releaseSection($product),
+            $this->sdlSection($product),
             $this->reportingSection($product),
         ];
 
@@ -1162,6 +1166,89 @@ class ProductReadinessService
                 'awaiting_approval' => 0,
                 'approved_or_released' => 0,
             ],
+        ];
+    }
+
+    /**
+     * SDL release-security approval for in-scope products with a release in flight.
+     *
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
+    private function sdlSection(Product $product): array
+    {
+        $awaitingVersions = $product->versions()
+            ->whereIn('state', [
+                ProductVersionState::SecurityReview->value,
+                ProductVersionState::ReleaseCandidate->value,
+            ])
+            ->get(['id']);
+
+        $approvedRuns = SdlRun::query()
+            ->where('product_id', $product->id)
+            ->where('status', SdlRunStatus::Approved)
+            ->whereNotNull('approved_at')
+            ->get(['id', 'product_version_id']);
+
+        $metrics = [
+            'awaiting_release' => $awaitingVersions->count(),
+            'approved_runs' => $approvedRuns->count(),
+        ];
+
+        if ($product->scope_status === ScopeStatus::OutOfScope) {
+            return [
+                'key' => 'sdl',
+                'status' => 'na',
+                'summary' => 'not_required',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($awaitingVersions->isEmpty()) {
+            return [
+                'key' => 'sdl',
+                'status' => 'na',
+                'summary' => 'no_release_in_progress',
+                'metrics' => $metrics,
+            ];
+        }
+
+        $hasProductWideApproval = $approvedRuns->contains(
+            fn(SdlRun $run) => $run->product_version_id === null,
+        );
+        $pinnedApprovedIds = $approvedRuns
+            ->pluck('product_version_id')
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $uncoveredCount = $awaitingVersions
+            ->filter(function ($version) use ($hasProductWideApproval, $pinnedApprovedIds) {
+                if ($hasProductWideApproval) {
+                    return false;
+                }
+
+                return !in_array((int) $version->id, $pinnedApprovedIds, true);
+            })
+            ->count();
+
+        $metrics['uncovered_awaiting'] = $uncoveredCount;
+
+        if ($uncoveredCount > 0) {
+            return [
+                'key' => 'sdl',
+                'status' => 'fail',
+                'summary' => 'missing',
+                'gap_key' => 'products.readiness.gaps.sdl_release_approval_missing',
+                'link' => 'sdl',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'sdl',
+            'status' => 'pass',
+            'summary' => 'approved',
+            'metrics' => $metrics,
         ];
     }
 

@@ -2159,6 +2159,7 @@
                 "support": "Support period",
                 "policies": "Organizational policies",
                 "security_instructions": "User security instructions",
+                "sdl": "Secure development lifecycle",
                 "requirements": "Requirements coverage",
                 "controls": "Controls",
                 "risks": "Risk status",
@@ -2241,6 +2242,12 @@
                     "published": "Published user security instructions are available.",
                     "not_required": "Not required for out-of-scope products."
                 },
+                "sdl": {
+                    "missing": "In-scope release is awaiting SDL release security approval.",
+                    "approved": "SDL release security approval covers versions in security review / release candidate.",
+                    "not_required": "Not required for out-of-scope products.",
+                    "no_release_in_progress": "No version is in security review or release candidate."
+                },
                 "deployments": {
                     "unresolved_high": "Active patch campaign still has high-criticality installations not updated.",
                     "campaigns_clear": "Active patch campaigns have no unresolved high-criticality targets.",
@@ -2314,6 +2321,7 @@
                 "policies_missing": "Approve required organizational policies (CVD, SDL, support, update, incident response, third-party).",
                 "policies_review_due": "Complete review of organizational policies still under review.",
                 "security_instructions_missing": "Publish user security instructions for this in-scope product.",
+                "sdl_release_approval_missing": "Record SDL release security approval for the in-scope version in security review or release candidate.",
                 "evidence": "Add compliance evidence for this product.",
                 "evidence_expired": "Replace or renew expired evidence.",
                 "evidence_review": "Review evidence marked as due.",
