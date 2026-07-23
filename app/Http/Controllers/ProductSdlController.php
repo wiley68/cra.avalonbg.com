@@ -37,6 +37,7 @@ class ProductSdlController extends Controller
         return Inertia::render('products/sdl/Index', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
+            'versions' => $this->versionOptions($product),
             'canManage' => request()->user()->canManageProducts($organization),
             'options' => $this->enumOptions(),
         ]);

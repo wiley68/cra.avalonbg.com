@@ -44,6 +44,7 @@ type SdlRunDetail = {
     status: string;
     current_stage: string;
     product_version_id: number | null;
+    version_number: string | null;
     owner_user_id: number | null;
     notes: string | null;
     approved_at: string | null;
@@ -332,6 +333,16 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                 <h1 class="text-xl font-semibold">
                     {{ t('products.sdl.edit_title') }}
                 </h1>
+                <p
+                    v-if="props.run.version_number"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('products.sdl.fields.product_version') }}:
+                    {{ props.run.version_number }}
+                </p>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('products.sdl.version_none') }}
+                </p>
             </div>
             <Button as-child variant="outline">
                 <Link :href="productSdlIndex(props.product.id)">

@@ -29,10 +29,18 @@ class ProductSdlService
         string $sortBy = 'title',
         string $sortOrder = 'asc',
         string $search = '',
+        ?int $productVersionId = null,
+        bool $productWideOnly = false,
     ): LengthAwarePaginator {
         $query = SdlRun::query()
             ->where('product_id', $product->id)
             ->with(['owner', 'version:id,version_number', 'product:id,name']);
+
+        if ($productWideOnly) {
+            $query->whereNull('product_version_id');
+        } elseif ($productVersionId !== null) {
+            $query->where('product_version_id', $productVersionId);
+        }
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -40,7 +48,15 @@ class ProductSdlService
                     ->where('title', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%")
                     ->orWhere('current_stage', 'like', "%{$search}%")
-                    ->orWhere('notes', 'like', "%{$search}%");
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'version',
+                        fn($versionQuery) => $versionQuery->where(
+                            'version_number',
+                            'like',
+                            "%{$search}%",
+                        ),
+                    );
 
                 if (ctype_digit($search)) {
                     $builder->orWhere('id', (int) $search);
@@ -54,6 +70,7 @@ class ProductSdlService
             'current_stage' => 'current_stage',
             'approved_at' => 'approved_at',
             'updated_at' => 'updated_at',
+            'version_number' => 'product_version_id',
             default => 'title',
         };
 
@@ -399,6 +416,7 @@ class ProductSdlService
             'status' => $run->status->value,
             'current_stage' => $run->current_stage->value,
             'product_version_id' => $run->product_version_id,
+            'version_number' => $run->version?->version_number,
             'owner_user_id' => $run->owner_user_id,
             'notes' => $run->notes,
             'approved_at' => $run->approved_at?->toIso8601String(),
@@ -441,7 +459,7 @@ class ProductSdlService
 
         if (!$exists) {
             throw ValidationException::withMessages([
-                'product_version_id' => 'The selected version does not belong to this product.',
+                'product_version_id' => [Translations::get('products.sdl.invalid_version')],
             ]);
         }
     }
