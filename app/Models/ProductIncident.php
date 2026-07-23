@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\IncidentAttackVector;
+use App\Enums\IncidentCiaImpact;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -20,6 +22,10 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property IncidentStatus $status
  * @property IncidentSeverity $severity
+ * @property IncidentCiaImpact|null $confidentiality_impact
+ * @property IncidentCiaImpact|null $integrity_impact
+ * @property IncidentCiaImpact|null $availability_impact
+ * @property IncidentAttackVector|null $attack_vector
  * @property string|null $summary
  * @property string|null $root_cause
  * @property string|null $corrective_measures
@@ -47,6 +53,10 @@ use Illuminate\Support\Carbon;
     'title',
     'status',
     'severity',
+    'confidentiality_impact',
+    'integrity_impact',
+    'availability_impact',
+    'attack_vector',
     'summary',
     'root_cause',
     'corrective_measures',
@@ -68,6 +78,10 @@ class ProductIncident extends Model
         return [
             'status' => IncidentStatus::class,
             'severity' => IncidentSeverity::class,
+            'confidentiality_impact' => IncidentCiaImpact::class,
+            'integrity_impact' => IncidentCiaImpact::class,
+            'availability_impact' => IncidentCiaImpact::class,
+            'attack_vector' => IncidentAttackVector::class,
             'actual_started_at' => 'datetime',
             'detected_at' => 'datetime',
             'awareness_at' => 'datetime',

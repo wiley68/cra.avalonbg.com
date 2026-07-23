@@ -2609,6 +2609,10 @@
                 "summary": "Summary",
                 "status": "Status",
                 "severity": "Severity",
+                "confidentiality_impact": "Confidentiality impact",
+                "integrity_impact": "Integrity impact",
+                "availability_impact": "Availability impact",
+                "attack_vector": "Attack vector",
                 "owner": "Owner",
                 "actual_started_at": "Actual start",
                 "detected_at": "Detected at",
@@ -2646,6 +2650,10 @@
                 "summary": "What happened and why it matters.",
                 "status": "Lifecycle status of this incident.",
                 "severity": "Internal severity for prioritisation.",
+                "confidentiality_impact": "Impact on confidentiality (CVSS-style: none / low / high).",
+                "integrity_impact": "Impact on integrity (CVSS-style: none / low / high).",
+                "availability_impact": "Impact on availability (CVSS-style: none / low / high).",
+                "attack_vector": "How the incident was reachable (network / adjacent / local / physical).",
                 "owner": "Organization member accountable for this incident.",
                 "actual_started_at": "When the security event actually started.",
                 "detected_at": "When the event was first detected.",
@@ -2690,6 +2698,19 @@
                 "high": "High",
                 "critical": "Critical"
             },
+            "cia_impacts": {
+                "none": "None",
+                "low": "Low",
+                "high": "High"
+            },
+            "attack_vectors": {
+                "network": "Network",
+                "adjacent": "Adjacent",
+                "local": "Local",
+                "physical": "Physical"
+            },
+            "cia_title": "CIA impact and attack vector",
+            "cia_subtitle": "Optional classification aligned with CVSS impact metrics.",
             "report_channels": {
                 "email": "Email",
                 "portal": "Portal",

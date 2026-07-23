@@ -127,6 +127,10 @@ test('owner can create incident with affected versions', function () {
             'summary' => 'Elevated failed logins from unusual geography.',
             'status' => IncidentStatus::Open->value,
             'severity' => IncidentSeverity::High->value,
+            'confidentiality_impact' => 'high',
+            'integrity_impact' => 'low',
+            'availability_impact' => 'none',
+            'attack_vector' => 'network',
             'awareness_at' => '2026-07-22T09:00',
             'detected_at' => '2026-07-22T08:30',
             'owner_user_id' => $owner->id,
@@ -142,6 +146,10 @@ test('owner can create incident with affected versions', function () {
     expect($incident->organization_id)->toBe($organization->id)
         ->and($incident->status)->toBe(IncidentStatus::Open)
         ->and($incident->severity)->toBe(IncidentSeverity::High)
+        ->and($incident->confidentiality_impact?->value)->toBe('high')
+        ->and($incident->integrity_impact?->value)->toBe('low')
+        ->and($incident->availability_impact?->value)->toBe('none')
+        ->and($incident->attack_vector?->value)->toBe('network')
         ->and($incident->owner_user_id)->toBe($owner->id)
         ->and($incident->versions()->pluck('product_versions.id')->all())->toContain($version->id);
 });
@@ -293,6 +301,10 @@ test('owner can update incident status and timestamps', function () {
             'status' => IncidentStatus::Investigating->value,
             'severity' => IncidentSeverity::High->value,
             'summary' => 'Rate-limit bypass suspected.',
+            'confidentiality_impact' => 'none',
+            'integrity_impact' => 'high',
+            'availability_impact' => 'low',
+            'attack_vector' => 'adjacent',
             'owner_user_id' => $owner->id,
             'awareness_at' => now()->subHours(2)->format('Y-m-d\TH:i'),
             'classified_at' => now()->subHour()->format('Y-m-d\TH:i'),
@@ -304,6 +316,10 @@ test('owner can update incident status and timestamps', function () {
     $fresh = $incident->fresh();
     expect($fresh->status)->toBe(IncidentStatus::Investigating)
         ->and($fresh->severity)->toBe(IncidentSeverity::High)
+        ->and($fresh->confidentiality_impact?->value)->toBe('none')
+        ->and($fresh->integrity_impact?->value)->toBe('high')
+        ->and($fresh->availability_impact?->value)->toBe('low')
+        ->and($fresh->attack_vector?->value)->toBe('adjacent')
         ->and($fresh->owner_user_id)->toBe($owner->id)
         ->and($fresh->root_cause)->toBe('Missing WAF rule')
         ->and($fresh->versions()->pluck('product_versions.id')->all())->toContain($version->id);

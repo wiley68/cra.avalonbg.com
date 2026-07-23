@@ -92,6 +92,10 @@ function makeIncidentExportFixture(): array
         'summary' => 'Summary for export coverage.',
         'status' => IncidentStatus::Investigating,
         'severity' => IncidentSeverity::High,
+        'confidentiality_impact' => 'high',
+        'integrity_impact' => 'none',
+        'availability_impact' => 'low',
+        'attack_vector' => 'network',
         'root_cause' => 'Misconfigured firewall rule',
         'corrective_measures' => 'Restored deny-by-default policy',
         'lessons_learned' => 'Add change review checklist',
@@ -116,7 +120,9 @@ test('owner can export incident as markdown and pdf with audit', function () {
 
     expect($markdown->headers->get('content-type'))->toContain('text/markdown')
         ->and($markdown->getContent())->toContain('Exportable incident')
-        ->and($markdown->getContent())->toContain('Misconfigured firewall rule');
+        ->and($markdown->getContent())->toContain('Misconfigured firewall rule')
+        ->and($markdown->getContent())->toContain('Attack vector')
+        ->and($markdown->getContent())->toContain('Network');
 
     $pdf = $this->actingAs($owner)
         ->get(route('products.incidents.export', [

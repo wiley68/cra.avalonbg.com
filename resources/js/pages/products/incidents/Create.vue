@@ -35,6 +35,8 @@ const props = defineProps<{
     options: {
         statuses: string[];
         severities: string[];
+        cia_impacts?: string[];
+        attack_vectors?: string[];
         report_channels?: string[];
         communication_channels?: string[];
     };
@@ -66,6 +68,10 @@ const form = useForm({
     summary: '',
     status: props.options.statuses[0] ?? 'open',
     severity: props.options.severities[1] ?? 'medium',
+    confidentiality_impact: '' as string,
+    integrity_impact: '' as string,
+    availability_impact: '' as string,
+    attack_vector: '' as string,
     root_cause: '',
     corrective_measures: '',
     lessons_learned: '',
@@ -83,6 +89,10 @@ const form = useForm({
 const submit = () => {
     form.transform((data) => ({
         ...data,
+        confidentiality_impact: data.confidentiality_impact || null,
+        integrity_impact: data.integrity_impact || null,
+        availability_impact: data.availability_impact || null,
+        attack_vector: data.attack_vector || null,
         owner_user_id: data.owner_user_id || null,
         actual_started_at: data.actual_started_at || null,
         detected_at: data.detected_at || null,
@@ -223,6 +233,125 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                         </option>
                     </select>
                     <InputError :message="form.errors.severity" />
+                </div>
+
+                <div class="grid gap-2 sm:col-span-2">
+                    <p class="text-sm font-medium">
+                        {{ t('products.incidents.cia_title') }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('products.incidents.cia_subtitle') }}
+                    </p>
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="confidentiality_impact"
+                        :help="
+                            t('products.incidents.help.confidentiality_impact')
+                        "
+                    >
+                        {{
+                            t(
+                                'products.incidents.fields.confidentiality_impact',
+                            )
+                        }}
+                    </FieldLabel>
+                    <select
+                        id="confidentiality_impact"
+                        v-model="form.confidentiality_impact"
+                        :class="selectClass"
+                    >
+                        <option value="">
+                            {{ t('products.none') }}
+                        </option>
+                        <option
+                            v-for="impact in options.cia_impacts ?? []"
+                            :key="impact"
+                            :value="impact"
+                        >
+                            {{ enumLabel('cia_impacts', impact) }}
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.confidentiality_impact" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="integrity_impact"
+                        :help="t('products.incidents.help.integrity_impact')"
+                    >
+                        {{ t('products.incidents.fields.integrity_impact') }}
+                    </FieldLabel>
+                    <select
+                        id="integrity_impact"
+                        v-model="form.integrity_impact"
+                        :class="selectClass"
+                    >
+                        <option value="">
+                            {{ t('products.none') }}
+                        </option>
+                        <option
+                            v-for="impact in options.cia_impacts ?? []"
+                            :key="impact"
+                            :value="impact"
+                        >
+                            {{ enumLabel('cia_impacts', impact) }}
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.integrity_impact" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="availability_impact"
+                        :help="t('products.incidents.help.availability_impact')"
+                    >
+                        {{ t('products.incidents.fields.availability_impact') }}
+                    </FieldLabel>
+                    <select
+                        id="availability_impact"
+                        v-model="form.availability_impact"
+                        :class="selectClass"
+                    >
+                        <option value="">
+                            {{ t('products.none') }}
+                        </option>
+                        <option
+                            v-for="impact in options.cia_impacts ?? []"
+                            :key="impact"
+                            :value="impact"
+                        >
+                            {{ enumLabel('cia_impacts', impact) }}
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.availability_impact" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="attack_vector"
+                        :help="t('products.incidents.help.attack_vector')"
+                    >
+                        {{ t('products.incidents.fields.attack_vector') }}
+                    </FieldLabel>
+                    <select
+                        id="attack_vector"
+                        v-model="form.attack_vector"
+                        :class="selectClass"
+                    >
+                        <option value="">
+                            {{ t('products.none') }}
+                        </option>
+                        <option
+                            v-for="vector in options.attack_vectors ?? []"
+                            :key="vector"
+                            :value="vector"
+                        >
+                            {{ enumLabel('attack_vectors', vector) }}
+                        </option>
+                    </select>
+                    <InputError :message="form.errors.attack_vector" />
                 </div>
 
                 <div class="grid gap-2">

@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.5  
+**Версия:** 1.6  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–14 done)  
+**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–15 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -129,6 +129,10 @@ flowchart TB
 | title                    | string             |                                              |
 | status                   | string             | open / investigating / contained / closed    |
 | severity                 | string             | low / medium / high / critical (предложение) |
+| confidentiality_impact   | string nullable    | none / low / high (CVSS-style; Could 15)     |
+| integrity_impact         | string nullable    | none / low / high                            |
+| availability_impact      | string nullable    | none / low / high                            |
+| attack_vector            | string nullable    | network / adjacent / local / physical        |
 | summary                  | text nullable      |                                              |
 | root_cause               | text nullable      |                                              |
 | corrective_measures      | text nullable      |                                              |
@@ -184,7 +188,7 @@ flowchart TB
 
 - ~~`incident_reports` (authority submission records)~~ **Done (Could 13)**
 - ~~`incident_customer_communications` (customer outreach log; ≠ patch campaigns)~~ **Done (Could 14)**
-- CIA impact + attack vector enums
+- ~~CIA impact + attack vector enums~~ **Done (Could 15)**
 
 Aligns loosely with Nachalen §9 entity list (`incidents`, `incident_timelines`, `incident_reports`).
 
@@ -239,7 +243,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 
 13. ~~Authority reports (`incident_reports`) — manual submission record~~ **Done**
 14. ~~Customer communications log (отделно от patch campaigns)~~ **Done**
-15. CIA impacts + attack vector enums
+15. ~~CIA impacts + attack vector enums~~ **Done**
 16. AI `incident_summary` draft (human review)
 17. Lessons learned → evidence / controls link
 18. Org-level cross-product incident index
@@ -304,6 +308,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.6    | 2026-07-23 | Could 15 Done — CIA impacts + attack vector enums on incidents        |
 | 1.5    | 2026-07-23 | Could 14 Done — incident customer communications log (append-only)    |
 | 1.4    | 2026-07-23 | Could 13 Done — manual authority reports (append-only log)            |
 | 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag    |

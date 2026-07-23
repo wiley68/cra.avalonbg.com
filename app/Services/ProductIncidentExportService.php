@@ -93,6 +93,22 @@ class ProductIncidentExportService
                 'status_label' => $this->statusLabel($incident->status->value),
                 'severity' => $incident->severity->value,
                 'severity_label' => $this->severityLabel($incident->severity->value),
+                'confidentiality_impact' => $incident->confidentiality_impact?->value,
+                'confidentiality_impact_label' => $this->ciaImpactLabel(
+                    $incident->confidentiality_impact?->value,
+                ),
+                'integrity_impact' => $incident->integrity_impact?->value,
+                'integrity_impact_label' => $this->ciaImpactLabel(
+                    $incident->integrity_impact?->value,
+                ),
+                'availability_impact' => $incident->availability_impact?->value,
+                'availability_impact_label' => $this->ciaImpactLabel(
+                    $incident->availability_impact?->value,
+                ),
+                'attack_vector' => $incident->attack_vector?->value,
+                'attack_vector_label' => $this->attackVectorLabel(
+                    $incident->attack_vector?->value,
+                ),
                 'summary' => $incident->summary,
                 'root_cause' => $incident->root_cause,
                 'corrective_measures' => $incident->corrective_measures,
@@ -168,6 +184,17 @@ class ProductIncidentExportService
             . $incident['status_label'];
         $lines[] = '- **' . Translations::get('products.incidents.fields.severity') . ':** '
             . $incident['severity_label'];
+
+        foreach ([
+            'confidentiality_impact_label' => 'products.incidents.fields.confidentiality_impact',
+            'integrity_impact_label' => 'products.incidents.fields.integrity_impact',
+            'availability_impact_label' => 'products.incidents.fields.availability_impact',
+            'attack_vector_label' => 'products.incidents.fields.attack_vector',
+        ] as $field => $labelKey) {
+            if (!empty($incident[$field])) {
+                $lines[] = '- **' . Translations::get($labelKey) . ':** ' . $incident[$field];
+            }
+        }
 
         if ($incident['owner_name']) {
             $lines[] = '- **' . Translations::get('products.incidents.fields.owner') . ':** '
@@ -298,6 +325,30 @@ class ProductIncidentExportService
     private function severityLabel(string $value): string
     {
         $key = "products.incidents.severities.{$value}";
+        $translated = Translations::get($key);
+
+        return $translated === $key ? $value : $translated;
+    }
+
+    private function ciaImpactLabel(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $key = "products.incidents.cia_impacts.{$value}";
+        $translated = Translations::get($key);
+
+        return $translated === $key ? $value : $translated;
+    }
+
+    private function attackVectorLabel(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $key = "products.incidents.attack_vectors.{$value}";
         $translated = Translations::get($key);
 
         return $translated === $key ? $value : $translated;

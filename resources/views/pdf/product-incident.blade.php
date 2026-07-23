@@ -82,6 +82,22 @@
             <td>{{ $incident['severity_label'] }}</td>
         </tr>
         <tr>
+            <th>{{ Translations::get('products.incidents.fields.confidentiality_impact') }}</th>
+            <td>{{ $incident['confidentiality_impact_label'] ?: '—' }}</td>
+        </tr>
+        <tr>
+            <th>{{ Translations::get('products.incidents.fields.integrity_impact') }}</th>
+            <td>{{ $incident['integrity_impact_label'] ?: '—' }}</td>
+        </tr>
+        <tr>
+            <th>{{ Translations::get('products.incidents.fields.availability_impact') }}</th>
+            <td>{{ $incident['availability_impact_label'] ?: '—' }}</td>
+        </tr>
+        <tr>
+            <th>{{ Translations::get('products.incidents.fields.attack_vector') }}</th>
+            <td>{{ $incident['attack_vector_label'] ?: '—' }}</td>
+        </tr>
+        <tr>
             <th>{{ Translations::get('products.incidents.fields.owner') }}</th>
             <td>{{ $incident['owner_name'] ?: '—' }}</td>
         </tr>

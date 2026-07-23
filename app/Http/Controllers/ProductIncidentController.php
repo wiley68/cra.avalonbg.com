@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\IncidentAttackVector;
+use App\Enums\IncidentCiaImpact;
 use App\Enums\IncidentCommunicationChannel;
 use App\Enums\IncidentReportChannel;
 use App\Enums\IncidentSeverity;
@@ -381,6 +383,18 @@ class ProductIncidentController extends Controller
             'title' => $request->string('title')->toString(),
             'status' => IncidentStatus::from($request->string('status')->toString()),
             'severity' => IncidentSeverity::from($request->string('severity')->toString()),
+            'confidentiality_impact' => $request->filled('confidentiality_impact')
+                ? IncidentCiaImpact::from($request->string('confidentiality_impact')->toString())
+                : null,
+            'integrity_impact' => $request->filled('integrity_impact')
+                ? IncidentCiaImpact::from($request->string('integrity_impact')->toString())
+                : null,
+            'availability_impact' => $request->filled('availability_impact')
+                ? IncidentCiaImpact::from($request->string('availability_impact')->toString())
+                : null,
+            'attack_vector' => $request->filled('attack_vector')
+                ? IncidentAttackVector::from($request->string('attack_vector')->toString())
+                : null,
             'summary' => $request->input('summary'),
             'root_cause' => $request->input('root_cause'),
             'corrective_measures' => $request->input('corrective_measures'),
@@ -523,6 +537,8 @@ class ProductIncidentController extends Controller
      * @return array{
      *     statuses: list<string>,
      *     severities: list<string>,
+     *     cia_impacts: list<string>,
+     *     attack_vectors: list<string>,
      *     report_channels: list<string>,
      *     communication_channels: list<string>
      * }
@@ -532,6 +548,8 @@ class ProductIncidentController extends Controller
         return [
             'statuses' => array_column(IncidentStatus::cases(), 'value'),
             'severities' => array_column(IncidentSeverity::cases(), 'value'),
+            'cia_impacts' => array_column(IncidentCiaImpact::cases(), 'value'),
+            'attack_vectors' => array_column(IncidentAttackVector::cases(), 'value'),
             'report_channels' => array_column(IncidentReportChannel::cases(), 'value'),
             'communication_channels' => array_column(IncidentCommunicationChannel::cases(), 'value'),
         ];

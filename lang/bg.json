@@ -2609,6 +2609,10 @@
                 "summary": "Описание",
                 "status": "Статус",
                 "severity": "Тежест",
+                "confidentiality_impact": "Въздействие върху поверителността",
+                "integrity_impact": "Въздействие върху целостта",
+                "availability_impact": "Въздействие върху наличността",
+                "attack_vector": "Вектор на атака",
                 "owner": "Отговорник",
                 "actual_started_at": "Реален старт",
                 "detected_at": "Открит на",
@@ -2646,6 +2650,10 @@
                 "summary": "Какво се е случило и защо е важно.",
                 "status": "Жизнен цикъл на инцидента.",
                 "severity": "Вътрешна тежест за приоритизация.",
+                "confidentiality_impact": "Въздействие върху поверителността (CVSS стил: none / low / high).",
+                "integrity_impact": "Въздействие върху целостта (CVSS стил: none / low / high).",
+                "availability_impact": "Въздействие върху наличността (CVSS стил: none / low / high).",
+                "attack_vector": "Как е бил достъпен инцидентът (network / adjacent / local / physical).",
                 "owner": "Член на организацията, отговорен за инцидента.",
                 "actual_started_at": "Кога security събитието реално е започнало.",
                 "detected_at": "Кога събитието е открито за първи път.",
@@ -2690,6 +2698,19 @@
                 "high": "Висока",
                 "critical": "Критична"
             },
+            "cia_impacts": {
+                "none": "Няма",
+                "low": "Ниско",
+                "high": "Високо"
+            },
+            "attack_vectors": {
+                "network": "Мрежа",
+                "adjacent": "Съседна мрежа",
+                "local": "Локален",
+                "physical": "Физически"
+            },
+            "cia_title": "CIA въздействие и вектор на атака",
+            "cia_subtitle": "Опционална класификация по CVSS impact метрики.",
             "report_channels": {
                 "email": "Имейл",
                 "portal": "Портал",

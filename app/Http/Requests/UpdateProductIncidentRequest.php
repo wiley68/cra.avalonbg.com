@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\IncidentAttackVector;
+use App\Enums\IncidentCiaImpact;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Models\Organization;
@@ -38,6 +40,10 @@ class UpdateProductIncidentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'status' => ['required', Rule::enum(IncidentStatus::class)],
             'severity' => ['required', Rule::enum(IncidentSeverity::class)],
+            'confidentiality_impact' => ['nullable', Rule::enum(IncidentCiaImpact::class)],
+            'integrity_impact' => ['nullable', Rule::enum(IncidentCiaImpact::class)],
+            'availability_impact' => ['nullable', Rule::enum(IncidentCiaImpact::class)],
+            'attack_vector' => ['nullable', Rule::enum(IncidentAttackVector::class)],
             'summary' => ['nullable', 'string'],
             'root_cause' => ['nullable', 'string'],
             'corrective_measures' => ['nullable', 'string'],
