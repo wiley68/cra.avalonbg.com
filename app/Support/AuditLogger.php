@@ -28,6 +28,7 @@ use App\Models\SdlException;
 use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
 use App\Models\Task;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Models\VcsImportSuggestion;
@@ -633,6 +634,62 @@ class AuditLogger
             details: [
                 ['field' => 'sdl_run_id', 'value' => (string) $run->id],
                 ['field' => 'stage', 'value' => $entry->stage->value],
+            ],
+        );
+    }
+
+    public static function logTechnicalDocumentationCreated(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'locale', 'value' => $package->locale],
+            ],
+        );
+    }
+
+    public static function logTechnicalDocumentationUpdated(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'status', 'value' => $package->status->value],
+            ],
+        );
+    }
+
+    public static function logTechnicalDocumentationDeleted(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
             ],
         );
     }

@@ -7,6 +7,7 @@ import {
     CheckSquare,
     ClipboardCheck,
     FileCheck,
+    FileText,
     GitBranch,
     IdCard,
     ListChecks,
@@ -33,6 +34,7 @@ import { index as securityInstructionsIndex } from '@/routes/products/security-i
 import { index as productSdlIndex } from '@/routes/products/sdl';
 import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
 import { index as productTasksIndex } from '@/routes/products/tasks';
+import { index as technicalDocumentationIndex } from '@/routes/products/technical-documentation';
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
@@ -66,7 +68,8 @@ export type ProductModuleKey =
     | 'passport'
     | 'readiness'
     | 'assistant'
-    | 'security_instructions';
+    | 'security_instructions'
+    | 'technical_documentation';
 
 export type ProductModuleDefinition = {
     key: ProductModuleKey;
@@ -227,6 +230,14 @@ export const productModules: ProductModuleDefinition[] = [
             'products.modules.user_security_instructions.description',
         icon: BookOpen,
         href: (productId) => securityInstructionsIndex(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
+        key: 'technical_documentation',
+        labelKey: 'products.technical_documentation_link',
+        descriptionKey: 'products.modules.technical_documentation.description',
+        icon: FileText,
+        href: (productId) => technicalDocumentationIndex(productId).url,
         canViewFlag: 'can_view_products',
     },
 ];

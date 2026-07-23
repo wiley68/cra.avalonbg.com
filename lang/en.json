@@ -869,6 +869,9 @@
             },
             "sdl": {
                 "description": "Secure development lifecycle runs and release gates"
+            },
+            "technical_documentation": {
+                "description": "Structured §5.12 technical documentation packages"
             }
         },
         "passport": {
@@ -3033,7 +3036,91 @@
             }
         },
         "incidents_link": "Incidents",
-        "sdl_link": "SDL"
+        "sdl_link": "SDL",
+        "technical_documentation_link": "Technical documentation",
+        "technical_documentation": {
+            "title": "Technical documentation",
+            "subtitle": "Structured §5.12 technical documentation packages for conformity preparation",
+            "index_title": "Technical documentation",
+            "create": "New package",
+            "create_title": "Create technical documentation package",
+            "create_help": "Creates a draft package and seeds all §5.12 sections. Section editing comes in the next slice.",
+            "edit_title": "Edit technical documentation",
+            "created": "Technical documentation package created.",
+            "updated": "Technical documentation package updated.",
+            "deleted": "Technical documentation package deleted.",
+            "confirm_delete": "Delete this draft technical documentation package?",
+            "search_placeholder": "Search by title, status, version…",
+            "cannot_delete_locked": "Published or retired packages cannot be deleted.",
+            "cannot_edit_locked": "Published or retired packages cannot be edited.",
+            "read_only_notice": "This package is read-only in its current status.",
+            "sections_heading": "Sections",
+            "sections_help": "Section bodies will be editable in the next slice. Generated sections will pull from product modules.",
+            "not_applicable": "Not applicable",
+            "product_wide": "Product-wide",
+            "filter_all_versions": "All scopes",
+            "filter_product_wide": "Product-wide only",
+            "filter_version": "Version",
+            "columns": {
+                "id": "ID",
+                "title": "Title",
+                "status": "Status",
+                "version_label": "Doc version",
+                "product_version_number": "Product version",
+                "locale": "Locale",
+                "sections_count": "Sections",
+                "updated_at": "Updated"
+            },
+            "fields": {
+                "title": "Title",
+                "version_label": "Version label",
+                "product_version": "Product version",
+                "locale": "Locale",
+                "notes": "Notes",
+                "supersedes": "Supersedes"
+            },
+            "help": {
+                "title": "Package title shown in lists and exports.",
+                "version_label": "Document revision label (e.g. 1.0).",
+                "product_version": "Optional product release this package applies to. Leave empty for product-wide documentation.",
+                "notes": "Internal notes; not required in assessment exports."
+            },
+            "statuses": {
+                "draft": "Draft",
+                "under_review": "Under review",
+                "published": "Published",
+                "retired": "Retired"
+            },
+            "locales": {
+                "en": "English",
+                "bg": "Bulgarian"
+            },
+            "sources": {
+                "generated": "Generated",
+                "authored": "Authored",
+                "linked": "Linked"
+            },
+            "sections": {
+                "product_description": "Product description",
+                "intended_purpose": "Intended purpose",
+                "architecture": "Architecture",
+                "attack_surface": "Attack surface",
+                "cybersecurity_risk_assessment": "Cybersecurity risk assessment",
+                "essential_requirements_matrix": "Essential requirements matrix",
+                "design_development_controls": "Design and development controls",
+                "component_inventory": "Component inventory",
+                "sbom": "SBOM",
+                "vulnerability_handling_process": "Vulnerability-handling process",
+                "update_mechanism": "Update mechanism",
+                "security_tests": "Security tests",
+                "support_period": "Support period",
+                "user_security_instructions": "User security instructions",
+                "conformity_assessment_path": "Conformity assessment path",
+                "declaration_information": "Declaration information",
+                "product_identification": "Product identification",
+                "release_history": "Release history"
+            }
+        }
     },
     "audit_logs": {
         "title": "Audit",
@@ -3181,7 +3268,10 @@
             "sdl_run_approval_revoked": "SDL run approval revoked",
             "sdl_run_exported": "SDL run exported",
             "sdl_exception_recorded": "SDL exception recorded",
-            "sdl_exception_cleared": "SDL exception cleared"
+            "sdl_exception_cleared": "SDL exception cleared",
+            "technical_documentation_created": "Technical documentation created",
+            "technical_documentation_updated": "Technical documentation updated",
+            "technical_documentation_deleted": "Technical documentation deleted"
         },
         "event_sources": {
             "workspace": "Workspace",

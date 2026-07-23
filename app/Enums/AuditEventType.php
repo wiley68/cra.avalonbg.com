@@ -59,6 +59,9 @@ enum AuditEventType: string
     case SdlRunExported = 'sdl_run_exported';
     case SdlExceptionRecorded = 'sdl_exception_recorded';
     case SdlExceptionCleared = 'sdl_exception_cleared';
+    case TechnicalDocumentationCreated = 'technical_documentation_created';
+    case TechnicalDocumentationUpdated = 'technical_documentation_updated';
+    case TechnicalDocumentationDeleted = 'technical_documentation_deleted';
     case OrgPolicySubmitted = 'org_policy_submitted';
     case OrgPolicyApproved = 'org_policy_approved';
     case OrgPolicyRetired = 'org_policy_retired';
