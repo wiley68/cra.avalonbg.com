@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 0.3  
+**Версия:** 0.4  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–2 Done  
+**Статус:** Active — Must 1–3 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -148,7 +148,7 @@ GET    /internal-api/products/{product}/technical-documentation
 
 1. ~~Migrations + models + enums (package, sections, status, section keys)~~ **Done**
 2. ~~CRUD + Index DataTable (product-scoped)~~ **Done**
-3. Section editor UI (authored + generated placeholders)
+3. ~~Section editor UI (authored + generated placeholders)~~ **Done** (2026-07-23)
 4. Generate-from-modules for core sections (identification, risks, SBOM, support, versions)
 5. Publish lifecycle + audit
 6. i18n EN/BG + feature tests (CRUD + viewer forbidden manage)
@@ -229,8 +229,9 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                                       |
-| ------ | ---------- | ----------------------------------------------------------------------------- |
-| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                |
-| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                  |
-| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C) |
+| Версия | Дата       | Промяна                                                                          |
+| ------ | ---------- | -------------------------------------------------------------------------------- |
+| 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders) |
+| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                   |
+| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                     |
+| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C)    |

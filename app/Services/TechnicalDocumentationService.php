@@ -145,7 +145,14 @@ class TechnicalDocumentationService
      *     version_label: string,
      *     locale: string,
      *     notes?: string|null,
-     *     product_version_id?: int|null
+     *     product_version_id?: int|null,
+     *     sections: list<array{
+     *         section_key: string,
+     *         body_markdown?: string|null,
+     *         is_applicable?: bool,
+     *         override_reason?: string|null,
+     *         sort_order?: int
+     *     }>
      * }  $attributes
      */
     public function update(
@@ -178,6 +185,39 @@ class TechnicalDocumentationService
                 'product_version_id' => $productVersionId,
                 'supersedes_id' => $publishedSibling?->id,
             ]);
+
+            $sectionsByKey = $package->sections()
+                ->get()
+                ->keyBy(fn(TechnicalDocumentationSection $section) => $section->section_key->value);
+
+            foreach ($attributes['sections'] as $sectionData) {
+                $key = $sectionData['section_key'];
+                $section = $sectionsByKey->get($key);
+
+                if ($section === null) {
+                    continue;
+                }
+
+                $isApplicable = (bool) ($sectionData['is_applicable'] ?? true);
+                $overrideReason = $isApplicable
+                    ? null
+                    : (trim((string) ($sectionData['override_reason'] ?? '')) ?: null);
+
+                $payload = [
+                    'is_applicable' => $isApplicable,
+                    'override_reason' => $overrideReason,
+                    'sort_order' => $sectionData['sort_order'] ?? $section->sort_order,
+                ];
+
+                // Authored sections own body_markdown. Generated/linked keep optional
+                // supplemental notes without touching generated_payload (Must 4).
+                if (array_key_exists('body_markdown', $sectionData)) {
+                    $body = $sectionData['body_markdown'];
+                    $payload['body_markdown'] = filled($body) ? (string) $body : null;
+                }
+
+                $section->update($payload);
+            }
 
             $fresh = $package->fresh(['sections', 'productVersion:id,version_number', 'publisher:id,name']);
 
@@ -219,8 +259,10 @@ class TechnicalDocumentationService
      *         section_key: string,
      *         source: string,
      *         body_markdown: string|null,
+     *         generated_payload: array<string, mixed>|list<mixed>|null,
      *         sort_order: int,
      *         is_applicable: bool,
+     *         override_reason: string|null,
      *         changed_since_parent: bool
      *     }>
      * }
@@ -260,8 +302,10 @@ class TechnicalDocumentationService
                     'section_key' => $section->section_key->value,
                     'source' => $section->source->value,
                     'body_markdown' => $section->body_markdown,
+                    'generated_payload' => $section->generated_payload,
                     'sort_order' => $section->sort_order,
                     'is_applicable' => $section->is_applicable,
+                    'override_reason' => $section->override_reason,
                     'changed_since_parent' => $section->changed_since_parent,
                 ])
                 ->all(),

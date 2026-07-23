@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save } from '@lucide/vue';
+import { computed } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
@@ -24,6 +27,18 @@ import {
 
 type ProductSummary = { id: number; name: string; slug: string };
 type VersionOption = { id: number; version_number: string };
+
+type SectionPayload = {
+    id: number;
+    section_key: string;
+    source: string;
+    body_markdown: string | null;
+    generated_payload: Record<string, unknown> | unknown[] | null;
+    sort_order: number;
+    is_applicable: boolean;
+    override_reason: string | null;
+    changed_since_parent: boolean;
+};
 
 type PackageDetail = {
     id: number;
@@ -39,15 +54,7 @@ type PackageDetail = {
     product_version_number: string | null;
     supersedes_id: number | null;
     supersedes_title: string | null;
-    sections: Array<{
-        id: number;
-        section_key: string;
-        source: string;
-        body_markdown: string | null;
-        sort_order: number;
-        is_applicable: boolean;
-        changed_since_parent: boolean;
-    }>;
+    sections: SectionPayload[];
 };
 
 const props = defineProps<{
@@ -87,9 +94,27 @@ const form = useForm({
     locale: props.package.locale,
     notes: props.package.notes ?? '',
     product_version_id: (props.package.product_version_id ?? '') as number | '',
+    sections: props.package.sections.map((section) => ({
+        section_key: section.section_key,
+        source: section.source,
+        body_markdown: section.body_markdown ?? '',
+        sort_order: section.sort_order,
+        is_applicable: section.is_applicable,
+        override_reason: section.override_reason ?? '',
+    })),
 });
 
-const readOnly = !props.package.is_editable || !props.canManage;
+const generatedPayloadByKey = computed(() => {
+    const map: Record<string, Record<string, unknown> | unknown[] | null> = {};
+
+    for (const section of props.package.sections) {
+        map[section.section_key] = section.generated_payload;
+    }
+
+    return map;
+});
+
+const readOnly = computed(() => !props.package.is_editable || !props.canManage);
 
 const localeLabel = (value: string): string => {
     const key = `products.technical_documentation.locales.${value}`;
@@ -119,8 +144,29 @@ const sourceLabel = (value: string): string => {
     return translated === key ? value : translated;
 };
 
+const sectionError = (index: number, field: string): string | undefined => {
+    const key = `sections.${index}.${field}`;
+    const errors = form.errors as Record<string, string | undefined>;
+
+    return errors[key];
+};
+
+const generatedPayloadPreview = (
+    payload: Record<string, unknown> | unknown[] | null,
+): string => {
+    if (payload === null) {
+        return '';
+    }
+
+    try {
+        return JSON.stringify(payload, null, 2);
+    } catch {
+        return String(payload);
+    }
+};
+
 const submit = () => {
-    if (readOnly) {
+    if (readOnly.value) {
         return;
     }
 
@@ -128,6 +174,15 @@ const submit = () => {
         ...data,
         product_version_id:
             data.product_version_id === '' ? null : data.product_version_id,
+        sections: data.sections.map((section) => ({
+            section_key: section.section_key,
+            body_markdown: section.body_markdown || null,
+            is_applicable: section.is_applicable,
+            override_reason: section.is_applicable
+                ? null
+                : section.override_reason || null,
+            sort_order: section.sort_order,
+        })),
     })).put(
         update({
             product: props.product.id,
@@ -169,151 +224,300 @@ const submit = () => {
             {{ t('products.technical_documentation.read_only_notice') }}
         </p>
 
-        <form class="space-y-4" @submit.prevent="submit">
-            <div class="grid gap-2">
-                <FieldLabel
-                    html-for="title"
-                    :help="t('products.technical_documentation.help.title')"
-                    required
-                >
-                    {{ t('products.technical_documentation.fields.title') }}
-                </FieldLabel>
-                <Input
-                    id="title"
-                    v-model="form.title"
-                    :disabled="readOnly"
-                    required
-                />
-                <InputError :message="form.errors.title" />
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
+        <form class="space-y-8" @submit.prevent="submit">
+            <div class="space-y-4">
                 <div class="grid gap-2">
                     <FieldLabel
-                        html-for="version_label"
-                        :help="
-                            t(
-                                'products.technical_documentation.help.version_label',
-                            )
-                        "
+                        html-for="title"
+                        :help="t('products.technical_documentation.help.title')"
                         required
                     >
-                        {{
-                            t(
-                                'products.technical_documentation.fields.version_label',
-                            )
-                        }}
+                        {{ t('products.technical_documentation.fields.title') }}
                     </FieldLabel>
                     <Input
-                        id="version_label"
-                        v-model="form.version_label"
+                        id="title"
+                        v-model="form.title"
                         :disabled="readOnly"
                         required
                     />
-                    <InputError :message="form.errors.version_label" />
+                    <InputError :message="form.errors.title" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="version_label"
+                            :help="
+                                t(
+                                    'products.technical_documentation.help.version_label',
+                                )
+                            "
+                            required
+                        >
+                            {{
+                                t(
+                                    'products.technical_documentation.fields.version_label',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="version_label"
+                            v-model="form.version_label"
+                            :disabled="readOnly"
+                            required
+                        />
+                        <InputError :message="form.errors.version_label" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label>{{
+                            t('products.technical_documentation.fields.locale')
+                        }}</Label>
+                        <Select v-model="form.locale" :disabled="readOnly">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="locale in options.locales"
+                                    :key="locale"
+                                    :value="locale"
+                                >
+                                    {{ localeLabel(locale) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.locale" />
+                    </div>
                 </div>
 
                 <div class="grid gap-2">
-                    <Label>{{
-                        t('products.technical_documentation.fields.locale')
-                    }}</Label>
-                    <Select v-model="form.locale" :disabled="readOnly">
-                        <SelectTrigger>
+                    <FieldLabel
+                        html-for="product_version_id"
+                        :help="
+                            t(
+                                'products.technical_documentation.help.product_version',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.fields.product_version',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select
+                        :disabled="readOnly"
+                        :model-value="
+                            form.product_version_id === ''
+                                ? '__none__'
+                                : String(form.product_version_id)
+                        "
+                        @update:model-value="
+                            (value) => {
+                                form.product_version_id =
+                                    value === '__none__' ||
+                                    value === undefined ||
+                                    value === null
+                                        ? ''
+                                        : Number(value);
+                            }
+                        "
+                    >
+                        <SelectTrigger id="product_version_id" class="w-full">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="__none__">
+                                {{
+                                    t(
+                                        'products.technical_documentation.product_wide',
+                                    )
+                                }}
+                            </SelectItem>
                             <SelectItem
-                                v-for="locale in options.locales"
-                                :key="locale"
-                                :value="locale"
+                                v-for="version in versions"
+                                :key="version.id"
+                                :value="String(version.id)"
                             >
-                                {{ localeLabel(locale) }}
+                                {{ version.version_number }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
-                    <InputError :message="form.errors.locale" />
+                    <InputError :message="form.errors.product_version_id" />
+                </div>
+
+                <div
+                    v-if="props.package.supersedes_title"
+                    class="rounded-md border px-3 py-2 text-sm text-muted-foreground"
+                >
+                    {{
+                        t('products.technical_documentation.fields.supersedes')
+                    }}:
+                    {{ props.package.supersedes_title }}
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="notes"
+                        :help="t('products.technical_documentation.help.notes')"
+                    >
+                        {{ t('products.technical_documentation.fields.notes') }}
+                    </FieldLabel>
+                    <textarea
+                        id="notes"
+                        v-model="form.notes"
+                        rows="3"
+                        :disabled="readOnly"
+                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                    />
+                    <InputError :message="form.errors.notes" />
                 </div>
             </div>
 
-            <div class="grid gap-2">
-                <FieldLabel
-                    html-for="product_version_id"
-                    :help="
-                        t(
-                            'products.technical_documentation.help.product_version',
-                        )
-                    "
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-lg font-medium">
+                        {{
+                            t(
+                                'products.technical_documentation.sections_heading',
+                            )
+                        }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t('products.technical_documentation.sections_help')
+                        }}
+                    </p>
+                </div>
+
+                <div
+                    v-for="(section, index) in form.sections"
+                    :key="section.section_key"
+                    class="space-y-4 border-t border-border pt-6"
                 >
-                    {{
-                        t(
-                            'products.technical_documentation.fields.product_version',
-                        )
-                    }}
-                </FieldLabel>
-                <Select
-                    :disabled="readOnly"
-                    :model-value="
-                        form.product_version_id === ''
-                            ? '__none__'
-                            : String(form.product_version_id)
-                    "
-                    @update:model-value="
-                        (value) => {
-                            form.product_version_id =
-                                value === '__none__' ||
-                                value === undefined ||
-                                value === null
-                                    ? ''
-                                    : Number(value);
-                        }
-                    "
-                >
-                    <SelectTrigger id="product_version_id" class="w-full">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="__none__">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="font-medium">
+                                {{ sectionLabel(section.section_key) }}
+                            </h3>
+                            <p class="text-xs text-muted-foreground">
+                                {{ section.section_key }}
+                                ·
+                                {{ sourceLabel(section.source) }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <Label
+                                :for="`applicable-${section.section_key}`"
+                                class="text-sm"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.fields.is_applicable',
+                                    )
+                                }}
+                            </Label>
+                            <Switch
+                                :id="`applicable-${section.section_key}`"
+                                v-model="section.is_applicable"
+                                :disabled="readOnly"
+                            />
+                        </div>
+                    </div>
+
+                    <div v-if="!section.is_applicable" class="grid gap-2">
+                        <FieldLabel
+                            :html-for="`override-${section.section_key}`"
+                            :help="
+                                t(
+                                    'products.technical_documentation.help.override_reason',
+                                )
+                            "
+                        >
                             {{
                                 t(
-                                    'products.technical_documentation.product_wide',
+                                    'products.technical_documentation.fields.override_reason',
                                 )
                             }}
-                        </SelectItem>
-                        <SelectItem
-                            v-for="version in versions"
-                            :key="version.id"
-                            :value="String(version.id)"
+                        </FieldLabel>
+                        <Input
+                            :id="`override-${section.section_key}`"
+                            v-model="section.override_reason"
+                            :disabled="readOnly"
+                        />
+                        <InputError
+                            :message="sectionError(index, 'override_reason')"
+                        />
+                    </div>
+
+                    <template v-else>
+                        <PolicyBodyField
+                            v-if="section.source === 'authored'"
+                            v-model="section.body_markdown"
+                            :input-id="`section-body-${section.section_key}`"
+                            :label="
+                                t(
+                                    'products.technical_documentation.fields.body',
+                                )
+                            "
+                            :help="
+                                t('products.technical_documentation.help.body')
+                            "
+                            :disabled="readOnly"
+                            :error="sectionError(index, 'body_markdown')"
+                        />
+
+                        <div
+                            v-else
+                            class="space-y-3 rounded-md border border-dashed px-3 py-3"
                         >
-                            {{ version.version_number }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-                <InputError :message="form.errors.product_version_id" />
-            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    section.source === 'linked'
+                                        ? t(
+                                              'products.technical_documentation.linked_placeholder',
+                                          )
+                                        : t(
+                                              'products.technical_documentation.generated_placeholder',
+                                          )
+                                }}
+                            </p>
 
-            <div
-                v-if="props.package.supersedes_title"
-                class="rounded-md border px-3 py-2 text-sm text-muted-foreground"
-            >
-                {{ t('products.technical_documentation.fields.supersedes') }}:
-                {{ props.package.supersedes_title }}
-            </div>
+                            <pre
+                                v-if="
+                                    generatedPayloadByKey[section.section_key]
+                                "
+                                class="max-h-48 overflow-auto rounded-md bg-muted/40 p-3 font-mono text-xs"
+                                >{{
+                                    generatedPayloadPreview(
+                                        generatedPayloadByKey[
+                                            section.section_key
+                                        ] ?? null,
+                                    )
+                                }}</pre>
 
-            <div class="grid gap-2">
-                <FieldLabel
-                    html-for="notes"
-                    :help="t('products.technical_documentation.help.notes')"
-                >
-                    {{ t('products.technical_documentation.fields.notes') }}
-                </FieldLabel>
-                <textarea
-                    id="notes"
-                    v-model="form.notes"
-                    rows="3"
-                    :disabled="readOnly"
-                    class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
-                />
-                <InputError :message="form.errors.notes" />
+                            <PolicyBodyField
+                                v-model="section.body_markdown"
+                                :input-id="`section-notes-${section.section_key}`"
+                                :label="
+                                    t(
+                                        'products.technical_documentation.fields.supplemental_notes',
+                                    )
+                                "
+                                :help="
+                                    t(
+                                        'products.technical_documentation.help.supplemental_notes',
+                                    )
+                                "
+                                :disabled="readOnly"
+                                :error="sectionError(index, 'body_markdown')"
+                            />
+                        </div>
+                    </template>
+                </div>
+
+                <InputError :message="form.errors.sections" />
             </div>
 
             <div v-if="!readOnly" class="flex justify-end">
@@ -323,44 +527,5 @@ const submit = () => {
                 </Button>
             </div>
         </form>
-
-        <div class="space-y-3">
-            <div>
-                <h2 class="text-lg font-medium">
-                    {{ t('products.technical_documentation.sections_heading') }}
-                </h2>
-                <p class="text-sm text-muted-foreground">
-                    {{ t('products.technical_documentation.sections_help') }}
-                </p>
-            </div>
-
-            <ul class="divide-y rounded-md border">
-                <li
-                    v-for="section in props.package.sections"
-                    :key="section.id"
-                    class="flex items-start justify-between gap-4 px-3 py-2"
-                >
-                    <div>
-                        <p class="font-medium">
-                            {{ sectionLabel(section.section_key) }}
-                        </p>
-                        <p class="text-sm text-muted-foreground">
-                            {{ sourceLabel(section.source) }}
-                            <span v-if="!section.is_applicable">
-                                ·
-                                {{
-                                    t(
-                                        'products.technical_documentation.not_applicable',
-                                    )
-                                }}
-                            </span>
-                        </p>
-                    </div>
-                    <p class="text-sm text-muted-foreground">
-                        #{{ section.sort_order }}
-                    </p>
-                </li>
-            </ul>
-        </div>
     </div>
 </template>

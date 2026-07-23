@@ -3044,7 +3044,7 @@
             "index_title": "Technical documentation",
             "create": "New package",
             "create_title": "Create technical documentation package",
-            "create_help": "Creates a draft package and seeds all §5.12 sections. Section editing comes in the next slice.",
+            "create_help": "Creates a draft package and seeds all §5.12 sections for editing.",
             "edit_title": "Edit technical documentation",
             "created": "Technical documentation package created.",
             "updated": "Technical documentation package updated.",
@@ -3055,7 +3055,9 @@
             "cannot_edit_locked": "Published or retired packages cannot be edited.",
             "read_only_notice": "This package is read-only in its current status.",
             "sections_heading": "Sections",
-            "sections_help": "Section bodies will be editable in the next slice. Generated sections will pull from product modules.",
+            "sections_help": "Authored sections use Markdown. Generated and linked sections show placeholders until module refresh is available; you can still add supplemental notes or mark a section not applicable.",
+            "generated_placeholder": "This section is generated from product modules. Refresh will arrive in a later slice; the snapshot below stays empty until then.",
+            "linked_placeholder": "This section links to published user security instructions. Automatic summary will arrive in a later slice.",
             "not_applicable": "Not applicable",
             "product_wide": "Product-wide",
             "filter_all_versions": "All scopes",
@@ -3077,13 +3079,20 @@
                 "product_version": "Product version",
                 "locale": "Locale",
                 "notes": "Notes",
-                "supersedes": "Supersedes"
+                "supersedes": "Supersedes",
+                "body": "Section body",
+                "supplemental_notes": "Supplemental notes",
+                "is_applicable": "Applicable",
+                "override_reason": "Not-applicable reason"
             },
             "help": {
                 "title": "Package title shown in lists and exports.",
                 "version_label": "Document revision label (e.g. 1.0).",
                 "product_version": "Optional product release this package applies to. Leave empty for product-wide documentation.",
-                "notes": "Internal notes; not required in assessment exports."
+                "notes": "Internal notes; not required in assessment exports.",
+                "body": "Markdown content for this authored section.",
+                "supplemental_notes": "Optional Markdown notes kept alongside generated or linked content. Module refresh will not overwrite these notes.",
+                "override_reason": "Explain why this section does not apply to the product."
             },
             "statuses": {
                 "draft": "Draft",

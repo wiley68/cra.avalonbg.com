@@ -152,7 +152,16 @@ test('owner can update package metadata', function () {
 
     $package = TechnicalDocumentationPackage::query()
         ->where('product_id', $product->id)
-        ->firstOrFail();
+        ->firstOrFail()
+        ->load('sections');
+
+    $sections = $package->sections->map(fn($section) => [
+        'section_key' => $section->section_key->value,
+        'body_markdown' => $section->body_markdown,
+        'is_applicable' => true,
+        'override_reason' => null,
+        'sort_order' => $section->sort_order,
+    ])->all();
 
     $this->actingAs($owner)
         ->put(route('products.technical-documentation.update', [$product, $package]), [
@@ -160,6 +169,7 @@ test('owner can update package metadata', function () {
             'version_label' => '1.1',
             'locale' => 'bg',
             'notes' => 'Updated notes',
+            'sections' => $sections,
         ])
         ->assertRedirect(route('products.technical-documentation.edit', [$product, $package]));
 
@@ -169,6 +179,85 @@ test('owner can update package metadata', function () {
         ->and($package->version_label)->toBe('1.1')
         ->and($package->locale)->toBe('bg')
         ->and($package->notes)->toBe('Updated notes');
+});
+
+test('owner can edit authored section body and mark generated section not applicable', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Section editor package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail()
+        ->load('sections');
+
+    $sections = $package->sections->map(function ($section) {
+        $key = $section->section_key->value;
+        $payload = [
+            'section_key' => $key,
+            'body_markdown' => $section->body_markdown,
+            'is_applicable' => true,
+            'override_reason' => null,
+            'sort_order' => $section->sort_order,
+        ];
+
+        if ($section->section_key === TechnicalDocumentationSectionKey::Architecture) {
+            $payload['body_markdown'] = "## Architecture\n\nTrust boundaries documented.";
+        }
+
+        if ($section->section_key === TechnicalDocumentationSectionKey::Sbom) {
+            $payload['is_applicable'] = false;
+            $payload['override_reason'] = 'SBOM tracked in separate release tooling for now.';
+            $payload['body_markdown'] = 'Should not matter when N/A';
+        }
+
+        return $payload;
+    })->all();
+
+    $this->actingAs($owner)
+        ->put(route('products.technical-documentation.update', [$product, $package]), [
+            'title' => 'Section editor package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+            'notes' => null,
+            'sections' => $sections,
+        ])
+        ->assertRedirect();
+
+    $package->refresh()->load('sections');
+
+    $architecture = $package->sections
+        ->firstWhere('section_key', TechnicalDocumentationSectionKey::Architecture);
+    $sbom = $package->sections
+        ->firstWhere('section_key', TechnicalDocumentationSectionKey::Sbom);
+
+    expect($architecture?->body_markdown)->toContain('Trust boundaries documented.')
+        ->and($architecture?->source)->toBe(TechnicalDocumentationSectionSource::Authored)
+        ->and($sbom?->is_applicable)->toBeFalse()
+        ->and($sbom?->override_reason)->toContain('SBOM tracked')
+        ->and($sbom?->generated_payload)->toBeNull();
+
+    $this->actingAs($owner)
+        ->get(route('products.technical-documentation.edit', [$product, $package]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/technical-documentation/Edit')
+            ->where('package.sections', fn($sections) => collect($sections)->contains(
+                fn($section) => $section['section_key'] === 'architecture'
+                && str_contains((string) $section['body_markdown'], 'Trust boundaries'),
+            ))
+            ->where('package.sections', fn($sections) => collect($sections)->contains(
+                fn($section) => $section['section_key'] === 'sbom'
+                && $section['is_applicable'] === false
+                && array_key_exists('generated_payload', $section)
+                && array_key_exists('override_reason', $section),
+            )));
 });
 
 test('owner can delete draft package', function () {

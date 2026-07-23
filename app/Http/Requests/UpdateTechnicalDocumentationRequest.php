@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TechnicalDocumentationSectionKey;
 use App\Models\Organization;
 use App\Models\TechnicalDocumentationPackage;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,6 +38,16 @@ class UpdateTechnicalDocumentationRequest extends FormRequest
                     fn($query) => $query->where('product_id', $this->route('product')?->id),
                 ),
             ],
+            'sections' => ['required', 'array', 'min:1'],
+            'sections.*.section_key' => [
+                'required',
+                'string',
+                Rule::enum(TechnicalDocumentationSectionKey::class),
+            ],
+            'sections.*.body_markdown' => ['nullable', 'string'],
+            'sections.*.is_applicable' => ['sometimes', 'boolean'],
+            'sections.*.override_reason' => ['nullable', 'string', 'max:1000'],
+            'sections.*.sort_order' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 

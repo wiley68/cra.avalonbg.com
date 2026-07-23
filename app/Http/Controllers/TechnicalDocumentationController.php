@@ -115,6 +115,7 @@ class TechnicalDocumentationController extends Controller
                 'product_version_id' => $request->input('product_version_id') !== null
                     ? (int) $request->input('product_version_id')
                     : null,
+                'sections' => $request->input('sections', []),
             ],
             $request->user(),
         );
