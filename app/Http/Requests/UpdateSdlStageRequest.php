@@ -31,9 +31,25 @@ class UpdateSdlStageRequest extends FormRequest
         /** @var Product $product */
         $product = $this->route('product');
 
+        $memberRule = Rule::exists('organization_user', 'user_id')
+            ->where(fn($query) => $query->where('organization_id', $organization?->id));
+
+        $isException = $this->input('status') === SdlStageStatus::Exception->value;
+
         return [
             'status' => ['required', Rule::enum(SdlStageStatus::class)],
-            'notes' => ['nullable', 'string'],
+            'notes' => [$isException ? 'required' : 'nullable', 'string'],
+            'exception_owner_user_id' => [
+                Rule::requiredIf($isException),
+                'nullable',
+                'integer',
+                $memberRule,
+            ],
+            'exception_expires_at' => [
+                Rule::requiredIf($isException),
+                'nullable',
+                'date',
+            ],
             'evidence_ids' => ['nullable', 'array'],
             'evidence_ids.*' => [
                 'integer',

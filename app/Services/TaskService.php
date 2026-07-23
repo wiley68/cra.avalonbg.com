@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
+use App\Models\SdlException;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
@@ -36,6 +37,7 @@ class TaskService
             'auditor_finding' => AuditorFinding::class,
             'user_security_instruction' => UserSecurityInstruction::class,
             'incident' => ProductIncident::class,
+            'sdl_exception' => SdlException::class,
         ];
     }
 
@@ -299,6 +301,7 @@ class TaskService
                 $task->subject instanceof UserSecurityInstruction => $task->subject->title
                 . ' (' . $task->subject->version_label . ' · ' . $task->subject->locale . ')',
                 $task->subject instanceof ProductIncident => $task->subject->title,
+                $task->subject instanceof SdlException => $this->sdlExceptionSubjectLabel($task->subject),
                 default => '#' . $task->subject_id,
             };
         }
@@ -377,6 +380,13 @@ class TaskService
                 ->where('id', $id)
                 ->where('product_id', $product->id)
                 ->exists(),
+            SdlException::class => SdlException::query()
+                ->where('id', $id)
+                ->whereHas(
+                    'stageEntry.run',
+                    fn($query) => $query->where('product_id', $product->id),
+                )
+                ->exists(),
             default => throw new InvalidArgumentException('Unsupported subject class.'),
         };
 
@@ -387,5 +397,14 @@ class TaskService
         }
 
         return ['type' => $class, 'id' => $id];
+    }
+
+    private function sdlExceptionSubjectLabel(SdlException $exception): string
+    {
+        $exception->loadMissing(['stageEntry.run']);
+        $runTitle = $exception->stageEntry?->run?->title ?? ('#' . $exception->id);
+        $stage = $exception->stageEntry?->stage?->value ?? 'stage';
+
+        return $runTitle . ' · ' . $stage;
     }
 }

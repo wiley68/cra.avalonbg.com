@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
+use App\Models\SdlException;
 use App\Models\Task;
 use App\Models\UserSecurityInstruction;
 use App\Services\TaskService;
@@ -376,6 +377,24 @@ class TaskController extends Controller
                 ->map(fn(ProductIncident $incident) => [
                     'id' => $incident->id,
                     'label' => "{$incident->title} ({$incident->severity->value})",
+                ])
+                ->all(),
+            'sdl_exceptions' => SdlException::query()
+                ->whereHas(
+                    'stageEntry.run',
+                    fn($query) => $query->where('product_id', $product->id),
+                )
+                ->with(['stageEntry.run:id,title', 'stageEntry:id,sdl_run_id,stage'])
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get()
+                ->map(fn(SdlException $exception) => [
+                    'id' => $exception->id,
+                    'label' => trim(
+                        ($exception->stageEntry?->run?->title ?? 'SDL')
+                        . ' · '
+                        . ($exception->stageEntry?->stage?->value ?? 'exception'),
+                    ),
                 ])
                 ->all(),
         ];

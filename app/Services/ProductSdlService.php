@@ -8,11 +8,15 @@ use App\Enums\EvidenceType;
 use App\Enums\SdlRunStatus;
 use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Models\Evidence;
 use App\Models\Product;
 use App\Models\ProductVersion;
+use App\Models\SdlException;
 use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
+use App\Models\Task;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\SdlStageNoteTemplates;
@@ -23,6 +27,11 @@ use Illuminate\Validation\ValidationException;
 
 class ProductSdlService
 {
+    public function __construct(
+        private readonly TaskService $tasks,
+    ) {
+    }
+
     /**
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
@@ -411,9 +420,14 @@ class ProductSdlService
             ? array_values(array_map('intval', $attributes['evidence_ids'] ?? []))
             : null;
 
-        $entry = DB::transaction(function () use ($run, $entry, $status, $attributes, $actor, $stage, $evidenceIds) {
+        $exceptionPayload = null;
+        $exceptionCleared = false;
+        $exceptionTaskId = null;
+
+        $entry = DB::transaction(function () use ($run, $entry, $status, $attributes, $actor, $stage, $evidenceIds, &$exceptionPayload, &$exceptionCleared, &$exceptionTaskId, ) {
             $wasComplete = $entry->status->isComplete();
             $isComplete = $status->isComplete();
+            $wasException = $entry->status === SdlStageStatus::Exception;
 
             $entry->status = $status;
             $entry->notes = array_key_exists('notes', $attributes)
@@ -437,14 +451,202 @@ class ProductSdlService
                 $entry->evidence()->sync($evidenceIds);
             }
 
+            if ($status === SdlStageStatus::Exception) {
+                $exception = $this->syncStageException($run, $entry, $attributes, $actor);
+                $exceptionTaskId = $this->syncExceptionFollowUpTask($run, $entry, $exception, $actor);
+                $exceptionPayload = $exception;
+            } elseif ($wasException) {
+                $this->clearStageException($entry);
+                $exceptionCleared = true;
+            }
+
             $this->syncCurrentStageAfterChecklistChange($run, $stage, $status);
 
-            return $entry->fresh(['completer', 'evidence']) ?? $entry;
+            return $entry->fresh(['completer', 'evidence', 'exception.owner']) ?? $entry;
         });
 
         AuditLogger::logSdlStageUpdated($run, $entry, $actor, $previousStatus);
 
+        if ($exceptionPayload instanceof SdlException) {
+            AuditLogger::logSdlExceptionRecorded(
+                $run,
+                $entry,
+                $exceptionPayload,
+                $actor,
+                $exceptionTaskId,
+            );
+        } elseif ($exceptionCleared) {
+            AuditLogger::logSdlExceptionCleared($run, $entry, $actor);
+        }
+
         return $entry;
+    }
+
+    /**
+     * @param  array{exception_owner_user_id?: mixed, exception_expires_at?: mixed, notes?: mixed}  $attributes
+     */
+    private function syncStageException(
+        SdlRun $run,
+        SdlStageEntry $entry,
+        array $attributes,
+        User $actor,
+    ): SdlException {
+        $ownerId = isset($attributes['exception_owner_user_id'])
+            ? (int) $attributes['exception_owner_user_id']
+            : null;
+        $expiresAt = isset($attributes['exception_expires_at'])
+            ? (string) $attributes['exception_expires_at']
+            : null;
+        $notes = trim((string) ($attributes['notes'] ?? $entry->notes ?? ''));
+
+        if ($ownerId === null || $ownerId === 0 || $expiresAt === null || $expiresAt === '') {
+            throw ValidationException::withMessages([
+                'exception_owner_user_id' => [Translations::get('products.sdl.exception_required')],
+            ]);
+        }
+
+        if ($notes === '') {
+            throw ValidationException::withMessages([
+                'notes' => [Translations::get('products.sdl.exception_notes_required')],
+            ]);
+        }
+
+        $memberExists = DB::table('organization_user')
+            ->where('organization_id', $run->organization_id)
+            ->where('user_id', $ownerId)
+            ->exists();
+
+        if (!$memberExists) {
+            throw ValidationException::withMessages([
+                'exception_owner_user_id' => [Translations::get('products.sdl.exception_owner_invalid')],
+            ]);
+        }
+
+        /** @var SdlException $exception */
+        $existing = $entry->exception()->first();
+        $exception = $entry->exception()->updateOrCreate(
+            ['sdl_stage_entry_id' => $entry->id],
+            [
+                'owner_user_id' => $ownerId,
+                'expires_at' => $expiresAt,
+                'created_by' => $existing?->created_by ?? $actor->id,
+            ],
+        );
+
+        return $exception->fresh(['owner']) ?? $exception;
+    }
+
+    private function syncExceptionFollowUpTask(
+        SdlRun $run,
+        SdlStageEntry $entry,
+        SdlException $exception,
+        User $actor,
+    ): int {
+        $run->loadMissing('product');
+        $stageLabel = Translations::get('products.sdl.stages.' . $entry->stage->value);
+        if ($stageLabel === 'products.sdl.stages.' . $entry->stage->value) {
+            $stageLabel = $entry->stage->value;
+        }
+
+        $existing = Task::query()
+            ->where('subject_type', SdlException::class)
+            ->where('subject_id', $exception->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->latest('id')
+            ->first();
+
+        if ($existing !== null) {
+            $existing->update([
+                'assignee_user_id' => $exception->owner_user_id,
+                'due_at' => $exception->expires_at->toDateString(),
+                'title' => Translations::get('products.sdl.exception_task_title', [
+                    'run' => $run->title,
+                    'stage' => $stageLabel,
+                ]),
+                'description' => Translations::get('products.sdl.exception_task_description', [
+                    'run' => $run->title,
+                    'stage' => $stageLabel,
+                    'notes' => (string) ($entry->notes ?? ''),
+                ]),
+            ]);
+
+            return $existing->id;
+        }
+
+        $task = $this->tasks->create($run->product, [
+            'title' => Translations::get('products.sdl.exception_task_title', [
+                'run' => $run->title,
+                'stage' => $stageLabel,
+            ]),
+            'description' => Translations::get('products.sdl.exception_task_description', [
+                'run' => $run->title,
+                'stage' => $stageLabel,
+                'notes' => (string) ($entry->notes ?? ''),
+            ]),
+            'status' => TaskStatus::Open,
+            'priority' => TaskPriority::Medium,
+            'assignee_user_id' => $exception->owner_user_id,
+            'due_at' => $exception->expires_at->toDateString(),
+            'subject_type' => 'sdl_exception',
+            'subject_id' => $exception->id,
+        ], $actor);
+
+        return $task->id;
+    }
+
+    private function clearStageException(SdlStageEntry $entry): void
+    {
+        $exception = $entry->exception()->first();
+
+        if ($exception === null) {
+            return;
+        }
+
+        Task::query()
+            ->where('subject_type', SdlException::class)
+            ->where('subject_id', $exception->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->update([
+                'status' => TaskStatus::Cancelled->value,
+            ]);
+
+        $exception->delete();
+    }
+
+    /**
+     * @return array{id: int, product_id: int, title: string, status: string}|null
+     */
+    public function openExceptionTaskPayload(SdlException $exception): ?array
+    {
+        $task = Task::query()
+            ->where('subject_type', SdlException::class)
+            ->where('subject_id', $exception->id)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->latest('id')
+            ->first(['id', 'product_id', 'title', 'status']);
+
+        if ($task === null) {
+            return null;
+        }
+
+        return [
+            'id' => $task->id,
+            'product_id' => $task->product_id,
+            'title' => $task->title,
+            'status' => $task->status->value,
+        ];
     }
 
     /**
@@ -530,15 +732,24 @@ class ProductSdlService
     public function detailPayload(SdlRun $run): array
     {
         if (!$run->relationLoaded('stageEntries')) {
-            $run->load(['stageEntries.completer', 'stageEntries.evidence']);
+            $run->load([
+                'stageEntries.completer',
+                'stageEntries.evidence',
+                'stageEntries.exception.owner',
+            ]);
         } elseif (
             $run->stageEntries->isNotEmpty()
             && (
                 !$run->stageEntries->first()?->relationLoaded('completer')
                 || !$run->stageEntries->first()?->relationLoaded('evidence')
+                || !$run->stageEntries->first()?->relationLoaded('exception')
             )
         ) {
-            $run->load(['stageEntries.completer', 'stageEntries.evidence']);
+            $run->load([
+                'stageEntries.completer',
+                'stageEntries.evidence',
+                'stageEntries.exception.owner',
+            ]);
         }
 
         if (!$run->relationLoaded('owner')) {
@@ -581,6 +792,7 @@ class ProductSdlService
             'stage_entries' => collect($orderedStages)
                 ->map(function (SdlStage $stage) use ($entriesByStage) {
                     $entry = $entriesByStage->get($stage->value);
+                    $exception = $entry?->exception;
 
                     return [
                         'id' => $entry?->id,
@@ -591,6 +803,16 @@ class ProductSdlService
                         'completed_by_name' => $entry?->completer?->name,
                         'notes' => $entry?->notes,
                         'evidence_ids' => $entry?->evidence->pluck('id')->all() ?? [],
+                        'exception' => $exception === null
+                            ? null
+                            : [
+                                'id' => $exception->id,
+                                'owner_user_id' => $exception->owner_user_id,
+                                'owner_name' => $exception->owner?->name,
+                                'expires_at' => $exception->expires_at->toDateString(),
+                                'is_expired' => $exception->isExpired(),
+                                'task' => $this->openExceptionTaskPayload($exception),
+                            ],
                     ];
                 })
                 ->values()

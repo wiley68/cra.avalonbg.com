@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read SdlRun|null $run
  * @property-read User|null $completer
+ * @property-read SdlException|null $exception
  */
 #[Fillable([
     'sdl_run_id',
@@ -54,6 +56,12 @@ class SdlStageEntry extends Model
     public function completer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    /** @return HasOne<SdlException, $this> */
+    public function exception(): HasOne
+    {
+        return $this->hasOne(SdlException::class, 'sdl_stage_entry_id');
     }
 
     /** @return BelongsToMany<Evidence, $this> */

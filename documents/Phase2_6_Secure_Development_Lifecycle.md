@@ -156,8 +156,8 @@ flowchart TB
 
 - ~~`sdl_run_evidence`, `sdl_stage_evidence`~~ **Done (Must 4)**
 - `sdl_run_controls` (Should/Could)
-- exception records (`sdl_exceptions`)
-- Git artifact references (reuse integration models)
+- ~~exception records (`sdl_exceptions`)~~ **Done (Should 10)**
+- ~~Git artifact references (reuse integration models)~~ **Done (Should 9)**
 
 Aligns loosely with Nachalen §5.14 minimal capabilities.
 
@@ -203,7 +203,7 @@ GET    /internal-api/sdl
 7. ~~Version-pinned SDL runs~~ **Done**
 8. ~~Secure coding / threat checklist templates EN/BG~~ **Done**
 9. ~~GitHub/GitLab PR / CI artifact quick-link (reuse 2.1)~~ **Done**
-10. Exception handling (owner + expiry + task)
+10. ~~Exception handling (owner + expiry + task)~~ **Done**
 11. Readiness gap `sdl_release_approval_missing` (за in-scope release)
 12. Dedicated `sdl.*` permissions + product nav card
 
@@ -276,6 +276,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.1    | 2026-07-23 | Should 10 Done — exception owner + expiry + follow-up task           |
 | 1.0    | 2026-07-23 | Should 9 Done — Git/CI quick-link (sync snapshots + PR URL evidence) |
 | 0.9    | 2026-07-23 | Should 8 Done — EN/BG secure coding & threat checklist templates     |
 | 0.8    | 2026-07-23 | Should 7 Done — version-pinned SDL runs + index/API filter           |

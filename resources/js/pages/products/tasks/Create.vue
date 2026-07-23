@@ -27,6 +27,7 @@ const props = defineProps<{
         auditor_findings: SubjectOption[];
         user_security_instructions: SubjectOption[];
         incidents: SubjectOption[];
+        sdl_exceptions: SubjectOption[];
     };
     options: {
         statuses: string[];
@@ -90,6 +91,10 @@ const subjectOptions = computed((): SubjectOption[] => {
 
     if (form.subject_type === 'incident') {
         return props.subjects.incidents;
+    }
+
+    if (form.subject_type === 'sdl_exception') {
+        return props.subjects.sdl_exceptions;
     }
 
     return [];

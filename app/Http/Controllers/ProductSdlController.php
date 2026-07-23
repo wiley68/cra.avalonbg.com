@@ -206,6 +206,8 @@ class ProductSdlController extends Controller
                 'status' => SdlStageStatus::from($request->string('status')->toString()),
                 'notes' => $request->input('notes'),
                 'evidence_ids' => array_map('intval', $request->input('evidence_ids', [])),
+                'exception_owner_user_id' => $request->input('exception_owner_user_id'),
+                'exception_expires_at' => $request->input('exception_expires_at'),
             ],
             $request->user(),
         );

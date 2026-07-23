@@ -2122,7 +2122,8 @@
                 "org_policy": "Organization policy",
                 "auditor_finding": "Auditor finding",
                 "user_security_instruction": "User security instructions",
-                "incident": "Incident"
+                "incident": "Incident",
+                "sdl_exception": "SDL exception"
             }
         },
         "readiness": {
@@ -2879,6 +2880,13 @@
             "approve_requires_stages": "Complete all stages through Release approval (Done, N/A, or Exception) before approving.",
             "approve_requires_release_stage_done": "Mark the Release approval stage as Done before approving.",
             "approve_not_ready": "Release approval gate is not ready yet.",
+            "exception_required": "Exception owner and review expiry are required when status is Exception.",
+            "exception_notes_required": "Document the exception rationale in stage notes.",
+            "exception_owner_invalid": "Exception owner must be an organization member.",
+            "exception_expired": "Exception review date has passed.",
+            "exception_view_task": "Open follow-up task",
+            "exception_task_title": "SDL exception: :run — :stage",
+            "exception_task_description": "Follow up on SDL exception for \":run\" (:stage).\n\nRationale:\n:notes",
             "columns": {
                 "id": "ID",
                 "title": "Title",
@@ -2902,7 +2910,9 @@
                 "git_stage": "Also attach to stage",
                 "stage_status": "Stage status",
                 "stage_notes": "Stage notes",
-                "stage_evidence": "Stage evidence"
+                "stage_evidence": "Stage evidence",
+                "exception_owner": "Exception owner",
+                "exception_expires_at": "Exception review date"
             },
             "help": {
                 "title": "Short label for this SDL run (feature, release, or security gate).",
@@ -2919,7 +2929,9 @@
                 "git_stage": "Optionally attach the new evidence to a stage checklist as well.",
                 "stage_status": "Pending until complete. Use N/A when the stage does not apply; exception documents a justified deviation.",
                 "stage_notes": "Threat considerations, checklist outcomes, or rationale for N/A / exception.",
-                "stage_evidence": "Evidence specific to this stage (peer review, scan result, test report)."
+                "stage_evidence": "Evidence specific to this stage (peer review, scan result, test report).",
+                "exception_owner": "Organization member accountable for resolving or reviewing this exception.",
+                "exception_expires_at": "Date by which the exception must be reviewed or closed."
             },
             "locales": {
                 "en": "English",
@@ -3096,7 +3108,9 @@
             "sdl_run_deleted": "SDL run deleted",
             "sdl_stage_updated": "SDL stage updated",
             "sdl_run_approved": "SDL run approved",
-            "sdl_run_approval_revoked": "SDL run approval revoked"
+            "sdl_run_approval_revoked": "SDL run approval revoked",
+            "sdl_exception_recorded": "SDL exception recorded",
+            "sdl_exception_cleared": "SDL exception cleared"
         },
         "event_sources": {
             "workspace": "Workspace",

@@ -2122,7 +2122,8 @@
                 "org_policy": "Организационна политика",
                 "auditor_finding": "Одиторски finding",
                 "user_security_instruction": "Инструкции за сигурност на потребителя",
-                "incident": "Инцидент"
+                "incident": "Инцидент",
+                "sdl_exception": "SDL изключение"
             }
         },
         "readiness": {
@@ -2879,6 +2880,13 @@
             "approve_requires_stages": "Завършете всички етапи до „Одобрение за release“ (Готов, N/A или Изключение) преди одобрение.",
             "approve_requires_release_stage_done": "Маркирайте етапа „Одобрение за release“ като Готов преди одобрение.",
             "approve_not_ready": "Условията за одобрение на изданието все още не са изпълнени.",
+            "exception_required": "Собственик и срок за преглед са задължителни при статус Изключение.",
+            "exception_notes_required": "Документирайте обосновката на изключението в бележките към етапа.",
+            "exception_owner_invalid": "Собственикът на изключението трябва да е член на организацията.",
+            "exception_expired": "Срокът за преглед на изключението е изтекъл.",
+            "exception_view_task": "Отвори follow-up задача",
+            "exception_task_title": "SDL изключение: :run — :stage",
+            "exception_task_description": "Проследете SDL изключение за \":run\" (:stage).\n\nОбосновка:\n:notes",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
@@ -2902,7 +2910,9 @@
                 "git_stage": "Свържи и към етап",
                 "stage_status": "Статус на етапа",
                 "stage_notes": "Бележки към етапа",
-                "stage_evidence": "Доказателства за етапа"
+                "stage_evidence": "Доказателства за етапа",
+                "exception_owner": "Собственик на изключението",
+                "exception_expires_at": "Срок за преглед"
             },
             "help": {
                 "title": "Кратко име на този SDL запис (функционалност, издание или security gate).",
@@ -2919,7 +2929,9 @@
                 "git_stage": "По желание свържете новото evidence и към етап от чеклиста.",
                 "stage_status": "Чакащ до завършване. N/A когато етапът не се прилага; изключението документира обосновано отклонение.",
                 "stage_notes": "Съображения за заплахи, резултати от чеклист или обосновка за N/A / изключение.",
-                "stage_evidence": "Доказателства конкретно за този етап (peer review, сканиране, тест доклад)."
+                "stage_evidence": "Доказателства конкретно за този етап (peer review, сканиране, тест доклад).",
+                "exception_owner": "Член на организацията, отговорен за разрешаване или преглед на изключението.",
+                "exception_expires_at": "Дата, до която изключението трябва да бъде прегледано или закрито."
             },
             "locales": {
                 "en": "Английски",
@@ -3094,7 +3106,9 @@
             "sdl_run_deleted": "Изтрит SDL запис",
             "sdl_stage_updated": "Обновен SDL етап",
             "sdl_run_approved": "Одобрен SDL запис",
-            "sdl_run_approval_revoked": "Отменено одобрение на SDL запис"
+            "sdl_run_approval_revoked": "Отменено одобрение на SDL запис",
+            "sdl_exception_recorded": "Записано SDL изключение",
+            "sdl_exception_cleared": "Премахнато SDL изключение"
         },
         "event_sources": {
             "workspace": "Workspace",

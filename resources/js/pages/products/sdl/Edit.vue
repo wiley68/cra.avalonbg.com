@@ -29,6 +29,7 @@ import {
 import { update as updateSdlStage } from '@/routes/products/sdl/stages';
 import { sync as syncRepository } from '@/routes/products/repository';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { edit as editTask } from '@/routes/products/tasks';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
@@ -64,6 +65,20 @@ type RepositoryPayload = {
     } | null;
 };
 type ProductSummary = { id: number; name: string; slug: string };
+type ExceptionTask = {
+    id: number;
+    product_id: number;
+    title: string;
+    status: string;
+};
+type StageException = {
+    id: number;
+    owner_user_id: number;
+    owner_name: string | null;
+    expires_at: string;
+    is_expired: boolean;
+    task: ExceptionTask | null;
+};
 type StageEntry = {
     id: number | null;
     stage: string;
@@ -73,11 +88,14 @@ type StageEntry = {
     completed_by_name: string | null;
     notes: string | null;
     evidence_ids: number[];
+    exception: StageException | null;
 };
 type StageDraft = {
     status: string;
     notes: string;
     evidence_ids: number[];
+    exception_owner_user_id: number | '';
+    exception_expires_at: string;
 };
 type SdlRunDetail = {
     id: number;
@@ -157,6 +175,10 @@ const buildStageDrafts = (entries: StageEntry[]): Record<string, StageDraft> =>
                 status: entry.status,
                 notes: entry.notes ?? '',
                 evidence_ids: [...(entry.evidence_ids ?? [])],
+                exception_owner_user_id:
+                    (entry.exception?.owner_user_id as number | undefined) ??
+                    '',
+                exception_expires_at: entry.exception?.expires_at ?? '',
             },
         ]),
     );
@@ -250,6 +272,13 @@ const saveStage = (stage: string) => {
             status: draft.status,
             notes: draft.notes || null,
             evidence_ids: draft.evidence_ids,
+            ...(draft.status === 'exception'
+                ? {
+                      exception_owner_user_id:
+                          draft.exception_owner_user_id || null,
+                      exception_expires_at: draft.exception_expires_at || null,
+                  }
+                : {}),
         },
         {
             preserveScroll: true,
@@ -505,6 +534,19 @@ const stageCompletedLabel = (entry: StageEntry): string => {
     }
 
     return label;
+};
+
+const exceptionTaskHref = (entry: StageEntry): string | null => {
+    const task = entry.exception?.task;
+
+    if (!task) {
+        return null;
+    }
+
+    return editTask({
+        product: task.product_id,
+        task: task.id,
+    }).url;
 };
 </script>
 
@@ -1105,6 +1147,101 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                                 :message="stageErrors[entry.stage]?.notes"
                             />
                         </div>
+
+                        <template
+                            v-if="
+                                stageDrafts[entry.stage].status === 'exception'
+                            "
+                        >
+                            <div class="space-y-2">
+                                <FieldLabel
+                                    :html-for="`stage-exception-owner-${entry.stage}`"
+                                    :help="
+                                        t('products.sdl.help.exception_owner')
+                                    "
+                                >
+                                    {{
+                                        t('products.sdl.fields.exception_owner')
+                                    }}
+                                </FieldLabel>
+                                <select
+                                    :id="`stage-exception-owner-${entry.stage}`"
+                                    v-model="
+                                        stageDrafts[entry.stage]
+                                            .exception_owner_user_id
+                                    "
+                                    :class="selectClass"
+                                >
+                                    <option value="">
+                                        {{ t('products.sdl.none_selected') }}
+                                    </option>
+                                    <option
+                                        v-for="member in props.members"
+                                        :key="member.id"
+                                        :value="member.id"
+                                    >
+                                        {{ member.name }}
+                                    </option>
+                                </select>
+                                <InputError
+                                    :message="
+                                        stageErrors[entry.stage]
+                                            ?.exception_owner_user_id
+                                    "
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <FieldLabel
+                                    :html-for="`stage-exception-expires-${entry.stage}`"
+                                    :help="
+                                        t(
+                                            'products.sdl.help.exception_expires_at',
+                                        )
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.sdl.fields.exception_expires_at',
+                                        )
+                                    }}
+                                </FieldLabel>
+                                <Input
+                                    :id="`stage-exception-expires-${entry.stage}`"
+                                    v-model="
+                                        stageDrafts[entry.stage]
+                                            .exception_expires_at
+                                    "
+                                    type="date"
+                                />
+                                <InputError
+                                    :message="
+                                        stageErrors[entry.stage]
+                                            ?.exception_expires_at
+                                    "
+                                />
+                            </div>
+
+                            <div
+                                v-if="entry.exception"
+                                class="flex flex-wrap items-center gap-3 sm:col-span-2"
+                            >
+                                <p
+                                    v-if="entry.exception.is_expired"
+                                    class="text-sm font-medium text-destructive"
+                                >
+                                    {{ t('products.sdl.exception_expired') }}
+                                </p>
+                                <Link
+                                    v-if="exceptionTaskHref(entry)"
+                                    :href="exceptionTaskHref(entry)!"
+                                    class="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+                                >
+                                    <ExternalLink class="h-3.5 w-3.5" />
+                                    {{ t('products.sdl.exception_view_task') }}
+                                </Link>
+                            </div>
+                        </template>
 
                         <div class="space-y-2 sm:col-span-2">
                             <FieldLabel

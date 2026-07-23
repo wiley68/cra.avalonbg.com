@@ -24,6 +24,7 @@ use App\Models\ProductIncident;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
+use App\Models\SdlException;
 use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
 use App\Models\Task;
@@ -568,6 +569,50 @@ class AuditLogger
             details: [
                 ['field' => 'sdl_run_id', 'value' => (string) $run->id],
                 ['field' => 'title', 'value' => $run->title],
+            ],
+        );
+    }
+
+    public static function logSdlExceptionRecorded(
+        SdlRun $run,
+        SdlStageEntry $entry,
+        SdlException $exception,
+        User $actor,
+        ?int $taskId = null,
+    ): void {
+        self::persist(
+            type: AuditEventType::SdlExceptionRecorded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'stage', 'value' => $entry->stage->value],
+                ['field' => 'exception_id', 'value' => (string) $exception->id],
+                ['field' => 'owner_user_id', 'value' => (string) $exception->owner_user_id],
+                ['field' => 'expires_at', 'value' => $exception->expires_at->toDateString()],
+                ['field' => 'task_id', 'value' => $taskId !== null ? (string) $taskId : ''],
+            ],
+        );
+    }
+
+    public static function logSdlExceptionCleared(
+        SdlRun $run,
+        SdlStageEntry $entry,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::SdlExceptionCleared,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $run->organization_id,
+            productId: $run->product_id,
+            details: [
+                ['field' => 'sdl_run_id', 'value' => (string) $run->id],
+                ['field' => 'stage', 'value' => $entry->stage->value],
             ],
         );
     }
