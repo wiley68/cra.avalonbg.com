@@ -180,15 +180,15 @@ Phase 2.4 се счита за готов, когато:
 
 **[Phase 2.4 — User Security Instructions](Phase2_4_User_Security_Instructions.md)** — **Closed** (2026-07-23).
 
-С **§14 Втора фаза** приключена, следващите кандидати от [Nachalen плана](CRA_Compliance_Workspace_Nachalen_Plan.md) (за избор / skeleton, не Active):
+С **§14 Втора фаза** приключена, следващите кандидати от [Nachalen плана](CRA_Compliance_Workspace_Nachalen_Plan.md):
 
-| Приоритет (предложение) | Кандидат                           | Източник в плана                                  |
-| ----------------------- | ---------------------------------- | ------------------------------------------------- |
-| A                       | **Security Incident Management**   | §5.10 — deferred от MVP closeout P2               |
-| B                       | **SDL workspace extensions**       | §5.14 — отбелязано като TBD след 2.4              |
-| C                       | **Technical Documentation polish** | §5.12 — outline има; по-дълбок workspace          |
-| D                       | **Integration wave 2**             | §7 втора вълна (Jira, Snyk/Trivy, Dependabot, …)  |
-| E                       | Cross-phase polish                 | Queue workers, live LLM, GitHub merged-PR summary |
+| Приоритет (предложение) | Кандидат                           | Източник в плана                                                                                        |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| A                       | **Security Incident Management**   | §5.10 — **Active** [Phase2_5_Security_Incident_Management.md](Phase2_5_Security_Incident_Management.md) |
+| B                       | **SDL workspace extensions**       | §5.14 — отбелязано като TBD след 2.4                                                                    |
+| C                       | **Technical Documentation polish** | §5.12 — outline има; по-дълбок workspace                                                                |
+| D                       | **Integration wave 2**             | §7 втора вълна (Jira, Snyk/Trivy, Dependabot, …)                                                        |
+| E                       | Cross-phase polish                 | Queue workers, live LLM, GitHub merged-PR summary                                                       |
 
 ```text
 MVP 0.1 exit — Done 2026-07-20
@@ -201,7 +201,7 @@ Phase 2.3 Policy / Auditor / AI — Closed 2026-07-22
     ↓
 Phase 2.4 User Security Instructions — Closed 2026-07-23
     ↓
-Следваща вълна — TBD (Incident / SDL / Tech docs / Integrations)
+Phase 2.5 Security Incident Management — Active (skeleton)
 ```
 
 ---
@@ -210,4 +210,5 @@ Phase 2.4 User Security Instructions — Closed 2026-07-23
 
 | Версия | Дата       | Промяна                                                                    |
 | ------ | ---------- | -------------------------------------------------------------------------- |
+| 1.1    | 2026-07-23 | Pointer → Phase 2.5 Security Incident Management (кандидат A)              |
 | 1.0    | 2026-07-23 | Formal Phase 2.4 exit; Must+Should+Could Done; §14 complete; next-wave TBD |
