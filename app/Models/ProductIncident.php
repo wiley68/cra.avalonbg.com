@@ -177,6 +177,28 @@ class ProductIncident extends Model
         )->withTimestamps();
     }
 
+    /** @return BelongsToMany<Evidence, $this> */
+    public function evidence(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Evidence::class,
+            'incident_evidence',
+            'incident_id',
+            'evidence_id',
+        )->withTimestamps();
+    }
+
+    /** @return BelongsToMany<Control, $this> */
+    public function controls(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Control::class,
+            'incident_controls',
+            'incident_id',
+            'control_id',
+        )->withTimestamps();
+    }
+
     public function isOpen(): bool
     {
         return in_array($this->status, IncidentStatus::active(), true);

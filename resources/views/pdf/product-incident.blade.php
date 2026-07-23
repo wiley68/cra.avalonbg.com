@@ -138,6 +138,26 @@
     <div class="block">{!! $textOrEmpty($incident['corrective_measures'] ?? null) !!}</div>
     <h3>{{ Translations::get('products.incidents.fields.lessons_learned') }}</h3>
     <div class="block">{!! $textOrEmpty($incident['lessons_learned'] ?? null) !!}</div>
+    <h3>{{ Translations::get('products.incidents.fields.lessons_evidence') }}</h3>
+    @if (empty($incident['lessons_evidence']))
+        <p class="muted">{{ Translations::get('products.incidents.export.empty') }}</p>
+    @else
+        <ul>
+            @foreach ($incident['lessons_evidence'] as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+    @endif
+    <h3>{{ Translations::get('products.incidents.fields.lessons_controls') }}</h3>
+    @if (empty($incident['lessons_controls']))
+        <p class="muted">{{ Translations::get('products.incidents.export.empty') }}</p>
+    @else
+        <ul>
+            @foreach ($incident['lessons_controls'] as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+    @endif
 
     @if (!empty($incident['notes']))
         <h2>{{ Translations::get('products.incidents.fields.notes') }}</h2>

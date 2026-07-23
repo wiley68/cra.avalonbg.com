@@ -39,6 +39,8 @@ class ProductIncidentExportService
             'customers:id,name',
             'deployments.customer:id,name',
             'deployments.productVersion:id,version_number',
+            'evidence:id,title',
+            'controls:id,code,name',
             'timelineEvents.creator:id,name',
             'vulnerability:id,title,cve_id,status',
         ]);
@@ -74,6 +76,8 @@ class ProductIncidentExportService
             'customers:id,name',
             'deployments.customer:id,name',
             'deployments.productVersion:id,version_number',
+            'evidence:id,title',
+            'controls:id,code,name',
             'timelineEvents.creator:id,name',
             'vulnerability:id,title,cve_id,status',
         ]);
@@ -139,6 +143,16 @@ class ProductIncidentExportService
 
                         return "{$customer} — {$environment} ({$version})";
                     })
+                    ->values()
+                    ->all(),
+                'lessons_evidence' => $incident->evidence
+                    ->pluck('title')
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'lessons_controls' => $incident->controls
+                    ->map(fn($control) => trim($control->code . ' — ' . $control->name))
+                    ->filter()
                     ->values()
                     ->all(),
                 'linked_vulnerability' => $incident->vulnerability
@@ -240,6 +254,16 @@ class ProductIncidentExportService
         $lines[] = '### ' . Translations::get('products.incidents.fields.lessons_learned');
         $lines[] = '';
         $lines[] = $this->blockOrEmpty($incident['lessons_learned']);
+
+        $lines[] = '';
+        $lines[] = '### ' . Translations::get('products.incidents.fields.lessons_evidence');
+        $lines[] = '';
+        $lines = [...$lines, ...$this->bulletList($incident['lessons_evidence'] ?? [])];
+
+        $lines[] = '';
+        $lines[] = '### ' . Translations::get('products.incidents.fields.lessons_controls');
+        $lines[] = '';
+        $lines = [...$lines, ...$this->bulletList($incident['lessons_controls'] ?? [])];
 
         if (filled($incident['notes'])) {
             $lines[] = '';

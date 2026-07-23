@@ -16,9 +16,12 @@ use App\Http\Requests\StoreIncidentReportRequest;
 use App\Http\Requests\StoreIncidentTimelineEventRequest;
 use App\Http\Requests\StoreProductIncidentRequest;
 use App\Http\Requests\UpdateProductIncidentRequest;
+use App\Models\Control;
 use App\Models\Customer;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductControl;
 use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVulnerability;
@@ -70,6 +73,8 @@ class ProductIncidentController extends Controller
             'versions' => $this->versionOptions($product),
             'customers' => $this->customerOptions($organization),
             'deployments' => $this->deploymentOptions($product),
+            'evidence' => $this->evidenceOptions($product),
+            'controls' => $this->controlOptions($product, $organization),
             'options' => $this->enumOptions(),
         ]);
     }
@@ -85,6 +90,8 @@ class ProductIncidentController extends Controller
             array_map('intval', $request->input('version_ids', [])),
             array_map('intval', $request->input('customer_ids', [])),
             array_map('intval', $request->input('deployment_ids', [])),
+            array_map('intval', $request->input('evidence_ids', [])),
+            array_map('intval', $request->input('control_ids', [])),
             $request->user(),
         );
 
@@ -108,6 +115,8 @@ class ProductIncidentController extends Controller
             'versions',
             'customers',
             'deployments',
+            'evidence',
+            'controls',
             'closer',
             'timelineEvents.creator',
             'reports.submitter',
@@ -126,6 +135,8 @@ class ProductIncidentController extends Controller
             'versions' => $this->versionOptions($product),
             'customers' => $this->customerOptions($organization),
             'deployments' => $this->deploymentOptions($product),
+            'evidence' => $this->evidenceOptions($product),
+            'controls' => $this->controlOptions($product, $organization),
             'vulnerabilities' => $this->incidents->linkableVulnerabilityOptions($product),
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageIncidents($organization),
@@ -383,6 +394,8 @@ class ProductIncidentController extends Controller
             array_map('intval', $request->input('version_ids', [])),
             array_map('intval', $request->input('customer_ids', [])),
             array_map('intval', $request->input('deployment_ids', [])),
+            array_map('intval', $request->input('evidence_ids', [])),
+            array_map('intval', $request->input('control_ids', [])),
             $request->user(),
         );
 
@@ -567,6 +580,49 @@ class ProductIncidentController extends Controller
                 'customer_name' => $deployment->customer?->name ?? ('#' . $deployment->customer_id),
                 'environment' => $deployment->environment->value,
                 'product_version_number' => $deployment->productVersion?->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, title: string}>
+     */
+    private function evidenceOptions(Product $product): array
+    {
+        return Evidence::query()
+            ->where('product_id', $product->id)
+            ->where('organization_id', $product->organization_id)
+            ->orderBy('title')
+            ->get(['id', 'title'])
+            ->map(fn(Evidence $item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+            ])
+            ->all();
+    }
+
+    /**
+     * Prefer controls already assigned to the product; fall back to all active org controls.
+     *
+     * @return list<array{id: int, code: string, name: string, assigned: bool}>
+     */
+    private function controlOptions(Product $product, Organization $organization): array
+    {
+        $assignedIds = ProductControl::query()
+            ->where('product_id', $product->id)
+            ->pluck('control_id')
+            ->all();
+
+        return Control::query()
+            ->where('organization_id', $organization->id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'code', 'name'])
+            ->map(fn(Control $control) => [
+                'id' => $control->id,
+                'code' => $control->code,
+                'name' => $control->name,
+                'assigned' => in_array($control->id, $assignedIds, true),
             ])
             ->all();
     }

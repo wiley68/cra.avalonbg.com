@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.7  
+**Версия:** 1.8  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–16 done)  
+**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–17 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -189,6 +189,7 @@ flowchart TB
 - ~~`incident_reports` (authority submission records)~~ **Done (Could 13)**
 - ~~`incident_customer_communications` (customer outreach log; ≠ patch campaigns)~~ **Done (Could 14)**
 - ~~CIA impact + attack vector enums~~ **Done (Could 15)**
+- ~~lessons learned → evidence / controls M2M~~ **Done (Could 17)**
 
 Aligns loosely with Nachalen §9 entity list (`incidents`, `incident_timelines`, `incident_reports`).
 
@@ -246,7 +247,7 @@ POST   /products/{product}/incidents/{incident}/ai-draft
 14. ~~Customer communications log (отделно от patch campaigns)~~ **Done**
 15. ~~CIA impacts + attack vector enums~~ **Done**
 16. ~~AI `incident_summary` draft (human review)~~ **Done**
-17. Lessons learned → evidence / controls link
+17. ~~Lessons learned → evidence / controls link~~ **Done**
 18. Org-level cross-product incident index
 
 ---
@@ -309,6 +310,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.8    | 2026-07-23 | Could 17 Done — lessons learned links to evidence + controls            |
 | 1.7    | 2026-07-23 | Could 16 Done — AI incident summary draft (suggest/apply, no auto-save) |
 | 1.6    | 2026-07-23 | Could 15 Done — CIA impacts + attack vector enums on incidents          |
 | 1.5    | 2026-07-23 | Could 14 Done — incident customer communications log (append-only)      |

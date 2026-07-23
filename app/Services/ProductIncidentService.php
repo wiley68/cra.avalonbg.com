@@ -12,7 +12,9 @@ use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
+use App\Models\Control;
 use App\Models\Customer;
+use App\Models\Evidence;
 use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
@@ -87,7 +89,11 @@ class ProductIncidentService
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $versionIds
      * @param  list<int>  $customerIds
+     * @param  list<int>  $versionIds
+     * @param  list<int>  $customerIds
      * @param  list<int>  $deploymentIds
+     * @param  list<int>  $evidenceIds
+     * @param  list<int>  $controlIds
      */
     public function create(
         Product $product,
@@ -95,12 +101,16 @@ class ProductIncidentService
         array $versionIds,
         array $customerIds,
         array $deploymentIds,
+        array $evidenceIds,
+        array $controlIds,
         User $actor,
     ): ProductIncident {
-        $incident = DB::transaction(function () use ($product, $attributes, $versionIds, $customerIds, $deploymentIds) {
+        $incident = DB::transaction(function () use ($product, $attributes, $versionIds, $customerIds, $deploymentIds, $evidenceIds, $controlIds, ) {
             $this->assertVersionsBelongToProduct($product, $versionIds);
             $this->assertCustomersBelongToOrganization($product->organization_id, $customerIds);
             $this->assertDeploymentsBelongToProduct($product, $deploymentIds);
+            $this->assertEvidenceBelongToProduct($product, $evidenceIds);
+            $this->assertControlsBelongToOrganization($product->organization_id, $controlIds);
 
             /** @var ProductIncident $incident */
             $incident = ProductIncident::query()->create([
@@ -112,8 +122,10 @@ class ProductIncidentService
             $incident->versions()->sync($versionIds);
             $incident->customers()->sync($customerIds);
             $incident->deployments()->sync($deploymentIds);
+            $incident->evidence()->sync($evidenceIds);
+            $incident->controls()->sync($controlIds);
 
-            return $incident->load(['owner', 'versions', 'customers', 'deployments']);
+            return $incident->load(['owner', 'versions', 'customers', 'deployments', 'evidence', 'controls']);
         });
 
         AuditLogger::logIncidentCreated($incident, $actor);
@@ -126,6 +138,8 @@ class ProductIncidentService
      * @param  list<int>  $versionIds
      * @param  list<int>  $customerIds
      * @param  list<int>  $deploymentIds
+     * @param  list<int>  $evidenceIds
+     * @param  list<int>  $controlIds
      */
     public function update(
         ProductIncident $incident,
@@ -133,22 +147,28 @@ class ProductIncidentService
         array $versionIds,
         array $customerIds,
         array $deploymentIds,
+        array $evidenceIds,
+        array $controlIds,
         User $actor,
     ): ProductIncident {
         $previousStatus = $incident->status->value;
         $attributes = $this->applyClosureTimestamps($incident, $attributes, $actor);
 
-        $incident = DB::transaction(function () use ($incident, $attributes, $versionIds, $customerIds, $deploymentIds) {
+        $incident = DB::transaction(function () use ($incident, $attributes, $versionIds, $customerIds, $deploymentIds, $evidenceIds, $controlIds, ) {
             $this->assertVersionsBelongToProduct($incident->product, $versionIds);
             $this->assertCustomersBelongToOrganization($incident->organization_id, $customerIds);
             $this->assertDeploymentsBelongToProduct($incident->product, $deploymentIds);
+            $this->assertEvidenceBelongToProduct($incident->product, $evidenceIds);
+            $this->assertControlsBelongToOrganization($incident->organization_id, $controlIds);
 
             $incident->update($attributes);
             $incident->versions()->sync($versionIds);
             $incident->customers()->sync($customerIds);
             $incident->deployments()->sync($deploymentIds);
+            $incident->evidence()->sync($evidenceIds);
+            $incident->controls()->sync($controlIds);
 
-            return $incident->fresh(['owner', 'versions', 'customers', 'deployments', 'closer']);
+            return $incident->fresh(['owner', 'versions', 'customers', 'deployments', 'evidence', 'controls', 'closer']);
         });
 
         if ($incident->status->value !== $previousStatus) {
@@ -515,6 +535,14 @@ class ProductIncidentService
             $incident->load('deployments');
         }
 
+        if (!$incident->relationLoaded('evidence')) {
+            $incident->load('evidence');
+        }
+
+        if (!$incident->relationLoaded('controls')) {
+            $incident->load('controls');
+        }
+
         if (!$incident->relationLoaded('closer')) {
             $incident->load('closer');
         }
@@ -556,6 +584,8 @@ class ProductIncidentService
             'version_ids' => $incident->versions->pluck('id')->all(),
             'customer_ids' => $incident->customers->pluck('id')->all(),
             'deployment_ids' => $incident->deployments->pluck('id')->all(),
+            'evidence_ids' => $incident->evidence->pluck('id')->all(),
+            'control_ids' => $incident->controls->pluck('id')->all(),
             'timeline_events' => $incident->timelineEvents
                 ->map(fn(IncidentTimelineEvent $event) => $this->timelineEventPayload($event))
                 ->values()
@@ -724,6 +754,51 @@ class ProductIncidentService
         if ($count !== count($uniqueIds)) {
             throw ValidationException::withMessages([
                 'deployment_ids' => ['One or more deployments do not belong to this product.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $evidenceIds
+     */
+    private function assertEvidenceBelongToProduct(Product $product, array $evidenceIds): void
+    {
+        if ($evidenceIds === []) {
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $evidenceIds)));
+        $count = Evidence::query()
+            ->where('product_id', $product->id)
+            ->where('organization_id', $product->organization_id)
+            ->whereIn('id', $uniqueIds)
+            ->count();
+
+        if ($count !== count($uniqueIds)) {
+            throw ValidationException::withMessages([
+                'evidence_ids' => ['One or more evidence records do not belong to this product.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $controlIds
+     */
+    private function assertControlsBelongToOrganization(int $organizationId, array $controlIds): void
+    {
+        if ($controlIds === []) {
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $controlIds)));
+        $count = Control::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('id', $uniqueIds)
+            ->count();
+
+        if ($count !== count($uniqueIds)) {
+            throw ValidationException::withMessages([
+                'control_ids' => ['One or more controls do not belong to this organization.'],
             ]);
         }
     }

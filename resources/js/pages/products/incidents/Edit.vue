@@ -44,6 +44,13 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
 type CustomerOption = { id: number; name: string; is_active: boolean };
+type EvidenceOption = { id: number; title: string };
+type ControlOption = {
+    id: number;
+    code: string;
+    name: string;
+    assigned: boolean;
+};
 type DeploymentOption = {
     id: number;
     customer_id: number;
@@ -127,6 +134,8 @@ type IncidentDetail = {
     version_ids: number[];
     customer_ids: number[];
     deployment_ids: number[];
+    evidence_ids: number[];
+    control_ids: number[];
     product_vulnerability_id: number | null;
     linked_vulnerability: LinkedVulnerability | null;
     timeline_events: TimelineEvent[];
@@ -141,6 +150,8 @@ const props = defineProps<{
     versions: VersionOption[];
     customers: CustomerOption[];
     deployments: DeploymentOption[];
+    evidence: EvidenceOption[];
+    controls: ControlOption[];
     vulnerabilities: VulnerabilityOption[];
     options: {
         statuses: string[];
@@ -209,6 +220,8 @@ const form = useForm({
     version_ids: [...props.incident.version_ids],
     customer_ids: [...props.incident.customer_ids],
     deployment_ids: [...props.incident.deployment_ids],
+    evidence_ids: [...props.incident.evidence_ids],
+    control_ids: [...props.incident.control_ids],
 });
 
 const timelineForm = useForm({
@@ -588,7 +601,12 @@ const formatDateTime = (value: string | null): string => {
 };
 
 const toggleId = (
-    field: 'version_ids' | 'customer_ids' | 'deployment_ids',
+    field:
+        | 'version_ids'
+        | 'customer_ids'
+        | 'deployment_ids'
+        | 'evidence_ids'
+        | 'control_ids',
     id: number,
     checked: boolean,
 ) => {
@@ -1135,6 +1153,123 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                             <InputError
                                 :message="form.errors.lessons_learned"
                             />
+                        </div>
+
+                        <div class="grid gap-2 sm:col-span-2">
+                            <FieldLabel
+                                :help="
+                                    t(
+                                        'products.incidents.help.lessons_evidence',
+                                    )
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.incidents.fields.lessons_evidence',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <div
+                                class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                            >
+                                <p
+                                    v-if="evidence.length === 0"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ t('products.incidents.no_evidence') }}
+                                </p>
+                                <label
+                                    v-for="item in evidence"
+                                    :key="item.id"
+                                    class="flex items-start gap-2 text-sm"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        class="mt-1"
+                                        :checked="
+                                            form.evidence_ids.includes(item.id)
+                                        "
+                                        @change="
+                                            toggleId(
+                                                'evidence_ids',
+                                                item.id,
+                                                (
+                                                    $event.target as HTMLInputElement
+                                                ).checked,
+                                            )
+                                        "
+                                    />
+                                    <span>{{ item.title }}</span>
+                                </label>
+                            </div>
+                            <InputError :message="form.errors.evidence_ids" />
+                        </div>
+
+                        <div class="grid gap-2 sm:col-span-2">
+                            <FieldLabel
+                                :help="
+                                    t(
+                                        'products.incidents.help.lessons_controls',
+                                    )
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.incidents.fields.lessons_controls',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <div
+                                class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                            >
+                                <p
+                                    v-if="controls.length === 0"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ t('products.incidents.no_controls') }}
+                                </p>
+                                <label
+                                    v-for="control in controls"
+                                    :key="control.id"
+                                    class="flex items-start gap-2 text-sm"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        class="mt-1"
+                                        :checked="
+                                            form.control_ids.includes(
+                                                control.id,
+                                            )
+                                        "
+                                        @change="
+                                            toggleId(
+                                                'control_ids',
+                                                control.id,
+                                                (
+                                                    $event.target as HTMLInputElement
+                                                ).checked,
+                                            )
+                                        "
+                                    />
+                                    <span>
+                                        <span class="font-medium">{{
+                                            control.code
+                                        }}</span>
+                                        — {{ control.name }}
+                                        <span
+                                            v-if="control.assigned"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            ({{
+                                                t(
+                                                    'products.incidents.control_assigned',
+                                                )
+                                            }})
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                            <InputError :message="form.errors.control_ids" />
                         </div>
                     </div>
                 </div>

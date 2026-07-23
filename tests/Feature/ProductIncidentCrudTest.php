@@ -2,8 +2,13 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\ControlAutomationLevel;
+use App\Enums\ControlFrequency;
 use App\Enums\CustomerCriticality;
 use App\Enums\DeploymentEnvironment;
+use App\Enums\EvidenceConfidentiality;
+use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\EvidenceType;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
@@ -17,7 +22,9 @@ use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
 use App\Models\AuditLog;
+use App\Models\Control;
 use App\Models\Customer;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductDeployment;
@@ -798,6 +805,70 @@ test('close requires awareness timestamp and rejects already closed incidents', 
     $this->actingAs($owner)
         ->post(route('products.incidents.close', [$product, $closed]))
         ->assertSessionHasErrors('status');
+});
+
+test('owner can link lessons learned to evidence and controls', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $evidence = Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'type' => EvidenceType::Document,
+        'title' => 'Post-incident review notes',
+        'confidentiality' => EvidenceConfidentiality::Internal,
+        'freshness_status' => EvidenceFreshnessStatus::Current,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $control = Control::query()->create([
+        'organization_id' => $organization->id,
+        'code' => 'CTL-INC-01',
+        'name' => 'Incident follow-up control',
+        'automation_level' => ControlAutomationLevel::Manual,
+        'frequency' => ControlFrequency::OnDemand,
+        'is_active' => true,
+    ]);
+
+    $incident = ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Lessons link incident',
+        'status' => IncidentStatus::Contained,
+        'severity' => IncidentSeverity::Medium,
+        'awareness_at' => now()->subHours(4),
+        'lessons_learned' => 'Add monitoring for credential stuffing',
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Lessons link incident',
+            'status' => IncidentStatus::Contained->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'awareness_at' => now()->subHours(4)->format('Y-m-d\TH:i'),
+            'lessons_learned' => 'Add monitoring for credential stuffing',
+            'version_ids' => [$version->id],
+            'customer_ids' => [],
+            'deployment_ids' => [],
+            'evidence_ids' => [$evidence->id],
+            'control_ids' => [$control->id],
+        ])
+        ->assertRedirect();
+
+    $fresh = $incident->fresh(['evidence', 'controls']);
+
+    expect($fresh->evidence->pluck('id')->all())->toContain($evidence->id)
+        ->and($fresh->controls->pluck('id')->all())->toContain($control->id);
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/incidents/Edit')
+            ->where('incident.evidence_ids', [$evidence->id])
+            ->where('incident.control_ids', [$control->id])
+            ->has('evidence', 1)
+            ->has('controls', 1));
 });
 
 test('owner can update root cause and corrective measures on edit', function () {
