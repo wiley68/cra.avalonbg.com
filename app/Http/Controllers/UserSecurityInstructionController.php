@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductDeployment;
 use App\Models\UserSecurityInstruction;
+use App\Services\AiAssistantService;
 use App\Services\UserSecurityInstructionExportService;
 use App\Services\UserSecurityInstructionService;
 use App\Support\Translations;
@@ -30,6 +31,7 @@ class UserSecurityInstructionController extends Controller
     public function __construct(
         private readonly UserSecurityInstructionService $instructions,
         private readonly UserSecurityInstructionExportService $exports,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -121,6 +123,44 @@ class UserSecurityInstructionController extends Controller
             'deployments' => $this->deploymentOptions($product),
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageProducts($organization),
+            'aiEnabled' => $this->assistant->isEnabled(),
+        ]);
+    }
+
+    public function suggestAiDraft(
+        Request $request,
+        Product $product,
+        UserSecurityInstruction $instruction,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertInstructionBelongsToProduct($instruction, $product);
+        $this->authorize('update', [$instruction, $organization]);
+
+        $validated = $request->validate([
+            'section_key' => ['required', 'string', Rule::enum(UserSecurityInstructionSectionKey::class)],
+            'current_body' => ['nullable', 'string', 'max:50000'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $sectionKey = UserSecurityInstructionSectionKey::from($validated['section_key']);
+
+        $result = $this->assistant->suggestUsiSectionDraft(
+            $product,
+            $instruction,
+            $request->user(),
+            $sectionKey,
+            $validated['current_body'] ?? null,
+            $validated['note'] ?? null,
+        );
+
+        return response()->json([
+            'section_key' => $result['draft']['section_key'],
+            'body_markdown' => $result['draft']['body_markdown'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
         ]);
     }
 

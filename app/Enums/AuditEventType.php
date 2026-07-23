@@ -90,6 +90,7 @@ enum AuditEventType: string
     case AiRequestCompleted = 'ai_request_completed';
     case AiDocumentAnalysed = 'ai_document_analysed';
     case AiDraftGenerated = 'ai_draft_generated';
+    case AiUsiSectionDraftSuggested = 'ai_usi_section_draft_suggested';
     case AiVulnerabilityTriageSuggested = 'ai_vulnerability_triage_suggested';
 
     public function label(): string

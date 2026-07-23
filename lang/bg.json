@@ -2548,7 +2548,13 @@
             "export_customer_guide_download": "Изтегли гайда",
             "customer_guide_title": "Клиентски инсталационен гайд",
             "customer_guide_help": "Експортира документа с метаданни за клиент (и опционално deployment) за инсталация. Не създава отделен документ.",
-            "deployment_none": "Без конкретен deployment"
+            "deployment_none": "Без конкретен deployment",
+            "ai_draft_suggest": "Предложи AI чернова",
+            "ai_draft_loading": "Генериране…",
+            "ai_draft_apply": "Приложи към секцията",
+            "ai_draft_discard": "Отхвърли предложението",
+            "ai_draft_disclaimer": "Само чернова; нужен е human review преди запис или publish. Нищо не се записва, докато не приложите и натиснете Запази.",
+            "ai_draft_error": "Неуспешно генериране на AI чернова за тази секция."
         }
     },
     "audit_logs": {
@@ -2666,6 +2672,7 @@
             "ai_request_completed": "Завършена AI assistant заявка",
             "ai_document_analysed": "Анализиран AI документ",
             "ai_draft_generated": "Генерирана AI чернова",
+            "ai_usi_section_draft_suggested": "Предложена AI чернова за секция от инструкции за сигурност",
             "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост",
             "user_security_instruction_created": "Инструкции за сигурност създадени",
             "user_security_instruction_updated": "Инструкции за сигурност обновени",

@@ -12,8 +12,10 @@ import {
     Pencil,
     Save,
     Send,
+    Sparkles,
+    Trash2,
 } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
@@ -51,6 +53,7 @@ import {
     edit as instructionsEdit,
     exportMethod as instructionsExport,
     index as instructionsIndex,
+    aiDraft as suggestAiDraft,
     publish as publishInstruction,
     publishEvidence,
     retire as retireInstruction,
@@ -102,6 +105,7 @@ const props = defineProps<{
     customers: CustomerOption[];
     deployments: DeploymentOption[];
     canManage: boolean;
+    aiEnabled: boolean;
     options: {
         locales: string[];
         statuses: string[];
@@ -147,6 +151,130 @@ const form = useForm({
 const showRetireDialog = ref(false);
 const showPublishEvidenceDialog = ref(false);
 const showDocumentPreview = ref(false);
+
+type AiSectionDraftState = {
+    loading: boolean;
+    error: string;
+    body_markdown: string;
+    disclaimer: string;
+};
+
+const aiDrafts = reactive<Record<string, AiSectionDraftState>>({});
+
+const xsrfToken = (): string => {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    return match ? decodeURIComponent(match[1]) : '';
+};
+
+const ensureAiDraftState = (sectionKey: string): AiSectionDraftState => {
+    if (!aiDrafts[sectionKey]) {
+        aiDrafts[sectionKey] = {
+            loading: false,
+            error: '',
+            body_markdown: '',
+            disclaimer: '',
+        };
+    }
+
+    return aiDrafts[sectionKey];
+};
+
+const requestAiDraft = async (index: number): Promise<void> => {
+    const section = form.sections[index];
+    if (!section || !canEdit.value || !props.aiEnabled) {
+        return;
+    }
+
+    const state = ensureAiDraftState(section.section_key);
+    state.loading = true;
+    state.error = '';
+    state.body_markdown = '';
+    state.disclaimer = '';
+
+    try {
+        const response = await fetch(
+            suggestAiDraft({
+                product: props.product.id,
+                instruction: props.instruction.id,
+            }).url,
+            {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                },
+                body: JSON.stringify({
+                    section_key: section.section_key,
+                    current_body: section.body,
+                }),
+            },
+        );
+
+        const payload = (await response.json().catch(() => ({}))) as {
+            body_markdown?: string;
+            disclaimer?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            const firstError = payload.errors
+                ? Object.values(payload.errors).flat()[0]
+                : undefined;
+            state.error =
+                firstError ||
+                payload.message ||
+                t('products.user_security_instructions.ai_draft_error');
+
+            return;
+        }
+
+        state.body_markdown = payload.body_markdown ?? '';
+        state.disclaimer =
+            payload.disclaimer ||
+            t('products.user_security_instructions.ai_draft_disclaimer');
+
+        if (!state.body_markdown) {
+            state.error = t(
+                'products.user_security_instructions.ai_draft_error',
+            );
+        }
+    } catch {
+        state.error = t('products.user_security_instructions.ai_draft_error');
+    } finally {
+        state.loading = false;
+    }
+};
+
+const applyAiDraft = (index: number): void => {
+    const section = form.sections[index];
+    if (!section) {
+        return;
+    }
+
+    const state = aiDrafts[section.section_key];
+    if (!state?.body_markdown) {
+        return;
+    }
+
+    section.body = state.body_markdown;
+    discardAiDraft(section.section_key);
+};
+
+const discardAiDraft = (sectionKey: string): void => {
+    if (!aiDrafts[sectionKey]) {
+        return;
+    }
+
+    aiDrafts[sectionKey].body_markdown = '';
+    aiDrafts[sectionKey].disclaimer = '';
+    aiDrafts[sectionKey].error = '';
+    aiDrafts[sectionKey].loading = false;
+};
 
 const canEdit = computed(
     () => props.canManage && props.instruction.is_editable,
@@ -756,22 +884,110 @@ const doPublishEvidence = () => {
                                 {{ section.section_key }}
                             </p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <Label
-                                :for="`applicable-${section.section_key}`"
-                                class="text-sm"
+                        <div
+                            class="flex flex-wrap items-center justify-end gap-3"
+                        >
+                            <Button
+                                v-if="
+                                    canEdit &&
+                                    aiEnabled &&
+                                    section.is_applicable
+                                "
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                :disabled="
+                                    aiDrafts[section.section_key]?.loading
+                                "
+                                @click="requestAiDraft(index)"
                             >
+                                <Sparkles class="h-4 w-4" />
+                                {{
+                                    aiDrafts[section.section_key]?.loading
+                                        ? t(
+                                              'products.user_security_instructions.ai_draft_loading',
+                                          )
+                                        : t(
+                                              'products.user_security_instructions.ai_draft_suggest',
+                                          )
+                                }}
+                            </Button>
+                            <div class="flex items-center gap-2">
+                                <Label
+                                    :for="`applicable-${section.section_key}`"
+                                    class="text-sm"
+                                >
+                                    {{
+                                        t(
+                                            'products.user_security_instructions.fields.is_applicable',
+                                        )
+                                    }}
+                                </Label>
+                                <Switch
+                                    :id="`applicable-${section.section_key}`"
+                                    v-model="section.is_applicable"
+                                    :disabled="!canEdit"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="aiDrafts[section.section_key]?.error"
+                        class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                    >
+                        {{ aiDrafts[section.section_key]?.error }}
+                    </div>
+
+                    <div
+                        v-if="aiDrafts[section.section_key]?.body_markdown"
+                        class="space-y-3 rounded-md border border-border bg-muted/30 p-4"
+                    >
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                aiDrafts[section.section_key]?.disclaimer ||
+                                t(
+                                    'products.user_security_instructions.ai_draft_disclaimer',
+                                )
+                            }}
+                        </p>
+                        <MarkdownPreview
+                            :source="
+                                aiDrafts[section.section_key]?.body_markdown ||
+                                ''
+                            "
+                            :empty-label="
+                                t(
+                                    'products.user_security_instructions.document_preview_empty',
+                                )
+                            "
+                        />
+                        <div class="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                size="sm"
+                                @click="applyAiDraft(index)"
+                            >
+                                <CheckCircle2 class="h-4 w-4" />
                                 {{
                                     t(
-                                        'products.user_security_instructions.fields.is_applicable',
+                                        'products.user_security_instructions.ai_draft_apply',
                                     )
                                 }}
-                            </Label>
-                            <Switch
-                                :id="`applicable-${section.section_key}`"
-                                v-model="section.is_applicable"
-                                :disabled="!canEdit"
-                            />
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                @click="discardAiDraft(section.section_key)"
+                            >
+                                <Trash2 class="h-4 w-4" />
+                                {{
+                                    t(
+                                        'products.user_security_instructions.ai_draft_discard',
+                                    )
+                                }}
+                            </Button>
                         </div>
                     </div>
 

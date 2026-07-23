@@ -1283,6 +1283,29 @@ class AuditLogger
         );
     }
 
+    public static function logAiUsiSectionDraftSuggested(
+        UserSecurityInstruction $instruction,
+        User $actor,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiUsiSectionDraftSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $instruction->organization_id,
+            productId: $instruction->product_id,
+            details: [
+                ['field' => 'instruction_id', 'value' => (string) $instruction->id],
+                ['field' => 'section_key', 'value' => (string) ($meta['section_key'] ?? '')],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+            ],
+        );
+    }
+
     public static function logAiVulnerabilityTriageSuggested(
         AiConversation $conversation,
         User $actor,

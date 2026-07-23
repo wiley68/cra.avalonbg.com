@@ -2548,7 +2548,13 @@
             "export_customer_guide_download": "Download guide",
             "customer_guide_title": "Customer-specific installation guide",
             "customer_guide_help": "Exports this document with customer (and optional deployment) metadata for installation handoff. No separate document is created.",
-            "deployment_none": "No specific deployment"
+            "deployment_none": "No specific deployment",
+            "ai_draft_suggest": "Suggest AI draft",
+            "ai_draft_loading": "Generating…",
+            "ai_draft_apply": "Apply to section",
+            "ai_draft_discard": "Discard suggestion",
+            "ai_draft_disclaimer": "Draft only; human review required before save or publish. Nothing is saved until you apply and click Save.",
+            "ai_draft_error": "Could not generate an AI draft for this section."
         }
     },
     "audit_logs": {
@@ -2668,6 +2674,7 @@
             "ai_request_completed": "AI assistant request completed",
             "ai_document_analysed": "AI document analysed",
             "ai_draft_generated": "AI draft generated",
+            "ai_usi_section_draft_suggested": "AI user security instructions section draft suggested",
             "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested",
             "user_security_instruction_created": "User security instructions created",
             "user_security_instruction_updated": "User security instructions updated",

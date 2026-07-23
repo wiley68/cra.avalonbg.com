@@ -9,6 +9,7 @@ use App\Enums\AiDraftType;
 use App\Enums\AiMessageRole;
 use App\Enums\AiProviderDriver;
 use App\Enums\EmbeddingProviderDriver;
+use App\Enums\UserSecurityInstructionSectionKey;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\PatchCampaign;
@@ -16,11 +17,14 @@ use App\Models\Product;
 use App\Models\ProductRequirement;
 use App\Models\ProductVulnerability;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Services\Ai\AiDocumentAnalysePrompt;
 use App\Services\Ai\AiDocumentTextExtractor;
 use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
+use App\Services\Ai\AiUsiSectionDraftParser;
+use App\Services\Ai\AiUsiSectionDraftPrompt;
 use App\Services\Ai\AiVulnerabilityTriageParser;
 use App\Services\Ai\AiVulnerabilityTriagePrompt;
 use App\Services\Ai\AnthropicAiProvider;
@@ -460,6 +464,86 @@ class AiAssistantService
                 'draft' => $draft,
             ];
         });
+    }
+
+    /**
+     * Suggest Markdown for one USI section. Does not write the section body or publish.
+     *
+     * @return array{
+     *     draft: array{
+     *         section_key: string,
+     *         body_markdown: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestUsiSectionDraft(
+        Product $product,
+        UserSecurityInstruction $instruction,
+        User $user,
+        UserSecurityInstructionSectionKey $sectionKey,
+        ?string $currentBody = null,
+        ?string $note = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($instruction->product_id !== $product->id) {
+            abort(404);
+        }
+
+        if (!$instruction->isEditable()) {
+            throw ValidationException::withMessages([
+                'section_key' => Translations::get('products.user_security_instructions.cannot_edit_locked'),
+            ]);
+        }
+
+        $sectionTitle = Translations::get(
+            'products.user_security_instructions.sections.' . $sectionKey->value,
+        );
+        $context = $this->contextBuilder->forProduct($product);
+        $prompt = AiUsiSectionDraftPrompt::userPrompt(
+            $sectionKey,
+            is_string($sectionTitle) ? $sectionTitle : $sectionKey->value,
+            $instruction->locale,
+            $context,
+            $currentBody,
+            $note,
+        );
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'usi_section_draft',
+            'section_key' => $sectionKey->value,
+            'section_title' => is_string($sectionTitle) ? $sectionTitle : $sectionKey->value,
+            'locale' => $instruction->locale,
+            'instruction_id' => $instruction->id,
+        ]);
+
+        $draft = AiUsiSectionDraftParser::parse($completion['content'], $sectionKey);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiUsiSectionDraftSuggested($instruction, $user, [
+            'section_key' => $sectionKey->value,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $instruction->locale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
     }
 
     /**

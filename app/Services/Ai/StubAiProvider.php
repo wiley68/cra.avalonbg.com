@@ -104,6 +104,28 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'usi_section_draft') {
+            $sectionKey = (string) ($options['section_key'] ?? 'secure_installation');
+            $locale = (string) ($options['locale'] ?? 'en');
+            $title = (string) ($options['section_title'] ?? $sectionKey);
+            $body = $locale === 'bg'
+                ? "## {$title}\n\nТова е stub чернова за секция `{$sectionKey}`.\n\n- Прегледайте съдържанието преди запис\n- Не публикувайте без human review\n- Допълнете с реални стъпки за продукта"
+                : "## {$title}\n\nThis is a stub draft for section `{$sectionKey}`.\n\n- Review the content before saving\n- Do not publish without human review\n- Replace with product-specific steps";
+
+            $payload = [
+                'section_key' => $sectionKey,
+                'body_markdown' => $body,
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; human review required before save/publish.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         if (($options['mode'] ?? null) === 'vulnerability_triage') {
             $vulnerabilityId = (int) ($options['vulnerability_id'] ?? 0);
             $componentIds = [];
