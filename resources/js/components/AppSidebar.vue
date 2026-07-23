@@ -11,6 +11,7 @@ import {
     Package,
     ScrollText,
     Shield,
+    ShieldAlert,
     User,
     Users,
 } from '@lucide/vue';
@@ -39,6 +40,7 @@ import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 import { index as controlsIndex } from '@/routes/controls';
 import { index as customersIndex } from '@/routes/customers';
+import { index as incidentsIndex } from '@/routes/incidents';
 import { index as policiesIndex } from '@/routes/policies';
 import { index as auditorIndex } from '@/routes/auditor';
 
@@ -95,6 +97,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.auditor'),
             href: auditorIndex(),
             icon: ClipboardCheck,
+        });
+    }
+
+    if (user.can_view_incidents) {
+        items.push({
+            title: t('nav.incidents'),
+            href: incidentsIndex(),
+            icon: ShieldAlert,
         });
     }
 

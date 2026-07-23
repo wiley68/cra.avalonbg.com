@@ -52,7 +52,7 @@ class ProductIncidentService
     ): LengthAwarePaginator {
         $query = ProductIncident::query()
             ->where('product_id', $product->id)
-            ->with('owner');
+            ->with(['owner', 'product:id,name']);
 
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {
@@ -75,6 +75,59 @@ class ProductIncidentService
             'awareness_at' => 'awareness_at',
             'detected_at' => 'detected_at',
             'classified_at' => 'classified_at',
+            default => 'title',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(ProductIncident $incident) => $this->listItemPayload($incident));
+    }
+
+    /**
+     * Org-wide incident list across all products in the tenant.
+     *
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    public function paginateForOrganization(
+        Organization $organization,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'title',
+        string $sortOrder = 'asc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = ProductIncident::query()
+            ->where('organization_id', $organization->id)
+            ->with(['owner', 'product:id,name']);
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('severity', 'like', "%{$search}%")
+                    ->orWhere('summary', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'product',
+                        fn($productQuery) => $productQuery->where('name', 'like', "%{$search}%"),
+                    );
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'id' => 'id',
+            'status' => 'status',
+            'severity' => 'severity',
+            'awareness_at' => 'awareness_at',
+            'detected_at' => 'detected_at',
+            'classified_at' => 'classified_at',
+            'product_name' => 'product_id',
             default => 'title',
         };
 
@@ -501,6 +554,8 @@ class ProductIncidentService
             'title' => $incident->title,
             'status' => $incident->status->value,
             'severity' => $incident->severity->value,
+            'product_id' => $incident->product_id,
+            'product_name' => $incident->product?->name ?? '',
             'owner_name' => $incident->owner?->name,
             'awareness_at' => $incident->awareness_at?->toIso8601String(),
             'detected_at' => $incident->detected_at?->toIso8601String(),

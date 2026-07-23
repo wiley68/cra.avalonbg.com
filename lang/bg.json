@@ -387,12 +387,22 @@
         "customers": "Клиенти",
         "policies": "Политики",
         "auditor": "Одиторски прегледи",
+        "incidents": "Инциденти",
         "controls": "Контроли",
         "logs": "Журнали",
         "audit": "Одит",
         "requirements_catalogue": "Каталог изисквания",
         "settings": "Настройки",
         "logout": "Изход"
+    },
+    "incidents": {
+        "index_title": "Security инциденти",
+        "title": "Security инциденти",
+        "subtitle": "Междупродуктов регистър на инциденти за вашата организация",
+        "search_placeholder": "Търсене по заглавие, продукт, статус или тежест...",
+        "columns": {
+            "product": "Продукт"
+        }
     },
     "customers": {
         "index_title": "Клиенти",

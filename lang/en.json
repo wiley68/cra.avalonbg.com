@@ -387,12 +387,22 @@
         "customers": "Customers",
         "policies": "Policies",
         "auditor": "Auditor reviews",
+        "incidents": "Incidents",
         "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
         "requirements_catalogue": "Requirements catalogue",
         "settings": "Settings",
         "logout": "Log out"
+    },
+    "incidents": {
+        "index_title": "Security incidents",
+        "title": "Security incidents",
+        "subtitle": "Cross-product incident register for your organization",
+        "search_placeholder": "Search by title, product, status or severity...",
+        "columns": {
+            "product": "Product"
+        }
     },
     "customers": {
         "index_title": "Customers",

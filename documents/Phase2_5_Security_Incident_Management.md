@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.8  
+**Версия:** 1.9  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–17 done)  
+**Статус:** Closed — Phase 2.5 complete (Must 1–6 + Should 7–12 + Could 13–18 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -112,6 +112,7 @@ flowchart TB
 
 | Къде           | Route                                           |
 | -------------- | ----------------------------------------------- |
+| Org sidebar    | `/incidents`                                    |
 | Product module | `/products/{product}/incidents`                 |
 | Edit           | `/products/{product}/incidents/{incident}/edit` |
 
@@ -248,7 +249,7 @@ POST   /products/{product}/incidents/{incident}/ai-draft
 15. ~~CIA impacts + attack vector enums~~ **Done**
 16. ~~AI `incident_summary` draft (human review)~~ **Done**
 17. ~~Lessons learned → evidence / controls link~~ **Done**
-18. Org-level cross-product incident index
+18. ~~Org-level cross-product incident index~~ **Done**
 
 ---
 
@@ -310,6 +311,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                 |
 | ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.9    | 2026-07-23 | Could 18 Done — org-level cross-product incidents index + sidebar       |
 | 1.8    | 2026-07-23 | Could 17 Done — lessons learned links to evidence + controls            |
 | 1.7    | 2026-07-23 | Could 16 Done — AI incident summary draft (suggest/apply, no auto-save) |
 | 1.6    | 2026-07-23 | Could 15 Done — CIA impacts + attack vector enums on incidents          |
