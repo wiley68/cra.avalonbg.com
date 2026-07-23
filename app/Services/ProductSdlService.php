@@ -10,6 +10,7 @@ use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
@@ -19,6 +20,7 @@ use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
 use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
@@ -177,6 +179,12 @@ class ProductSdlService
             );
             $this->assertEvidenceBelongToProduct($product, $evidenceIds);
             $this->assertStatusNotApprovedViaForm($attributes['status'] ?? null);
+            $this->assertPublishedUsiBelongsToProduct(
+                $product,
+                isset($attributes['user_security_instruction_id'])
+                ? (int) $attributes['user_security_instruction_id']
+                : null,
+            );
 
             /** @var SdlRun $run */
             $run = SdlRun::query()->create([
@@ -185,6 +193,7 @@ class ProductSdlService
                 'product_id' => $product->id,
                 'current_stage' => $attributes['current_stage'] ?? SdlStage::first(),
                 'status' => $attributes['status'] ?? SdlRunStatus::Draft,
+                'tech_doc_delta_reviewed' => (bool) ($attributes['tech_doc_delta_reviewed'] ?? false),
             ]);
 
             $run->ensureStageEntries();
@@ -257,6 +266,51 @@ class ProductSdlService
 
             return $run->fresh(['owner', 'version', 'stageEntries.evidence', 'evidence']) ?? $run;
         });
+
+        AuditLogger::logSdlRunUpdated($run, $actor);
+
+        return $run;
+    }
+
+    /**
+     * Link published USI / tech-doc delta flag — allowed after approval (light docs gate).
+     *
+     * @param  array{user_security_instruction_id?: int|null, tech_doc_delta_reviewed?: bool}  $attributes
+     */
+    public function updateDocumentationLinks(
+        SdlRun $run,
+        array $attributes,
+        User $actor,
+    ): SdlRun {
+        $run->loadMissing('product');
+
+        $usiId = array_key_exists('user_security_instruction_id', $attributes)
+            ? ($attributes['user_security_instruction_id'] !== null
+                ? (int) $attributes['user_security_instruction_id']
+                : null)
+            : $run->user_security_instruction_id;
+
+        $this->assertPublishedUsiBelongsToProduct($run->product, $usiId);
+
+        $payload = [
+            'user_security_instruction_id' => $usiId,
+        ];
+
+        if (array_key_exists('tech_doc_delta_reviewed', $attributes)) {
+            $payload['tech_doc_delta_reviewed'] = (bool) $attributes['tech_doc_delta_reviewed'];
+        }
+
+        $run->update($payload);
+
+        $run = $run->fresh([
+            'owner',
+            'version',
+            'approver',
+            'evidence',
+            'userSecurityInstruction.productVersion',
+            'stageEntries.completer',
+            'stageEntries.evidence',
+        ]) ?? $run;
 
         AuditLogger::logSdlRunUpdated($run, $actor);
 
@@ -957,10 +1011,16 @@ class ProductSdlService
             $run->load('evidence');
         }
 
+        if (!$run->relationLoaded('userSecurityInstruction')) {
+            $run->load('userSecurityInstruction.productVersion');
+        }
+
         $orderedStages = SdlStage::ordered();
         $entriesByStage = $run->stageEntries->keyBy(
             fn(SdlStageEntry $entry) => $entry->stage->value,
         );
+
+        $usi = $run->userSecurityInstruction;
 
         return [
             'id' => $run->id,
@@ -971,6 +1031,19 @@ class ProductSdlService
             'version_number' => $run->version?->version_number,
             'owner_user_id' => $run->owner_user_id,
             'notes' => $run->notes,
+            'user_security_instruction_id' => $run->user_security_instruction_id,
+            'tech_doc_delta_reviewed' => (bool) $run->tech_doc_delta_reviewed,
+            'linked_usi' => $usi === null
+                ? null
+                : [
+                    'id' => $usi->id,
+                    'title' => $usi->title,
+                    'version_label' => $usi->version_label,
+                    'locale' => $usi->locale,
+                    'status' => $usi->status->value,
+                    'product_version_id' => $usi->product_version_id,
+                    'version_number' => $usi->productVersion?->version_number,
+                ],
             'approved_at' => $run->approved_at?->toIso8601String(),
             'approved_by' => $run->approved_by,
             'approved_by_name' => $run->approver?->name,
@@ -1007,6 +1080,59 @@ class ProductSdlService
                 ->values()
                 ->all(),
         ];
+    }
+
+    /**
+     * Published USI options for light SDL documentation link.
+     *
+     * @return list<array{
+     *     id: int,
+     *     title: string,
+     *     version_label: string,
+     *     locale: string,
+     *     product_version_id: int|null,
+     *     version_number: string|null
+     * }>
+     */
+    public function publishedUsiOptions(Product $product): array
+    {
+        return UserSecurityInstruction::query()
+            ->where('product_id', $product->id)
+            ->where('status', UserSecurityInstructionStatus::Published)
+            ->with('productVersion:id,version_number')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'version_label', 'locale', 'product_version_id'])
+            ->map(fn(UserSecurityInstruction $instruction) => [
+                'id' => $instruction->id,
+                'title' => $instruction->title,
+                'version_label' => $instruction->version_label,
+                'locale' => $instruction->locale,
+                'product_version_id' => $instruction->product_version_id,
+                'version_number' => $instruction->productVersion?->version_number,
+            ])
+            ->all();
+    }
+
+    private function assertPublishedUsiBelongsToProduct(Product $product, ?int $instructionId): void
+    {
+        if ($instructionId === null) {
+            return;
+        }
+
+        $exists = UserSecurityInstruction::query()
+            ->whereKey($instructionId)
+            ->where('product_id', $product->id)
+            ->where('status', UserSecurityInstructionStatus::Published)
+            ->exists();
+
+        if (!$exists) {
+            throw ValidationException::withMessages([
+                'user_security_instruction_id' => [
+                    Translations::get('products.sdl.usi_link_invalid'),
+                ],
+            ]);
+        }
     }
 
     private function assertVersionBelongsToProduct(Product $product, ?int $versionId): void

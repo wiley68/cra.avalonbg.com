@@ -2908,6 +2908,7 @@
                 "section_stages": "Чеклист по етапи",
                 "section_exception": "Изключение",
                 "section_run_evidence": "Evidence към записа",
+                "section_documentation": "Връзки към документация",
                 "stage_evidence": "Evidence към етапа",
                 "empty": "Не е посочено.",
                 "invalid_format": "Форматът за експорт трябва да е markdown или pdf."
@@ -2942,6 +2943,15 @@
             "exception_view_task": "Отвори follow-up задача",
             "exception_task_title": "SDL изключение: :run — :stage",
             "exception_task_description": "Проследете SDL изключение за \":run\" (:stage).\n\nОбосновка:\n:notes",
+            "documentation_heading": "Връзки към документация",
+            "documentation_help": "По желание свържете публикувани инструкции за сигурност (USI) и отбележете, че outline / delta на техническата документация е прегледан за това издание.",
+            "documentation_save": "Запази връзките към документация",
+            "documentation_updated": "Връзките към документация са обновени.",
+            "usi_link_invalid": "Изберете публикувани инструкции за сигурност за този продукт.",
+            "usi_link_none": "Все още няма публикувани инструкции за сигурност за този продукт.",
+            "usi_link_open": "Отвори свързаните USI",
+            "tech_doc_passport_link": "Отвори passport outline",
+            "tech_doc_readiness_link": "Отвори readiness (секция tech docs)",
             "columns": {
                 "id": "ID",
                 "title": "Заглавие",
@@ -2967,7 +2977,9 @@
                 "stage_notes": "Бележки към етапа",
                 "stage_evidence": "Доказателства за етапа",
                 "exception_owner": "Собственик на изключението",
-                "exception_expires_at": "Срок за преглед"
+                "exception_expires_at": "Срок за преглед",
+                "linked_usi": "Публикувани USI",
+                "tech_doc_delta_reviewed": "Tech-doc delta е прегледан"
             },
             "help": {
                 "title": "Кратко име на този SDL запис (функционалност, издание или security gate).",
@@ -2986,7 +2998,9 @@
                 "stage_notes": "Съображения за заплахи, резултати от чеклист или обосновка за N/A / изключение.",
                 "stage_evidence": "Доказателства конкретно за този етап (peer review, сканиране, тест доклад).",
                 "exception_owner": "Член на организацията, отговорен за разрешаване или преглед на изключението.",
-                "exception_expires_at": "Дата, до която изключението трябва да бъде прегледано или закрито."
+                "exception_expires_at": "Дата, до която изключението трябва да бъде прегледано или закрито.",
+                "linked_usi": "Публикувани инструкции за сигурност, свързани с този SDL / release (опционално).",
+                "tech_doc_delta_reviewed": "Потвърдете, че outline / version delta на техническата документация е прегледан (passport / readiness). Пълният tech-doc workspace е извън scope."
             },
             "locales": {
                 "en": "Английски",

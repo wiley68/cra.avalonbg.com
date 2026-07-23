@@ -7,6 +7,7 @@ use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
 use App\Http\Requests\LinkSdlExternalEvidenceRequest;
 use App\Http\Requests\StoreSdlRunRequest;
+use App\Http\Requests\UpdateSdlDocumentationRequest;
 use App\Http\Requests\UpdateSdlRunRequest;
 use App\Http\Requests\UpdateSdlStageRequest;
 use App\Models\Organization;
@@ -71,6 +72,7 @@ class ProductSdlController extends Controller
             'repository' => $this->repositories->payload($product->repository),
             'git_evidence' => $this->sdl->gitEvidenceOptions($product),
             'git_suggestions' => $this->sdl->gitSyncSuggestions($product),
+            'published_usi' => $this->sdl->publishedUsiOptions($product),
             'options' => [
                 ...$this->enumOptions(),
                 'locales' => Organization::LOCALES,
@@ -141,6 +143,7 @@ class ProductSdlController extends Controller
             'repository' => $this->repositories->payload($product->repository),
             'git_evidence' => $this->sdl->gitEvidenceOptions($product),
             'git_suggestions' => $this->sdl->gitSyncSuggestions($product, $sdlRun),
+            'published_usi' => $this->sdl->publishedUsiOptions($product),
             'options' => $this->enumOptions(),
             'stage_note_templates' => SdlStageNoteTemplates::payload(
                 $organization->resolvedLocale(),
@@ -227,6 +230,34 @@ class ProductSdlController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.sdl.updated'),
+        ]);
+
+        return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
+    }
+
+    public function updateDocumentation(
+        UpdateSdlDocumentationRequest $request,
+        Product $product,
+        SdlRun $sdlRun,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+
+        $this->sdl->updateDocumentationLinks(
+            $sdlRun,
+            [
+                'user_security_instruction_id' => $request->filled('user_security_instruction_id')
+                    ? $request->integer('user_security_instruction_id')
+                    : null,
+                'tech_doc_delta_reviewed' => $request->boolean('tech_doc_delta_reviewed'),
+            ],
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.sdl.documentation_updated'),
         ]);
 
         return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
@@ -500,6 +531,10 @@ class ProductSdlController extends Controller
                 ? (int) $validated['owner_user_id']
                 : null,
             'notes' => $validated['notes'] ?? null,
+            'user_security_instruction_id' => isset($validated['user_security_instruction_id'])
+                ? (int) $validated['user_security_instruction_id']
+                : null,
+            'tech_doc_delta_reviewed' => (bool) ($validated['tech_doc_delta_reviewed'] ?? false),
         ];
     }
 }

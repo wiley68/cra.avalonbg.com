@@ -27,6 +27,8 @@ use Illuminate\Support\Facades\DB;
  * @property Carbon|null $approved_at
  * @property int|null $approved_by
  * @property string|null $notes
+ * @property int|null $user_security_instruction_id
+ * @property bool $tech_doc_delta_reviewed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Organization|null $organization
@@ -34,6 +36,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read ProductVersion|null $version
  * @property-read User|null $owner
  * @property-read User|null $approver
+ * @property-read UserSecurityInstruction|null $userSecurityInstruction
  */
 #[Fillable([
     'organization_id',
@@ -46,6 +49,8 @@ use Illuminate\Support\Facades\DB;
     'approved_at',
     'approved_by',
     'notes',
+    'user_security_instruction_id',
+    'tech_doc_delta_reviewed',
 ])]
 class SdlRun extends Model
 {
@@ -55,6 +60,7 @@ class SdlRun extends Model
             'status' => SdlRunStatus::class,
             'current_stage' => SdlStage::class,
             'approved_at' => 'datetime',
+            'tech_doc_delta_reviewed' => 'boolean',
         ];
     }
 
@@ -86,6 +92,12 @@ class SdlRun extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /** @return BelongsTo<UserSecurityInstruction, $this> */
+    public function userSecurityInstruction(): BelongsTo
+    {
+        return $this->belongsTo(UserSecurityInstruction::class);
     }
 
     /** @return HasMany<SdlStageEntry, $this> */

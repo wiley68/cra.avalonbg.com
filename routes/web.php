@@ -305,6 +305,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/sdl/{sdlRun}/ai-draft',
             [ProductSdlController::class, 'suggestAiDraft'],
         )->name('products.sdl.ai-draft')->scopeBindings();
+        Route::put(
+            'products/{product}/sdl/{sdlRun}/documentation',
+            [ProductSdlController::class, 'updateDocumentation'],
+        )->name('products.sdl.documentation.update')->scopeBindings();
         Route::get(
             'products/{product}/sdl/{sdlRun}/export/{format}',
             [ProductSdlController::class, 'export'],

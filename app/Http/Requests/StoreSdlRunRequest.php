@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\SdlRunStatus;
 use App\Enums\SdlStage;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\SdlRun;
@@ -47,6 +48,16 @@ class StoreSdlRunRequest extends FormRequest
             'notes' => ['nullable', 'string'],
             'use_template' => ['sometimes', 'boolean'],
             'locale' => ['nullable', 'string', Rule::in(Organization::LOCALES)],
+            'user_security_instruction_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('user_security_instructions', 'id')->where(
+                    fn($query) => $query
+                        ->where('product_id', $product->id)
+                        ->where('status', UserSecurityInstructionStatus::Published->value),
+                ),
+            ],
+            'tech_doc_delta_reviewed' => ['sometimes', 'boolean'],
             'evidence_ids' => ['nullable', 'array'],
             'evidence_ids.*' => [
                 'integer',

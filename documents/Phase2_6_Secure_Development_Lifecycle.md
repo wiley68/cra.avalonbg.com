@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 1.8  
+**Версия:** 1.9  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–12 Done; Could 13–17 Done  
+**Статус:** Active — Must Done; Should 7–12 Done; Could 13–18 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -210,7 +210,7 @@ GET    /internal-api/sdl
 15. ~~Export PDF/Markdown SDL summary for release package~~ **Done**
 16. ~~Auto-suggest evidence from recent Git sync~~ **Done**
 17. ~~Post-release monitoring checklist + dashboard counts~~ **Done**
-18. Link SDL run → published USI / tech-doc delta (light)
+18. ~~Link SDL run → published USI / tech-doc delta (light)~~ **Done**
 
 ---
 
@@ -272,6 +272,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                    |
 | ------ | ---------- | ------------------------------------------------------------------------------------------ |
+| 1.9    | 2026-07-23 | Could 18 Done — light SDL → published USI link + tech-doc delta reviewed flag              |
 | 1.8    | 2026-07-23 | Could 17 Done — post-release monitoring checklist + dashboard counts                       |
 | 1.7    | 2026-07-23 | Could 16 Done — auto-suggest evidence from last Git sync (suggest → attach)                |
 | 1.6    | 2026-07-23 | Could 15 Done — PDF/Markdown SDL summary export for release package                        |

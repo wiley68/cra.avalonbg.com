@@ -19,6 +19,7 @@ import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
@@ -31,9 +32,13 @@ import {
     revokeApproval as revokeSdlApproval,
     update,
 } from '@/routes/products/sdl';
+import { update as updateSdlDocumentation } from '@/routes/products/sdl/documentation';
 import { update as updateSdlStage } from '@/routes/products/sdl/stages';
 import { sync as syncRepository } from '@/routes/products/repository';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { show as showPassport } from '@/routes/products/passport';
+import { show as showReadiness } from '@/routes/products/readiness';
+import { edit as editSecurityInstruction } from '@/routes/products/security-instructions';
 import { edit as editTask } from '@/routes/products/tasks';
 
 type Member = { id: number; name: string; email: string };
@@ -128,6 +133,17 @@ type SdlRunDetail = {
     version_number: string | null;
     owner_user_id: number | null;
     notes: string | null;
+    user_security_instruction_id: number | null;
+    tech_doc_delta_reviewed: boolean;
+    linked_usi: {
+        id: number;
+        title: string;
+        version_label: string;
+        locale: string;
+        status: string;
+        product_version_id: number | null;
+        version_number: string | null;
+    } | null;
     approved_at: string | null;
     approved_by_name: string | null;
     is_terminal: boolean;
@@ -135,6 +151,14 @@ type SdlRunDetail = {
     can_approve: boolean;
     evidence_ids: number[];
     stage_entries: StageEntry[];
+};
+type PublishedUsiOption = {
+    id: number;
+    title: string;
+    version_label: string;
+    locale: string;
+    product_version_id: number | null;
+    version_number: string | null;
 };
 
 const props = defineProps<{
@@ -146,6 +170,7 @@ const props = defineProps<{
     repository: RepositoryPayload | null;
     git_evidence: GitEvidenceOption[];
     git_suggestions: GitSuggestions;
+    published_usi: PublishedUsiOption[];
     canManage: boolean;
     aiEnabled: boolean;
     stage_note_templates: Record<string, string>;
@@ -189,6 +214,12 @@ const form = useForm({
     owner_user_id: (props.run.owner_user_id ?? '') as number | '',
     notes: props.run.notes ?? '',
     evidence_ids: [...props.run.evidence_ids],
+});
+
+const docsForm = useForm({
+    user_security_instruction_id: (props.run.user_security_instruction_id ??
+        '') as number | '',
+    tech_doc_delta_reviewed: props.run.tech_doc_delta_reviewed,
 });
 
 const buildStageDrafts = (entries: StageEntry[]): Record<string, StageDraft> =>
@@ -403,6 +434,20 @@ watch(
     },
 );
 
+watch(
+    () => props.run.user_security_instruction_id,
+    (id) => {
+        docsForm.user_security_instruction_id = (id ?? '') as number | '';
+    },
+);
+
+watch(
+    () => props.run.tech_doc_delta_reviewed,
+    (value) => {
+        docsForm.tech_doc_delta_reviewed = value;
+    },
+);
+
 const submit = () => {
     if (!canEdit.value) {
         return;
@@ -418,6 +463,36 @@ const submit = () => {
             sdlRun: props.run.id,
         }).url,
     );
+};
+
+const submitDocumentation = (): void => {
+    if (!props.canManage) {
+        return;
+    }
+
+    docsForm
+        .transform((data) => ({
+            user_security_instruction_id:
+                data.user_security_instruction_id || null,
+            tech_doc_delta_reviewed: data.tech_doc_delta_reviewed,
+        }))
+        .put(
+            updateSdlDocumentation({
+                product: props.product.id,
+                sdlRun: props.run.id,
+            }).url,
+            { preserveScroll: true },
+        );
+};
+
+const usiOptionLabel = (item: PublishedUsiOption): string => {
+    const parts = [item.title, item.version_label, item.locale.toUpperCase()];
+
+    if (item.version_number) {
+        parts.push(item.version_number);
+    }
+
+    return parts.join(' · ');
 };
 
 const saveStage = (stage: string) => {
@@ -1497,6 +1572,111 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                         @click="showRevokeDialog = true"
                     >
                         {{ t('products.sdl.revoke_approval') }}
+                    </Button>
+                </div>
+            </section>
+
+            <section class="space-y-3 rounded-md border p-3">
+                <div>
+                    <h2 class="text-sm font-medium">
+                        {{ t('products.sdl.documentation_heading') }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('products.sdl.documentation_help') }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <FieldLabel
+                        html-for="linked-usi"
+                        :help="t('products.sdl.help.linked_usi')"
+                    >
+                        {{ t('products.sdl.fields.linked_usi') }}
+                    </FieldLabel>
+                    <select
+                        id="linked-usi"
+                        v-model="docsForm.user_security_instruction_id"
+                        :class="selectClass"
+                        :disabled="!props.canManage"
+                    >
+                        <option value="">
+                            {{ t('products.sdl.none_selected') }}
+                        </option>
+                        <option
+                            v-for="item in props.published_usi"
+                            :key="item.id"
+                            :value="item.id"
+                        >
+                            {{ usiOptionLabel(item) }}
+                        </option>
+                    </select>
+                    <InputError
+                        :message="docsForm.errors.user_security_instruction_id"
+                    />
+                    <p
+                        v-if="props.published_usi.length === 0"
+                        class="text-sm text-muted-foreground"
+                    >
+                        {{ t('products.sdl.usi_link_none') }}
+                    </p>
+                    <Link
+                        v-if="props.run.linked_usi"
+                        :href="
+                            editSecurityInstruction({
+                                product: props.product.id,
+                                instruction: props.run.linked_usi.id,
+                            })
+                        "
+                        class="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+                    >
+                        {{ t('products.sdl.usi_link_open') }}
+                        <ExternalLink class="h-3.5 w-3.5" />
+                    </Link>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <Switch
+                        id="tech-doc-delta-reviewed"
+                        v-model="docsForm.tech_doc_delta_reviewed"
+                        :disabled="!props.canManage"
+                    />
+                    <FieldLabel
+                        html-for="tech-doc-delta-reviewed"
+                        :help="t('products.sdl.help.tech_doc_delta_reviewed')"
+                    >
+                        {{ t('products.sdl.fields.tech_doc_delta_reviewed') }}
+                    </FieldLabel>
+                </div>
+                <InputError
+                    :message="docsForm.errors.tech_doc_delta_reviewed"
+                />
+
+                <div class="flex flex-wrap gap-3 text-sm">
+                    <Link
+                        :href="showPassport(props.product.id)"
+                        class="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+                    >
+                        {{ t('products.sdl.tech_doc_passport_link') }}
+                        <ExternalLink class="h-3.5 w-3.5" />
+                    </Link>
+                    <Link
+                        :href="showReadiness(props.product.id)"
+                        class="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+                    >
+                        {{ t('products.sdl.tech_doc_readiness_link') }}
+                        <ExternalLink class="h-3.5 w-3.5" />
+                    </Link>
+                </div>
+
+                <div v-if="props.canManage" class="flex justify-end">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        :disabled="docsForm.processing"
+                        @click="submitDocumentation"
+                    >
+                        <Save class="h-4 w-4" />
+                        {{ t('products.sdl.documentation_save') }}
                     </Button>
                 </div>
             </section>

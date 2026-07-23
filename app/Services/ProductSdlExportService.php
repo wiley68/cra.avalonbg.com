@@ -63,6 +63,7 @@ class ProductSdlExportService
             'approver:id,name',
             'version:id,version_number',
             'evidence:id,title',
+            'userSecurityInstruction.productVersion:id,version_number',
             'stageEntries.completer:id,name',
             'stageEntries.evidence:id,title',
             'stageEntries.exception.owner:id,name',
@@ -103,6 +104,8 @@ class ProductSdlExportService
             ];
         }
 
+        $usi = $run->userSecurityInstruction;
+
         return [
             'organization' => [
                 'name' => $organization->name,
@@ -124,6 +127,15 @@ class ProductSdlExportService
                 'approved_at' => $run->approved_at?->toIso8601String(),
                 'approved_by_name' => $run->approver?->name,
                 'is_approved' => $run->isApproved(),
+                'tech_doc_delta_reviewed' => (bool) $run->tech_doc_delta_reviewed,
+                'linked_usi' => $usi === null
+                    ? null
+                    : [
+                        'title' => $usi->title,
+                        'version_label' => $usi->version_label,
+                        'locale' => $usi->locale,
+                        'version_number' => $usi->productVersion?->version_number,
+                    ],
                 'evidence' => $run->evidence
                     ->pluck('title')
                     ->filter()
@@ -175,6 +187,20 @@ class ProductSdlExportService
 
         $lines[] = '- **' . Translations::get('products.sdl.export.generated_at') . ':** '
             . $payload['generated_at'];
+
+        $lines[] = '';
+        $lines[] = '## ' . Translations::get('products.sdl.export.section_documentation');
+        $lines[] = '';
+        $lines[] = '- **' . Translations::get('products.sdl.fields.linked_usi') . ':** '
+            . ($run['linked_usi']
+                ? $run['linked_usi']['title']
+                . ' (' . $run['linked_usi']['version_label']
+                . ', ' . $run['linked_usi']['locale'] . ')'
+                : Translations::get('products.sdl.export.empty'));
+        $lines[] = '- **' . Translations::get('products.sdl.fields.tech_doc_delta_reviewed') . ':** '
+            . ($run['tech_doc_delta_reviewed']
+                ? Translations::get('common.yes')
+                : Translations::get('common.no'));
 
         if (filled($run['notes'])) {
             $lines[] = '';

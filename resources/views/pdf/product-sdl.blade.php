@@ -96,6 +96,25 @@
                 @endif
             </td>
         </tr>
+        <tr>
+            <th>{{ Translations::get('products.sdl.fields.linked_usi') }}</th>
+            <td>
+                @if (!empty($run['linked_usi']))
+                    {{ $run['linked_usi']['title'] }}
+                    ({{ $run['linked_usi']['version_label'] }}, {{ $run['linked_usi']['locale'] }})
+                @else
+                    —
+                @endif
+            </td>
+        </tr>
+        <tr>
+            <th>{{ Translations::get('products.sdl.fields.tech_doc_delta_reviewed') }}</th>
+            <td>
+                {{ !empty($run['tech_doc_delta_reviewed'])
+                    ? Translations::get('common.yes')
+                    : Translations::get('common.no') }}
+            </td>
+        </tr>
     </table>
 
     @if (!empty($run['notes']))
