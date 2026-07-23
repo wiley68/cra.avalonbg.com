@@ -55,6 +55,22 @@ class UpdateProductIncidentRequest extends FormRequest
                     fn($query) => $query->where('product_id', $product->id),
                 ),
             ],
+            'customer_ids' => ['nullable', 'array'],
+            'customer_ids.*' => [
+                'integer',
+                Rule::exists('customers', 'id')->where(
+                    fn($query) => $query->where('organization_id', $organization?->id),
+                ),
+            ],
+            'deployment_ids' => ['nullable', 'array'],
+            'deployment_ids.*' => [
+                'integer',
+                Rule::exists('product_deployments', 'id')->where(
+                    fn($query) => $query
+                        ->where('product_id', $product->id)
+                        ->where('organization_id', $organization?->id),
+                ),
+            ],
         ];
     }
 

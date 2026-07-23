@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\ClassificationStatus;
+use App\Enums\CustomerCriticality;
+use App\Enums\DeploymentEnvironment;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
@@ -12,8 +14,10 @@ use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
+use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
@@ -136,6 +140,116 @@ test('owner can create incident with affected versions', function () {
         ->and($incident->severity)->toBe(IncidentSeverity::High)
         ->and($incident->owner_user_id)->toBe($owner->id)
         ->and($incident->versions()->pluck('product_versions.id')->all())->toContain($version->id);
+});
+
+test('owner can attach customers and deployments to incident', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $customer = Customer::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Acme Bank',
+        'criticality' => CustomerCriticality::High,
+        'is_active' => true,
+    ]);
+
+    $deployment = ProductDeployment::query()->create([
+        'organization_id' => $organization->id,
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'product_version_id' => $version->id,
+        'environment' => DeploymentEnvironment::Production,
+        'internet_exposure' => true,
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.store', $product), [
+            'title' => 'Customer impact incident',
+            'status' => IncidentStatus::Open->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'version_ids' => [$version->id],
+            'customer_ids' => [$customer->id],
+            'deployment_ids' => [$deployment->id],
+        ])
+        ->assertRedirect();
+
+    $incident = ProductIncident::query()
+        ->where('product_id', $product->id)
+        ->where('title', 'Customer impact incident')
+        ->firstOrFail();
+
+    expect($incident->customers()->pluck('customers.id')->all())->toContain($customer->id)
+        ->and($incident->deployments()->pluck('product_deployments.id')->all())->toContain($deployment->id);
+
+    $this->actingAs($owner)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Customer impact incident',
+            'status' => IncidentStatus::Investigating->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'version_ids' => [$version->id],
+            'customer_ids' => [],
+            'deployment_ids' => [$deployment->id],
+        ])
+        ->assertRedirect();
+
+    expect($incident->fresh()->customers()->count())->toBe(0)
+        ->and($incident->fresh()->deployments()->pluck('product_deployments.id')->all())->toContain($deployment->id);
+});
+
+test('incident rejects foreign organization customers and deployments', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $foreignOrganization = Organization::query()->create([
+        'name' => 'Foreign Org',
+        'slug' => 'foreign-org-incidents',
+        'is_active' => true,
+    ]);
+
+    $foreignCustomer = Customer::query()->create([
+        'organization_id' => $foreignOrganization->id,
+        'name' => 'Foreign Customer',
+        'criticality' => CustomerCriticality::Low,
+        'is_active' => true,
+    ]);
+
+    $foreignProduct = Product::query()->create([
+        'organization_id' => $foreignOrganization->id,
+        'name' => 'Foreign Product',
+        'slug' => 'foreign-product-incidents',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $foreignDeployment = ProductDeployment::query()->create([
+        'organization_id' => $foreignOrganization->id,
+        'customer_id' => $foreignCustomer->id,
+        'product_id' => $foreignProduct->id,
+        'product_version_id' => null,
+        'environment' => DeploymentEnvironment::Staging,
+        'internet_exposure' => false,
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.store', $product), [
+            'title' => 'Foreign attach blocked',
+            'status' => IncidentStatus::Open->value,
+            'severity' => IncidentSeverity::Low->value,
+            'version_ids' => [$version->id],
+            'customer_ids' => [$foreignCustomer->id],
+            'deployment_ids' => [$foreignDeployment->id],
+        ])
+        ->assertSessionHasErrors(['customer_ids.0', 'deployment_ids.0']);
+
+    expect(ProductIncident::query()->where('title', 'Foreign attach blocked')->exists())->toBeFalse();
 });
 
 test('read-only user can view incidents but cannot create', function () {

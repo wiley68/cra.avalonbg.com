@@ -9,8 +9,10 @@ use App\Http\Requests\LinkIncidentVulnerabilityRequest;
 use App\Http\Requests\StoreIncidentTimelineEventRequest;
 use App\Http\Requests\StoreProductIncidentRequest;
 use App\Http\Requests\UpdateProductIncidentRequest;
+use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVulnerability;
 use App\Services\ProductIncidentService;
@@ -52,6 +54,8 @@ class ProductIncidentController extends Controller
             'product' => $this->productPayload($product),
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
+            'customers' => $this->customerOptions($organization),
+            'deployments' => $this->deploymentOptions($product),
             'options' => $this->enumOptions(),
         ]);
     }
@@ -65,6 +69,8 @@ class ProductIncidentController extends Controller
             $product,
             $this->validatedAttributes($request),
             array_map('intval', $request->input('version_ids', [])),
+            array_map('intval', $request->input('customer_ids', [])),
+            array_map('intval', $request->input('deployment_ids', [])),
             $request->user(),
         );
 
@@ -83,7 +89,14 @@ class ProductIncidentController extends Controller
         $this->assertIncidentBelongsToProduct($incident, $product);
         $this->authorize('view', [$incident, $organization]);
 
-        $incident->load(['owner', 'versions', 'timelineEvents.creator', 'vulnerability']);
+        $incident->load([
+            'owner',
+            'versions',
+            'customers',
+            'deployments',
+            'timelineEvents.creator',
+            'vulnerability',
+        ]);
 
         return Inertia::render('products/incidents/Edit', [
             'organization' => $this->organizationPayload($organization),
@@ -91,6 +104,8 @@ class ProductIncidentController extends Controller
             'incident' => $this->incidents->detailPayload($incident),
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
+            'customers' => $this->customerOptions($organization),
+            'deployments' => $this->deploymentOptions($product),
             'vulnerabilities' => $this->incidents->linkableVulnerabilityOptions($product),
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageVulnerabilities($organization),
@@ -198,6 +213,8 @@ class ProductIncidentController extends Controller
             $incident,
             $this->validatedAttributes($request),
             array_map('intval', $request->input('version_ids', [])),
+            array_map('intval', $request->input('customer_ids', [])),
+            array_map('intval', $request->input('deployment_ids', [])),
             $request->user(),
         );
 
@@ -327,6 +344,49 @@ class ProductIncidentController extends Controller
             ->map(fn($version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, name: string, is_active: bool}>
+     */
+    private function customerOptions(Organization $organization): array
+    {
+        return Customer::query()
+            ->where('organization_id', $organization->id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_active'])
+            ->map(fn(Customer $customer) => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'is_active' => $customer->is_active,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{
+     *     id: int,
+     *     customer_id: int,
+     *     customer_name: string,
+     *     environment: string,
+     *     product_version_number: string|null
+     * }>
+     */
+    private function deploymentOptions(Product $product): array
+    {
+        return ProductDeployment::query()
+            ->where('product_id', $product->id)
+            ->with(['customer:id,name', 'productVersion:id,version_number'])
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn(ProductDeployment $deployment) => [
+                'id' => $deployment->id,
+                'customer_id' => $deployment->customer_id,
+                'customer_name' => $deployment->customer?->name ?? ('#' . $deployment->customer_id),
+                'environment' => $deployment->environment->value,
+                'product_version_number' => $deployment->productVersion?->version_number,
             ])
             ->all();
     }

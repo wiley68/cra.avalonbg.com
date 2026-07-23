@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\ClassificationStatus;
+use App\Enums\CustomerCriticality;
+use App\Enums\DeploymentEnvironment;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
@@ -8,9 +10,11 @@ use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
 use App\Enums\ScopeStatus;
 use App\Enums\SupportStatus;
+use App\Models\Customer;
 use App\Models\IncidentTimelineEvent;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use Illuminate\Database\QueryException;
@@ -109,6 +113,24 @@ test('incident version pivot enforces uniqueness', function () {
 test('deleting incident cascades timeline events and version pivots', function () {
     ['organization' => $organization, 'product' => $product, 'version' => $version] = makeIncidentModelFixture();
 
+    $customer = Customer::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Cascade Customer',
+        'criticality' => CustomerCriticality::Medium,
+        'is_active' => true,
+    ]);
+
+    $deployment = ProductDeployment::query()->create([
+        'organization_id' => $organization->id,
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'product_version_id' => $version->id,
+        'environment' => DeploymentEnvironment::Production,
+        'internet_exposure' => false,
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+    ]);
+
     $incident = ProductIncident::query()->create([
         'organization_id' => $organization->id,
         'product_id' => $product->id,
@@ -118,6 +140,8 @@ test('deleting incident cascades timeline events and version pivots', function (
     ]);
 
     $incident->versions()->attach($version->id);
+    $incident->customers()->attach($customer->id);
+    $incident->deployments()->attach($deployment->id);
     IncidentTimelineEvent::query()->create([
         'incident_id' => $incident->id,
         'occurred_at' => now(),
@@ -131,6 +155,16 @@ test('deleting incident cascades timeline events and version pivots', function (
         ->and(IncidentTimelineEvent::query()->where('incident_id', $incidentId)->exists())->toBeFalse()
         ->and(
             \Illuminate\Support\Facades\DB::table('incident_product_versions')
+                ->where('incident_id', $incidentId)
+                ->exists(),
+        )->toBeFalse()
+        ->and(
+            \Illuminate\Support\Facades\DB::table('incident_customers')
+                ->where('incident_id', $incidentId)
+                ->exists(),
+        )->toBeFalse()
+        ->and(
+            \Illuminate\Support\Facades\DB::table('incident_product_deployments')
                 ->where('incident_id', $incidentId)
                 ->exists(),
         )->toBeFalse();

@@ -125,6 +125,28 @@ class ProductIncident extends Model
         )->withTimestamps();
     }
 
+    /** @return BelongsToMany<Customer, $this> */
+    public function customers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Customer::class,
+            'incident_customers',
+            'incident_id',
+            'customer_id',
+        )->withTimestamps();
+    }
+
+    /** @return BelongsToMany<ProductDeployment, $this> */
+    public function deployments(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProductDeployment::class,
+            'incident_product_deployments',
+            'incident_id',
+            'product_deployment_id',
+        )->withTimestamps();
+    }
+
     public function isOpen(): bool
     {
         return in_array($this->status, IncidentStatus::active(), true);

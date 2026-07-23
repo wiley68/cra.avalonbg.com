@@ -2594,6 +2594,8 @@
             "confirm_delete": "Delete this incident permanently?",
             "search_placeholder": "Search by title, status or severity...",
             "no_versions": "No product versions yet.",
+            "no_customers": "No customers yet.",
+            "no_deployments": "No product deployments yet.",
             "columns": {
                 "id": "ID",
                 "title": "Title",
@@ -2617,6 +2619,8 @@
                 "lessons_learned": "Lessons learned",
                 "notes": "Notes",
                 "versions": "Affected versions",
+                "customers": "Affected customers",
+                "deployments": "Affected deployments",
                 "timeline_occurred_at": "Occurred at",
                 "timeline_label": "Event label",
                 "timeline_notes": "Event notes"
@@ -2636,6 +2640,8 @@
                 "lessons_learned": "Post-incident learnings for future prevention.",
                 "notes": "Internal notes for investigation and follow-up.",
                 "versions": "Product versions impacted by this incident.",
+                "customers": "Organization customers impacted by this incident.",
+                "deployments": "Product deployments impacted by this incident.",
                 "timeline_occurred_at": "When this investigation event happened.",
                 "timeline_label": "Short label, e.g. Customer report or Mitigation applied.",
                 "timeline_notes": "Optional details for this timeline entry. Events cannot be edited after save.",

@@ -7,8 +7,10 @@ use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityExploitationStatus;
 use App\Enums\VulnerabilityStatus;
+use App\Models\Customer;
 use App\Models\IncidentTimelineEvent;
 use App\Models\Product;
+use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
@@ -75,15 +77,21 @@ class ProductIncidentService
     /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $versionIds
+     * @param  list<int>  $customerIds
+     * @param  list<int>  $deploymentIds
      */
     public function create(
         Product $product,
         array $attributes,
         array $versionIds,
+        array $customerIds,
+        array $deploymentIds,
         User $actor,
     ): ProductIncident {
-        $incident = DB::transaction(function () use ($product, $attributes, $versionIds) {
+        $incident = DB::transaction(function () use ($product, $attributes, $versionIds, $customerIds, $deploymentIds) {
             $this->assertVersionsBelongToProduct($product, $versionIds);
+            $this->assertCustomersBelongToOrganization($product->organization_id, $customerIds);
+            $this->assertDeploymentsBelongToProduct($product, $deploymentIds);
 
             /** @var ProductIncident $incident */
             $incident = ProductIncident::query()->create([
@@ -93,8 +101,10 @@ class ProductIncidentService
             ]);
 
             $incident->versions()->sync($versionIds);
+            $incident->customers()->sync($customerIds);
+            $incident->deployments()->sync($deploymentIds);
 
-            return $incident->load(['owner', 'versions']);
+            return $incident->load(['owner', 'versions', 'customers', 'deployments']);
         });
 
         AuditLogger::logIncidentCreated($incident, $actor);
@@ -105,22 +115,30 @@ class ProductIncidentService
     /**
      * @param  array<string, mixed>  $attributes
      * @param  list<int>  $versionIds
+     * @param  list<int>  $customerIds
+     * @param  list<int>  $deploymentIds
      */
     public function update(
         ProductIncident $incident,
         array $attributes,
         array $versionIds,
+        array $customerIds,
+        array $deploymentIds,
         User $actor,
     ): ProductIncident {
         $previousStatus = $incident->status->value;
 
-        $incident = DB::transaction(function () use ($incident, $attributes, $versionIds) {
+        $incident = DB::transaction(function () use ($incident, $attributes, $versionIds, $customerIds, $deploymentIds) {
             $this->assertVersionsBelongToProduct($incident->product, $versionIds);
+            $this->assertCustomersBelongToOrganization($incident->organization_id, $customerIds);
+            $this->assertDeploymentsBelongToProduct($incident->product, $deploymentIds);
 
             $incident->update($attributes);
             $incident->versions()->sync($versionIds);
+            $incident->customers()->sync($customerIds);
+            $incident->deployments()->sync($deploymentIds);
 
-            return $incident->fresh(['owner', 'versions']);
+            return $incident->fresh(['owner', 'versions', 'customers', 'deployments']);
         });
 
         if ($incident->status->value !== $previousStatus) {
@@ -321,6 +339,14 @@ class ProductIncidentService
             $incident->load('vulnerability');
         }
 
+        if (!$incident->relationLoaded('customers')) {
+            $incident->load('customers');
+        }
+
+        if (!$incident->relationLoaded('deployments')) {
+            $incident->load('deployments');
+        }
+
         return [
             'id' => $incident->id,
             'title' => $incident->title,
@@ -340,6 +366,8 @@ class ProductIncidentService
             'closed_at' => $incident->closed_at?->format('Y-m-d\TH:i'),
             'notes' => $incident->notes,
             'version_ids' => $incident->versions->pluck('id')->all(),
+            'customer_ids' => $incident->customers->pluck('id')->all(),
+            'deployment_ids' => $incident->deployments->pluck('id')->all(),
             'timeline_events' => $incident->timelineEvents
                 ->map(fn(IncidentTimelineEvent $event) => $this->timelineEventPayload($event))
                 ->values()
@@ -387,6 +415,51 @@ class ProductIncidentService
         if ($count !== count($uniqueIds)) {
             throw ValidationException::withMessages([
                 'version_ids' => ['One or more versions do not belong to this product.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $customerIds
+     */
+    private function assertCustomersBelongToOrganization(int $organizationId, array $customerIds): void
+    {
+        if ($customerIds === []) {
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $customerIds)));
+        $count = Customer::query()
+            ->where('organization_id', $organizationId)
+            ->whereIn('id', $uniqueIds)
+            ->count();
+
+        if ($count !== count($uniqueIds)) {
+            throw ValidationException::withMessages([
+                'customer_ids' => ['One or more customers do not belong to this organization.'],
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $deploymentIds
+     */
+    private function assertDeploymentsBelongToProduct(Product $product, array $deploymentIds): void
+    {
+        if ($deploymentIds === []) {
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique(array_map('intval', $deploymentIds)));
+        $count = ProductDeployment::query()
+            ->where('product_id', $product->id)
+            ->where('organization_id', $product->organization_id)
+            ->whereIn('id', $uniqueIds)
+            ->count();
+
+        if ($count !== count($uniqueIds)) {
+            throw ValidationException::withMessages([
+                'deployment_ids' => ['One or more deployments do not belong to this product.'],
             ]);
         }
     }

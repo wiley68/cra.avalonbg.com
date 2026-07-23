@@ -32,6 +32,14 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
+type CustomerOption = { id: number; name: string; is_active: boolean };
+type DeploymentOption = {
+    id: number;
+    customer_id: number;
+    customer_name: string;
+    environment: string;
+    product_version_number: string | null;
+};
 type ProductSummary = { id: number; name: string; slug: string };
 type VulnerabilityOption = {
     id: number;
@@ -70,6 +78,8 @@ type IncidentDetail = {
     classified_at: string | null;
     notes: string | null;
     version_ids: number[];
+    customer_ids: number[];
+    deployment_ids: number[];
     product_vulnerability_id: number | null;
     linked_vulnerability: LinkedVulnerability | null;
     timeline_events: TimelineEvent[];
@@ -80,6 +90,8 @@ const props = defineProps<{
     incident: IncidentDetail;
     members: Member[];
     versions: VersionOption[];
+    customers: CustomerOption[];
+    deployments: DeploymentOption[];
     vulnerabilities: VulnerabilityOption[];
     options: {
         statuses: string[];
@@ -136,6 +148,8 @@ const form = useForm({
     classified_at: props.incident.classified_at ?? '',
     notes: props.incident.notes ?? '',
     version_ids: [...props.incident.version_ids],
+    customer_ids: [...props.incident.customer_ids],
+    deployment_ids: [...props.incident.deployment_ids],
 });
 
 const timelineForm = useForm({
@@ -295,16 +309,29 @@ const formatDateTime = (value: string | null): string => {
     return date.toLocaleString();
 };
 
-const toggleVersion = (id: number, checked: boolean) => {
+const toggleId = (
+    field: 'version_ids' | 'customer_ids' | 'deployment_ids',
+    id: number,
+    checked: boolean,
+) => {
     if (checked) {
-        if (!form.version_ids.includes(id)) {
-            form.version_ids.push(id);
+        if (!form[field].includes(id)) {
+            form[field].push(id);
         }
 
         return;
     }
 
-    form.version_ids = form.version_ids.filter((value) => value !== id);
+    form[field] = form[field].filter((value) => value !== id);
+};
+
+const deploymentLabel = (deployment: DeploymentOption): string => {
+    const envKey = `products.deployments.environments.${deployment.environment}`;
+    const environment =
+        t(envKey) === envKey ? deployment.environment : t(envKey);
+    const version = deployment.product_version_number ?? '—';
+
+    return `${deployment.customer_name} — ${environment} (${version})`;
 };
 </script>
 
@@ -638,7 +665,8 @@ const toggleVersion = (id: number, checked: boolean) => {
                                 class="mt-1"
                                 :checked="form.version_ids.includes(version.id)"
                                 @change="
-                                    toggleVersion(
+                                    toggleId(
+                                        'version_ids',
                                         version.id,
                                         ($event.target as HTMLInputElement)
                                             .checked,
@@ -649,6 +677,94 @@ const toggleVersion = (id: number, checked: boolean) => {
                         </label>
                     </div>
                     <InputError :message="form.errors.version_ids" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel :help="t('products.incidents.help.customers')">
+                        {{ t('products.incidents.fields.customers') }}
+                    </FieldLabel>
+                    <div
+                        class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                    >
+                        <p
+                            v-if="customers.length === 0"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.incidents.no_customers') }}
+                        </p>
+                        <label
+                            v-for="customer in customers"
+                            :key="customer.id"
+                            class="flex items-start gap-2 text-sm"
+                        >
+                            <input
+                                type="checkbox"
+                                class="mt-1"
+                                :checked="
+                                    form.customer_ids.includes(customer.id)
+                                "
+                                @change="
+                                    toggleId(
+                                        'customer_ids',
+                                        customer.id,
+                                        ($event.target as HTMLInputElement)
+                                            .checked,
+                                    )
+                                "
+                            />
+                            <span>
+                                {{ customer.name }}
+                                <span
+                                    v-if="!customer.is_active"
+                                    class="text-muted-foreground"
+                                >
+                                    ({{ t('customers.inactive') }})
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                    <InputError :message="form.errors.customer_ids" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        :help="t('products.incidents.help.deployments')"
+                    >
+                        {{ t('products.incidents.fields.deployments') }}
+                    </FieldLabel>
+                    <div
+                        class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
+                    >
+                        <p
+                            v-if="deployments.length === 0"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.incidents.no_deployments') }}
+                        </p>
+                        <label
+                            v-for="deployment in deployments"
+                            :key="deployment.id"
+                            class="flex items-start gap-2 text-sm"
+                        >
+                            <input
+                                type="checkbox"
+                                class="mt-1"
+                                :checked="
+                                    form.deployment_ids.includes(deployment.id)
+                                "
+                                @change="
+                                    toggleId(
+                                        'deployment_ids',
+                                        deployment.id,
+                                        ($event.target as HTMLInputElement)
+                                            .checked,
+                                    )
+                                "
+                            />
+                            <span>{{ deploymentLabel(deployment) }}</span>
+                        </label>
+                    </div>
+                    <InputError :message="form.errors.deployment_ids" />
                 </div>
             </fieldset>
 
