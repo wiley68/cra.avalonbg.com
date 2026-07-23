@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\ClassificationStatus;
+use App\Enums\IncidentSeverity;
+use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
@@ -9,6 +11,7 @@ use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductIncident;
 use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
@@ -52,11 +55,11 @@ test('authenticated organization owner sees action dashboard', function () {
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
+        ->assertInertia(fn(Assert $page) => $page
             ->component('Dashboard')
-            ->has('dashboard', fn (Assert $dashboard) => $dashboard
+            ->has('dashboard', fn(Assert $dashboard) => $dashboard
                 ->where('mode', $expectedMode)
-                ->has('organization', fn (Assert $org) => $org
+                ->has('organization', fn(Assert $org) => $org
                     ->where('id', $organizationId)
                     ->etc())
                 ->has('actions')
@@ -79,9 +82,9 @@ test('platform admin without org sees platform dashboard', function () {
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
+        ->assertInertia(fn(Assert $page) => $page
             ->component('Dashboard')
-            ->has('dashboard', fn (Assert $dashboard) => $dashboard
+            ->has('dashboard', fn(Assert $dashboard) => $dashboard
                 ->where('mode', $expectedMode)
                 ->etc()));
 });
@@ -142,7 +145,7 @@ test('open tasks action links to tasks index and previews up to three tasks', fu
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
+        ->assertInertia(fn(Assert $page) => $page
             ->component('Dashboard')
             ->where('dashboard.counts.open_tasks', 4)
             ->has('dashboard.actions')
@@ -155,9 +158,108 @@ test('open tasks action links to tasks index and previews up to three tasks', fu
                     ->and($openTasks['items'])->toHaveCount(3)
                     ->and($openTasks['items'][0]['title'])->toBe('Fix auth')
                     ->and($openTasks['items'][0]['href'])->toBe(route('products.tasks.edit', [
-                        $product->id,
-                        $firstTaskId,
-                    ]));
+                                $product->id,
+                                $firstTaskId,
+                            ]));
+
+                return true;
+            }));
+});
+
+test('dashboard counts open and unclassified security incidents', function () {
+    test()->seed([RolePermissionSeeder::class]);
+
+    $organization = Organization::query()->create([
+        'name' => 'Incident Dash Org',
+        'slug' => 'incident-dash-org',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'two_factor_confirmed_at' => now(),
+        'must_change_password' => false,
+    ]);
+
+    $ownerRole = Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($user->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Incident Dash Product',
+        'slug' => 'incident-dash-product',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => true,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+        'scope_reviewed_at' => now(),
+        'scope_reviewed_by' => $user->id,
+        'classification_reviewed_at' => now(),
+        'classification_reviewed_by' => $user->id,
+    ]);
+
+    ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Open unclassified',
+        'status' => IncidentStatus::Open,
+        'severity' => IncidentSeverity::High,
+        'awareness_at' => now()->subHour(),
+    ]);
+
+    ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Investigating classified',
+        'status' => IncidentStatus::Investigating,
+        'severity' => IncidentSeverity::Medium,
+        'awareness_at' => now()->subHours(2),
+        'classified_at' => now()->subHour(),
+    ]);
+
+    ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Contained unclassified',
+        'status' => IncidentStatus::Contained,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now()->subDay(),
+    ]);
+
+    ProductIncident::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Closed unclassified ignored',
+        'status' => IncidentStatus::Closed,
+        'severity' => IncidentSeverity::Low,
+        'awareness_at' => now()->subDays(2),
+        'closed_at' => now()->subDay(),
+        'closed_by' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('dashboard.counts.open_incidents', 3)
+            ->where('dashboard.counts.unclassified_incidents', 2)
+            ->where('dashboard.actions', function ($actions): bool {
+                $open = collect($actions)->firstWhere('key', 'open_incidents');
+                $unclassified = collect($actions)->firstWhere('key', 'unclassified_incidents');
+
+                expect($open)->not->toBeNull()
+                    ->and($open['count'])->toBe(3)
+                    ->and($open['href'])->toBe(route('products.index'))
+                    ->and($unclassified)->not->toBeNull()
+                    ->and($unclassified['count'])->toBe(2);
 
                 return true;
             }));

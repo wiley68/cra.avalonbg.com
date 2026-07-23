@@ -2863,7 +2863,9 @@
             "expired_evidence": "Expired evidence",
             "open_tasks": "Open tasks",
             "risks": "Risks",
-            "overdue_reporting": "Overdue reporting"
+            "overdue_reporting": "Overdue reporting",
+            "open_incidents": "Open incidents",
+            "unclassified_incidents": "Unclassified incidents"
         },
         "actions": {
             "manage_organizations": "Manage organizations",
@@ -2871,6 +2873,8 @@
             "products_without_support": "Products without support periods",
             "products_without_risks": "Products without risk assessments",
             "critical_vulnerabilities": "Open critical vulnerabilities",
+            "open_incidents": "Open security incidents",
+            "unclassified_incidents": "Incidents missing classification timestamp",
             "support_ending_soon": "Support periods ending within 90 days",
             "support_ending_180": "Support periods ending within 180 days",
             "support_ending_90": "Support periods ending within 90 days",

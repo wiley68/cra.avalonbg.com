@@ -2861,7 +2861,9 @@
             "expired_evidence": "Изтекли доказателства",
             "open_tasks": "Отворени задачи",
             "risks": "Рискове",
-            "overdue_reporting": "Просрочено докладване"
+            "overdue_reporting": "Просрочено докладване",
+            "open_incidents": "Отворени инциденти",
+            "unclassified_incidents": "Некласифицирани инциденти"
         },
         "actions": {
             "manage_organizations": "Управление на организации",
@@ -2869,6 +2871,8 @@
             "products_without_support": "Продукти без периоди на поддръжка",
             "products_without_risks": "Продукти без оценка на риска",
             "critical_vulnerabilities": "Отворени критични уязвимости",
+            "open_incidents": "Отворени security инциденти",
+            "unclassified_incidents": "Инциденти без timestamp за класификация",
             "support_ending_soon": "Периоди на поддръжка, приключващи до 90 дни",
             "support_ending_180": "Периоди на поддръжка, приключващи до 180 дни",
             "support_ending_90": "Периоди на поддръжка, приключващи до 90 дни",

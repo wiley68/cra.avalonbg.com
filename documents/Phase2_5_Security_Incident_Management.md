@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.0  
+**Версия:** 1.1  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Should in progress (Must 1–6 done; Should 7–9 done)  
+**Статус:** Active — Should in progress (Must 1–6 done; Should 7–10 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -230,7 +230,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 7. ~~Affected customers / deployments multi-select~~ **Done**
 8. ~~Closure flow (closed_at / closed_by + optional approval task)~~ **Done**
 9. ~~Root cause + corrective measures on Edit (if not already in Must form)~~ **Done**
-10. Dashboard counts (`open_incidents`, unclassified)
+10. ~~Dashboard counts (`open_incidents`, unclassified)~~ **Done**
 11. PDF/Markdown incident summary export
 12. Product module nav card + dedicated `incidents.*` permissions
 
@@ -303,6 +303,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 1.1    | 2026-07-23 | Should 10 Done — dashboard open/unclassified incident counts          |
 | 1.0    | 2026-07-23 | Should 9 Done — investigation section; close requires root/corrective |
 | 0.9    | 2026-07-23 | Should 8 Done — close flow, closed_at/by, optional approval task      |
 | 0.8    | 2026-07-23 | Should 7 Done — affected customers / deployments multi-select         |

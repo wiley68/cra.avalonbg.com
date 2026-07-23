@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ClassificationStatus;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\IncidentStatus;
 use App\Enums\ProductVersionState;
 use App\Enums\SupportPeriodStartBasis;
 use App\Enums\TaskStatus;
@@ -12,6 +13,7 @@ use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductIncident;
 use App\Models\ProductRisk;
 use App\Models\ProductSupportPeriod;
 use App\Models\ProductVersion;
@@ -96,6 +98,8 @@ class DashboardService
         $expiredEvidence = $this->expiredEvidenceCount($productIds);
         $overdueReporting = $this->overdueReportingCount($productIds);
         $risksCount = ProductRisk::query()->whereIn('product_id', $productIds)->count();
+        $openIncidents = $this->openIncidentCount($productIds);
+        $unclassifiedIncidents = $this->unclassifiedIncidentCount($productIds);
         $openTasksAction = $this->openTasksAction($productIds);
         $supportBuckets = $this->supportEndingBuckets($productIds);
 
@@ -119,6 +123,16 @@ class DashboardService
                 'critical_vulnerabilities',
                 'fail',
                 $criticalVulns,
+            ),
+            $this->countAction(
+                'open_incidents',
+                'warn',
+                $openIncidents,
+            ),
+            $this->countAction(
+                'unclassified_incidents',
+                'warn',
+                $unclassifiedIncidents,
             ),
             $this->countAction(
                 'support_ending_180',
@@ -173,6 +187,8 @@ class DashboardService
                 'expired_evidence' => $expiredEvidence,
                 'risks' => $risksCount,
                 'overdue_reporting' => $overdueReporting,
+                'open_incidents' => $openIncidents,
+                'unclassified_incidents' => $unclassifiedIncidents,
             ],
             'actions' => $actions,
         ];
@@ -190,7 +206,7 @@ class DashboardService
         return [
             'key' => $key,
             'severity' => $severity,
-            'title_key' => 'dashboard.actions.'.$key,
+            'title_key' => 'dashboard.actions.' . $key,
             'count' => $count,
             'href' => route('products.index'),
         ];
@@ -240,6 +256,42 @@ class DashboardService
 
     /**
      * @param  Collection<int, int|string>  $productIds
+     */
+    private function openIncidentCount(Collection $productIds): int
+    {
+        return ProductIncident::query()
+            ->whereIn('product_id', $productIds)
+            ->whereIn('status', $this->activeIncidentStatusValues())
+            ->count();
+    }
+
+    /**
+     * Active incidents that still lack a classification timestamp.
+     *
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function unclassifiedIncidentCount(Collection $productIds): int
+    {
+        return ProductIncident::query()
+            ->whereIn('product_id', $productIds)
+            ->whereIn('status', $this->activeIncidentStatusValues())
+            ->whereNull('classified_at')
+            ->count();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function activeIncidentStatusValues(): array
+    {
+        return array_map(
+            fn(IncidentStatus $status): string => $status->value,
+            IncidentStatus::active(),
+        );
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
      * @return array{180: int, 90: int, 30: int, ended: int}
      */
     private function supportEndingBuckets(Collection $productIds): array
@@ -256,7 +308,7 @@ class DashboardService
             ->where('start_basis', SupportPeriodStartBasis::ReleaseDate->value)
             ->with(['versions:id,release_date'])
             ->get()
-            ->filter(fn (ProductSupportPeriod $period): bool => $period->scheduleResolved());
+            ->filter(fn(ProductSupportPeriod $period): bool => $period->scheduleResolved());
 
         foreach ($periods as $period) {
             $days = $period->daysUntilEnd();
@@ -342,7 +394,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $previewTasks
-                ->map(fn (Task $task): array => [
+                ->map(fn(Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
@@ -394,7 +446,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $preview
-                ->map(fn (Task $task): array => [
+                ->map(fn(Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
