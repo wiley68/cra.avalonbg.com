@@ -15,8 +15,11 @@ use App\Models\Evidence;
 use App\Models\SdlRun;
 use App\Models\User;
 use App\Services\ProductSdlService;
+use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -55,7 +58,15 @@ class ProductSdlController extends Controller
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
             'evidence' => $this->evidenceOptions($product),
-            'options' => $this->enumOptions(),
+            'options' => [
+                ...$this->enumOptions(),
+                'locales' => Organization::LOCALES,
+                'default_locale' => $organization->resolvedLocale(),
+                'template_stages' => array_map(
+                    fn(SdlStage $stage) => $stage->value,
+                    SdlStageNoteTemplates::templatedStages(),
+                ),
+            ],
         ]);
     }
 
@@ -69,6 +80,8 @@ class ProductSdlController extends Controller
             $this->validatedAttributes($request),
             array_map('intval', $request->input('evidence_ids', [])),
             $request->user(),
+            $request->boolean('use_template'),
+            (string) $request->input('locale', $organization->resolvedLocale()),
         );
 
         Inertia::flash('toast', [
@@ -77,6 +90,23 @@ class ProductSdlController extends Controller
         ]);
 
         return redirect()->route('products.sdl.edit', [$product, $run]);
+    }
+
+    public function stageTemplates(Request $request, Product $product): JsonResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->authorize('viewAny', [SdlRun::class, $organization]);
+        $this->authorize('view', [$product, $organization]);
+
+        $locale = SdlStageNoteTemplates::normalizeLocale(
+            (string) $request->query('locale', $organization->resolvedLocale()),
+        );
+
+        return response()->json([
+            'locale' => $locale,
+            'stages' => SdlStageNoteTemplates::payload($locale),
+        ]);
     }
 
     public function edit(Product $product, SdlRun $sdlRun): InertiaResponse
@@ -96,6 +126,10 @@ class ProductSdlController extends Controller
             'versions' => $this->versionOptions($product),
             'evidence' => $this->evidenceOptions($product),
             'options' => $this->enumOptions(),
+            'stage_note_templates' => SdlStageNoteTemplates::payload(
+                $organization->resolvedLocale(),
+            ),
+            'template_locale' => $organization->resolvedLocale(),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }

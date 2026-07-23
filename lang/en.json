@@ -2822,6 +2822,7 @@
             "subtitle": "Track secure development stages and release security approval for this product",
             "create": "New SDL run",
             "create_title": "Create SDL run",
+            "create_help": "Optionally prefill stage notes with secure coding and threat checklists.",
             "edit_title": "Edit SDL run",
             "created": "SDL run created.",
             "updated": "SDL run updated.",
@@ -2839,6 +2840,10 @@
             "stages_help": "Mark each §5.14 stage as done, N/A, or exception and add notes for reviewers.",
             "stage_updated": "Stage checklist updated.",
             "stage_save": "Save stage",
+            "apply_template": "Apply checklist template",
+            "confirm_template_title": "Replace stage notes?",
+            "confirm_template_overwrite": "Existing notes for this stage will be replaced by the checklist template.",
+            "template_stages_hint": "Templates will prefill notes for: :stages",
             "stage_completed_meta": "Completed :when",
             "stage_completed_by": "by :name",
             "approved_banner": "Release security approval recorded",
@@ -2874,6 +2879,8 @@
                 "owner": "Owner",
                 "notes": "Notes",
                 "evidence": "Linked evidence",
+                "use_template": "Use checklist templates",
+                "locale": "Template language",
                 "stage_status": "Stage status",
                 "stage_notes": "Stage notes",
                 "stage_evidence": "Stage evidence"
@@ -2886,9 +2893,15 @@
                 "owner": "Person responsible for driving this SDL run.",
                 "notes": "Free-form context for reviewers and auditors.",
                 "evidence": "Product evidence supporting this SDL run overall (PR, CI, scan, test report).",
+                "use_template": "Prefill selected stage notes with secure coding and threat checklist Markdown (optional).",
+                "locale": "Language for checklist templates applied on create.",
                 "stage_status": "Pending until complete. Use N/A when the stage does not apply; exception documents a justified deviation.",
                 "stage_notes": "Threat considerations, checklist outcomes, or rationale for N/A / exception.",
                 "stage_evidence": "Evidence specific to this stage (peer review, scan result, test report)."
+            },
+            "locales": {
+                "en": "English",
+                "bg": "Bulgarian"
             },
             "statuses": {
                 "draft": "Draft",

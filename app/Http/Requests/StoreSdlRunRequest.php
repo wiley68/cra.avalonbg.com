@@ -45,6 +45,8 @@ class StoreSdlRunRequest extends FormRequest
             ],
             'owner_user_id' => ['nullable', 'integer', $memberRule],
             'notes' => ['nullable', 'string'],
+            'use_template' => ['sometimes', 'boolean'],
+            'locale' => ['nullable', 'string', Rule::in(Organization::LOCALES)],
             'evidence_ids' => ['nullable', 'array'],
             'evidence_ids.*' => [
                 'integer',

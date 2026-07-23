@@ -277,6 +277,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->parameters(['sdl' => 'sdlRun'])
             ->scoped();
+        Route::get(
+            'products/{product}/sdl-stage-templates',
+            [ProductSdlController::class, 'stageTemplates'],
+        )->name('products.sdl.stage-templates');
         Route::put(
             'products/{product}/sdl/{sdlRun}/stages/{stage}',
             [ProductSdlController::class, 'updateStage'],

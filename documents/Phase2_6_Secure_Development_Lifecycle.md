@@ -1,8 +1,8 @@
 # Phase 2.6 — Secure Development Lifecycle
 
-**Версия:** 0.8  
+**Версия:** 0.9  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7 Done (version pin)  
+**Статус:** Active — Must Done; Should 7–8 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.14 Secure Development Lifecycle, §5.13 Evidence, §7 Integrations)
@@ -201,7 +201,7 @@ GET    /internal-api/sdl
 ### Should
 
 7. ~~Version-pinned SDL runs~~ **Done**
-8. Secure coding / threat checklist templates EN/BG
+8. ~~Secure coding / threat checklist templates EN/BG~~ **Done**
 9. GitHub/GitLab PR / CI artifact quick-link (reuse 2.1)
 10. Exception handling (owner + expiry + task)
 11. Readiness gap `sdl_release_approval_missing` (за in-scope release)
@@ -276,6 +276,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 0.9    | 2026-07-23 | Should 8 Done — EN/BG secure coding & threat checklist templates     |
 | 0.8    | 2026-07-23 | Should 7 Done — version-pinned SDL runs + index/API filter           |
 | 0.7    | 2026-07-23 | Must 6 Done — EN/BG i18n parity + RBAC/CRUD feature tests            |
 | 0.6    | 2026-07-23 | Must 5 Done — release security approval gate, lock, revoke + audit   |

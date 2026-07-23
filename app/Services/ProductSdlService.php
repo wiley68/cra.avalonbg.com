@@ -12,6 +12,7 @@ use App\Models\SdlRun;
 use App\Models\SdlStageEntry;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -90,8 +91,10 @@ class ProductSdlService
         array $attributes,
         array $evidenceIds,
         User $actor,
+        bool $useTemplate = false,
+        string $locale = 'en',
     ): SdlRun {
-        $run = DB::transaction(function () use ($product, $attributes, $evidenceIds) {
+        $run = DB::transaction(function () use ($product, $attributes, $evidenceIds, $useTemplate, $locale) {
             $this->assertVersionBelongsToProduct(
                 $product,
                 isset($attributes['product_version_id'])
@@ -113,12 +116,40 @@ class ProductSdlService
             $run->ensureStageEntries();
             $run->evidence()->sync($evidenceIds);
 
+            if ($useTemplate) {
+                $this->applyStageNoteTemplates($run, $locale);
+            }
+
             return $run->load(['owner', 'version', 'stageEntries', 'evidence']);
         });
 
         AuditLogger::logSdlRunCreated($run, $actor);
 
         return $run;
+    }
+
+    /**
+     * Prefill stage notes with secure coding / threat checklist templates.
+     */
+    public function applyStageNoteTemplates(SdlRun $run, string $locale = 'en'): void
+    {
+        $run->ensureStageEntries();
+        $locale = SdlStageNoteTemplates::normalizeLocale($locale);
+
+        foreach (SdlStageNoteTemplates::templatedStages() as $stage) {
+            $notes = SdlStageNoteTemplates::notesFor($stage, $locale);
+
+            if ($notes === null) {
+                continue;
+            }
+
+            $run->stageEntries()
+                ->where('stage', $stage->value)
+                ->update(['notes' => $notes]);
+        }
+
+        $run->unsetRelation('stageEntries');
+        $run->load('stageEntries');
     }
 
     /**

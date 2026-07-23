@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, ShieldCheck } from '@lucide/vue';
+import { ArrowLeft, FileText, Save, ShieldCheck } from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -63,6 +63,8 @@ const props = defineProps<{
     versions: VersionOption[];
     evidence: EvidenceOption[];
     canManage: boolean;
+    stage_note_templates: Record<string, string>;
+    template_locale: string;
     options: {
         statuses: string[];
         stages: string[];
@@ -124,6 +126,8 @@ const stageErrors = reactive<Record<string, Record<string, string>>>({});
 const approving = ref(false);
 const revoking = ref(false);
 const showRevokeDialog = ref(false);
+const showTemplateDialog = ref(false);
+const templateStagePending = ref<string | null>(null);
 
 const isLocked = computed(
     () => props.run.is_approved || props.run.status === 'approved',
@@ -279,6 +283,51 @@ const confirmRevoke = () => {
             },
         },
     );
+};
+
+const hasStageTemplate = (stage: string): boolean =>
+    Object.prototype.hasOwnProperty.call(props.stage_note_templates, stage);
+
+const fillStageTemplate = (stage: string): void => {
+    const template = props.stage_note_templates[stage];
+
+    if (!template || !stageDrafts[stage]) {
+        return;
+    }
+
+    stageDrafts[stage].notes = template;
+};
+
+const requestApplyTemplate = (stage: string): void => {
+    if (!canEdit.value || !hasStageTemplate(stage)) {
+        return;
+    }
+
+    const current = stageDrafts[stage]?.notes?.trim() ?? '';
+
+    if (current !== '') {
+        templateStagePending.value = stage;
+        showTemplateDialog.value = true;
+
+        return;
+    }
+
+    fillStageTemplate(stage);
+};
+
+const confirmApplyTemplate = (): void => {
+    const stage = templateStagePending.value;
+    showTemplateDialog.value = false;
+    templateStagePending.value = null;
+
+    if (stage) {
+        fillStageTemplate(stage);
+    }
+};
+
+const cancelApplyTemplate = (): void => {
+    showTemplateDialog.value = false;
+    templateStagePending.value = null;
 };
 
 const enumLabel = (group: string, value: string): string => {
@@ -654,17 +703,33 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                         </div>
 
                         <div class="space-y-2 sm:col-span-2">
-                            <FieldLabel
-                                :html-for="`stage-notes-${entry.stage}`"
-                                :help="t('products.sdl.help.stage_notes')"
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-2"
                             >
-                                {{ t('products.sdl.fields.stage_notes') }}
-                            </FieldLabel>
+                                <FieldLabel
+                                    :html-for="`stage-notes-${entry.stage}`"
+                                    :help="t('products.sdl.help.stage_notes')"
+                                >
+                                    {{ t('products.sdl.fields.stage_notes') }}
+                                </FieldLabel>
+                                <Button
+                                    v-if="
+                                        canEdit && hasStageTemplate(entry.stage)
+                                    "
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="requestApplyTemplate(entry.stage)"
+                                >
+                                    <FileText class="h-4 w-4" />
+                                    {{ t('products.sdl.apply_template') }}
+                                </Button>
+                            </div>
                             <textarea
                                 :id="`stage-notes-${entry.stage}`"
                                 v-model="stageDrafts[entry.stage].notes"
                                 :class="textareaClass"
-                                rows="2"
+                                rows="4"
                             />
                             <InputError
                                 :message="stageErrors[entry.stage]?.notes"
@@ -743,6 +808,15 @@ const stageCompletedLabel = (entry: StageEntry): string => {
             :loading="revoking"
             @confirm="confirmRevoke"
             @cancel="showRevokeDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showTemplateDialog"
+            variant="default"
+            :title="t('products.sdl.confirm_template_title')"
+            :description="t('products.sdl.confirm_template_overwrite')"
+            @confirm="confirmApplyTemplate"
+            @cancel="cancelApplyTemplate"
         />
     </div>
 </template>

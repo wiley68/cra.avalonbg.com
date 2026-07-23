@@ -5,6 +5,7 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
@@ -27,6 +28,9 @@ const props = defineProps<{
     options: {
         statuses: string[];
         stages: string[];
+        locales: string[];
+        default_locale: string;
+        template_stages: string[];
     };
 }>();
 
@@ -60,6 +64,8 @@ const form = useForm({
     product_version_id: '' as number | '',
     owner_user_id: '' as number | '',
     notes: '',
+    use_template: false,
+    locale: props.options.default_locale || props.options.locales[0] || 'en',
     evidence_ids: [] as number[],
 });
 
@@ -80,6 +86,13 @@ const enumLabel = (group: string, value: string): string => {
     const translated = t(key);
 
     return translated === key ? value : translated;
+};
+
+const localeLabel = (value: string): string => {
+    const key = `products.sdl.locales.${value}`;
+    const translated = t(key);
+
+    return translated === key ? value.toUpperCase() : translated;
 };
 
 const toggleEvidence = (id: number, checked: boolean) => {
@@ -107,6 +120,9 @@ const toggleEvidence = (id: number, checked: boolean) => {
                 <h1 class="text-xl font-semibold">
                     {{ t('products.sdl.create_title') }}
                 </h1>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('products.sdl.create_help') }}
+                </p>
             </div>
             <Button as-child variant="outline">
                 <Link :href="productSdlIndex(props.product.id)">
@@ -117,6 +133,48 @@ const toggleEvidence = (id: number, checked: boolean) => {
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
+            <div
+                class="flex items-center justify-between gap-4 rounded-md border p-3"
+            >
+                <div class="space-y-1">
+                    <FieldLabel
+                        html-for="use_template"
+                        :help="t('products.sdl.help.use_template')"
+                    >
+                        {{ t('products.sdl.fields.use_template') }}
+                    </FieldLabel>
+                </div>
+                <Switch id="use_template" v-model="form.use_template" />
+            </div>
+
+            <div v-if="form.use_template" class="space-y-2">
+                <FieldLabel
+                    html-for="locale"
+                    :help="t('products.sdl.help.locale')"
+                >
+                    {{ t('products.sdl.fields.locale') }}
+                </FieldLabel>
+                <select id="locale" v-model="form.locale" :class="selectClass">
+                    <option
+                        v-for="locale in props.options.locales"
+                        :key="locale"
+                        :value="locale"
+                    >
+                        {{ localeLabel(locale) }}
+                    </option>
+                </select>
+                <InputError :message="form.errors.locale" />
+                <p class="text-sm text-muted-foreground">
+                    {{
+                        t('products.sdl.template_stages_hint', {
+                            stages: props.options.template_stages
+                                .map((stage) => enumLabel('stages', stage))
+                                .join(', '),
+                        })
+                    }}
+                </p>
+            </div>
+
             <div class="space-y-2">
                 <FieldLabel
                     html-for="title"
