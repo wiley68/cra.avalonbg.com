@@ -38,6 +38,8 @@ class OpenAiProvider implements AiProvider
             $system .= "\n\n" . AiDraftPrompt::systemAddon();
         } elseif ($mode === 'usi_section_draft') {
             $system .= "\n\n" . AiUsiSectionDraftPrompt::systemAddon();
+        } elseif ($mode === 'incident_summary') {
+            $system .= "\n\n" . AiIncidentSummaryDraftPrompt::systemAddon();
         } elseif ($mode === 'vulnerability_triage') {
             $system .= "\n\n" . AiVulnerabilityTriagePrompt::systemAddon();
         }
@@ -67,7 +69,7 @@ class OpenAiProvider implements AiProvider
             'temperature' => 0.2,
         ];
 
-        if (in_array($mode, ['document_analyse', 'draft_generate', 'usi_section_draft', 'vulnerability_triage'], true)) {
+        if (in_array($mode, ['document_analyse', 'draft_generate', 'usi_section_draft', 'incident_summary', 'vulnerability_triage'], true)) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
 

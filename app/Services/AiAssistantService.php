@@ -14,6 +14,7 @@ use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\PatchCampaign;
 use App\Models\Product;
+use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
 use App\Models\ProductVulnerability;
 use App\Models\User;
@@ -22,6 +23,8 @@ use App\Services\Ai\AiDocumentAnalysePrompt;
 use App\Services\Ai\AiDocumentTextExtractor;
 use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
+use App\Services\Ai\AiIncidentSummaryDraftParser;
+use App\Services\Ai\AiIncidentSummaryDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
 use App\Services\Ai\AiUsiSectionDraftParser;
 use App\Services\Ai\AiUsiSectionDraftPrompt;
@@ -537,6 +540,83 @@ class AiAssistantService
             'model' => $completion['model'],
             'draft_parsed' => true,
             'locale' => $instruction->locale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
+    }
+
+    /**
+     * Suggest an incident summary draft for human review (does not persist).
+     *
+     * @return array{
+     *     draft: array{
+     *         summary_markdown: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestIncidentSummaryDraft(
+        Product $product,
+        ProductIncident $incident,
+        User $user,
+        ?string $currentSummary = null,
+        ?string $note = null,
+        ?string $locale = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($incident->product_id !== $product->id) {
+            abort(404);
+        }
+
+        $resolvedLocale = $locale
+            ?? $product->organization?->locale
+            ?? app()->getLocale()
+            ?? 'en';
+
+        if (!in_array($resolvedLocale, ['en', 'bg'], true)) {
+            $resolvedLocale = 'en';
+        }
+
+        $context = $this->contextBuilder->forProduct($product);
+        $incidentContext = AiIncidentSummaryDraftPrompt::incidentContext($incident);
+        $prompt = AiIncidentSummaryDraftPrompt::userPrompt(
+            $resolvedLocale,
+            $context,
+            $incidentContext,
+            $currentSummary,
+            $note,
+        );
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'incident_summary',
+            'locale' => $resolvedLocale,
+            'incident_id' => $incident->id,
+            'incident_title' => $incident->title,
+        ]);
+
+        $draft = AiIncidentSummaryDraftParser::parse($completion['content']);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiIncidentSummaryDraftSuggested($incident, $user, [
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $resolvedLocale,
         ]);
 
         return [

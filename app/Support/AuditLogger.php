@@ -1484,6 +1484,28 @@ class AuditLogger
         );
     }
 
+    public static function logAiIncidentSummaryDraftSuggested(
+        ProductIncident $incident,
+        User $actor,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiIncidentSummaryDraftSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $incident->organization_id,
+            productId: $incident->product_id,
+            details: [
+                ['field' => 'incident_id', 'value' => (string) $incident->id],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+            ],
+        );
+    }
+
     public static function logAiVulnerabilityTriageSuggested(
         AiConversation $conversation,
         User $actor,

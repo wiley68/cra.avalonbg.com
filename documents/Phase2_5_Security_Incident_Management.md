@@ -1,8 +1,8 @@
 # Phase 2.5 — Security Incident Management
 
-**Версия:** 1.6  
+**Версия:** 1.7  
 **Дата:** 23 юли 2026 г.  
-**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–15 done)  
+**Статус:** Active — Could in progress (Must 1–6 + Should 7–12 + Could 13–16 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.10 Security Incident Management, §5.9 Vulnerability, §5.11 Reporting)
@@ -215,6 +215,7 @@ Should/Could (по-късно):
 ```text
 POST   /products/{product}/incidents/{incident}/close
 GET    /products/{product}/incidents/{incident}/export/{format}
+POST   /products/{product}/incidents/{incident}/ai-draft
 ```
 
 ---
@@ -244,7 +245,7 @@ GET    /products/{product}/incidents/{incident}/export/{format}
 13. ~~Authority reports (`incident_reports`) — manual submission record~~ **Done**
 14. ~~Customer communications log (отделно от patch campaigns)~~ **Done**
 15. ~~CIA impacts + attack vector enums~~ **Done**
-16. AI `incident_summary` draft (human review)
+16. ~~AI `incident_summary` draft (human review)~~ **Done**
 17. Lessons learned → evidence / controls link
 18. Org-level cross-product incident index
 
@@ -306,21 +307,22 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                               |
-| ------ | ---------- | --------------------------------------------------------------------- |
-| 1.6    | 2026-07-23 | Could 15 Done — CIA impacts + attack vector enums on incidents        |
-| 1.5    | 2026-07-23 | Could 14 Done — incident customer communications log (append-only)    |
-| 1.4    | 2026-07-23 | Could 13 Done — manual authority reports (append-only log)            |
-| 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag    |
-| 1.2    | 2026-07-23 | Should 11 Done — PDF/Markdown incident summary export                 |
-| 1.1    | 2026-07-23 | Should 10 Done — dashboard open/unclassified incident counts          |
-| 1.0    | 2026-07-23 | Should 9 Done — investigation section; close requires root/corrective |
-| 0.9    | 2026-07-23 | Should 8 Done — close flow, closed_at/by, optional approval task      |
-| 0.8    | 2026-07-23 | Should 7 Done — affected customers / deployments multi-select         |
-| 0.7    | 2026-07-23 | Must 6 Done — i18n parity + RBAC/CRUD feature coverage                |
-| 0.6    | 2026-07-23 | Must 5 Done — task subject incident + audit events                    |
-| 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident                 |
-| 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section            |
-| 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests               |
-| 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests                  |
-| 0.1    | 2026-07-23 | Първоначален skeleton след Phase 2.4 closeout (кандидат A)            |
+| Версия | Дата       | Промяна                                                                 |
+| ------ | ---------- | ----------------------------------------------------------------------- |
+| 1.7    | 2026-07-23 | Could 16 Done — AI incident summary draft (suggest/apply, no auto-save) |
+| 1.6    | 2026-07-23 | Could 15 Done — CIA impacts + attack vector enums on incidents          |
+| 1.5    | 2026-07-23 | Could 14 Done — incident customer communications log (append-only)      |
+| 1.4    | 2026-07-23 | Could 13 Done — manual authority reports (append-only log)              |
+| 1.3    | 2026-07-23 | Should 12 Done — dedicated incidents.* permissions + nav card flag      |
+| 1.2    | 2026-07-23 | Should 11 Done — PDF/Markdown incident summary export                   |
+| 1.1    | 2026-07-23 | Should 10 Done — dashboard open/unclassified incident counts            |
+| 1.0    | 2026-07-23 | Should 9 Done — investigation section; close requires root/corrective   |
+| 0.9    | 2026-07-23 | Should 8 Done — close flow, closed_at/by, optional approval task        |
+| 0.8    | 2026-07-23 | Should 7 Done — affected customers / deployments multi-select           |
+| 0.7    | 2026-07-23 | Must 6 Done — i18n parity + RBAC/CRUD feature coverage                  |
+| 0.6    | 2026-07-23 | Must 5 Done — task subject incident + audit events                      |
+| 0.5    | 2026-07-23 | Must 4 Done — link/create vulnerability from incident                   |
+| 0.4    | 2026-07-23 | Must 3 Done — timeline append UI + core timestamps section              |
+| 0.3    | 2026-07-23 | Must 2 Done — CRUD, DataTable, RBAC mirror vulns, tests                 |
+| 0.2    | 2026-07-23 | Must 1 Done — enums, migrations, models, smoke tests                    |
+| 0.1    | 2026-07-23 | Първоначален skeleton след Phase 2.4 closeout (кандидат A)              |

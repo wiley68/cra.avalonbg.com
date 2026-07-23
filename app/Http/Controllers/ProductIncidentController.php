@@ -24,8 +24,11 @@ use App\Models\ProductIncident;
 use App\Models\ProductVulnerability;
 use App\Services\ProductIncidentExportService;
 use App\Services\ProductIncidentService;
+use App\Services\AiAssistantService;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -35,6 +38,7 @@ class ProductIncidentController extends Controller
     public function __construct(
         private readonly ProductIncidentService $incidents,
         private readonly ProductIncidentExportService $exports,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -125,6 +129,40 @@ class ProductIncidentController extends Controller
             'vulnerabilities' => $this->incidents->linkableVulnerabilityOptions($product),
             'options' => $this->enumOptions(),
             'canManage' => request()->user()->canManageIncidents($organization),
+            'aiEnabled' => $this->assistant->isEnabled(),
+        ]);
+    }
+
+    public function suggestAiDraft(
+        Request $request,
+        Product $product,
+        ProductIncident $incident,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertIncidentBelongsToProduct($incident, $product);
+        $this->authorize('update', [$incident, $organization]);
+
+        $validated = $request->validate([
+            'current_summary' => ['nullable', 'string', 'max:50000'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $result = $this->assistant->suggestIncidentSummaryDraft(
+            $product,
+            $incident,
+            $request->user(),
+            $validated['current_summary'] ?? null,
+            $validated['note'] ?? null,
+            $organization->resolvedLocale(),
+        );
+
+        return response()->json([
+            'summary_markdown' => $result['draft']['summary_markdown'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
         ]);
     }
 

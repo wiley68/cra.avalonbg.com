@@ -275,6 +275,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductIncidentController::class, 'storeReport'],
         )->name('products.incidents.reports.store')->scopeBindings();
         Route::post(
+            'products/{product}/incidents/{incident}/ai-draft',
+            [ProductIncidentController::class, 'suggestAiDraft'],
+        )->name('products.incidents.ai-draft')->scopeBindings();
+        Route::post(
             'products/{product}/incidents/{incident}/communications',
             [ProductIncidentController::class, 'storeCustomerCommunication'],
         )->name('products.incidents.communications.store')->scopeBindings();

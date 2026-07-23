@@ -8,13 +8,15 @@ import {
     Lock,
     Plus,
     Save,
+    Sparkles,
     Trash2,
     Unlink,
 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
+import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +31,7 @@ import {
     exportMethod as exportProductIncident,
     index as productIncidentsIndex,
     linkVulnerability as linkIncidentVulnerability,
+    aiDraft as suggestIncidentAiDraft,
     unlinkVulnerability as unlinkIncidentVulnerability,
     update,
 } from '@/routes/products/incidents';
@@ -148,6 +151,7 @@ const props = defineProps<{
         communication_channels: string[];
     };
     canManage: boolean;
+    aiEnabled: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -246,6 +250,106 @@ const closeForm = useForm({
     corrective_measures: null as string | null,
     status: null as string | null,
 });
+
+type AiSummaryDraftState = {
+    loading: boolean;
+    error: string;
+    summary_markdown: string;
+    disclaimer: string;
+};
+
+const aiSummaryDraft = reactive<AiSummaryDraftState>({
+    loading: false,
+    error: '',
+    summary_markdown: '',
+    disclaimer: '',
+});
+
+const xsrfToken = (): string => {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    return match ? decodeURIComponent(match[1]) : '';
+};
+
+const requestAiSummaryDraft = async (): Promise<void> => {
+    if (!props.canManage || !props.aiEnabled) {
+        return;
+    }
+
+    aiSummaryDraft.loading = true;
+    aiSummaryDraft.error = '';
+    aiSummaryDraft.summary_markdown = '';
+    aiSummaryDraft.disclaimer = '';
+
+    try {
+        const response = await fetch(
+            suggestIncidentAiDraft({
+                product: props.product.id,
+                incident: props.incident.id,
+            }).url,
+            {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                },
+                body: JSON.stringify({
+                    current_summary: form.summary,
+                }),
+            },
+        );
+
+        const payload = (await response.json().catch(() => ({}))) as {
+            summary_markdown?: string;
+            disclaimer?: string;
+            message?: string;
+            errors?: Record<string, string[]>;
+        };
+
+        if (!response.ok) {
+            const firstError = payload.errors
+                ? Object.values(payload.errors).flat()[0]
+                : undefined;
+            aiSummaryDraft.error =
+                firstError ||
+                payload.message ||
+                t('products.incidents.ai_draft_error');
+
+            return;
+        }
+
+        aiSummaryDraft.summary_markdown = payload.summary_markdown ?? '';
+        aiSummaryDraft.disclaimer =
+            payload.disclaimer || t('products.incidents.ai_draft_disclaimer');
+
+        if (!aiSummaryDraft.summary_markdown) {
+            aiSummaryDraft.error = t('products.incidents.ai_draft_error');
+        }
+    } catch {
+        aiSummaryDraft.error = t('products.incidents.ai_draft_error');
+    } finally {
+        aiSummaryDraft.loading = false;
+    }
+};
+
+const applyAiSummaryDraft = (): void => {
+    if (!aiSummaryDraft.summary_markdown) {
+        return;
+    }
+
+    form.summary = aiSummaryDraft.summary_markdown;
+    discardAiSummaryDraft();
+};
+
+const discardAiSummaryDraft = (): void => {
+    aiSummaryDraft.summary_markdown = '';
+    aiSummaryDraft.disclaimer = '';
+    aiSummaryDraft.error = '';
+    aiSummaryDraft.loading = false;
+};
 
 const isTerminal = computed(() => props.incident.is_terminal);
 
@@ -569,12 +673,35 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     </div>
 
                     <div class="grid gap-2 sm:col-span-2">
-                        <FieldLabel
-                            html-for="summary"
-                            :help="t('products.incidents.help.summary')"
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-3"
                         >
-                            {{ t('products.incidents.fields.summary') }}
-                        </FieldLabel>
+                            <FieldLabel
+                                html-for="summary"
+                                :help="t('products.incidents.help.summary')"
+                            >
+                                {{ t('products.incidents.fields.summary') }}
+                            </FieldLabel>
+                            <Button
+                                v-if="canManage && aiEnabled"
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                :disabled="aiSummaryDraft.loading"
+                                @click="requestAiSummaryDraft"
+                            >
+                                <Sparkles class="h-4 w-4" />
+                                {{
+                                    aiSummaryDraft.loading
+                                        ? t(
+                                              'products.incidents.ai_draft_loading',
+                                          )
+                                        : t(
+                                              'products.incidents.ai_draft_suggest',
+                                          )
+                                }}
+                            </Button>
+                        </div>
                         <textarea
                             id="summary"
                             v-model="form.summary"
@@ -582,6 +709,50 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                             rows="3"
                         />
                         <InputError :message="form.errors.summary" />
+
+                        <div
+                            v-if="aiSummaryDraft.error"
+                            class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                        >
+                            {{ aiSummaryDraft.error }}
+                        </div>
+
+                        <div
+                            v-if="aiSummaryDraft.summary_markdown"
+                            class="space-y-3 rounded-md border border-border bg-muted/30 p-4"
+                        >
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    aiSummaryDraft.disclaimer ||
+                                    t('products.incidents.ai_draft_disclaimer')
+                                }}
+                            </p>
+                            <MarkdownPreview
+                                :source="aiSummaryDraft.summary_markdown"
+                                :empty-label="
+                                    t('products.incidents.ai_draft_empty')
+                                "
+                            />
+                            <div class="flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    @click="applyAiSummaryDraft"
+                                >
+                                    {{ t('products.incidents.ai_draft_apply') }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="discardAiSummaryDraft"
+                                >
+                                    {{
+                                        t('products.incidents.ai_draft_discard')
+                                    }}
+                                </Button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid gap-2">
