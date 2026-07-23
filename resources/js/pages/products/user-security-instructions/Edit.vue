@@ -81,6 +81,12 @@ type SectionPayload = {
     is_applicable: boolean;
 };
 
+type SupersedesSection = {
+    body: string;
+    title_override: string | null;
+    is_applicable: boolean;
+};
+
 type InstructionDetail = {
     id: number;
     title: string;
@@ -95,6 +101,9 @@ type InstructionDetail = {
     evidence_title: string | null;
     product_version_id: number | null;
     product_version_number: string | null;
+    supersedes_id: number | null;
+    supersedes_title: string | null;
+    supersedes_sections: Record<string, SupersedesSection>;
     sections: SectionPayload[];
 };
 
@@ -506,6 +515,18 @@ const doPublishEvidence = () => {
     showPublishEvidenceDialog.value = false;
     router.post(publishEvidence(routeArgs).url, {}, { preserveScroll: true });
 };
+
+const previousSectionBody = (sectionKey: string): string | null => {
+    const previous = props.instruction.supersedes_sections?.[sectionKey];
+
+    return previous ? previous.body : null;
+};
+
+const previousSectionApplicable = (sectionKey: string): boolean | null => {
+    const previous = props.instruction.supersedes_sections?.[sectionKey];
+
+    return previous ? previous.is_applicable : null;
+};
 </script>
 
 <template>
@@ -540,6 +561,17 @@ const doPublishEvidence = () => {
                     <span v-if="instruction.published_by_name">
                         ({{ instruction.published_by_name }})
                     </span>
+                </p>
+                <p
+                    v-if="instruction.supersedes_title"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{
+                        t(
+                            'products.user_security_instructions.fields.supersedes',
+                        )
+                    }}:
+                    {{ instruction.supersedes_title }}
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -704,6 +736,18 @@ const doPublishEvidence = () => {
                         required
                     />
                     <InputError :message="form.errors.version_label" />
+                </div>
+
+                <div
+                    v-if="instruction.supersedes_title"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{
+                        t(
+                            'products.user_security_instructions.fields.supersedes',
+                        )
+                    }}:
+                    {{ instruction.supersedes_title }}
                 </div>
 
                 <div class="grid gap-2">
@@ -932,6 +976,33 @@ const doPublishEvidence = () => {
                         </div>
                     </div>
 
+                    <p
+                        v-if="
+                            instruction.supersedes_title &&
+                            previousSectionApplicable(section.section_key) !==
+                                null &&
+                            previousSectionApplicable(section.section_key) !==
+                                section.is_applicable
+                        "
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{
+                            t(
+                                'products.user_security_instructions.diff_applicable_changed',
+                                {
+                                    previous: previousSectionApplicable(
+                                        section.section_key,
+                                    )
+                                        ? t('common.yes')
+                                        : t('common.no'),
+                                    current: section.is_applicable
+                                        ? t('common.yes')
+                                        : t('common.no'),
+                                },
+                            )
+                        }}
+                    </p>
+
                     <div
                         v-if="aiDrafts[section.section_key]?.error"
                         class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
@@ -1027,6 +1098,11 @@ const doPublishEvidence = () => {
                         "
                         :disabled="!canEdit || !section.is_applicable"
                         :error="sectionError(index, 'body')"
+                        :previous-body="
+                            previousSectionBody(section.section_key)
+                        "
+                        :previous-label="instruction.supersedes_title"
+                        :current-label="form.version_label"
                     />
                 </div>
                 <InputError :message="form.errors.sections" />

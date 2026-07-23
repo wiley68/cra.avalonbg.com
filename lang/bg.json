@@ -2457,7 +2457,8 @@
                 "use_template": "Старт от шаблон",
                 "customer": "Клиент",
                 "deployment_optional": "Deployment (опционално)",
-                "export_format": "Формат"
+                "export_format": "Формат",
+                "supersedes": "Замества"
             },
             "help": {
                 "title": "Заглавие на документа в експорти и списъци.",
@@ -2554,7 +2555,8 @@
             "ai_draft_apply": "Приложи към секцията",
             "ai_draft_discard": "Отхвърли предложението",
             "ai_draft_disclaimer": "Само чернова; нужен е human review преди запис или publish. Нищо не се записва, докато не приложите и натиснете Запази.",
-            "ai_draft_error": "Неуспешно генериране на AI чернова за тази секция."
+            "ai_draft_error": "Неуспешно генериране на AI чернова за тази секция.",
+            "diff_applicable_changed": "Applicable е променено спрямо предишната версия (:previous → :current)."
         }
     },
     "audit_logs": {

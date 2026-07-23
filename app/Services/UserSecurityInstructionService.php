@@ -126,6 +126,11 @@ class UserSecurityInstructionService
                 'version_label' => $versionLabel,
                 'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
+                'supersedes_id' => $this->findPublishedSibling(
+                    $product,
+                    $locale,
+                    $attributes['product_version_id'] ?? null,
+                )?->id,
             ]);
 
             $bodiesByKey = [];
@@ -188,14 +193,33 @@ class UserSecurityInstructionService
         $this->assertEditable($instruction);
 
         return DB::transaction(function () use ($instruction, $attributes, $actor): UserSecurityInstruction {
+            $locale = $attributes['locale'];
+            $productVersionId = array_key_exists('product_version_id', $attributes)
+                ? $attributes['product_version_id']
+                : $instruction->product_version_id;
+
+            $scopeChanged = $locale !== $instruction->locale
+                || $productVersionId !== $instruction->product_version_id;
+
+            $publishedSibling = $this->findPublishedSibling(
+                $instruction->product,
+                $locale,
+                $productVersionId,
+                $instruction->id,
+            );
+
+            $supersedesId = $publishedSibling?->id;
+            if ($supersedesId === null && !$scopeChanged) {
+                $supersedesId = $instruction->supersedes_id;
+            }
+
             $instruction->update([
                 'title' => $attributes['title'],
                 'version_label' => $attributes['version_label'],
-                'locale' => $attributes['locale'],
+                'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
-                'product_version_id' => array_key_exists('product_version_id', $attributes)
-                    ? $attributes['product_version_id']
-                    : $instruction->product_version_id,
+                'product_version_id' => $productVersionId,
+                'supersedes_id' => $supersedesId,
             ]);
 
             $sectionsByKey = $instruction->sections()
@@ -279,6 +303,13 @@ class UserSecurityInstructionService
         $this->assertPublishableSections($instruction);
 
         return DB::transaction(function () use ($instruction, $actor): UserSecurityInstruction {
+            $previous = $this->findPublishedSibling(
+                $instruction->product,
+                $instruction->locale,
+                $instruction->product_version_id,
+                $instruction->id,
+            );
+
             $siblings = UserSecurityInstruction::query()
                 ->where('product_id', $instruction->product_id)
                 ->where('locale', $instruction->locale)
@@ -299,9 +330,10 @@ class UserSecurityInstructionService
                 'status' => UserSecurityInstructionStatus::Published,
                 'published_at' => now(),
                 'published_by' => $actor->id,
+                'supersedes_id' => $previous?->id ?? $instruction->supersedes_id,
             ]);
 
-            $fresh = $instruction->fresh(['sections', 'publisher:id,name']);
+            $fresh = $instruction->fresh(['sections', 'publisher:id,name', 'supersedes.sections']);
             AuditLogger::logUserSecurityInstructionPublished($fresh, $actor);
 
             return $fresh;
@@ -399,6 +431,13 @@ class UserSecurityInstructionService
      *     evidence_title: string|null,
      *     product_version_id: int|null,
      *     product_version_number: string|null,
+     *     supersedes_id: int|null,
+     *     supersedes_title: string|null,
+     *     supersedes_sections: array<string, array{
+     *         body: string,
+     *         title_override: string|null,
+     *         is_applicable: bool
+     *     }>,
      *     sections: list<array{
      *         id: int,
      *         section_key: string,
@@ -411,7 +450,15 @@ class UserSecurityInstructionService
      */
     public function detailPayload(UserSecurityInstruction $instruction): array
     {
-        $instruction->loadMissing(['sections', 'publisher:id,name', 'evidence', 'productVersion:id,version_number']);
+        $instruction->loadMissing([
+            'sections',
+            'publisher:id,name',
+            'evidence',
+            'productVersion:id,version_number',
+            'supersedes.sections',
+        ]);
+
+        $previous = $instruction->supersedes;
 
         return [
             'id' => $instruction->id,
@@ -427,6 +474,20 @@ class UserSecurityInstructionService
             'evidence_title' => $instruction->evidence?->title,
             'product_version_id' => $instruction->product_version_id,
             'product_version_number' => $instruction->productVersion?->version_number,
+            'supersedes_id' => $instruction->supersedes_id,
+            'supersedes_title' => $previous
+                ? $previous->title . ' (' . $previous->version_label . ')'
+                : null,
+            'supersedes_sections' => $previous
+                ? $previous->sections
+                    ->keyBy(fn(UserSecurityInstructionSection $section) => $section->section_key->value)
+                    ->map(fn(UserSecurityInstructionSection $section) => [
+                        'body' => $section->body,
+                        'title_override' => $section->title_override,
+                        'is_applicable' => $section->is_applicable,
+                    ])
+                    ->all()
+                : [],
             'sections' => $instruction->sections
                 ->sortBy('sort_order')
                 ->values()
@@ -440,6 +501,34 @@ class UserSecurityInstructionService
                 ])
                 ->all(),
         ];
+    }
+
+    /**
+     * Published instruction in the same product / locale / version-pin scope.
+     */
+    private function findPublishedSibling(
+        Product $product,
+        string $locale,
+        ?int $productVersionId,
+        ?int $exceptId = null,
+    ): ?UserSecurityInstruction {
+        $query = UserSecurityInstruction::query()
+            ->where('product_id', $product->id)
+            ->where('locale', $locale)
+            ->where('status', UserSecurityInstructionStatus::Published->value)
+            ->orderByDesc('id');
+
+        if ($productVersionId === null) {
+            $query->whereNull('product_version_id');
+        } else {
+            $query->where('product_version_id', $productVersionId);
+        }
+
+        if ($exceptId !== null) {
+            $query->whereKeyNot($exceptId);
+        }
+
+        return $query->first();
     }
 
     /**

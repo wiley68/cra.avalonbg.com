@@ -2457,7 +2457,8 @@
                 "use_template": "Start from template",
                 "customer": "Customer",
                 "deployment_optional": "Deployment (optional)",
-                "export_format": "Format"
+                "export_format": "Format",
+                "supersedes": "Supersedes"
             },
             "help": {
                 "title": "Document title shown in exports and lists.",
@@ -2554,7 +2555,8 @@
             "ai_draft_apply": "Apply to section",
             "ai_draft_discard": "Discard suggestion",
             "ai_draft_disclaimer": "Draft only; human review required before save or publish. Nothing is saved until you apply and click Save.",
-            "ai_draft_error": "Could not generate an AI draft for this section."
+            "ai_draft_error": "Could not generate an AI draft for this section.",
+            "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current)."
         }
     },
     "audit_logs": {
