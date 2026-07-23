@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, FileText, Save, ShieldCheck } from '@lucide/vue';
+import {
+    ArrowLeft,
+    ExternalLink,
+    FileText,
+    Link2,
+    Plus,
+    RefreshCw,
+    Save,
+    ShieldCheck,
+} from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -13,15 +22,47 @@ import {
     approve as approveSdlRun,
     edit as productSdlEdit,
     index as productSdlIndex,
+    linkExternalEvidence as linkSdlExternalEvidence,
     revokeApproval as revokeSdlApproval,
     update,
 } from '@/routes/products/sdl';
 import { update as updateSdlStage } from '@/routes/products/sdl/stages';
+import { sync as syncRepository } from '@/routes/products/repository';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
-type EvidenceOption = { id: number; title: string };
+type EvidenceOption = {
+    id: number;
+    title: string;
+    type?: string;
+    source?: string | null;
+    collected_at?: string | null;
+};
+type GitEvidenceOption = {
+    id: number;
+    title: string;
+    source: string | null;
+    collected_at: string | null;
+    checksum_short: string | null;
+};
+type RepositoryPayload = {
+    id: number;
+    full_name: string;
+    remote_url: string;
+    default_branch: string | null;
+    last_synced_at: string | null;
+    last_sync_summary: {
+        error?: string;
+        evidence_id?: number;
+        ci?: {
+            status?: string;
+            conclusion?: string | null;
+            workflow_name?: string | null;
+            html_url?: string | null;
+        };
+    } | null;
+};
 type ProductSummary = { id: number; name: string; slug: string };
 type StageEntry = {
     id: number | null;
@@ -62,6 +103,8 @@ const props = defineProps<{
     members: Member[];
     versions: VersionOption[];
     evidence: EvidenceOption[];
+    repository: RepositoryPayload | null;
+    git_evidence: GitEvidenceOption[];
     canManage: boolean;
     stage_note_templates: Record<string, string>;
     template_locale: string;
@@ -128,6 +171,16 @@ const revoking = ref(false);
 const showRevokeDialog = ref(false);
 const showTemplateDialog = ref(false);
 const templateStagePending = ref<string | null>(null);
+const syncingRepository = ref(false);
+const linkingExternal = ref(false);
+const externalUrl = ref('');
+const externalTitle = ref('');
+const externalStage = ref('');
+const externalErrors = reactive<{
+    url?: string;
+    title?: string;
+    stage?: string;
+}>({});
 
 const isLocked = computed(
     () => props.run.is_approved || props.run.status === 'approved',
@@ -328,6 +381,91 @@ const confirmApplyTemplate = (): void => {
 const cancelApplyTemplate = (): void => {
     showTemplateDialog.value = false;
     templateStagePending.value = null;
+};
+
+const ciLabel = (summary: RepositoryPayload['last_sync_summary']): string => {
+    if (!summary?.ci) {
+        return t('products.repository.ci_unknown');
+    }
+
+    return (
+        summary.ci.conclusion ||
+        summary.ci.status ||
+        t('products.repository.ci_unknown')
+    );
+};
+
+const syncRepositoryNow = (): void => {
+    if (!canEdit.value || !props.repository) {
+        return;
+    }
+
+    syncingRepository.value = true;
+    router.post(
+        syncRepository.url(props.product.id),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                syncingRepository.value = false;
+            },
+        },
+    );
+};
+
+const attachGitEvidence = (id: number): void => {
+    if (!canEdit.value) {
+        return;
+    }
+
+    toggleRunEvidence(id, true);
+};
+
+const submitExternalLink = (): void => {
+    if (!canEdit.value) {
+        return;
+    }
+
+    linkingExternal.value = true;
+    Object.keys(externalErrors).forEach((key) => {
+        delete externalErrors[key as keyof typeof externalErrors];
+    });
+
+    router.post(
+        linkSdlExternalEvidence({
+            product: props.product.id,
+            sdlRun: props.run.id,
+        }).url,
+        {
+            url: externalUrl.value,
+            title: externalTitle.value || null,
+            stage: externalStage.value || null,
+        },
+        {
+            preserveScroll: true,
+            onError: (errors) => {
+                Object.assign(externalErrors, errors);
+            },
+            onSuccess: () => {
+                externalUrl.value = '';
+                externalTitle.value = '';
+                externalStage.value = '';
+            },
+            onFinish: () => {
+                linkingExternal.value = false;
+            },
+        },
+    );
+};
+
+const evidenceLabel = (item: EvidenceOption): string => {
+    const parts = [item.title];
+
+    if (item.type) {
+        parts.push(`[${item.type}]`);
+    }
+
+    return parts.join(' ');
 };
 
 const enumLabel = (group: string, value: string): string => {
@@ -546,6 +684,238 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                     <FieldLabel :help="t('products.sdl.help.evidence')">
                         {{ t('products.sdl.fields.evidence') }}
                     </FieldLabel>
+
+                    <section class="space-y-3 rounded-md border p-3">
+                        <div>
+                            <h3 class="text-sm font-medium">
+                                {{ t('products.sdl.git_heading') }}
+                            </h3>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('products.sdl.git_help') }}
+                            </p>
+                        </div>
+
+                        <div
+                            v-if="!props.repository"
+                            class="space-y-2 text-sm text-muted-foreground"
+                        >
+                            <p>{{ t('products.sdl.git_no_repository') }}</p>
+                            <Button as-child variant="outline" size="sm">
+                                <Link :href="editProduct(props.product.id)">
+                                    {{ t('products.sdl.git_open_product') }}
+                                </Link>
+                            </Button>
+                        </div>
+
+                        <div v-else class="space-y-3">
+                            <div class="space-y-1 text-sm">
+                                <p>
+                                    <a
+                                        :href="props.repository.remote_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+                                    >
+                                        {{ props.repository.full_name }}
+                                        <ExternalLink class="h-3.5 w-3.5" />
+                                    </a>
+                                </p>
+                                <p
+                                    v-if="props.repository.last_sync_summary"
+                                    class="text-muted-foreground"
+                                >
+                                    {{ t('products.repository.ci_status') }}:
+                                    {{
+                                        ciLabel(
+                                            props.repository.last_sync_summary,
+                                        )
+                                    }}
+                                    <a
+                                        v-if="
+                                            props.repository.last_sync_summary
+                                                .ci?.html_url
+                                        "
+                                        :href="
+                                            props.repository.last_sync_summary
+                                                .ci.html_url
+                                        "
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="ml-1 underline-offset-4 hover:underline"
+                                    >
+                                        {{ t('products.repository.view_run') }}
+                                    </a>
+                                </p>
+                            </div>
+
+                            <Button
+                                v-if="canEdit"
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                :disabled="syncingRepository"
+                                @click="syncRepositoryNow"
+                            >
+                                <RefreshCw
+                                    class="h-4 w-4"
+                                    :class="{
+                                        'animate-spin': syncingRepository,
+                                    }"
+                                />
+                                {{ t('products.repository.sync_now') }}
+                            </Button>
+
+                            <div class="space-y-2">
+                                <p class="text-sm font-medium">
+                                    {{ t('products.sdl.git_recent_snapshots') }}
+                                </p>
+                                <p
+                                    v-if="props.git_evidence.length === 0"
+                                    class="text-sm text-muted-foreground"
+                                >
+                                    {{ t('products.sdl.git_no_snapshots') }}
+                                </p>
+                                <ul class="space-y-2">
+                                    <li
+                                        v-for="item in props.git_evidence"
+                                        :key="item.id"
+                                        class="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2 text-sm"
+                                    >
+                                        <div class="min-w-0">
+                                            <p class="truncate font-medium">
+                                                {{ item.title }}
+                                            </p>
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                #{{ item.id }}
+                                                <span
+                                                    v-if="item.checksum_short"
+                                                >
+                                                    · {{ item.checksum_short }}…
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <Button
+                                            v-if="canEdit"
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            :disabled="
+                                                form.evidence_ids.includes(
+                                                    item.id,
+                                                )
+                                            "
+                                            @click="attachGitEvidence(item.id)"
+                                        >
+                                            <Plus class="h-4 w-4" />
+                                            {{
+                                                form.evidence_ids.includes(
+                                                    item.id,
+                                                )
+                                                    ? t(
+                                                          'products.sdl.git_attached',
+                                                      )
+                                                    : t(
+                                                          'products.sdl.git_attach',
+                                                      )
+                                            }}
+                                        </Button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div v-if="canEdit" class="space-y-2 border-t pt-3">
+                            <p class="text-sm font-medium">
+                                {{ t('products.sdl.git_link_pr_heading') }}
+                            </p>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('products.sdl.git_link_pr_help') }}
+                            </p>
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <div class="space-y-2 sm:col-span-2">
+                                    <FieldLabel
+                                        html-for="git-url"
+                                        :help="t('products.sdl.help.git_url')"
+                                    >
+                                        {{ t('products.sdl.fields.git_url') }}
+                                    </FieldLabel>
+                                    <Input
+                                        id="git-url"
+                                        v-model="externalUrl"
+                                        type="url"
+                                        :placeholder="
+                                            t(
+                                                'products.sdl.git_url_placeholder',
+                                            )
+                                        "
+                                    />
+                                    <InputError :message="externalErrors.url" />
+                                </div>
+                                <div class="space-y-2">
+                                    <FieldLabel
+                                        html-for="git-title"
+                                        :help="t('products.sdl.help.git_title')"
+                                    >
+                                        {{ t('products.sdl.fields.git_title') }}
+                                    </FieldLabel>
+                                    <Input
+                                        id="git-title"
+                                        v-model="externalTitle"
+                                    />
+                                    <InputError
+                                        :message="externalErrors.title"
+                                    />
+                                </div>
+                                <div class="space-y-2">
+                                    <FieldLabel
+                                        html-for="git-stage"
+                                        :help="t('products.sdl.help.git_stage')"
+                                    >
+                                        {{ t('products.sdl.fields.git_stage') }}
+                                    </FieldLabel>
+                                    <select
+                                        id="git-stage"
+                                        v-model="externalStage"
+                                        :class="selectClass"
+                                    >
+                                        <option value="">
+                                            {{
+                                                t(
+                                                    'products.sdl.git_stage_run_only',
+                                                )
+                                            }}
+                                        </option>
+                                        <option
+                                            v-for="stage in props.options
+                                                .stages"
+                                            :key="stage"
+                                            :value="stage"
+                                        >
+                                            {{ enumLabel('stages', stage) }}
+                                        </option>
+                                    </select>
+                                    <InputError
+                                        :message="externalErrors.stage"
+                                    />
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                :disabled="
+                                    linkingExternal || externalUrl.trim() === ''
+                                "
+                                @click="submitExternalLink"
+                            >
+                                <Link2 class="h-4 w-4" />
+                                {{ t('products.sdl.git_link_create') }}
+                            </Button>
+                        </div>
+                    </section>
+
                     <div
                         class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
                     >
@@ -572,7 +942,7 @@ const stageCompletedLabel = (entry: StageEntry): string => {
                                     )
                                 "
                             />
-                            <span>{{ item.title }}</span>
+                            <span>{{ evidenceLabel(item) }}</span>
                         </label>
                     </div>
                     <InputError :message="form.errors.evidence_ids" />

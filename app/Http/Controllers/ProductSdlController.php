@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\SdlRunStatus;
 use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
+use App\Http\Requests\LinkSdlExternalEvidenceRequest;
 use App\Http\Requests\StoreSdlRunRequest;
 use App\Http\Requests\UpdateSdlRunRequest;
 use App\Http\Requests\UpdateSdlStageRequest;
@@ -14,6 +15,8 @@ use App\Models\ProductVersion;
 use App\Models\Evidence;
 use App\Models\SdlRun;
 use App\Models\User;
+use App\Enums\EvidenceType;
+use App\Services\ProductRepositoryService;
 use App\Services\ProductSdlService;
 use App\Support\SdlStageNoteTemplates;
 use App\Support\Translations;
@@ -27,6 +30,7 @@ class ProductSdlController extends Controller
 {
     public function __construct(
         private readonly ProductSdlService $sdl,
+        private readonly ProductRepositoryService $repositories,
     ) {
     }
 
@@ -58,6 +62,8 @@ class ProductSdlController extends Controller
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
             'evidence' => $this->evidenceOptions($product),
+            'repository' => $this->repositories->payload($product->repository),
+            'git_evidence' => $this->sdl->gitEvidenceOptions($product),
             'options' => [
                 ...$this->enumOptions(),
                 'locales' => Organization::LOCALES,
@@ -125,6 +131,8 @@ class ProductSdlController extends Controller
             'members' => $this->memberOptions($organization),
             'versions' => $this->versionOptions($product),
             'evidence' => $this->evidenceOptions($product),
+            'repository' => $this->repositories->payload($product->repository),
+            'git_evidence' => $this->sdl->gitEvidenceOptions($product),
             'options' => $this->enumOptions(),
             'stage_note_templates' => SdlStageNoteTemplates::payload(
                 $organization->resolvedLocale(),
@@ -244,6 +252,35 @@ class ProductSdlController extends Controller
         return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
     }
 
+    public function linkExternalEvidence(
+        LinkSdlExternalEvidenceRequest $request,
+        Product $product,
+        SdlRun $sdlRun,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertRunBelongsToProduct($sdlRun, $product);
+
+        $stage = $request->filled('stage')
+            ? SdlStage::from((string) $request->input('stage'))
+            : null;
+
+        $this->sdl->linkExternalEvidence(
+            $sdlRun,
+            (string) $request->input('url'),
+            $request->input('title'),
+            $stage,
+            $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.sdl.git_link_created'),
+        ]);
+
+        return redirect()->route('products.sdl.edit', [$product, $sdlRun]);
+    }
+
     private function currentOrganization(): Organization
     {
         $organization = request()->user()?->currentOrganization();
@@ -326,7 +363,13 @@ class ProductSdlController extends Controller
     }
 
     /**
-     * @return list<array{id: int, title: string}>
+     * @return list<array{
+     *     id: int,
+     *     title: string,
+     *     type: string,
+     *     source: string|null,
+     *     collected_at: string|null
+     * }>
      */
     private function evidenceOptions(Product $product): array
     {
@@ -334,10 +377,15 @@ class ProductSdlController extends Controller
             ->where('product_id', $product->id)
             ->where('organization_id', $product->organization_id)
             ->orderBy('title')
-            ->get(['id', 'title'])
+            ->get(['id', 'title', 'type', 'source', 'collected_at'])
             ->map(fn(Evidence $item) => [
                 'id' => $item->id,
                 'title' => $item->title,
+                'type' => $item->type instanceof EvidenceType
+                    ? $item->type->value
+                    : (string) $item->type,
+                'source' => $item->source,
+                'collected_at' => $item->collected_at?->toIso8601String(),
             ])
             ->all();
     }

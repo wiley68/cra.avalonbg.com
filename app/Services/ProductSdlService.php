@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\EvidenceConfidentiality;
+use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\EvidenceType;
 use App\Enums\SdlRunStatus;
 use App\Enums\SdlStage;
 use App\Enums\SdlStageStatus;
@@ -259,6 +262,124 @@ class ProductSdlService
         AuditLogger::logSdlRunApprovalRevoked($run, $actor);
 
         return $run;
+    }
+
+    /**
+     * Create Evidence from an external PR/CI URL and attach it to the SDL run (and optional stage).
+     */
+    public function linkExternalEvidence(
+        SdlRun $run,
+        string $url,
+        ?string $title,
+        ?SdlStage $stage,
+        User $actor,
+    ): Evidence {
+        $this->assertRunEditable($run);
+        $run->loadMissing('product');
+
+        $normalizedUrl = $this->normalizeExternalEvidenceUrl($url);
+        $resolvedTitle = trim((string) $title);
+        if ($resolvedTitle === '') {
+            $resolvedTitle = $this->titleFromExternalUrl($normalizedUrl);
+        }
+
+        $evidence = DB::transaction(function () use ($run, $normalizedUrl, $resolvedTitle, $stage, $actor) {
+            /** @var Evidence $evidence */
+            $evidence = Evidence::query()->create([
+                'organization_id' => $run->organization_id,
+                'product_id' => $run->product_id,
+                'type' => EvidenceType::Other,
+                'title' => $resolvedTitle,
+                'source' => $normalizedUrl,
+                'owner_user_id' => $actor->id,
+                'confidentiality' => EvidenceConfidentiality::Internal,
+                'collected_at' => now(),
+                'freshness_status' => EvidenceFreshnessStatus::Current,
+                'uploaded_by' => $actor->id,
+                'notes' => Translations::get('products.sdl.git_link_notes'),
+            ]);
+
+            $run->evidence()->syncWithoutDetaching([$evidence->id]);
+
+            if ($stage !== null) {
+                $run->ensureStageEntries();
+                /** @var SdlStageEntry $entry */
+                $entry = $run->stageEntries()
+                    ->where('stage', $stage->value)
+                    ->firstOrFail();
+                $entry->evidence()->syncWithoutDetaching([$evidence->id]);
+            }
+
+            return $evidence;
+        });
+
+        AuditLogger::logEvidenceCreated($evidence, $actor);
+
+        return $evidence;
+    }
+
+    /**
+     * Recent integration_snapshot evidence for Git/CI quick-link UI.
+     *
+     * @return list<array{
+     *     id: int,
+     *     title: string,
+     *     source: string|null,
+     *     collected_at: string|null,
+     *     checksum_short: string|null
+     * }>
+     */
+    public function gitEvidenceOptions(Product $product, int $limit = 8): array
+    {
+        return Evidence::query()
+            ->where('product_id', $product->id)
+            ->where('organization_id', $product->organization_id)
+            ->where('type', EvidenceType::IntegrationSnapshot)
+            ->orderByDesc('collected_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get(['id', 'title', 'source', 'collected_at', 'checksum_sha256'])
+            ->map(fn(Evidence $item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'source' => $item->source,
+                'collected_at' => $item->collected_at?->toIso8601String(),
+                'checksum_short' => $item->checksum_sha256 !== null
+                    ? substr($item->checksum_sha256, 0, 12)
+                    : null,
+            ])
+            ->all();
+    }
+
+    private function normalizeExternalEvidenceUrl(string $url): string
+    {
+        $normalized = trim($url);
+
+        if (
+            filter_var($normalized, FILTER_VALIDATE_URL) === false
+            || !preg_match('#^https?://#i', $normalized)
+        ) {
+            throw ValidationException::withMessages([
+                'url' => [Translations::get('products.sdl.invalid_git_url')],
+            ]);
+        }
+
+        return $normalized;
+    }
+
+    private function titleFromExternalUrl(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        $host = parse_url($url, PHP_URL_HOST) ?: 'git';
+
+        if (is_string($path) && $path !== '' && $path !== '/') {
+            $segments = array_values(array_filter(explode('/', $path)));
+            $tail = implode('/', array_slice($segments, -3));
+
+            return $host . '/' . $tail;
+        }
+
+        return $host;
     }
 
     /**

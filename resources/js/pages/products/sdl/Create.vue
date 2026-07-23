@@ -17,14 +17,34 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 
 type Member = { id: number; name: string; email: string };
 type VersionOption = { id: number; version_number: string };
-type EvidenceOption = { id: number; title: string };
+type EvidenceOption = { id: number; title: string; type?: string };
 type ProductSummary = { id: number; name: string; slug: string };
+type RepositoryPayload = {
+    id: number;
+    full_name: string;
+    remote_url: string;
+    last_sync_summary: {
+        ci?: {
+            html_url?: string | null;
+            conclusion?: string | null;
+            status?: string;
+        };
+        evidence_id?: number;
+    } | null;
+} | null;
+type GitEvidenceOption = {
+    id: number;
+    title: string;
+    checksum_short: string | null;
+};
 
 const props = defineProps<{
     product: ProductSummary;
     members: Member[];
     versions: VersionOption[];
     evidence: EvidenceOption[];
+    repository?: RepositoryPayload;
+    git_evidence?: GitEvidenceOption[];
     options: {
         statuses: string[];
         stages: string[];
@@ -316,6 +336,41 @@ const toggleEvidence = (id: number, checked: boolean) => {
                 <FieldLabel :help="t('products.sdl.help.evidence')">
                     {{ t('products.sdl.fields.evidence') }}
                 </FieldLabel>
+                <div
+                    v-if="
+                        props.repository ||
+                        (props.git_evidence?.length ?? 0) > 0
+                    "
+                    class="mb-2 space-y-2 rounded-md border p-3 text-sm"
+                >
+                    <p class="font-medium">
+                        {{ t('products.sdl.git_heading') }}
+                    </p>
+                    <p class="text-muted-foreground">
+                        {{ t('products.sdl.git_help') }}
+                    </p>
+                    <p v-if="props.repository">
+                        <a
+                            :href="props.repository.remote_url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="underline-offset-4 hover:underline"
+                        >
+                            {{ props.repository.full_name }}
+                        </a>
+                    </p>
+                    <p
+                        v-if="(props.git_evidence?.length ?? 0) > 0"
+                        class="text-muted-foreground"
+                    >
+                        {{ t('products.sdl.git_recent_snapshots') }}:
+                        {{
+                            props.git_evidence
+                                ?.map((item) => `#${item.id}`)
+                                .join(', ')
+                        }}
+                    </p>
+                </div>
                 <div
                     class="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3"
                 >
