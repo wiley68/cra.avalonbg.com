@@ -240,7 +240,15 @@ test('read-only viewer can view sdl but cannot create or manage', function () {
 
     $this->actingAs($viewer)
         ->get(route('products.sdl.edit', [$product, $run]))
-        ->assertOk();
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/sdl/Edit')
+            ->where('canManage', false));
+
+    $this->actingAs($viewer)
+        ->getJson(route('internal.products.sdl.index', $product))
+        ->assertOk()
+        ->assertJsonPath('total', 1);
 
     $this->actingAs($viewer)
         ->get(route('products.sdl.create', $product))
@@ -261,9 +269,13 @@ test('read-only viewer can view sdl but cannot create or manage', function () {
         ])
         ->assertForbidden();
 
+    expect($run->fresh()->title)->toBe('Viewer run');
+
     $this->actingAs($viewer)
         ->delete(route('products.sdl.destroy', [$product, $run]))
         ->assertForbidden();
+
+    expect(SdlRun::query()->whereKey($run->id)->exists())->toBeTrue();
 });
 
 test('owner can update stage checklist status notes and completion metadata', function () {
