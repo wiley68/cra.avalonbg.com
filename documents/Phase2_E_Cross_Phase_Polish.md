@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.10  
+**Версия:** 0.11  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–9 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–10 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -10,6 +10,7 @@
 - [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md) (Closed — merged-PR summary deferred)
 - [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) (Must 1–2 — scheduler + queue)
 - [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md) (Must 3 — live LLM)
+- [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md) (Should 10 — Jira / Snyk / ADO smoke)
 - [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) (ops: schedule + queue)
 
 > **Цел на вълната:** cross-phase **production reliability + deferred polish** — без нова domain вълна. Отключва scheduled sync в prod, live AI там където stub-ът вече е wired, и GitHub **merged-PR summary** (aspirational от 2.1).
@@ -149,7 +150,7 @@ flowchart LR
 7. ~~GitLab parity за merged-PR summary (ако API позволява евтино)~~ **Done** (2026-07-24) — `GitLabPatProvider::listMergedPulls` + provider-aware `MergedPrSummaryService`
 8. ~~Optional „Save summary as evidence“ (immutable ref / markdown) — explicit action~~ **Done** (2026-07-24) — Markdown snapshot + `MergedPrSummarySavedAsEvidence` audit; viewer forbidden
 9. ~~Admin/ops signal: worker/schedule unhealthy hint (reuse `/integrations/health` or Settings)~~ **Done** (2026-07-24) — `OpsQueueHealthHintService` banners on Health + Settings
-10. **Open** — Live connector smoke script/checklist (Jira / Snyk / ADO) — документиран, не задължителен CI
+10. ~~Live connector smoke script/checklist (Jira / Snyk / ADO) — документиран, не задължителен CI~~ **Done** (2026-07-24) — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md)
 11. **Open** — AI: consistent timeout/error UX когато live provider fails (fallback message; no silent empty)
 
 ### Could
@@ -219,18 +220,19 @@ Candidate F: SSO / billing / onboarding
 
 ## 12. Тестове (план)
 
-| Област                    | Подход                                                               |
-| ------------------------- | -------------------------------------------------------------------- |
-| Must 4 regression         | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n  |
-| Ops baseline (Must 1)     | `OpsBaselineScheduleTest` + `ops:baseline-check`                     |
-| Schedule commands         | Feature: artisan commands enqueue/select due links                   |
-| Queue non-regression      | Sync now path без worker; Unique job behaviour запазен               |
-| AI stub + enablement      | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub      |
-| AI live (optional)        | `--group=live-ai` / manual smoke; не блокира CI                      |
-| Merged-PR summary         | `Http::fake` GitHub PR search + GitLab MR list; RBAC viewer vs owner |
-| Audit / RBAC (Must 6)     | Refresh audit (+no secrets); viewer cannot refresh / triage          |
-| Evidence save (Should 8)  | Explicit save → Markdown evidence + dual audit; viewer forbidden     |
-| Ops queue hint (Should 9) | Health + Settings banner when schedule on + sync/stale queue         |
+| Област                    | Подход                                                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| Must 4 regression         | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n                             |
+| Ops baseline (Must 1)     | `OpsBaselineScheduleTest` + `ops:baseline-check`                                                |
+| Schedule commands         | Feature: artisan commands enqueue/select due links                                              |
+| Queue non-regression      | Sync now path без worker; Unique job behaviour запазен                                          |
+| AI stub + enablement      | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub                                 |
+| AI live (optional)        | `--group=live-ai` / manual smoke; не блокира CI                                                 |
+| Merged-PR summary         | `Http::fake` GitHub PR search + GitLab MR list; RBAC viewer vs owner                            |
+| Audit / RBAC (Must 6)     | Refresh audit (+no secrets); viewer cannot refresh / triage                                     |
+| Evidence save (Should 8)  | Explicit save → Markdown evidence + dual audit; viewer forbidden                                |
+| Ops queue hint (Should 9) | Health + Settings banner when schedule on + sync/stale queue                                    |
+| Live connector smoke (10) | Manual checklist — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md); not CI |
 
 ---
 
@@ -250,6 +252,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)   |
 | 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings  |
 | 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence |
 | 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                       |

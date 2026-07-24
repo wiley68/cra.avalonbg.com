@@ -1,6 +1,6 @@
 # Phase 2.8 — Integrations operator runbook
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 24 юли 2026 г.  
 **Родител:** [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) (Closed)  
 **Closeout:** [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)  
@@ -92,6 +92,8 @@ Import създава pending vulnerability suggestions (същият Accept/Dis
 На Product Edit (Snyk / SARIF / VCS vulnerability suggestions) бутон **AI triage summary** генерира чернова (summary + suggested severity) за human review. **Не** Accept-ва suggestion и **не** създава `ProductVulnerability`. Accept остава ръчен клик след преглед.
 
 **Live LLM (Phase 2_E Must 3):** [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md) — `CRA_AI_PROVIDER=openai|anthropic`, `ops:ai-check`, smoke checklist (+ vulnerability register triage). CI остава на stub.
+
+**Live connector smoke (Phase 2_E Should 10):** [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md) — ръчен Connect → Link → Sync now checklist за Jira / Snyk / ADO (+ optional SARIF). Не е CI gate.
 
 ### Integrations health index (Could 17)
 
@@ -186,5 +188,6 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 | Job                               | `SyncProductIntegrationJob`                                                             |
 | Schedule command                  | `integrations:sync-scheduled`                                                           |
 | Ops baseline (2_E Must 1)         | `php artisan ops:baseline-check` — [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) |
+| Live connector smoke (2_E S10)    | [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md)                    |
 | Org health + auditor export       | `/integrations/health` (Markdown/PDF)                                                   |
 | Phase exit                        | [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)                            |
