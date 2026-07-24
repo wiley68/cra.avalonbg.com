@@ -99,6 +99,7 @@ class OpsBaselineCheck extends Command
         $this->newLine();
         $this->line('Reminder: cron must call `php artisan schedule:run` every minute (or use ops/samples/systemd timer).');
         $this->line('Reminder: `php artisan queue:work --tries=3 --timeout=90` must consume dispatched jobs (see ops/samples/).');
+        $this->line('Reminder: daily `ai:index-embeddings` (RAG) also needs schedule + worker unless CRA_AI_RAG_REINDEX_SCHEDULE=off.');
         $this->line('Manual Sync now uses dispatchSync and does not require the worker.');
         $this->line('Hard sync failures: 3 tries with backoff 15/60/120s; then failed_jobs + last_sync_summary.queue_failed.');
 

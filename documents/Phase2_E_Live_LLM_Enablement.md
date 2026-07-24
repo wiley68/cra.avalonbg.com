@@ -1,8 +1,8 @@
 # Phase 2_E — Live LLM enablement
 
-**Версия:** 1.1  
+**Версия:** 1.2  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 3)  
+**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 3; Could 15 RAG schedule)  
 **Свързано:** [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) (queue worker), AI surfaces в Phase 2.3 / 2.8
 
 > Цел: включване на **live** OpenAI / Anthropic за triage MVP, със **stub** като default за CI. Без auto-accept / auto-close.
@@ -115,18 +115,52 @@ Route: `POST .../products/{product}/assistant/triage`.
 
 ---
 
+## 5b. RAG / embedding reindex (Could 15)
+
+Локалният RAG index (`ai_embedding_chunks`) се обновява с:
+
+```bash
+php artisan ai:index-embeddings              # всички продукти (queue при CRA_AI_QUEUE_ENABLED)
+php artisan ai:index-embeddings 12           # един product id
+php artisan ai:index-embeddings --organization=3
+php artisan ai:index-embeddings --sync       # inline, без queue
+```
+
+**Scheduler (default):** `ai:index-embeddings` daily в `CRA_AI_RAG_REINDEX_AT` (default `02:30`), ако `CRA_AI_RAG_ENABLED=true` и `CRA_AI_RAG_REINDEX_SCHEDULE` ≠ `off`.
+
+| Env                           | Default | Бележка                                                             |
+| ----------------------------- | ------- | ------------------------------------------------------------------- |
+| `CRA_AI_RAG_ENABLED`          | `true`  | `false` → командата no-op; schedule `when()` skip                   |
+| `CRA_AI_RAG_REINDEX_SCHEDULE` | `daily` | `off` \| `daily` \| `hourly`                                        |
+| `CRA_AI_RAG_REINDEX_AT`       | `02:30` | само за `daily` (app timezone)                                      |
+| `CRA_AI_EMBEDDING_PROVIDER`   | `stub`  | CI/stub; live: `openai` + key при нужда                             |
+| `CRA_AI_QUEUE_ENABLED`        | `true`  | schedule без `--sync` → `IndexAiEmbeddingsJob` → нужен `queue:work` |
+
+Проверка:
+
+```bash
+php artisan schedule:list | grep index-embeddings
+php artisan ops:ai-check
+```
+
+Без `schedule:run` + worker scheduled reindex **не** тече; manual `ai:index-embeddings --sync` остава OK.
+
+---
+
 ## 6. Troubleshooting
 
-| Симптом                  | Проверка                                                       |
-| ------------------------ | -------------------------------------------------------------- |
-| „AI disabled“            | `CRA_AI_ENABLED=true` + `ops:ai-check`                         |
-| `provider_misconfigured` | Key за избрания provider; `config:clear`                       |
-| `provider_timeout`       | Мрежа/бавен vendor; retry; или временно stub                   |
-| `provider_failed`        | HTTP 4xx/5xx, празен отговор, model name, billing при vendor   |
-| Stub отговори в staging  | `.env` още е `CRA_AI_PROVIDER=stub`                            |
-| CI вика OpenAI           | `phpunit.xml` трябва да форсира stub; не override-вай в CI env |
-| Бавен / висящ triage     | Timeout env; queue worker ако job е queued                     |
-| Queued fail „invalid“    | Should 11 — `error_message` вече е преведен `provider_*` text  |
+| Симптом                  | Проверка                                                               |
+| ------------------------ | ---------------------------------------------------------------------- |
+| „AI disabled“            | `CRA_AI_ENABLED=true` + `ops:ai-check`                                 |
+| `provider_misconfigured` | Key за избрания provider; `config:clear`                               |
+| `provider_timeout`       | Мрежа/бавен vendor; retry; или временно stub                           |
+| `provider_failed`        | HTTP 4xx/5xx, празен отговор, model name, billing при vendor           |
+| Stub отговори в staging  | `.env` още е `CRA_AI_PROVIDER=stub`                                    |
+| CI вика OpenAI           | `phpunit.xml` трябва да форсира stub; не override-вай в CI env         |
+| Бавен / висящ triage     | Timeout env; queue worker ако job е queued                             |
+| Queued fail „invalid“    | Should 11 — `error_message` вече е преведен `provider_*` text          |
+| RAG passages празни      | `ai:index-embeddings` (или daily schedule); `CRA_AI_RAG_ENABLED`       |
+| Scheduled reindex skip   | `CRA_AI_RAG_REINDEX_SCHEDULE=off` или RAG disabled; виж `ops:ai-check` |
 
 ---
 
@@ -143,5 +177,6 @@ Route: `POST .../products/{product}/assistant/triage`.
 
 | Версия | Дата       | Промяна                                                          |
 | ------ | ---------- | ---------------------------------------------------------------- |
+| 1.2    | 2026-07-24 | Could 15 — scheduled `ai:index-embeddings` + RAG ops note §5b    |
 | 1.1    | 2026-07-24 | Link Should 11 — timeout vs failed UX + queued translated errors |
 | 1.0    | 2026-07-24 | Must 3 — enablement guide + `ops:ai-check` + smoke checklist     |

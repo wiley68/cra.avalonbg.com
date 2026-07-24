@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.15  
+**Версия:** 0.16  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12–13 Done; Could 14 Skipped)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12–13+15 Done; Could 14 Skipped)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -158,7 +158,7 @@ flowchart LR
 12. ~~AI-assisted merged-PR narrative (human review; stub-safe)~~ **Done** (2026-07-24) — sync JSON draft на Version Show; `MergedPrAiNarrative`; stub providers; no auto evidence
 13. ~~Supervisor/systemd (или Docker Compose) sample unit за `queue:work` + `schedule:run`~~ **Done** (2026-07-24) — [`ops/samples/`](../ops/samples/); Ops baseline §3–4
 14. ~~Horizon / failed-jobs UI~~ **Skipped** (2026-07-24) — не пасва: default `QUEUE_CONNECTION=database`, без Redis/Horizon в composer; failed visibility вече от Must 2 + Should 9 ([Ops baseline §4b](Phase2_E_Ops_Baseline.md))
-15. **Open** — Embedding / RAG reindex schedule polish (`ai:index-embeddings` ops note)
+15. ~~Embedding / RAG reindex schedule polish (`ai:index-embeddings` ops note)~~ **Done** (2026-07-24) — daily schedule + env; [Live LLM §5b](Phase2_E_Live_LLM_Enablement.md); `ops:ai-check`
 16. **Open / empty** — UX debt pack: само P0 открити по време на 2_E (иначе skip)
 
 ---
@@ -169,7 +169,7 @@ flowchart LR
 
 **Should** — GitLab parity, save-as-evidence, ops health hint, live connector checklist, AI error UX.
 
-**Could** — ~~AI PR narrative~~, ~~process manager samples~~, ~~Horizon (skipped)~~, RAG schedule, optional P0 UX fixes.
+**Could** — ~~AI PR narrative~~, ~~process manager samples~~, ~~Horizon (skipped)~~, ~~RAG schedule~~, optional P0 UX fixes.
 
 ---
 
@@ -237,6 +237,7 @@ Candidate F: SSO / billing / onboarding
 | AI PR narrative (Could 12) | Stub/sync draft on Version Show; human review; no auto Evidence/Task; audit event               |
 | Process samples (Could 13) | `ops/samples/` — Supervisor, systemd worker+timer, Compose workers                              |
 | Horizon UI (Could 14)      | **Skipped** — database queue stack; use `queue:failed` + health `queue_failed` + ops hints      |
+| RAG reindex (Could 15)     | Daily `ai:index-embeddings` + env; `ops:ai-check`; Live LLM §5b                                 |
 
 ---
 
@@ -254,20 +255,21 @@ Candidate F: SSO / billing / onboarding
 
 ## 14. История
 
-| Версия | Дата       | Промяна                                                                |
-| ------ | ---------- | ---------------------------------------------------------------------- |
-| 0.15   | 2026-07-24 | Could 14 Skipped — Horizon/failed-jobs UI (database queue; Must 2 OK)  |
-| 0.14   | 2026-07-24 | Could 13 Done — Supervisor/systemd/Compose samples under ops/samples   |
-| 0.13   | 2026-07-24 | Could 12 Done — AI merged-PR narrative draft (human review; stub-safe) |
-| 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                   |
-| 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)    |
-| 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings   |
-| 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence  |
-| 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                        |
-| 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)    |
-| 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show         |
-| 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)    |
-| 0.4    | 2026-07-24 | Must 3 Done — live LLM enablement guide + `ops:ai-check`               |
-| 0.3    | 2026-07-24 | Must 2 Done — queue hardening (retries, failed visibility, Sync now)   |
-| 0.2    | 2026-07-24 | Freeze Must/Should/Could; roadmap → internal test → F; Must 1 Done     |
-| 0.1    | 2026-07-24 | Skeleton — Active след Phase 2.8 exit; Must/Should/Could draft slices  |
+| Версия | Дата       | Промяна                                                                  |
+| ------ | ---------- | ------------------------------------------------------------------------ |
+| 0.16   | 2026-07-24 | Could 15 Done — scheduled RAG reindex (`ai:index-embeddings`) + ops note |
+| 0.15   | 2026-07-24 | Could 14 Skipped — Horizon/failed-jobs UI (database queue; Must 2 OK)    |
+| 0.14   | 2026-07-24 | Could 13 Done — Supervisor/systemd/Compose samples under ops/samples     |
+| 0.13   | 2026-07-24 | Could 12 Done — AI merged-PR narrative draft (human review; stub-safe)   |
+| 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                     |
+| 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)      |
+| 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings     |
+| 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence    |
+| 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                          |
+| 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)      |
+| 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show           |
+| 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)      |
+| 0.4    | 2026-07-24 | Must 3 Done — live LLM enablement guide + `ops:ai-check`                 |
+| 0.3    | 2026-07-24 | Must 2 Done — queue hardening (retries, failed visibility, Sync now)     |
+| 0.2    | 2026-07-24 | Freeze Must/Should/Could; roadmap → internal test → F; Must 1 Done       |
+| 0.1    | 2026-07-24 | Skeleton — Active след Phase 2.8 exit; Must/Should/Could draft slices    |

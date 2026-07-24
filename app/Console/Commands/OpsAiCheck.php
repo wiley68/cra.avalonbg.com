@@ -29,7 +29,20 @@ class OpsAiCheck extends Command
         $queueEnabled = (bool) config('ai.queue.enabled');
         $this->line('CRA_AI_QUEUE_ENABLED: ' . ($queueEnabled ? 'true' : 'false'));
         if ($queueEnabled) {
-            $this->line('Note: queued analyse/draft/triage needs `php artisan queue:work` (chat stays sync).');
+            $this->line('Note: queued analyse/draft/triage/RAG index needs `php artisan queue:work` (chat stays sync).');
+        }
+
+        $ragEnabled = (bool) config('ai.rag.enabled', true);
+        $ragSchedule = strtolower((string) config('ai.rag.reindex_schedule', 'daily'));
+        $ragAt = (string) config('ai.rag.reindex_at', '02:30');
+        $this->line('CRA_AI_RAG_ENABLED: ' . ($ragEnabled ? 'true' : 'false'));
+        $this->line("CRA_AI_RAG_REINDEX_SCHEDULE: {$ragSchedule}" . ($ragSchedule === 'daily' ? " @ {$ragAt}" : ''));
+        if ($ragEnabled && $ragSchedule !== 'off') {
+            $this->line('Note: scheduler runs `ai:index-embeddings` (queues jobs unless --sync). See Phase2_E_Live_LLM_Enablement.md § RAG.');
+        } elseif (!$ragEnabled) {
+            $this->line('Note: RAG disabled — scheduled reindex is skipped by when() / command no-op.');
+        } else {
+            $this->line('Note: RAG reindex schedule is off — run `php artisan ai:index-embeddings` manually when needed.');
         }
 
         match ($driver) {

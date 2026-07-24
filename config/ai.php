@@ -37,6 +37,13 @@ return [
         'chunk_chars' => max(200, (int) env('CRA_AI_RAG_CHUNK_CHARS', 800)),
         'passage_chars' => max(80, (int) env('CRA_AI_RAG_PASSAGE_CHARS', 600)),
         'candidate_limit' => max(20, (int) env('CRA_AI_RAG_CANDIDATE_LIMIT', 200)),
+        /*
+        | Scheduled reindex via `ai:index-embeddings` (Phase 2_E Could 15).
+        | off | daily | hourly — dailyAt uses reindex_at (HH:MM, app timezone).
+        | Default path queues IndexAiEmbeddingsJob (needs queue:work).
+        */
+        'reindex_schedule' => env('CRA_AI_RAG_REINDEX_SCHEDULE', 'daily'),
+        'reindex_at' => env('CRA_AI_RAG_REINDEX_AT', '02:30'),
     ],
 
     'embeddings' => [
