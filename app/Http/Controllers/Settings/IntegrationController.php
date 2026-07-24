@@ -17,6 +17,7 @@ use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Services\IntegrationConnectionService;
+use App\Services\OpsQueueHealthHintService;
 use App\Services\VcsConnectionService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -29,6 +30,7 @@ class IntegrationController extends Controller
     public function __construct(
         private readonly VcsConnectionService $connections,
         private readonly IntegrationConnectionService $integrations,
+        private readonly OpsQueueHealthHintService $opsQueueHints,
     ) {
     }
 
@@ -94,6 +96,7 @@ class IntegrationController extends Controller
             'connections' => $connections,
             'integrations' => $integrations,
             'canManage' => $user->canManageProducts($organization),
+            'opsQueueHint' => $this->opsQueueHints->hintForOrganization($organization),
             'revealed_webhook_secret' => $request->session()->pull('revealed_webhook_secret'),
         ]);
     }

@@ -1,8 +1,8 @@
 # Phase 2_E — Ops baseline (scheduler + queue)
 
-**Версия:** 1.1  
+**Версия:** 1.2  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2)  
+**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2; Should 9 UI hint)  
 **Свързано:** [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) §4
 
 > Цел: production/staging path за **scheduled** VCS + integration sync. Manual **Sync now** не зависи от този baseline.
@@ -117,8 +117,9 @@ php artisan queue:monitor default --max=100
 9. [ ] С **спрян** worker: **Sync now** в UI все още успява (`dispatchSync`); **няма** нов ред в `jobs`.
 10. [ ] С спрян worker + schedule: jobs се трупат в `jobs` (доказателство, че schedule ≠ sync).
 11. [ ] След hard failure: `queue:failed` и/или health `failed` с `queue_failed` в summary.
+12. [ ] UI hint: при `sync_schedule` ≠ off + `QUEUE_CONNECTION=sync` (или stale `jobs` > 30m) — banner на `/integrations/health` и Settings → Integrations.
 
-**Verified (automated):** 2026-07-24 — `OpsBaselineScheduleTest` + `QueueHardeningTest` зелени. Staging/prod: попълни checklist + `ops:baseline-check` на host с работеща DB.
+**Verified (automated):** 2026-07-24 — `OpsBaselineScheduleTest` + `QueueHardeningTest` + `OpsQueueHealthHintTest` зелени. Staging/prod: попълни checklist + `ops:baseline-check` на host с работеща DB.
 
 ---
 
@@ -143,6 +144,7 @@ php artisan queue:monitor default --max=100
 | Soft-fail в summary              | Token/scopes — [Phase2_8 runbook](Phase2_8_Integrations_Operator_Runbook.md) |
 | Failed jobs / health failed      | `queue:failed` + retry; виж `last_sync_summary.queue_failed` (без secrets)   |
 | Дублирани jobs / release mid-run | `DB_QUEUE_RETRY_AFTER` трябва да е > `$timeout` (90)                         |
+| Banner на Health / Settings      | `OpsQueueHealthHintService` — sync queue или stale jobs; Sync now OK         |
 
 ---
 
@@ -150,5 +152,6 @@ php artisan queue:monitor default --max=100
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.2    | 2026-07-24 | Should 9 — UI ops hint on Health + Settings; checklist item 12       |
 | 1.1    | 2026-07-24 | Must 2 — retries, failed visibility, retry_after, Sync now checklist |
 | 1.0    | 2026-07-24 | Must 1 — ops baseline doc + `ops:baseline-check`                     |

@@ -416,6 +416,10 @@
                 "section_rows": "Sync цели",
                 "empty": "Все още няма свързани product integration links или хранилища.",
                 "invalid_format": "Неподдържан формат за експорт."
+            },
+            "ops_hints": {
+                "queue_sync": "QUEUE_CONNECTION е sync. Планираният VCS/integration sync ще блокира schedule:run. Използвайте database или redis и пуснете queue:work. Ръчният Sync now продължава да работи.",
+                "stale_jobs": "Има pending queue jobs по-стари от 30 минути. Вероятно worker-ът е спрян — пуснете php artisan queue:work (и schedule:run всяка минута). Ръчният Sync now продължава да работи."
             }
         }
     },

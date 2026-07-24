@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Organization;
 use App\Services\IntegrationHealthExportService;
+use App\Services\OpsQueueHealthHintService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
@@ -13,6 +14,7 @@ class IntegrationHealthController extends Controller
 {
     public function __construct(
         private readonly IntegrationHealthExportService $exports,
+        private readonly OpsQueueHealthHintService $opsQueueHints,
     ) {
     }
 
@@ -32,6 +34,7 @@ class IntegrationHealthController extends Controller
         return Inertia::render('integrations/Health', [
             'organization' => $this->organizationPayload($organization),
             'canManage' => $user->canManageProducts($organization),
+            'opsQueueHint' => $this->opsQueueHints->hintForOrganization($organization),
         ]);
     }
 

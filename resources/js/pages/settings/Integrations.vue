@@ -67,10 +67,16 @@ type DisconnectTarget = {
     id: number;
 };
 
+type OpsQueueHint = {
+    level: 'warn' | 'fail';
+    code: string;
+};
+
 const props = defineProps<{
     connections: VcsConnection[];
     integrations: OrganizationIntegrationRow[];
     canManage: boolean;
+    opsQueueHint: OpsQueueHint | null;
     revealed_webhook_secret?: string | null;
 }>();
 
@@ -79,6 +85,17 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'settings.integrations.title', href: edit() },
 ]);
+
+const opsHintMessage = computed(() => {
+    if (!props.opsQueueHint) {
+        return null;
+    }
+
+    const key = `integrations.health.ops_hints.${props.opsQueueHint.code}`;
+    const translated = t(key);
+
+    return translated === key ? props.opsQueueHint.code : translated;
+});
 
 const githubForm = useForm({
     token: '',
@@ -521,6 +538,18 @@ const confirmDisconnect = () => {
                     {{ t('settings.integrations.health_link') }}
                 </Link>
             </Button>
+        </div>
+
+        <div
+            v-if="opsHintMessage"
+            class="rounded-lg border px-4 py-3 text-sm"
+            :class="
+                props.opsQueueHint?.level === 'fail'
+                    ? 'border-destructive/30 bg-destructive/5 text-destructive'
+                    : 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100'
+            "
+        >
+            {{ opsHintMessage }}
         </div>
 
         <Tabs

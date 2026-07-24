@@ -416,6 +416,10 @@
                 "section_rows": "Sync targets",
                 "empty": "No product integration links or repositories are linked yet.",
                 "invalid_format": "Unsupported export format."
+            },
+            "ops_hints": {
+                "queue_sync": "QUEUE_CONNECTION is set to sync. Scheduled VCS/integration sync will block schedule:run. Use database or redis and run queue:work. Manual Sync now still works.",
+                "stale_jobs": "Pending queue jobs are older than 30 minutes. The queue worker may be stopped — run php artisan queue:work (and ensure schedule:run runs every minute). Manual Sync now still works."
             }
         }
     },

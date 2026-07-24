@@ -27,9 +27,15 @@ type OrganizationSummary = {
     slug: string;
 };
 
+type OpsQueueHint = {
+    level: 'warn' | 'fail';
+    code: string;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     canManage: boolean;
+    opsQueueHint: OpsQueueHint | null;
 }>();
 
 const { t } = useTranslations();
@@ -37,6 +43,17 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'integrations.health.index_title', href: healthIndex() },
 ]);
+
+const opsHintMessage = computed(() => {
+    if (!props.opsQueueHint) {
+        return null;
+    }
+
+    const key = `integrations.health.ops_hints.${props.opsQueueHint.code}`;
+    const translated = t(key);
+
+    return translated === key ? props.opsQueueHint.code : translated;
+});
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<IntegrationHealthListItem>({
@@ -122,6 +139,18 @@ onMounted(() => {
                     </Link>
                 </Button>
             </div>
+        </div>
+
+        <div
+            v-if="opsHintMessage"
+            class="rounded-lg border px-4 py-3 text-sm"
+            :class="
+                props.opsQueueHint?.level === 'fail'
+                    ? 'border-destructive/30 bg-destructive/5 text-destructive'
+                    : 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100'
+            "
+        >
+            {{ opsHintMessage }}
         </div>
 
         <DataTable
