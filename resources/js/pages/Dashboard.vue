@@ -157,6 +157,22 @@ const severityClass = (severity: string): string => {
                     {{ dashboard.counts.sdl_pending_monitoring ?? 0 }}
                 </p>
             </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.pending_import_suggestions') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.pending_import_suggestions ?? 0 }}
+                </p>
+            </div>
+            <div class="rounded-lg border p-4">
+                <p class="text-sm text-muted-foreground">
+                    {{ t('dashboard.counts.failed_integration_syncs') }}
+                </p>
+                <p class="text-2xl font-semibold">
+                    {{ dashboard.counts.failed_integration_syncs ?? 0 }}
+                </p>
+            </div>
         </div>
 
         <div class="space-y-3">

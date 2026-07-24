@@ -2281,7 +2281,8 @@
                 "release": "Статус на издания",
                 "reporting": "Готовност за докладване",
                 "technical_documentation": "Техническа документация",
-                "repository": "Хранилище / VCS"
+                "repository": "Хранилище / VCS",
+                "integrations": "Интеграции (ALM / scanner)"
             },
             "summaries": {
                 "identification": {
@@ -2399,6 +2400,13 @@
                     "linked_synced": "Хранилището е свързано и е синхронизирано.",
                     "ci_failing": "CI на default branch е неуспешен."
                 },
+                "integrations": {
+                    "none": "Все още няма ALM/scanner връзки към продукта.",
+                    "healthy": "Свързаните интеграции са синхронизирани без отворени предложения.",
+                    "pending_suggestions": "Има чакащи предложения за импорт — Accept или Dismiss.",
+                    "sync_warnings": "Последната синхронизация завърши с предупреждения за права или rate limit.",
+                    "sync_failed": "Една или повече интеграции имат неуспешен sync."
+                },
                 "reporting": {
                     "deadlines_at_risk": "Сроковете за докладване на уязвимости изискват внимание.",
                     "submissions_recorded": "Записано е поне едно подаване по reporting.",
@@ -2445,6 +2453,9 @@
                 "technical_documentation_usi_unlinked": "Свържете публикувани инструкции за сигурност към пакета техническа документация.",
                 "no_repository_linked": "Свържете GitHub хранилище от страницата за редакция на продукта.",
                 "ci_failing": "Поправете неуспешния CI на default branch на свързаното хранилище и синхронизирайте отново.",
+                "pending_import_suggestions": "Прегледайте чакащите Jira/Snyk предложения за импорт в страницата за редакция на продукта.",
+                "integration_sync_failed": "Поправете неуспешните ALM/scanner sync-ове и пуснете Sync now отново.",
+                "integration_sync_warning": "Прегледайте предупрежденията от sync (липсващи права или rate limits).",
                 "reporting": "Прегледайте сроковете за докладване на уязвимости.",
                 "support_periods_missing": "Добавете структурирани търговски и security периоди на поддръжка."
             }
@@ -3612,7 +3623,9 @@
             "open_incidents": "Отворени инциденти",
             "unclassified_incidents": "Некласифицирани инциденти",
             "sdl_approved": "Одобрени SDL записи",
-            "sdl_pending_monitoring": "SDL с чакащ мониторинг"
+            "sdl_pending_monitoring": "SDL с чакащ мониторинг",
+            "pending_import_suggestions": "Чакащи предложения за импорт",
+            "failed_integration_syncs": "Неуспешни sync-ове на интеграции"
         },
         "actions": {
             "manage_organizations": "Управление на организации",
@@ -3632,7 +3645,9 @@
             "overdue_tasks": "Просрочени коригиращи задачи",
             "releases_awaiting_approval": "Версии, чакащи security / release одобрение",
             "overdue_reporting": "Просрочени срокове за докладване на уязвимости",
-            "sdl_pending_monitoring": "Одобрени SDL записи с чакащ post-release мониторинг"
+            "sdl_pending_monitoring": "Одобрени SDL записи с чакащ post-release мониторинг",
+            "pending_import_suggestions": "Чакащи Jira/Snyk предложения за импорт",
+            "failed_integration_syncs": "Неуспешни ALM/scanner sync-ове"
         }
     },
     "settings": {

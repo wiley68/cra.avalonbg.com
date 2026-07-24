@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ClassificationStatus;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\ImportSuggestionStatus;
 use App\Enums\IncidentStatus;
 use App\Enums\ProductVersionState;
 use App\Enums\SdlRunStatus;
@@ -14,9 +15,11 @@ use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
+use App\Models\ImportSuggestion;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
+use App\Models\ProductIntegrationLink;
 use App\Models\ProductRisk;
 use App\Models\ProductSupportPeriod;
 use App\Models\ProductVersion;
@@ -108,6 +111,8 @@ class DashboardService
         $supportBuckets = $this->supportEndingBuckets($productIds);
         $sdlPendingMonitoring = $this->sdlPendingMonitoringCount($organization);
         $sdlApproved = $this->sdlApprovedCount($organization);
+        $pendingImportSuggestions = $this->pendingImportSuggestionCount($productIds);
+        $failedIntegrationSyncs = $this->failedIntegrationSyncCount($productIds);
 
         $actions = array_values(array_filter([
             $this->countAction(
@@ -177,6 +182,8 @@ class DashboardService
                 'fail',
                 $overdueReporting,
             ),
+            $this->pendingImportSuggestionsAction($productIds, $pendingImportSuggestions),
+            $this->failedIntegrationSyncsAction($productIds, $failedIntegrationSyncs),
             $user->canViewSdl($organization)
             ? $this->countAction(
                 'sdl_pending_monitoring',
@@ -205,6 +212,8 @@ class DashboardService
                 'unclassified_incidents' => $unclassifiedIncidents,
                 'sdl_approved' => $sdlApproved,
                 'sdl_pending_monitoring' => $sdlPendingMonitoring,
+                'pending_import_suggestions' => $pendingImportSuggestions,
+                'failed_integration_syncs' => $failedIntegrationSyncs,
             ],
             'actions' => $actions,
         ];
@@ -226,7 +235,7 @@ class DashboardService
         return [
             'key' => $key,
             'severity' => $severity,
-            'title_key' => 'dashboard.actions.' . $key,
+            'title_key' => 'dashboard.actions.'.$key,
             'count' => $count,
             'href' => $href ?? route('products.index'),
         ];
@@ -326,7 +335,7 @@ class DashboardService
     private function activeIncidentStatusValues(): array
     {
         return array_map(
-            fn(IncidentStatus $status): string => $status->value,
+            fn (IncidentStatus $status): string => $status->value,
             IncidentStatus::active(),
         );
     }
@@ -349,7 +358,7 @@ class DashboardService
             ->where('start_basis', SupportPeriodStartBasis::ReleaseDate->value)
             ->with(['versions:id,release_date'])
             ->get()
-            ->filter(fn(ProductSupportPeriod $period): bool => $period->scheduleResolved());
+            ->filter(fn (ProductSupportPeriod $period): bool => $period->scheduleResolved());
 
         foreach ($periods as $period) {
             $days = $period->daysUntilEnd();
@@ -435,7 +444,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $previewTasks
-                ->map(fn(Task $task): array => [
+                ->map(fn (Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
@@ -487,7 +496,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $preview
-                ->map(fn(Task $task): array => [
+                ->map(fn (Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
@@ -497,6 +506,101 @@ class DashboardService
                 ])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function pendingImportSuggestionCount(Collection $productIds): int
+    {
+        if ($productIds->isEmpty()) {
+            return 0;
+        }
+
+        return ImportSuggestion::query()
+            ->whereIn('product_id', $productIds)
+            ->where('status', ImportSuggestionStatus::Pending)
+            ->count();
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     */
+    private function failedIntegrationSyncCount(Collection $productIds): int
+    {
+        if ($productIds->isEmpty()) {
+            return 0;
+        }
+
+        return ProductIntegrationLink::query()
+            ->whereIn('product_id', $productIds)
+            ->get(['id', 'last_sync_summary'])
+            ->filter(function (ProductIntegrationLink $link): bool {
+                $summary = is_array($link->last_sync_summary) ? $link->last_sync_summary : [];
+                $error = $summary['error'] ?? null;
+
+                return is_string($error) && $error !== '';
+            })
+            ->count();
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @return array<string, mixed>|null
+     */
+    private function pendingImportSuggestionsAction(Collection $productIds, int $count): ?array
+    {
+        if ($count <= 0) {
+            return null;
+        }
+
+        $firstProductId = ImportSuggestion::query()
+            ->whereIn('product_id', $productIds)
+            ->where('status', ImportSuggestionStatus::Pending)
+            ->orderBy('id')
+            ->value('product_id');
+
+        return [
+            'key' => 'pending_import_suggestions',
+            'severity' => 'warn',
+            'title_key' => 'dashboard.actions.pending_import_suggestions',
+            'count' => $count,
+            'href' => $firstProductId !== null
+                ? route('products.edit', $firstProductId)
+                : route('products.index'),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @return array<string, mixed>|null
+     */
+    private function failedIntegrationSyncsAction(Collection $productIds, int $count): ?array
+    {
+        if ($count <= 0) {
+            return null;
+        }
+
+        $firstProductId = ProductIntegrationLink::query()
+            ->whereIn('product_id', $productIds)
+            ->get(['product_id', 'last_sync_summary'])
+            ->first(function (ProductIntegrationLink $link): bool {
+                $summary = is_array($link->last_sync_summary) ? $link->last_sync_summary : [];
+                $error = $summary['error'] ?? null;
+
+                return is_string($error) && $error !== '';
+            })
+            ?->product_id;
+
+        return [
+            'key' => 'failed_integration_syncs',
+            'severity' => 'fail',
+            'title_key' => 'dashboard.actions.failed_integration_syncs',
+            'count' => $count,
+            'href' => $firstProductId !== null
+                ? route('products.edit', $firstProductId)
+                : route('products.index'),
         ];
     }
 

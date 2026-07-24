@@ -2281,7 +2281,8 @@
                 "release": "Release status",
                 "reporting": "Reporting readiness",
                 "technical_documentation": "Technical documentation",
-                "repository": "Repository / VCS"
+                "repository": "Repository / VCS",
+                "integrations": "Integrations (ALM / scanner)"
             },
             "summaries": {
                 "identification": {
@@ -2399,6 +2400,13 @@
                     "linked_synced": "Repository is linked and has been synced.",
                     "ci_failing": "CI on the default branch is failing."
                 },
+                "integrations": {
+                    "none": "No ALM/scanner product links yet.",
+                    "healthy": "Linked integrations are synced without open review items.",
+                    "pending_suggestions": "Pending import suggestions need Accept or Dismiss.",
+                    "sync_warnings": "Latest sync completed with permission or rate-limit warnings.",
+                    "sync_failed": "One or more integration syncs failed."
+                },
                 "reporting": {
                     "deadlines_at_risk": "Vulnerability reporting deadlines need attention.",
                     "submissions_recorded": "At least one reporting submission is recorded.",
@@ -2446,6 +2454,9 @@
                 "technical_documentation_usi_unlinked": "Link a published user security instruction to the technical documentation package.",
                 "no_repository_linked": "Link a GitHub repository on the product edit page.",
                 "ci_failing": "Fix failing CI on the linked repository default branch, then sync again.",
+                "pending_import_suggestions": "Review pending Jira/Snyk import suggestions on the product edit page.",
+                "integration_sync_failed": "Fix failed ALM/scanner syncs and run Sync now again.",
+                "integration_sync_warning": "Review integration sync warnings (missing scopes or rate limits).",
                 "reporting": "Review vulnerability reporting deadlines."
             }
         },
@@ -3614,7 +3625,9 @@
             "open_incidents": "Open incidents",
             "unclassified_incidents": "Unclassified incidents",
             "sdl_approved": "Approved SDL runs",
-            "sdl_pending_monitoring": "SDL pending monitoring"
+            "sdl_pending_monitoring": "SDL pending monitoring",
+            "pending_import_suggestions": "Pending import suggestions",
+            "failed_integration_syncs": "Failed integration syncs"
         },
         "actions": {
             "manage_organizations": "Manage organizations",
@@ -3634,7 +3647,9 @@
             "overdue_tasks": "Overdue corrective tasks",
             "releases_awaiting_approval": "Versions awaiting security / release approval",
             "overdue_reporting": "Overdue vulnerability reporting deadlines",
-            "sdl_pending_monitoring": "Approved SDL runs with pending post-release monitoring"
+            "sdl_pending_monitoring": "Approved SDL runs with pending post-release monitoring",
+            "pending_import_suggestions": "Pending Jira/Snyk import suggestions",
+            "failed_integration_syncs": "Failed ALM/scanner syncs"
         }
     },
     "settings": {

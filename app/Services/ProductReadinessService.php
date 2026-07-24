@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ClassificationStatus;
 use App\Enums\CustomerCriticality;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\ImportSuggestionStatus;
 use App\Enums\PatchCampaignStatus;
 use App\Enums\PatchCampaignTargetStatus;
 use App\Enums\PolicyStatus;
@@ -21,12 +22,14 @@ use App\Enums\UserSecurityInstructionStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
+use App\Models\ImportSuggestion;
+use App\Models\OrgPolicy;
 use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
-use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductComponent;
 use App\Models\ProductControl;
+use App\Models\ProductIntegrationLink;
 use App\Models\ProductRequirement;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -42,8 +45,7 @@ class ProductReadinessService
     public function __construct(
         private readonly ProductDeploymentService $deployments,
         private readonly TechnicalDocumentationService $technicalDocumentation,
-    ) {
-    }
+    ) {}
 
     /**
      * Compact per-module status for product index cards.
@@ -144,7 +146,7 @@ class ProductReadinessService
 
         $values = array_values($statuses);
 
-        if (!in_array('complete', $values, true) && !in_array('incomplete', $values, true)) {
+        if (! in_array('complete', $values, true) && ! in_array('incomplete', $values, true)) {
             return 'empty';
         }
 
@@ -183,6 +185,7 @@ class ProductReadinessService
             $this->evidenceSection($product),
             $this->technicalDocumentationSection($product),
             $this->repositorySection($product),
+            $this->integrationsSection($product),
             $this->tasksSection($product),
             $this->responsiblePersonsSection($product),
             $this->releaseSection($product),
@@ -196,7 +199,7 @@ class ProductReadinessService
                 $gaps[] = [
                     'section' => $section['key'],
                     'status' => $section['status'],
-                    'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.' . $section['key']),
+                    'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.'.$section['key']),
                     'link' => $section['link'] ?? null,
                 ];
             }
@@ -242,6 +245,11 @@ class ProductReadinessService
                         TaskStatus::PendingApproval->value,
                     ])
                     ->count(),
+                'pending_import_suggestions' => ImportSuggestion::query()
+                    ->where('product_id', $product->id)
+                    ->where('status', ImportSuggestionStatus::Pending)
+                    ->count(),
+                'failed_integration_syncs' => $this->failedIntegrationSyncCount($product),
             ],
         ];
     }
@@ -366,10 +374,10 @@ class ProductReadinessService
         }
 
         $nonDraft = $versions->contains(
-            fn($version) => $version->state !== ProductVersionState::Draft,
+            fn ($version) => $version->state !== ProductVersionState::Draft,
         );
 
-        if (!$nonDraft) {
+        if (! $nonDraft) {
             return [
                 'key' => 'versions',
                 'status' => 'warn',
@@ -398,37 +406,37 @@ class ProductReadinessService
             ->get();
         $hasStructuredPeriods = $periods->isNotEmpty();
         $hasResolvedSchedule = $periods->contains(
-            fn($period) => $period->scheduleResolved(),
+            fn ($period) => $period->scheduleResolved(),
         );
         $hasActivePeriod = $periods->contains(
-            fn($period) => $period->isActive() === true,
+            fn ($period) => $period->isActive() === true,
         );
         $hasNotes = filled($product->support_period_notes) || filled($product->end_of_support_policy);
         $versions = $product->versions()->get(['support_status', 'security_support_deadline']);
 
         $hasSupported = $versions->contains(
-            fn($version) => in_array($version->support_status, [
+            fn ($version) => in_array($version->support_status, [
                 SupportStatus::Supported,
                 SupportStatus::SecurityOnly,
             ], true),
         );
 
         $unsupportedWithoutDeadline = $versions->contains(
-            fn($version) => $version->support_status === SupportStatus::Unsupported
+            fn ($version) => $version->support_status === SupportStatus::Unsupported
             && $version->security_support_deadline === null,
         );
 
         $endingSoon = $periods->contains(
-            fn($period) => $period->isActive() === true
+            fn ($period) => $period->isActive() === true
             && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 90,
         );
         $endingCritical = $periods->contains(
-            fn($period) => $period->scheduleResolved()
+            fn ($period) => $period->scheduleResolved()
             && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 30,
         );
 
         if ($hasStructuredPeriods) {
-            $calendarProblem = $hasResolvedSchedule && (!$hasActivePeriod || $endingSoon);
+            $calendarProblem = $hasResolvedSchedule && (! $hasActivePeriod || $endingSoon);
 
             if ($endingCritical) {
                 return [
@@ -440,7 +448,7 @@ class ProductReadinessService
                     'metrics' => [
                         'periods_count' => $periods->count(),
                         'active_periods' => $periods->filter(
-                            fn($period) => $period->isActive() === true,
+                            fn ($period) => $period->isActive() === true,
                         )->count(),
                     ],
                 ];
@@ -456,7 +464,7 @@ class ProductReadinessService
                     'metrics' => [
                         'periods_count' => $periods->count(),
                         'active_periods' => $periods->filter(
-                            fn($period) => $period->isActive() === true,
+                            fn ($period) => $period->isActive() === true,
                         )->count(),
                     ],
                 ];
@@ -469,7 +477,7 @@ class ProductReadinessService
                 'metrics' => [
                     'periods_count' => $periods->count(),
                     'active_periods' => $periods->filter(
-                        fn($period) => $period->isActive() === true,
+                        fn ($period) => $period->isActive() === true,
                     )->count(),
                 ],
             ];
@@ -518,14 +526,14 @@ class ProductReadinessService
             ->where('organization_id', $product->organization_id)
             ->where('status', PolicyStatus::Approved)
             ->pluck('policy_type')
-            ->map(fn(PolicyType|string $type) => $type instanceof PolicyType ? $type->value : $type)
+            ->map(fn (PolicyType|string $type) => $type instanceof PolicyType ? $type->value : $type)
             ->unique()
             ->values()
             ->all();
 
         $missingCount = 0;
         foreach ($requiredTypes as $type) {
-            if (!in_array($type->value, $approvedTypeValues, true)) {
+            if (! in_array($type->value, $approvedTypeValues, true)) {
                 $missingCount++;
             }
         }
@@ -708,13 +716,13 @@ class ProductReadinessService
 
         $now = Carbon::now();
         $openWithoutReview = $risks->contains(
-            fn(ProductRisk $risk) => in_array($risk->status, [
+            fn (ProductRisk $risk) => in_array($risk->status, [
                 ProductRiskStatus::Open,
                 ProductRiskStatus::InTreatment,
             ], true) && $risk->reviewed_at === null,
         );
         $overdue = $risks->contains(
-            fn(ProductRisk $risk) => $risk->deadline !== null
+            fn (ProductRisk $risk) => $risk->deadline !== null
             && $risk->deadline->lt($now)
             && $risk->status !== ProductRiskStatus::Closed,
         );
@@ -819,7 +827,7 @@ class ProductReadinessService
         $unresolvedHigh = PatchCampaignTarget::query()
             ->whereHas(
                 'campaign',
-                fn($query) => $query
+                fn ($query) => $query
                     ->where('product_id', $product->id)
                     ->where('status', PatchCampaignStatus::Active),
             )
@@ -829,7 +837,7 @@ class ProductReadinessService
             ])
             ->whereHas(
                 'deployment.customer',
-                fn($query) => $query->where('criticality', CustomerCriticality::High),
+                fn ($query) => $query->where('criticality', CustomerCriticality::High),
             )
             ->count();
 
@@ -964,7 +972,7 @@ class ProductReadinessService
 
         $sectionsTotal = $latestPublished?->sections->count() ?? 0;
         $sectionsApplicable = $latestPublished?->sections
-            ->filter(fn($section) => $section->is_applicable)
+            ->filter(fn ($section) => $section->is_applicable)
             ->count() ?? 0;
         $incompleteKeys = $latestPublished !== null
             ? $this->technicalDocumentation->incompleteSectionKeys($latestPublished)
@@ -1019,7 +1027,7 @@ class ProductReadinessService
             ];
         }
 
-        if (!$linkedUsi) {
+        if (! $linkedUsi) {
             return [
                 'key' => 'technical_documentation',
                 'status' => 'warn',
@@ -1100,6 +1108,109 @@ class ProductReadinessService
     /**
      * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
      */
+    private function integrationsSection(Product $product): array
+    {
+        $links = ProductIntegrationLink::query()
+            ->where('product_id', $product->id)
+            ->get(['id', 'last_sync_summary']);
+
+        $pendingSuggestions = ImportSuggestion::query()
+            ->where('product_id', $product->id)
+            ->where('status', ImportSuggestionStatus::Pending)
+            ->count();
+
+        $failedSyncs = 0;
+        $softFailSyncs = 0;
+
+        foreach ($links as $link) {
+            $summary = is_array($link->last_sync_summary) ? $link->last_sync_summary : [];
+            $error = $summary['error'] ?? null;
+
+            if (is_string($error) && $error !== '') {
+                $failedSyncs++;
+
+                continue;
+            }
+
+            if (($summary['soft_fail'] ?? false) === true) {
+                $softFailSyncs++;
+            }
+        }
+
+        $metrics = [
+            'links_count' => $links->count(),
+            'pending_import_suggestions' => $pendingSuggestions,
+            'failed_integration_syncs' => $failedSyncs,
+            'soft_fail_syncs' => $softFailSyncs,
+        ];
+
+        if ($failedSyncs > 0) {
+            return [
+                'key' => 'integrations',
+                'status' => 'fail',
+                'summary' => 'sync_failed',
+                'gap_key' => 'products.readiness.gaps.integration_sync_failed',
+                'link' => 'edit',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($pendingSuggestions > 0) {
+            return [
+                'key' => 'integrations',
+                'status' => 'warn',
+                'summary' => 'pending_suggestions',
+                'gap_key' => 'products.readiness.gaps.pending_import_suggestions',
+                'link' => 'edit',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($softFailSyncs > 0) {
+            return [
+                'key' => 'integrations',
+                'status' => 'warn',
+                'summary' => 'sync_warnings',
+                'gap_key' => 'products.readiness.gaps.integration_sync_warning',
+                'link' => 'edit',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($links->isEmpty()) {
+            return [
+                'key' => 'integrations',
+                'status' => 'pass',
+                'summary' => 'none',
+                'metrics' => $metrics,
+            ];
+        }
+
+        return [
+            'key' => 'integrations',
+            'status' => 'pass',
+            'summary' => 'healthy',
+            'metrics' => $metrics,
+        ];
+    }
+
+    private function failedIntegrationSyncCount(Product $product): int
+    {
+        return ProductIntegrationLink::query()
+            ->where('product_id', $product->id)
+            ->get(['last_sync_summary'])
+            ->filter(function (ProductIntegrationLink $link): bool {
+                $summary = is_array($link->last_sync_summary) ? $link->last_sync_summary : [];
+                $error = $summary['error'] ?? null;
+
+                return is_string($error) && $error !== '';
+            })
+            ->count();
+    }
+
+    /**
+     * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
+     */
     private function tasksSection(Product $product): array
     {
         $openStatuses = [
@@ -1113,11 +1224,11 @@ class ProductReadinessService
             ->get(['id', 'status', 'due_at']);
 
         $open = $tasks->filter(
-            fn(Task $task) => in_array($task->status, $openStatuses, true),
+            fn (Task $task) => in_array($task->status, $openStatuses, true),
         );
 
         $overdue = $open->contains(
-            fn(Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
+            fn (Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
         );
 
         $metrics = [
@@ -1269,12 +1380,12 @@ class ProductReadinessService
         }
 
         $hasProductWideApproval = $approvedRuns->contains(
-            fn(SdlRun $run) => $run->product_version_id === null,
+            fn (SdlRun $run) => $run->product_version_id === null,
         );
         $pinnedApprovedIds = $approvedRuns
             ->pluck('product_version_id')
             ->filter()
-            ->map(fn($id) => (int) $id)
+            ->map(fn ($id) => (int) $id)
             ->all();
 
         $uncoveredCount = $awaitingVersions
@@ -1283,7 +1394,7 @@ class ProductReadinessService
                     return false;
                 }
 
-                return !in_array((int) $version->id, $pinnedApprovedIds, true);
+                return ! in_array((int) $version->id, $pinnedApprovedIds, true);
             })
             ->count();
 
@@ -1375,11 +1486,11 @@ class ProductReadinessService
         }
 
         $assessed = $rows->filter(
-            fn(ProductRequirement $row) => $row->status !== RequirementApplicabilityStatus::NotAssessed,
+            fn (ProductRequirement $row) => $row->status !== RequirementApplicabilityStatus::NotAssessed,
         )->count();
 
         $implemented = $rows->filter(
-            fn(ProductRequirement $row) => in_array($row->status, [
+            fn (ProductRequirement $row) => in_array($row->status, [
                 RequirementApplicabilityStatus::Implemented,
                 RequirementApplicabilityStatus::Verified,
                 RequirementApplicabilityStatus::ExceptionApproved,
@@ -1387,7 +1498,7 @@ class ProductReadinessService
         )->count();
 
         $verified = $rows->filter(
-            fn(ProductRequirement $row) => $row->status === RequirementApplicabilityStatus::Verified,
+            fn (ProductRequirement $row) => $row->status === RequirementApplicabilityStatus::Verified,
         )->count();
 
         return [
@@ -1417,11 +1528,11 @@ class ProductReadinessService
             ->get(['id', 'status', 'business_severity', 'awareness_at']);
 
         $open = $vulns->filter(
-            fn(ProductVulnerability $vuln) => !in_array($vuln->status, $closed, true),
+            fn (ProductVulnerability $vuln) => ! in_array($vuln->status, $closed, true),
         );
 
         $critical = $open->filter(
-            fn(ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
+            fn (ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
         )->count();
 
         $overdue = $open->filter(function (ProductVulnerability $vuln): bool {
