@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\Contracts\AiProvider;
 use App\Enums\AiProviderDriver;
+use App\Support\AiUserFacingError;
 use App\Support\Translations;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -87,18 +88,8 @@ class AnthropicAiProvider implements AiProvider
                     'temperature' => 0.2,
                 ])
                 ->throw();
-        } catch (RequestException $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
-        } catch (Throwable $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
+        } catch (RequestException | Throwable $e) {
+            AiUserFacingError::throwFromTransport($e);
         }
 
         $blocks = data_get($response->json(), 'content', []);

@@ -16,6 +16,7 @@ use App\Models\PatchCampaign;
 use App\Models\Product;
 use App\Models\ProductVulnerability;
 use App\Models\User;
+use App\Support\AiUserFacingError;
 use App\Support\Translations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -301,12 +302,13 @@ class AiQueuedAnalysisService
         } catch (\Throwable $e) {
             report($e);
 
-            $this->appendFailureAssistantMessage($job, $e->getMessage());
+            $userMessage = AiUserFacingError::messageFromThrowable($e);
+            $this->appendFailureAssistantMessage($job, $userMessage);
 
             $job->update([
                 'status' => AiAnalysisJobStatus::Failed,
                 'finished_at' => now(),
-                'error_message' => mb_substr($e->getMessage(), 0, 2000),
+                'error_message' => mb_substr($userMessage, 0, 2000),
             ]);
         }
     }
@@ -427,7 +429,9 @@ class AiQueuedAnalysisService
         AiMessage::query()->create([
             'conversation_id' => $job->conversation_id,
             'role' => AiMessageRole::Assistant,
-            'content' => 'Queued analysis failed. Please retry. Human review is still required for all compliance decisions.',
+            'content' => Translations::get('products.assistant.queue.failed_chat', [
+                'detail' => $message,
+            ]),
             'metadata' => [
                 'mode' => $job->type->value,
                 'queued' => true,

@@ -31,6 +31,7 @@ use App\Services\AiQueuedAnalysisService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -247,4 +248,46 @@ test('queue disabled falls back to sync analyse without analysis_job row', funct
         ->and(AiAnalysisJob::query()->count())->toBe(0)
         ->and(AiConversation::query()->count())->toBe(1)
         ->and(AiMessage::query()->count())->toBe(2);
+});
+
+test('queued analysis stores user-facing provider failure not laravel boilerplate', function () {
+    config([
+        'ai.enabled' => true,
+        'ai.provider' => 'openai',
+        'ai.providers.openai.api_key' => 'test-key',
+        'ai.providers.openai.base_url' => 'https://api.openai.com/v1',
+        'ai.queue.enabled' => true,
+        'queue.default' => 'sync',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/chat/completions' => Http::response(['error' => 'boom'], 503),
+    ]);
+
+    ['owner' => $owner, 'product' => $product] = makeQueuedAnalysisFixture();
+
+    $file = UploadedFile::fake()->createWithContent('policy.md', "# CVD\nDisclose within 30 days.\n");
+
+    $result = app(AiQueuedAnalysisService::class)->queueAnalyseDocument(
+        $product,
+        $owner,
+        $file,
+    );
+
+    $failedMessage = \App\Support\Translations::get('assistant.provider_failed');
+    $job = $result['analysis_job']?->fresh();
+
+    expect($job)->not->toBeNull()
+        ->and($job->status)->toBe(AiAnalysisJobStatus::Failed)
+        ->and($job->error_message)->toBe($failedMessage)
+        ->and($job->error_message)->not->toContain('The given data was invalid');
+
+    $assistant = AiMessage::query()
+        ->where('conversation_id', $result['conversation']->id)
+        ->where('role', 'assistant')
+        ->first();
+
+    expect($assistant)->not->toBeNull()
+        ->and($assistant->content)->toContain($failedMessage)
+        ->and($assistant->metadata['failed'] ?? false)->toBeTrue();
 });

@@ -149,10 +149,16 @@ const queueBanner = computed((): string | null => {
         return t('products.assistant.queue.running');
     }
     if (status === 'failed') {
-        return (
-            props.analysis_job?.error_message ||
-            t('products.assistant.queue.failed')
-        );
+        const raw = (props.analysis_job?.error_message ?? '').trim();
+        if (
+            raw !== '' &&
+            raw !== 'The given data was invalid.' &&
+            !raw.toLowerCase().includes('the given data was invalid')
+        ) {
+            return raw;
+        }
+
+        return t('products.assistant.queue.failed');
     }
 
     return null;

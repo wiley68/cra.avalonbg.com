@@ -2723,6 +2723,7 @@
                 "pending": "Analysis queued — waiting for a worker…",
                 "running": "Analysis running…",
                 "failed": "Queued analysis failed. You can retry from the source action.",
+                "failed_chat": "Queued analysis failed. :detail Human review is still required for all compliance decisions.",
                 "succeeded": "Analysis finished."
             }
         },
@@ -4028,6 +4029,7 @@
         "conversation_forbidden": "You can only continue your own AI conversations.",
         "provider_misconfigured": "The AI provider is not configured. Set the API key for the selected CRA_AI_PROVIDER.",
         "provider_failed": "The AI provider request failed. Try again or switch back to the stub provider.",
+        "provider_timeout": "The AI provider timed out. Try again in a moment, or switch back to the stub provider.",
         "analyse": {
             "unsupported_type": "Unsupported file type. Upload a text document (txt, md, csv, json, xml, html, log).",
             "empty_file": "The uploaded file is empty or could not be read as text."

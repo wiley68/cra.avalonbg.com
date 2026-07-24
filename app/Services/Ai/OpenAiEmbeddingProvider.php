@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\Contracts\EmbeddingProvider;
 use App\Enums\EmbeddingProviderDriver;
+use App\Support\AiUserFacingError;
 use App\Support\Translations;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -43,18 +44,8 @@ class OpenAiEmbeddingProvider implements EmbeddingProvider
                     'input' => $trimmed,
                 ])
                 ->throw();
-        } catch (RequestException $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
-        } catch (Throwable $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
+        } catch (RequestException | Throwable $e) {
+            AiUserFacingError::throwFromTransport($e);
         }
 
         /** @var mixed $raw */

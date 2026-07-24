@@ -2723,6 +2723,7 @@
                 "pending": "Анализът е в опашка — чака worker…",
                 "running": "Анализът се изпълнява…",
                 "failed": "Опашканият анализ е неуспешен. Можете да опитате отново от изходната действие.",
+                "failed_chat": "Опашканият анализ е неуспешен. :detail Все още се изисква human review за compliance решения.",
                 "succeeded": "Анализът приключи."
             }
         },
@@ -4025,6 +4026,7 @@
         "conversation_forbidden": "Можете да продължавате само своите AI разговори.",
         "provider_misconfigured": "AI provider-ът не е конфигуриран. Задайте API ключ за избрания CRA_AI_PROVIDER.",
         "provider_failed": "Заявката към AI provider-а неуспешна. Опитайте отново или се върнете към stub provider.",
+        "provider_timeout": "AI provider-ът не отговори навреме (timeout). Опитайте отново след малко или се върнете към stub provider.",
         "analyse": {
             "unsupported_type": "Неподдържан тип файл. Качете текстов документ (txt, md, csv, json, xml, html, log).",
             "empty_file": "Каченият файл е празен или не може да се прочете като текст."

@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.11  
+**Версия:** 0.12  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–10 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -151,7 +151,7 @@ flowchart LR
 8. ~~Optional „Save summary as evidence“ (immutable ref / markdown) — explicit action~~ **Done** (2026-07-24) — Markdown snapshot + `MergedPrSummarySavedAsEvidence` audit; viewer forbidden
 9. ~~Admin/ops signal: worker/schedule unhealthy hint (reuse `/integrations/health` or Settings)~~ **Done** (2026-07-24) — `OpsQueueHealthHintService` banners on Health + Settings
 10. ~~Live connector smoke script/checklist (Jira / Snyk / ADO) — документиран, не задължителен CI~~ **Done** (2026-07-24) — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md)
-11. **Open** — AI: consistent timeout/error UX когато live provider fails (fallback message; no silent empty)
+11. ~~AI: consistent timeout/error UX когато live provider fails (fallback message; no silent empty)~~ **Done** (2026-07-24) — `AiUserFacingError` + `provider_timeout`; queued jobs store translated messages
 
 ### Could
 
@@ -233,6 +233,7 @@ Candidate F: SSO / billing / onboarding
 | Evidence save (Should 8)  | Explicit save → Markdown evidence + dual audit; viewer forbidden                                |
 | Ops queue hint (Should 9) | Health + Settings banner when schedule on + sync/stale queue                                    |
 | Live connector smoke (10) | Manual checklist — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md); not CI |
+| AI error UX (Should 11)   | `AiUserFacingError`; timeout vs failed; queued `error_message` translated; no silent empty      |
 
 ---
 
@@ -252,6 +253,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                  |
 | 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)   |
 | 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings  |
 | 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence |

@@ -1,6 +1,6 @@
 # Phase 2_E — Live LLM enablement
 
-**Версия:** 1.0  
+**Версия:** 1.1  
 **Дата:** 24 юли 2026 г.  
 **Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 3)  
 **Свързано:** [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) (queue worker), AI surfaces в Phase 2.3 / 2.8
@@ -121,10 +121,12 @@ Route: `POST .../products/{product}/assistant/triage`.
 | ------------------------ | -------------------------------------------------------------- |
 | „AI disabled“            | `CRA_AI_ENABLED=true` + `ops:ai-check`                         |
 | `provider_misconfigured` | Key за избрания provider; `config:clear`                       |
-| `provider_failed`        | Мрежа, timeout, model name, billing при vendor                 |
+| `provider_timeout`       | Мрежа/бавен vendor; retry; или временно stub                   |
+| `provider_failed`        | HTTP 4xx/5xx, празен отговор, model name, billing при vendor   |
 | Stub отговори в staging  | `.env` още е `CRA_AI_PROVIDER=stub`                            |
 | CI вика OpenAI           | `phpunit.xml` трябва да форсира stub; не override-вай в CI env |
 | Бавен / висящ triage     | Timeout env; queue worker ако job е queued                     |
+| Queued fail „invalid“    | Should 11 — `error_message` вече е преведен `provider_*` text  |
 
 ---
 
@@ -133,12 +135,13 @@ Route: `POST .../products/{product}/assistant/triage`.
 - Нови AI providers / fine-tuning
 - Auto-accept на suggestions
 - Live LLM за USI / incident / tech-doc drafts (работят с текущия provider as-is; не са Must 3 smoke)
-- Consistent live-error UX polish → Should 11
+- ~~Consistent live-error UX polish → Should 11~~ **Done** — `AiUserFacingError`, `assistant.provider_timeout`
 
 ---
 
 ## 8. История
 
-| Версия | Дата       | Промяна                                                      |
-| ------ | ---------- | ------------------------------------------------------------ |
-| 1.0    | 2026-07-24 | Must 3 — enablement guide + `ops:ai-check` + smoke checklist |
+| Версия | Дата       | Промяна                                                          |
+| ------ | ---------- | ---------------------------------------------------------------- |
+| 1.1    | 2026-07-24 | Link Should 11 — timeout vs failed UX + queued translated errors |
+| 1.0    | 2026-07-24 | Must 3 — enablement guide + `ops:ai-check` + smoke checklist     |

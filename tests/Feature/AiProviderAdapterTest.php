@@ -4,6 +4,8 @@ use App\Enums\AiProviderDriver;
 use App\Services\Ai\AnthropicAiProvider;
 use App\Services\Ai\OpenAiProvider;
 use App\Services\AiAssistantService;
+use App\Support\Translations;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
@@ -64,6 +66,73 @@ test('OpenAiProvider rejects missing api key', function () {
     expect(fn() => (new OpenAiProvider)->complete([
         ['role' => 'user', 'content' => 'Hello'],
     ]))->toThrow(ValidationException::class);
+});
+
+test('OpenAiProvider maps HTTP failures to provider_failed validation message', function () {
+    config([
+        'ai.providers.openai.api_key' => 'test-openai-key',
+        'ai.providers.openai.base_url' => 'https://api.openai.com/v1',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/chat/completions' => Http::response(['error' => 'boom'], 500),
+    ]);
+
+    try {
+        (new OpenAiProvider)->complete([
+            ['role' => 'user', 'content' => 'Hello'],
+        ]);
+        expect(true)->toBeFalse();
+    } catch (ValidationException $e) {
+        expect($e->errors()['assistant'][0] ?? null)
+            ->toBe(Translations::get('assistant.provider_failed'));
+    }
+});
+
+test('OpenAiProvider maps connection timeouts to provider_timeout', function () {
+    config([
+        'ai.providers.openai.api_key' => 'test-openai-key',
+        'ai.providers.openai.base_url' => 'https://api.openai.com/v1',
+    ]);
+
+    Http::fake(function () {
+        throw new ConnectionException('cURL error 28: Operation timed out after 60001 milliseconds');
+    });
+
+    try {
+        (new OpenAiProvider)->complete([
+            ['role' => 'user', 'content' => 'Hello'],
+        ]);
+        expect(true)->toBeFalse();
+    } catch (ValidationException $e) {
+        expect($e->errors()['assistant'][0] ?? null)
+            ->toBe(Translations::get('assistant.provider_timeout'));
+    }
+});
+
+test('OpenAiProvider rejects empty assistant content', function () {
+    config([
+        'ai.providers.openai.api_key' => 'test-openai-key',
+        'ai.providers.openai.base_url' => 'https://api.openai.com/v1',
+    ]);
+
+    Http::fake([
+        'api.openai.com/v1/chat/completions' => Http::response([
+            'choices' => [
+                ['message' => ['role' => 'assistant', 'content' => '   ']],
+            ],
+        ], 200),
+    ]);
+
+    try {
+        (new OpenAiProvider)->complete([
+            ['role' => 'user', 'content' => 'Hello'],
+        ]);
+        expect(true)->toBeFalse();
+    } catch (ValidationException $e) {
+        expect($e->errors()['assistant'][0] ?? null)
+            ->toBe(Translations::get('assistant.provider_failed'));
+    }
 });
 
 test('AnthropicAiProvider posts messages and returns text blocks', function () {

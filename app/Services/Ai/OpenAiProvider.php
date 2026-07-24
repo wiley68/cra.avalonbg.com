@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\Contracts\AiProvider;
 use App\Enums\AiProviderDriver;
+use App\Support\AiUserFacingError;
 use App\Support\Translations;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -86,18 +87,8 @@ class OpenAiProvider implements AiProvider
                 ->timeout($timeout)
                 ->post('/chat/completions', $payload)
                 ->throw();
-        } catch (RequestException $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
-        } catch (Throwable $e) {
-            report($e);
-
-            throw ValidationException::withMessages([
-                'assistant' => Translations::get('assistant.provider_failed'),
-            ]);
+        } catch (RequestException | Throwable $e) {
+            AiUserFacingError::throwFromTransport($e);
         }
 
         $content = trim((string) data_get($response->json(), 'choices.0.message.content', ''));
