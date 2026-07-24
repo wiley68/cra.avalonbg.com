@@ -1,8 +1,9 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.13  
+**Версия:** 0.14  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–11 Done; Should 12 / Could open  
+**Статус:** Active — Must Done; Should Done; Could open
+
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -245,7 +246,7 @@ POST   /api/webhooks/snyk/{integration}
 9. ~~Map Snyk findings → existing SBOM / `product_components` where purl/name matches~~ **Done** (2026-07-24)
 10. ~~Readiness gaps + dashboard counts for pending suggestions / failed syncs~~ **Done** (2026-07-24)
 11. ~~Second ALM: **Azure DevOps** work items (reuse `AlmProvider` + same suggestion UX)~~ **Done** (2026-07-24)
-12. Operator docs: secrets, scopes, rate limits, threat model (short `documents/` or runbook section)
+12. ~~Operator docs: secrets, scopes, rate limits, threat model (short `documents/` or runbook section)~~ **Done** (2026-07-24) — [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md)
 
 ### Could
 
@@ -336,6 +337,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.14   | 2026-07-24 | Should 12 Done — operator runbook (secrets, scopes, rate limits, threat model) |
 | 0.13   | 2026-07-24 | Should 11 Done — Azure DevOps ALM (PAT) work items → task suggestions          |
 | 0.12   | 2026-07-24 | Should 10 Done — readiness gaps + dashboard pending/failed integration counts  |
 | 0.11   | 2026-07-24 | Should 9 Done — Snyk findings → SBOM/product_components match on sync/accept   |
