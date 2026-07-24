@@ -437,6 +437,8 @@ const doPublishEvidence = () => {
             v-model:open="showRetireDialog"
             :title="t('policies.confirm_retire_title')"
             :description="t('policies.confirm_retire')"
+            variant="default"
+            :confirm-label="t('policies.retire')"
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
         />
