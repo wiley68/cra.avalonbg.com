@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('organization_vcs_connections', function (Blueprint $table) {
@@ -13,9 +12,14 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             $table->string('provider');
             $table->string('auth_type');
-            $table->text('token');
+            $table->text('token')->nullable();
+            $table->string('github_app_id')->nullable();
+            $table->string('github_installation_id')->nullable();
+            $table->text('github_private_key')->nullable();
             $table->string('label')->nullable();
             $table->string('status');
+            $table->string('sync_schedule')->default('off');
+            $table->text('webhook_secret')->nullable();
             $table->timestamp('last_verified_at')->nullable();
             $table->timestamps();
 
@@ -49,10 +53,23 @@ return new class extends Migration
 
             $table->index(['repository_id', 'status']);
         });
+
+        Schema::create('vcs_webhook_deliveries', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('connection_id')->constrained('organization_vcs_connections')->cascadeOnDelete();
+            $table->string('delivery_id')->unique();
+            $table->string('event');
+            $table->unsignedBigInteger('repository_id')->nullable();
+            $table->string('status');
+            $table->timestamps();
+
+            $table->index(['connection_id', 'created_at']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('vcs_webhook_deliveries');
         Schema::dropIfExists('vcs_sync_runs');
         Schema::dropIfExists('product_repositories');
         Schema::dropIfExists('organization_vcs_connections');

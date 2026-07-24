@@ -45,7 +45,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('target_version_id')->constrained('product_versions')->restrictOnDelete();
+            $table->foreignId('target_version_id')->constrained('product_versions')->cascadeOnDelete();
             $table->foreignId('product_vulnerability_id')->nullable()->constrained()->nullOnDelete();
             $table->string('title');
             $table->string('status');

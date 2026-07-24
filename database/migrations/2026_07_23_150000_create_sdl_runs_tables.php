@@ -28,6 +28,11 @@ return new class extends Migration {
                 ->constrained('users')
                 ->nullOnDelete();
             $table->text('notes')->nullable();
+            $table->foreignId('user_security_instruction_id')
+                ->nullable()
+                ->constrained('user_security_instructions')
+                ->nullOnDelete();
+            $table->boolean('tech_doc_delta_reviewed')->default(false);
             $table->timestamps();
 
             $table->index(['organization_id', 'status'], 'sdl_run_org_status_idx');

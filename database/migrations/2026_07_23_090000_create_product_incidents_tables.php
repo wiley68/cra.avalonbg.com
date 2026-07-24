@@ -14,6 +14,10 @@ return new class extends Migration {
             $table->string('title');
             $table->string('status');
             $table->string('severity');
+            $table->string('confidentiality_impact')->nullable();
+            $table->string('integrity_impact')->nullable();
+            $table->string('availability_impact')->nullable();
+            $table->string('attack_vector')->nullable();
             $table->text('summary')->nullable();
             $table->text('root_cause')->nullable();
             $table->text('corrective_measures')->nullable();
@@ -36,6 +40,7 @@ return new class extends Migration {
                 ->constrained('users')
                 ->nullOnDelete();
             $table->text('notes')->nullable();
+            $table->string('external_ticket_url', 2048)->nullable();
             $table->timestamps();
 
             $table->index(['organization_id', 'status'], 'incident_org_status_idx');

@@ -17,6 +17,14 @@ return new class extends Migration {
             $table->timestamp('closed_at')->nullable();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->text('notes')->nullable();
+            $table->string('guest_token_hash', 64)->nullable()->unique();
+            $table->timestamp('guest_token_expires_at')->nullable();
+            $table->timestamp('guest_token_created_at')->nullable();
+            $table->foreignId('guest_token_created_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+            $table->timestamp('guest_token_last_accessed_at')->nullable();
             $table->timestamps();
 
             $table->index(['organization_id', 'status'], 'auditor_packages_org_status_idx');

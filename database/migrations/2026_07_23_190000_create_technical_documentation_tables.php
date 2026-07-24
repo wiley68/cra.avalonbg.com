@@ -26,7 +26,18 @@ return new class extends Migration {
             $table->timestamp('published_at')->nullable();
             $table->foreignId('published_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('notes')->nullable();
+            $table->foreignId('user_security_instruction_id')->nullable();
+            $table->foreignId('sdl_run_id')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_security_instruction_id', 'td_packages_usi_fk')
+                ->references('id')
+                ->on('user_security_instructions')
+                ->nullOnDelete();
+            $table->foreign('sdl_run_id', 'td_packages_sdl_fk')
+                ->references('id')
+                ->on('sdl_runs')
+                ->nullOnDelete();
 
             $table->index(['organization_id', 'status'], 'tech_doc_org_status_idx');
             $table->index(['product_id', 'status'], 'tech_doc_product_status_idx');

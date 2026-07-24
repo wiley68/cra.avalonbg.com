@@ -23,12 +23,17 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('user_security_instructions')
                 ->nullOnDelete();
+            $table->foreignId('paired_instruction_id')
+                ->nullable()
+                ->constrained('user_security_instructions')
+                ->nullOnDelete();
             $table->timestamp('published_at')->nullable();
             $table->foreignId('published_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('evidence_id')->nullable()->constrained('evidence')->nullOnDelete();
             $table->text('notes')->nullable();
             $table->timestamps();
 
+            $table->index('paired_instruction_id', 'usi_paired_instruction_idx');
             $table->index(['organization_id', 'status'], 'usi_org_status_idx');
             $table->index(['product_id', 'status'], 'usi_product_status_idx');
             $table->index(['product_id', 'product_version_id', 'locale'], 'usi_product_version_locale_idx');

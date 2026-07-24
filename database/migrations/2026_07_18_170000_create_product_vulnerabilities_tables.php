@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->text('summary')->nullable();
             $table->string('cve_id')->nullable();
             $table->string('advisory_url')->nullable();
+            $table->string('remediation_pr_url', 2048)->nullable();
+            $table->string('external_ticket_url', 2048)->nullable();
             $table->string('discovery_source');
             $table->timestamp('discovered_at')->nullable();
             $table->timestamp('awareness_at')->nullable();
