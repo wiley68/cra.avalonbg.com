@@ -485,9 +485,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->except(['show'])
             ->scoped();
         Route::resource('products.versions', ProductVersionController::class)
-            ->except(['show'])
             ->parameters(['versions' => 'version'])
             ->scoped();
+        Route::post(
+            'products/{product}/versions/{version}/merged-prs/refresh',
+            [ProductVersionController::class, 'refreshMergedPrs'],
+        )->name('products.versions.merged-prs.refresh')->scopeBindings();
         Route::resource('products.support-periods', ProductSupportPeriodController::class)
             ->except(['show'])
             ->parameters(['support-periods' => 'support_period'])

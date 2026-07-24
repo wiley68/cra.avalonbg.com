@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateProductVersionRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
+use App\Services\MergedPrSummaryService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -16,6 +17,11 @@ use Inertia\Response;
 
 class ProductVersionController extends Controller
 {
+    public function __construct(
+        private readonly MergedPrSummaryService $mergedPrSummaries,
+    ) {
+    }
+
     public function index(Product $product): Response
     {
         $organization = $this->currentOrganization();
@@ -48,14 +54,50 @@ class ProductVersionController extends Controller
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
 
-        $product->versions()->create($this->validatedAttributes($request));
+        $version = $product->versions()->create($this->validatedAttributes($request));
 
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('products.versions.created'),
         ]);
 
-        return redirect()->route('products.versions.index', $product);
+        return redirect()->route('products.versions.show', [$product, $version]);
+    }
+
+    public function show(Product $product, ProductVersion $version): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertVersionBelongsToProduct($product, $version);
+        $this->authorize('view', [$product, $organization]);
+
+        return Inertia::render('products/versions/Show', [
+            'organization' => $this->organizationPayload($organization),
+            'product' => $this->productSummary($product),
+            'version' => $this->versionPayload($version),
+            'mergedPrSummary' => $this->mergedPrSummaries->summarize($product, $version),
+            'canManage' => request()->user()->canManageProducts($organization),
+        ]);
+    }
+
+    public function refreshMergedPrs(Product $product, ProductVersion $version): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertVersionBelongsToProduct($product, $version);
+        $this->authorize('update', [$product, $organization]);
+
+        $summary = $this->mergedPrSummaries->summarize($product, $version, forceRefresh: true);
+
+        Inertia::flash('toast', [
+            'type' => $summary['available'] ? 'success' : 'error',
+            'message' => $summary['available']
+                ? Translations::get('products.versions.merged_prs.refreshed')
+                : ($summary['error']
+                    ?? Translations::get('products.versions.merged_prs.reasons.' . ($summary['reason'] ?? 'fetch_failed'))),
+        ]);
+
+        return redirect()->route('products.versions.show', [$product, $version]);
     }
 
     public function edit(Product $product, ProductVersion $version): Response
@@ -90,7 +132,7 @@ class ProductVersionController extends Controller
             'message' => Translations::get('products.versions.updated'),
         ]);
 
-        return redirect()->route('products.versions.index', $product);
+        return redirect()->route('products.versions.show', [$product, $version]);
     }
 
     public function destroy(Product $product, ProductVersion $version): RedirectResponse
@@ -165,10 +207,10 @@ class ProductVersionController extends Controller
     private function previousVersionOptions(Product $product, ?int $excludeId = null): array
     {
         return $product->versions()
-            ->when($excludeId !== null, fn ($query) => $query->whereKeyNot($excludeId))
+            ->when($excludeId !== null, fn($query) => $query->whereKeyNot($excludeId))
             ->orderByDesc('version_number')
             ->get(['id', 'version_number'])
-            ->map(fn (ProductVersion $version) => [
+            ->map(fn(ProductVersion $version) => [
                 'id' => $version->id,
                 'version_number' => $version->version_number,
             ])

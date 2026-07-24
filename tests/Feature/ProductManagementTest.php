@@ -199,7 +199,7 @@ test('organization owner can manage product versions', function () {
 
     $this->actingAs($owner)
         ->post(route('products.versions.store', $product), versionPayload())
-        ->assertRedirect(route('products.versions.index', $product));
+        ->assertRedirect();
 
     $version = ProductVersion::query()->firstOrFail();
     expect($version->version_number)->toBe('1.0.0');
@@ -210,7 +210,7 @@ test('organization owner can manage product versions', function () {
             'version_number' => '1.0.1',
             'state' => ProductVersionState::Released->value,
         ]))
-        ->assertRedirect(route('products.versions.index', $product));
+        ->assertRedirect(route('products.versions.show', [$product, $version]));
 
     expect($version->refresh()->version_number)->toBe('1.0.1');
     expect($version->state)->toBe(ProductVersionState::Released);

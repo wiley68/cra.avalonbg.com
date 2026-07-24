@@ -1,10 +1,12 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil, Trash2 } from '@lucide/vue';
+import { ArrowUpDown, Eye, Pencil, Trash2 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
-import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
+import TableRowActionsMenu, {
+    type TableRowAction,
+} from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
-import { edit } from '@/routes/products/versions';
+import { edit, show } from '@/routes/products/versions';
 
 export type ProductVersionListItem = {
     id: number;
@@ -123,13 +125,23 @@ export const createProductVersionColumns = ({
         enableSorting: false,
         header: () => t('common.actions'),
         cell: ({ row }) => {
-            if (!canManage) {
-                return h('div', { class: 'text-muted-foreground' }, '—');
-            }
+            const actions: TableRowAction[] = [
+                {
+                    label: t('common.view'),
+                    icon: Eye,
+                    onSelect: () => {
+                        router.visit(
+                            show({
+                                product: productId,
+                                version: row.original.id,
+                            }).url,
+                        );
+                    },
+                },
+            ];
 
-            return h(TableRowActionsMenu, {
-                label: t('common.manage'),
-                actions: [
+            if (canManage) {
+                actions.push(
                     {
                         label: t('common.edit'),
                         icon: Pencil,
@@ -148,7 +160,12 @@ export const createProductVersionColumns = ({
                         variant: 'destructive',
                         onSelect: () => onDelete(row.original.id),
                     },
-                ],
+                );
+            }
+
+            return h(TableRowActionsMenu, {
+                label: t('common.manage'),
+                actions,
             });
         },
     },

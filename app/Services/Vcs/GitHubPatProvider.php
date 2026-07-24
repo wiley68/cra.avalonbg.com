@@ -266,6 +266,88 @@ class GitHubPatProvider implements VcsProvider
     }
 
     /**
+     * Merged pull requests in an inclusive merged date window (YYYY-MM-DD).
+     * Uses GitHub Search Issues API. Returns [] on 403/404 (insufficient scope).
+     *
+     * @return list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     merged_at: string|null,
+     *     user_login: string|null
+     * }>
+     */
+    public function listMergedPulls(
+        string $fullName,
+        string $fromDate,
+        string $toDate,
+        int $perPage = 30,
+    ): array {
+        $query = sprintf(
+            'repo:%s is:pr is:merged merged:%s..%s',
+            $fullName,
+            $fromDate,
+            $toDate,
+        );
+
+        $response = $this->client()->get('https://api.github.com/search/issues', [
+            'q' => $query,
+            'per_page' => max(1, min(100, $perPage)),
+            'sort' => 'updated',
+            'order' => 'desc',
+        ]);
+
+        if (in_array($response->status(), [401, 403, 404, 422], true)) {
+            return [];
+        }
+
+        if (!$response->successful()) {
+            throw new RuntimeException('Failed to search GitHub merged pull requests (HTTP ' . $response->status() . ').');
+        }
+
+        $payload = $response->json() ?? [];
+        $items = is_array($payload) ? ($payload['items'] ?? []) : [];
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $mapped = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $number = isset($item['number']) ? (int) $item['number'] : 0;
+            $htmlUrl = isset($item['html_url']) && is_string($item['html_url']) ? $item['html_url'] : null;
+            $title = isset($item['title']) && is_string($item['title']) ? $item['title'] : '';
+
+            if ($number < 1 || $htmlUrl === null || $htmlUrl === '') {
+                continue;
+            }
+
+            $user = is_array($item['user'] ?? null) ? $item['user'] : [];
+            $login = isset($user['login']) && is_string($user['login']) ? $user['login'] : null;
+            $mergedAt = isset($item['closed_at']) && is_string($item['closed_at'])
+                ? $item['closed_at']
+                : (isset($item['pull_request']['merged_at']) && is_string($item['pull_request']['merged_at'])
+                    ? $item['pull_request']['merged_at']
+                    : null);
+
+            $mapped[] = [
+                'number' => $number,
+                'title' => $title !== '' ? $title : ('PR #' . $number),
+                'html_url' => $htmlUrl,
+                'merged_at' => $mergedAt,
+                'user_login' => $login,
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
      * @return 'dependabot'|'renovate'|null
      */
     private function dependencyBotSource(string $login, ?string $headRef): ?string

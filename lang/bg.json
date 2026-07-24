@@ -1247,11 +1247,36 @@
             "create": "Създай версия",
             "create_title": "Създай версия",
             "edit_title": "Редакция на версия",
+            "show_title": "Детайли за версия",
             "created": "Версията е създадена.",
             "updated": "Версията е обновена.",
             "deleted": "Версията е изтрита.",
             "confirm_delete": "Да се изтрие ли тази версия завинаги?",
             "search_placeholder": "Търсене по версия, състояние или git ref...",
+            "merged_prs": {
+                "title": "Сляти pull request-и",
+                "subtitle": "Информативно резюме от свързаното GitHub хранилище. Нищо не се създава автоматично.",
+                "refresh": "Обнови резюмето",
+                "refreshed": "Резюмето на слятите pull request-и е обновено.",
+                "empty": "Няма сляти pull request-и в този период.",
+                "truncated": "Показани са първите :count резултата от GitHub търсенето.",
+                "cached_at": "Кеширано на",
+                "window_release": "Прозорец около release: :from – :to (±14 дни около :anchor)",
+                "window_rolling": "Плъзгащ прозорец: последните 30 дни (:from – :to)",
+                "repository": "Хранилище",
+                "columns": {
+                    "number": "PR",
+                    "title": "Заглавие",
+                    "merged_at": "Слят",
+                    "author": "Автор"
+                },
+                "reasons": {
+                    "no_repository": "Свържете GitHub хранилище към продукта, за да видите слятите PR-и.",
+                    "not_github": "Резюмето на сляти PR-и в момента поддържа само GitHub хранилища.",
+                    "fetch_failed": "Неуспешно зареждане на сляти pull request-и от GitHub."
+                },
+                "fetch_failed": "Неуспешно зареждане на сляти pull request-и от GitHub."
+            },
             "fields": {
                 "version_number": "Номер на версия",
                 "release_date": "Дата на release",
