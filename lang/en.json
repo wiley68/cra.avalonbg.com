@@ -3275,6 +3275,42 @@
             "dependency_delta_removed": "Removed",
             "dependency_delta_changed": "Version changed",
             "dependency_delta_truncated": "Lists are truncated to the first 500 entries per category.",
+            "conformity_checklist": {
+                "title": "Conformity assessment path",
+                "disclaimer": "Manual preparation checklist for conformity assessment. This is not a legal certificate or notified-body decision.",
+                "path_summary": "Chosen path summary",
+                "path_summary_help": "Describe the selected conformity assessment procedure and why it fits this product.",
+                "items_heading": "Checklist",
+                "notes_placeholder": "Optional notes",
+                "items": {
+                    "product_class_decided": "Product class / category decided",
+                    "procedure_selected": "Conformity assessment procedure selected",
+                    "self_assessment_vs_notified_body": "Self-assessment vs notified body path decided",
+                    "essential_requirements_mapped": "Essential requirements mapped",
+                    "tech_doc_package_complete": "Technical documentation package complete",
+                    "usi_published_linked": "Published USI linked",
+                    "sdl_run_referenced": "SDL run referenced (if used)",
+                    "evidence_freshness_reviewed": "Evidence freshness reviewed"
+                }
+            },
+            "declaration_fields": {
+                "title": "Declaration of conformity — field pack",
+                "disclaimer": "Structured fields to prepare a Declaration of Conformity. Completing this pack does not auto-sign or issue a legal DoC.",
+                "reviewed": "Fields reviewed by responsible person",
+                "fields": {
+                    "manufacturer_name": "Manufacturer name",
+                    "manufacturer_address": "Manufacturer address",
+                    "product_name": "Product name",
+                    "product_type_version": "Product type / version",
+                    "applicable_legislation": "Applicable legislation",
+                    "standards_applied": "Standards / specifications applied",
+                    "conformity_assessment_procedure": "Conformity assessment procedure",
+                    "notified_body_name_number": "Notified body name / number (if any)",
+                    "signatory_name_role": "Signatory name and role",
+                    "place_date": "Place and date",
+                    "additional_info": "Additional information"
+                }
+            },
             "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current).",
             "stale_evidence_hint": ":stale of :total product evidence records need attention (expired: :expired, review due: :review_due). Review them before relying on this documentation package.",
             "stale_evidence_link": "Open evidence register",

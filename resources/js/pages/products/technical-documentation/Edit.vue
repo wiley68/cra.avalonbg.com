@@ -93,12 +93,33 @@ type SupersedesSection = {
     override_reason: string | null;
 };
 
+type ConformityChecklistItem = {
+    key: string;
+    done: boolean;
+    notes: string;
+};
+
+type ConformityChecklistPack = {
+    kind: 'conformity_assessment_checklist';
+    items: ConformityChecklistItem[];
+    path_summary: string;
+};
+
+type DeclarationFieldsPack = {
+    kind: 'declaration_of_conformity_fields';
+    fields: Record<string, string>;
+    reviewed: boolean;
+};
+
+type ManualPack = ConformityChecklistPack | DeclarationFieldsPack;
+
 type SectionPayload = {
     id: number;
     section_key: string;
     source: string;
     body_markdown: string | null;
     generated_payload: Record<string, unknown> | unknown[] | null;
+    manual_pack: ManualPack | null;
     sort_order: number;
     is_applicable: boolean;
     override_reason: string | null;
@@ -247,11 +268,22 @@ const form = useForm({
         section_key: section.section_key,
         source: section.source,
         body_markdown: section.body_markdown ?? '',
+        manual_pack: section.manual_pack
+            ? structuredClone(section.manual_pack)
+            : null,
         sort_order: section.sort_order,
         is_applicable: section.is_applicable,
         override_reason: section.override_reason ?? '',
     })),
 });
+
+const isManualPackSection = (sectionKey: string): boolean =>
+    sectionKey === 'conformity_assessment_path' ||
+    sectionKey === 'declaration_information';
+
+const declarationFieldKeys = (
+    pack: DeclarationFieldsPack | null | undefined,
+): string[] => (pack?.fields ? Object.keys(pack.fields) : []);
 
 const lifecycleError = computed(() => {
     const errors: Record<string, string | undefined> = {
@@ -303,7 +335,8 @@ const requestAiDraft = async (index: number): Promise<void> => {
         readOnly.value ||
         !props.aiEnabled ||
         section.source !== 'authored' ||
-        !section.is_applicable
+        !section.is_applicable ||
+        isManualPackSection(section.section_key)
     ) {
         return;
     }
@@ -683,7 +716,12 @@ const submit = () => {
         sdl_run_id: data.sdl_run_id === '' ? null : data.sdl_run_id,
         sections: data.sections.map((section) => ({
             section_key: section.section_key,
-            body_markdown: section.body_markdown || null,
+            body_markdown: isManualPackSection(section.section_key)
+                ? null
+                : section.body_markdown || null,
+            manual_pack: isManualPackSection(section.section_key)
+                ? section.manual_pack
+                : undefined,
             is_applicable: section.is_applicable,
             override_reason: section.is_applicable
                 ? null
@@ -1454,7 +1492,8 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                                     !readOnly &&
                                     aiEnabled &&
                                     section.source === 'authored' &&
-                                    section.is_applicable
+                                    section.is_applicable &&
+                                    !isManualPackSection(section.section_key)
                                 "
                                 type="button"
                                 variant="outline"
@@ -1610,8 +1649,154 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     </div>
 
                     <template v-else>
+                        <div
+                            v-if="
+                                section.source === 'authored' &&
+                                isManualPackSection(section.section_key) &&
+                                section.manual_pack?.kind ===
+                                    'conformity_assessment_checklist'
+                            "
+                            class="space-y-4 rounded-md border px-3 py-3"
+                        >
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'products.technical_documentation.conformity_checklist.disclaimer',
+                                    )
+                                }}
+                            </p>
+                            <div class="grid gap-2">
+                                <FieldLabel
+                                    :html-for="`path-summary-${section.section_key}`"
+                                    :help="
+                                        t(
+                                            'products.technical_documentation.conformity_checklist.path_summary_help',
+                                        )
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.conformity_checklist.path_summary',
+                                        )
+                                    }}
+                                </FieldLabel>
+                                <textarea
+                                    :id="`path-summary-${section.section_key}`"
+                                    v-model="section.manual_pack.path_summary"
+                                    rows="3"
+                                    :disabled="readOnly"
+                                    class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                                />
+                            </div>
+                            <div class="space-y-3">
+                                <p class="text-sm font-medium">
+                                    {{
+                                        t(
+                                            'products.technical_documentation.conformity_checklist.items_heading',
+                                        )
+                                    }}
+                                </p>
+                                <div
+                                    v-for="item in section.manual_pack.items"
+                                    :key="item.key"
+                                    class="space-y-2 rounded-md border border-dashed px-3 py-2"
+                                >
+                                    <div
+                                        class="flex flex-wrap items-center justify-between gap-3"
+                                    >
+                                        <Label
+                                            :for="`checklist-${section.section_key}-${item.key}`"
+                                            class="text-sm"
+                                        >
+                                            {{
+                                                t(
+                                                    `products.technical_documentation.conformity_checklist.items.${item.key}`,
+                                                )
+                                            }}
+                                        </Label>
+                                        <Switch
+                                            :id="`checklist-${section.section_key}-${item.key}`"
+                                            v-model="item.done"
+                                            :disabled="readOnly"
+                                        />
+                                    </div>
+                                    <Input
+                                        v-model="item.notes"
+                                        :disabled="readOnly"
+                                        :placeholder="
+                                            t(
+                                                'products.technical_documentation.conformity_checklist.notes_placeholder',
+                                            )
+                                        "
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            v-else-if="
+                                section.source === 'authored' &&
+                                isManualPackSection(section.section_key) &&
+                                section.manual_pack?.kind ===
+                                    'declaration_of_conformity_fields'
+                            "
+                            class="space-y-4 rounded-md border px-3 py-3"
+                        >
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'products.technical_documentation.declaration_fields.disclaimer',
+                                    )
+                                }}
+                            </p>
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-3"
+                            >
+                                <Label
+                                    :for="`doc-reviewed-${section.section_key}`"
+                                    class="text-sm"
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.declaration_fields.reviewed',
+                                        )
+                                    }}
+                                </Label>
+                                <Switch
+                                    :id="`doc-reviewed-${section.section_key}`"
+                                    v-model="section.manual_pack.reviewed"
+                                    :disabled="readOnly"
+                                />
+                            </div>
+                            <div
+                                v-for="fieldKey in declarationFieldKeys(
+                                    section.manual_pack,
+                                )"
+                                :key="fieldKey"
+                                class="grid gap-2"
+                            >
+                                <Label
+                                    :for="`doc-field-${section.section_key}-${fieldKey}`"
+                                    class="text-sm"
+                                >
+                                    {{
+                                        t(
+                                            `products.technical_documentation.declaration_fields.fields.${fieldKey}`,
+                                        )
+                                    }}
+                                </Label>
+                                <Input
+                                    :id="`doc-field-${section.section_key}-${fieldKey}`"
+                                    v-model="
+                                        section.manual_pack.fields[fieldKey]
+                                    "
+                                    :disabled="readOnly"
+                                />
+                            </div>
+                        </div>
+
                         <PolicyBodyField
-                            v-if="section.source === 'authored'"
+                            v-else-if="section.source === 'authored'"
                             v-model="section.body_markdown"
                             :input-id="`section-body-${section.section_key}`"
                             :label="

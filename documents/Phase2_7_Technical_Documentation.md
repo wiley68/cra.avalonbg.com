@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.8  
+**Версия:** 1.9  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done; Should 7–12 Done; Could 13–17 Done  
+**Статус:** Closed — Phase 2.7 complete (Must 1–6 + Should 7–12 + Could 13–18 done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -169,7 +169,7 @@ GET    /internal-api/products/{product}/technical-documentation
 15. ~~Release ZIP export (PDF + Markdown + linked USI README)~~ **Done** (2026-07-24)
 16. ~~Auto-mark stale evidence when freshness expires~~ **Done** (2026-07-24)
 17. ~~Dependency / SBOM compare between versions in delta report~~ **Done** (2026-07-24)
-18. Conformity assessment path checklist + DoC field pack (manual)
+18. ~~Conformity assessment path checklist + DoC field pack (manual)~~ **Done** (2026-07-24)
 
 ---
 
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                  |
 | ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 1.9    | 2026-07-24 | Could 18 Done — conformity checklist + DoC field pack (manual); Phase 2.7 Closed         |
 | 1.8    | 2026-07-24 | Could 17 Done — dependency/SBOM compare (added/removed/changed) in Edit delta            |
 | 1.7    | 2026-07-24 | Could 16 Done — daily `evidence:refresh-freshness` auto-marks expired/review_due         |
 | 1.6    | 2026-07-24 | Could 15 Done — release ZIP (PDF + Markdown + linked USI README)                         |

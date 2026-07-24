@@ -21,6 +21,7 @@ use App\Models\TechnicalDocumentationSection;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
+use App\Support\TechnicalDocumentationConformityPack;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -229,12 +230,20 @@ class TechnicalDocumentationService
                 /** @var TechnicalDocumentationSection|null $from */
                 $from = $inherit ? $parentSections->get($key->value) : null;
 
+                $generatedPayload = $from?->generated_payload;
+                if (
+                    $from === null
+                    && TechnicalDocumentationConformityPack::supports($key)
+                ) {
+                    $generatedPayload = TechnicalDocumentationConformityPack::defaultPayloadFor($key);
+                }
+
                 TechnicalDocumentationSection::query()->create([
                     'package_id' => $package->id,
                     'section_key' => $key,
                     'source' => $from?->source ?? $key->defaultSource(),
                     'body_markdown' => $from?->body_markdown,
-                    'generated_payload' => $from?->generated_payload,
+                    'generated_payload' => $generatedPayload,
                     'sort_order' => $from?->sort_order ?? $key->defaultSortOrder(),
                     'is_applicable' => $from?->is_applicable ?? true,
                     'override_reason' => $from?->override_reason,
@@ -273,6 +282,7 @@ class TechnicalDocumentationService
      *     sections: list<array{
      *         section_key: string,
      *         body_markdown?: string|null,
+     *         manual_pack?: array<string, mixed>|null,
      *         is_applicable?: bool,
      *         override_reason?: string|null,
      *         sort_order?: int
@@ -359,9 +369,29 @@ class TechnicalDocumentationService
                     'sort_order' => $sectionData['sort_order'] ?? $section->sort_order,
                 ];
 
-                // Authored sections own body_markdown. Generated/linked keep optional
-                // supplemental notes without touching generated_payload (Must 4).
-                if (array_key_exists('body_markdown', $sectionData)) {
+                $sectionKey = $section->section_key;
+
+                // Structured conformity / DoC packs own generated_payload and sync
+                // body_markdown for export / incomplete checks (Could 18).
+                if (
+                    TechnicalDocumentationConformityPack::supports($sectionKey)
+                    && array_key_exists('manual_pack', $sectionData)
+                ) {
+                    $normalized = TechnicalDocumentationConformityPack::normalize(
+                        $sectionKey,
+                        is_array($sectionData['manual_pack'] ?? null)
+                        ? $sectionData['manual_pack']
+                        : null,
+                    );
+                    $payload['generated_payload'] = $normalized;
+                    $payload['body_markdown'] = TechnicalDocumentationConformityPack::toMarkdown(
+                        $sectionKey,
+                        $normalized,
+                        $package->locale,
+                    );
+                } elseif (array_key_exists('body_markdown', $sectionData)) {
+                    // Authored sections own body_markdown. Generated/linked keep optional
+                    // supplemental notes without touching generated_payload (Must 4).
                     $body = $sectionData['body_markdown'];
                     $payload['body_markdown'] = filled($body) ? (string) $body : null;
                 }
@@ -681,7 +711,7 @@ class TechnicalDocumentationService
                 }
 
                 return match ($section->source) {
-                    TechnicalDocumentationSectionSource::Authored => trim((string) $section->body_markdown) === '',
+                    TechnicalDocumentationSectionSource::Authored => $this->isAuthoredSectionIncomplete($section),
                     TechnicalDocumentationSectionSource::Generated => $section->generated_payload === null,
                     TechnicalDocumentationSectionSource::Linked => false,
                 };
@@ -689,6 +719,25 @@ class TechnicalDocumentationService
             ->map(fn(TechnicalDocumentationSection $section) => $section->section_key->value)
             ->values()
             ->all();
+    }
+
+    private function isAuthoredSectionIncomplete(TechnicalDocumentationSection $section): bool
+    {
+        $key = $section->section_key;
+
+        if (TechnicalDocumentationConformityPack::supports($key)) {
+            $payload = is_array($section->generated_payload) ? $section->generated_payload : null;
+            $kind = is_string($payload['kind'] ?? null) ? $payload['kind'] : null;
+
+            if (
+                $kind === TechnicalDocumentationConformityPack::CHECKLIST_KIND
+                || $kind === TechnicalDocumentationConformityPack::DECLARATION_KIND
+            ) {
+                return !TechnicalDocumentationConformityPack::isComplete($key, $payload);
+            }
+        }
+
+        return trim((string) $section->body_markdown) === '';
     }
 
     private function assertPublishableSections(TechnicalDocumentationPackage $package): void
@@ -740,6 +789,7 @@ class TechnicalDocumentationService
      *         source: string,
      *         body_markdown: string|null,
      *         generated_payload: array<string, mixed>|list<mixed>|null,
+     *         manual_pack: array<string, mixed>|null,
      *         sort_order: int,
      *         is_applicable: bool,
      *         override_reason: string|null,
@@ -822,6 +872,12 @@ class TechnicalDocumentationService
                     'source' => $section->source->value,
                     'body_markdown' => $section->body_markdown,
                     'generated_payload' => $section->generated_payload,
+                    'manual_pack' => TechnicalDocumentationConformityPack::supports($section->section_key)
+                        ? TechnicalDocumentationConformityPack::normalize(
+                            $section->section_key,
+                            is_array($section->generated_payload) ? $section->generated_payload : null,
+                        )
+                        : null,
                     'sort_order' => $section->sort_order,
                     'is_applicable' => $section->is_applicable,
                     'override_reason' => $section->override_reason,

@@ -3275,6 +3275,42 @@
             "dependency_delta_removed": "Премахнати",
             "dependency_delta_changed": "Сменена версия",
             "dependency_delta_truncated": "Списъците са ограничени до първите 500 записа на категория.",
+            "conformity_checklist": {
+                "title": "Път за оценка на съответствие",
+                "disclaimer": "Ръчен чеклист за подготовка за оценка на съответствие. Това не е правен сертификат и не е решение на нотифициран орган.",
+                "path_summary": "Описание на избрания път",
+                "path_summary_help": "Опишете избраната процедура за оценка на съответствие и защо е подходяща за продукта.",
+                "items_heading": "Чеклист",
+                "notes_placeholder": "Опционални бележки",
+                "items": {
+                    "product_class_decided": "Клас / категория на продукта е определена",
+                    "procedure_selected": "Избрана е процедура за оценка на съответствие",
+                    "self_assessment_vs_notified_body": "Решено е самооценка vs нотифициран орган",
+                    "essential_requirements_mapped": "Съществените изисквания са нанесени",
+                    "tech_doc_package_complete": "Пакетът техническа документация е завършен",
+                    "usi_published_linked": "Публикувана USI е свързана",
+                    "sdl_run_referenced": "SDL run е рефериран (ако се ползва)",
+                    "evidence_freshness_reviewed": "Прегледана е свежестта на evidence"
+                }
+            },
+            "declaration_fields": {
+                "title": "Декларация за съответствие — полета",
+                "disclaimer": "Структурирани полета за подготовка на декларация за съответствие. Попълването не подписва и не издава правен DoC автоматично.",
+                "reviewed": "Полетата са прегледани от отговорно лице",
+                "fields": {
+                    "manufacturer_name": "Име на производителя",
+                    "manufacturer_address": "Адрес на производителя",
+                    "product_name": "Име на продукта",
+                    "product_type_version": "Тип / версия на продукта",
+                    "applicable_legislation": "Приложимо законодателство",
+                    "standards_applied": "Приложени стандарти / спецификации",
+                    "conformity_assessment_procedure": "Процедура за оценка на съответствие",
+                    "notified_body_name_number": "Име / номер на нотифициран орган (ако има)",
+                    "signatory_name_role": "Име и роля на подписващия",
+                    "place_date": "Място и дата",
+                    "additional_info": "Допълнителна информация"
+                }
+            },
             "diff_applicable_changed": "Приложимостта е променена спрямо предишната версия (:previous → :current).",
             "stale_evidence_hint": ":stale от :total evidence записа за продукта изискват внимание (изтекли: :expired, за преглед: :review_due). Прегледайте ги преди да разчитате на този пакет документация.",
             "stale_evidence_link": "Отвори регистъра на evidence",
