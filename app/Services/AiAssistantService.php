@@ -20,6 +20,7 @@ use App\Models\ImportSuggestion;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
+use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\SdlRun;
 use App\Models\TechnicalDocumentationPackage;
@@ -34,6 +35,8 @@ use App\Services\Ai\AiImportedFindingTriageParser;
 use App\Services\Ai\AiImportedFindingTriagePrompt;
 use App\Services\Ai\AiIncidentSummaryDraftParser;
 use App\Services\Ai\AiIncidentSummaryDraftPrompt;
+use App\Services\Ai\AiMergedPrNarrativeParser;
+use App\Services\Ai\AiMergedPrNarrativePrompt;
 use App\Services\Ai\AiSdlStageNotesDraftParser;
 use App\Services\Ai\AiSdlStageNotesDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
@@ -63,6 +66,7 @@ class AiAssistantService
         private readonly AiVulnerabilityContextBuilder $vulnerabilityContextBuilder,
         private readonly AiDocumentTextExtractor $documentTextExtractor,
         private readonly AiRagRetriever $ragRetriever,
+        private readonly MergedPrSummaryService $mergedPrSummaries,
     ) {
     }
 
@@ -716,6 +720,101 @@ class AiAssistantService
             'model' => $completion['model'],
             'draft_parsed' => true,
             'locale' => $resolvedLocale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
+    }
+
+    /**
+     * AI narrative draft for a product version merged-PR summary.
+     * Never saves evidence or creates Task / Vulnerability entities.
+     *
+     * @return array{
+     *     draft: array{
+     *         summary_markdown: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestMergedPrNarrativeDraft(
+        Product $product,
+        ProductVersion $version,
+        User $user,
+        ?string $note = null,
+        ?string $locale = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($version->product_id !== $product->id) {
+            abort(404);
+        }
+
+        $summary = $this->mergedPrSummaries->summarize($product, $version);
+
+        if (!$summary['available']) {
+            throw ValidationException::withMessages([
+                'merged_prs' => [
+                    $summary['error']
+                    ?? Translations::get(
+                        'products.versions.merged_prs.reasons.' . ($summary['reason'] ?? 'fetch_failed'),
+                    ),
+                ],
+            ]);
+        }
+
+        $resolvedLocale = $locale
+            ?? $product->organization?->locale
+            ?? app()->getLocale()
+            ?? 'en';
+
+        if (!in_array($resolvedLocale, ['en', 'bg'], true)) {
+            $resolvedLocale = 'en';
+        }
+
+        $context = $this->contextBuilder->forProduct($product);
+        $mergedMarkdown = $this->mergedPrSummaries->toMarkdown($product, $version, $summary);
+        $prompt = AiMergedPrNarrativePrompt::userPrompt(
+            $resolvedLocale,
+            $context,
+            $product,
+            $version,
+            $summary,
+            $mergedMarkdown,
+            $note,
+        );
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'merged_pr_narrative',
+            'locale' => $resolvedLocale,
+            'version_number' => $version->version_number,
+            'product_name' => $product->name,
+            'pr_count' => $summary['count'],
+        ]);
+
+        $draft = AiMergedPrNarrativeParser::parse($completion['content']);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiMergedPrNarrativeSuggested($product, $version, $user, [
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $resolvedLocale,
+            'vcs_provider' => $summary['provider'] ?? '',
+            'count' => $summary['count'],
         ]);
 
         return [

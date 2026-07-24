@@ -1287,7 +1287,15 @@
                     "unsupported_provider": "Merged PR summary supports GitHub and GitLab repositories only.",
                     "fetch_failed": "Could not load merged pull requests from the linked repository."
                 },
-                "fetch_failed": "Could not load merged pull requests from the linked repository."
+                "fetch_failed": "Could not load merged pull requests from the linked repository.",
+                "ai_narrative_title": "AI narrative draft",
+                "ai_narrative_help": "Optional draft narrative from the current merged PR summary. Review before using elsewhere — nothing is saved automatically.",
+                "ai_narrative_suggest": "Suggest AI narrative",
+                "ai_narrative_loading": "Generating…",
+                "ai_narrative_discard": "Discard draft",
+                "ai_narrative_disclaimer": "Draft only; human review required. Nothing is saved automatically.",
+                "ai_narrative_error": "Could not generate an AI narrative. Try again.",
+                "ai_narrative_empty": "The AI response did not include a usable narrative."
             },
             "fields": {
                 "version_number": "Version number",
@@ -3725,6 +3733,7 @@
             "ai_sdl_stage_notes_draft_suggested": "AI SDL stage notes draft suggested",
             "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested",
             "ai_imported_finding_triage_suggested": "AI triage summary suggested for imported finding",
+            "ai_merged_pr_narrative_suggested": "AI merged PR narrative draft suggested",
             "user_security_instruction_created": "User security instructions created",
             "user_security_instruction_updated": "User security instructions updated",
             "user_security_instruction_deleted": "User security instructions deleted",

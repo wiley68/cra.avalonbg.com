@@ -168,6 +168,28 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'merged_pr_narrative') {
+            $locale = (string) ($options['locale'] ?? 'en');
+            $version = (string) ($options['version_number'] ?? 'version');
+            $productName = (string) ($options['product_name'] ?? 'Product');
+            $count = (int) ($options['pr_count'] ?? 0);
+            $summary = $locale === 'bg'
+                ? "## {$productName} {$version}\n\nТова е stub narrative за сляти PR/MR-и ({$count} в прозореца).\n\n- Прегледайте преди Save as evidence\n- Нищо не се записва автоматично\n- Заменете с реални теми от списъка с merges"
+                : "## {$productName} {$version}\n\nThis is a stub narrative for merged PRs/MRs ({$count} in the window).\n\n- Review before Save as evidence\n- Nothing is saved automatically\n- Replace with real themes from the merge list";
+
+            $payload = [
+                'summary_markdown' => $summary,
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; human review required. Nothing is saved automatically.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         if (($options['mode'] ?? null) === 'imported_finding_triage') {
             $locale = (string) ($options['locale'] ?? 'en');
             $title = (string) ($options['suggestion_title'] ?? 'Imported finding');

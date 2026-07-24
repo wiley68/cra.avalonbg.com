@@ -1287,7 +1287,15 @@
                     "unsupported_provider": "Резюмето на сляти PR-и поддържа само GitHub и GitLab хранилища.",
                     "fetch_failed": "Неуспешно зареждане на сляти pull request-и от свързаното хранилище."
                 },
-                "fetch_failed": "Неуспешно зареждане на сляти pull request-и от свързаното хранилище."
+                "fetch_failed": "Неуспешно зареждане на сляти pull request-и от свързаното хранилище.",
+                "ai_narrative_title": "AI narrative чернова",
+                "ai_narrative_help": "Опционална narrative чернова от текущото резюме на сляти PR-и. Прегледайте преди употреба — нищо не се записва автоматично.",
+                "ai_narrative_suggest": "Предложи AI narrative",
+                "ai_narrative_loading": "Генериране…",
+                "ai_narrative_discard": "Отхвърли черновата",
+                "ai_narrative_disclaimer": "Само чернова; необходим е човешки преглед. Нищо не се записва автоматично.",
+                "ai_narrative_error": "Неуспешно генериране на AI narrative. Опитайте отново.",
+                "ai_narrative_empty": "AI отговорът не съдържа използваема narrative."
             },
             "fields": {
                 "version_number": "Номер на версия",
@@ -3723,6 +3731,7 @@
             "ai_sdl_stage_notes_draft_suggested": "Предложена AI чернова за бележки на SDL етап",
             "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост",
             "ai_imported_finding_triage_suggested": "Предложен AI triage summary за импортиран finding",
+            "ai_merged_pr_narrative_suggested": "Предложена AI narrative чернова за сляти PR-и",
             "user_security_instruction_created": "Инструкции за сигурност създадени",
             "user_security_instruction_updated": "Инструкции за сигурност обновени",
             "user_security_instruction_deleted": "Инструкции за сигурност изтрити",

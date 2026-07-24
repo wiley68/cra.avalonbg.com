@@ -1894,6 +1894,35 @@ class AuditLogger
     /**
      * @param  array<string, mixed>  $meta
      */
+    public static function logAiMergedPrNarrativeSuggested(
+        Product $product,
+        ProductVersion $version,
+        User $actor,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiMergedPrNarrativeSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'product_version_id', 'value' => (string) $version->id],
+                ['field' => 'version_number', 'value' => $version->version_number],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+                ['field' => 'vcs_provider', 'value' => (string) ($meta['vcs_provider'] ?? '')],
+                ['field' => 'count', 'value' => (string) ($meta['count'] ?? 0)],
+            ],
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     */
     public static function logAiSdlStageNotesDraftSuggested(
         SdlRun $run,
         User $actor,

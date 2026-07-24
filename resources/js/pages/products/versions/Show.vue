@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Eye, FileUp, Pencil, RefreshCcw } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import MergedPrAiNarrative from '@/components/products/MergedPrAiNarrative.vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
@@ -72,6 +73,7 @@ const props = defineProps<{
     mergedPrSummary: MergedPrSummary;
     mergedPrEvidence: MergedPrEvidence | null;
     canManage: boolean;
+    aiEnabled: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -386,6 +388,12 @@ const formatDateTime = (value: string | null): string => {
                         </p>
                     </li>
                 </ul>
+
+                <MergedPrAiNarrative
+                    v-if="canManage && aiEnabled"
+                    :product-id="product.id"
+                    :version-id="version.id"
+                />
             </template>
         </div>
 

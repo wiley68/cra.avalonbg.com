@@ -64,6 +64,8 @@ class AnthropicAiProvider implements AiProvider
             $system .= "\n\n" . AiTechDocSectionDraftPrompt::systemAddon();
         } elseif ($mode === 'incident_summary') {
             $system .= "\n\n" . AiIncidentSummaryDraftPrompt::systemAddon();
+        } elseif ($mode === 'merged_pr_narrative') {
+            $system .= "\n\n" . AiMergedPrNarrativePrompt::systemAddon();
         } elseif ($mode === 'sdl_stage_notes') {
             $system .= "\n\n" . AiSdlStageNotesDraftPrompt::systemAddon();
         } elseif ($mode === 'vulnerability_triage') {

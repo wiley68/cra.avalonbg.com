@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.12  
+**Версия:** 0.13  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -155,7 +155,7 @@ flowchart LR
 
 ### Could
 
-12. **Open** — AI-assisted merged-PR narrative (human review; stub-safe)
+12. ~~AI-assisted merged-PR narrative (human review; stub-safe)~~ **Done** (2026-07-24) — sync JSON draft на Version Show; `MergedPrAiNarrative`; stub providers; no auto evidence
 13. **Open** — Supervisor/systemd (или Docker Compose) sample unit за `queue:work` + `schedule:run`
 14. **Open** — Horizon / failed-jobs UI (само ако вече пасва на стека; иначе skip)
 15. **Open** — Embedding / RAG reindex schedule polish (`ai:index-embeddings` ops note)
@@ -169,7 +169,7 @@ flowchart LR
 
 **Should** — GitLab parity, save-as-evidence, ops health hint, live connector checklist, AI error UX.
 
-**Could** — AI PR narrative, process manager samples, Horizon, RAG schedule, optional P0 UX fixes.
+**Could** — ~~AI PR narrative~~, process manager samples, Horizon, RAG schedule, optional P0 UX fixes.
 
 ---
 
@@ -220,20 +220,21 @@ Candidate F: SSO / billing / onboarding
 
 ## 12. Тестове (план)
 
-| Област                    | Подход                                                                                          |
-| ------------------------- | ----------------------------------------------------------------------------------------------- |
-| Must 4 regression         | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n                             |
-| Ops baseline (Must 1)     | `OpsBaselineScheduleTest` + `ops:baseline-check`                                                |
-| Schedule commands         | Feature: artisan commands enqueue/select due links                                              |
-| Queue non-regression      | Sync now path без worker; Unique job behaviour запазен                                          |
-| AI stub + enablement      | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub                                 |
-| AI live (optional)        | `--group=live-ai` / manual smoke; не блокира CI                                                 |
-| Merged-PR summary         | `Http::fake` GitHub PR search + GitLab MR list; RBAC viewer vs owner                            |
-| Audit / RBAC (Must 6)     | Refresh audit (+no secrets); viewer cannot refresh / triage                                     |
-| Evidence save (Should 8)  | Explicit save → Markdown evidence + dual audit; viewer forbidden                                |
-| Ops queue hint (Should 9) | Health + Settings banner when schedule on + sync/stale queue                                    |
-| Live connector smoke (10) | Manual checklist — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md); not CI |
-| AI error UX (Should 11)   | `AiUserFacingError`; timeout vs failed; queued `error_message` translated; no silent empty      |
+| Област                     | Подход                                                                                          |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| Must 4 regression          | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n                             |
+| Ops baseline (Must 1)      | `OpsBaselineScheduleTest` + `ops:baseline-check`                                                |
+| Schedule commands          | Feature: artisan commands enqueue/select due links                                              |
+| Queue non-regression       | Sync now path без worker; Unique job behaviour запазен                                          |
+| AI stub + enablement       | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub                                 |
+| AI live (optional)         | `--group=live-ai` / manual smoke; не блокира CI                                                 |
+| Merged-PR summary          | `Http::fake` GitHub PR search + GitLab MR list; RBAC viewer vs owner                            |
+| Audit / RBAC (Must 6)      | Refresh audit (+no secrets); viewer cannot refresh / triage                                     |
+| Evidence save (Should 8)   | Explicit save → Markdown evidence + dual audit; viewer forbidden                                |
+| Ops queue hint (Should 9)  | Health + Settings banner when schedule on + sync/stale queue                                    |
+| Live connector smoke (10)  | Manual checklist — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md); not CI |
+| AI error UX (Should 11)    | `AiUserFacingError`; timeout vs failed; queued `error_message` translated; no silent empty      |
+| AI PR narrative (Could 12) | Stub/sync draft on Version Show; human review; no auto Evidence/Task; audit event               |
 
 ---
 
@@ -251,17 +252,18 @@ Candidate F: SSO / billing / onboarding
 
 ## 14. История
 
-| Версия | Дата       | Промяна                                                               |
-| ------ | ---------- | --------------------------------------------------------------------- |
-| 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                  |
-| 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)   |
-| 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings  |
-| 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence |
-| 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                       |
-| 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)   |
-| 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show        |
-| 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)   |
-| 0.4    | 2026-07-24 | Must 3 Done — live LLM enablement guide + `ops:ai-check`              |
-| 0.3    | 2026-07-24 | Must 2 Done — queue hardening (retries, failed visibility, Sync now)  |
-| 0.2    | 2026-07-24 | Freeze Must/Should/Could; roadmap → internal test → F; Must 1 Done    |
-| 0.1    | 2026-07-24 | Skeleton — Active след Phase 2.8 exit; Must/Should/Could draft slices |
+| Версия | Дата       | Промяна                                                                |
+| ------ | ---------- | ---------------------------------------------------------------------- |
+| 0.13   | 2026-07-24 | Could 12 Done — AI merged-PR narrative draft (human review; stub-safe) |
+| 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                   |
+| 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)    |
+| 0.10   | 2026-07-24 | Should 9 Done — ops queue/worker unhealthy hint on Health + Settings   |
+| 0.9    | 2026-07-24 | Should 8 Done — save merged-PR summary as immutable Markdown evidence  |
+| 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                        |
+| 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)    |
+| 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show         |
+| 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)    |
+| 0.4    | 2026-07-24 | Must 3 Done — live LLM enablement guide + `ops:ai-check`               |
+| 0.3    | 2026-07-24 | Must 2 Done — queue hardening (retries, failed visibility, Sync now)   |
+| 0.2    | 2026-07-24 | Freeze Must/Should/Could; roadmap → internal test → F; Must 1 Done     |
+| 0.1    | 2026-07-24 | Skeleton — Active след Phase 2.8 exit; Must/Should/Could draft slices  |

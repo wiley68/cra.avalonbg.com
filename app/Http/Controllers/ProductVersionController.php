@@ -9,10 +9,13 @@ use App\Http\Requests\UpdateProductVersionRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
+use App\Services\AiAssistantService;
 use App\Services\MergedPrSummaryService;
 use App\Support\AuditLogger;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,6 +23,7 @@ class ProductVersionController extends Controller
 {
     public function __construct(
         private readonly MergedPrSummaryService $mergedPrSummaries,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -79,6 +83,7 @@ class ProductVersionController extends Controller
             'mergedPrSummary' => $this->mergedPrSummaries->summarize($product, $version),
             'mergedPrEvidence' => $this->mergedPrSummaries->latestSavedEvidenceSummary($version),
             'canManage' => request()->user()->canManageProducts($organization),
+            'aiEnabled' => $this->assistant->isEnabled(),
         ]);
     }
 
@@ -124,6 +129,37 @@ class ProductVersionController extends Controller
         ]);
 
         return redirect()->route('products.versions.show', [$product, $version]);
+    }
+
+    public function suggestMergedPrNarrative(
+        Request $request,
+        Product $product,
+        ProductVersion $version,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertVersionBelongsToProduct($product, $version);
+        $this->authorize('update', [$product, $organization]);
+
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $result = $this->assistant->suggestMergedPrNarrativeDraft(
+            $product,
+            $version,
+            $request->user(),
+            $validated['note'] ?? null,
+            $organization->resolvedLocale(),
+        );
+
+        return response()->json([
+            'summary_markdown' => $result['draft']['summary_markdown'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
+        ]);
     }
 
     public function edit(Product $product, ProductVersion $version): Response
