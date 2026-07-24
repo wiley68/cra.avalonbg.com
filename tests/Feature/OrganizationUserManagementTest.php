@@ -379,6 +379,18 @@ test('platform admin cannot delete the last organization owner', function () {
     $this->assertDatabaseHas('users', ['id' => $owner->id]);
 });
 
+test('organization owner cannot delete themselves', function () {
+    [$organization, $owner] = makeOrganizationWithOwner();
+
+    $this->actingAs($owner)
+        ->from(route('users.index'))
+        ->delete(route('users.destroy', $owner))
+        ->assertRedirect(route('users.index'));
+
+    expect($organization->users()->where('users.id', $owner->id)->exists())->toBeTrue();
+    $this->assertDatabaseHas('users', ['id' => $owner->id]);
+});
+
 test('organization owner can delete a non-owner user', function () {
     [$organization, $owner] = makeOrganizationWithOwner();
     $member = makeDeveloperInOrganization($organization);

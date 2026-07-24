@@ -377,7 +377,8 @@
         },
         "errors": {
             "last_owner_role": "Cannot change the role of the last organization owner.",
-            "last_owner_delete": "Cannot delete the last organization owner."
+            "last_owner_delete": "Cannot delete the last organization owner.",
+            "cannot_delete_self": "You cannot delete your own account."
         }
     },
     "integrations": {

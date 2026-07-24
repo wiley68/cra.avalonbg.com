@@ -14,6 +14,7 @@ use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -23,7 +24,8 @@ class UserController extends Controller
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
         private readonly UserTwoFactorResetService $twoFactorReset,
-    ) {}
+    ) {
+    }
 
     public function index(): Response
     {
@@ -148,6 +150,16 @@ class UserController extends Controller
     {
         $organization = $this->currentOrganization();
         $this->memberships->assertMembership($organization, $user);
+
+        if (request()->user()?->is($user)) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => Translations::get('users.errors.cannot_delete_self'),
+            ]);
+
+            return back();
+        }
+
         $this->authorize('delete', [$user, $organization]);
 
         $this->memberships->deleteMember($organization, $user);

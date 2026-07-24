@@ -21,7 +21,8 @@ class OrganizationUserController extends Controller
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
         private readonly UserTwoFactorResetService $twoFactorReset,
-    ) {}
+    ) {
+    }
 
     public function index(Organization $organization): Response
     {
@@ -147,6 +148,16 @@ class OrganizationUserController extends Controller
     public function destroy(Organization $organization, User $user): RedirectResponse
     {
         $this->memberships->assertMembership($organization, $user);
+
+        if (request()->user()?->is($user)) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => Translations::get('users.errors.cannot_delete_self'),
+            ]);
+
+            return back();
+        }
+
         $this->authorize('delete', [$user, $organization]);
 
         $this->memberships->deleteMember($organization, $user);
