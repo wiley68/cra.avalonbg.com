@@ -251,6 +251,100 @@ test('deleting a product cascades versions', function () {
     $this->assertDatabaseMissing('product_versions', ['id' => $versionId]);
 });
 
+test('deleting a product cascades patch campaigns linked to versions', function () {
+    [$organization, $owner] = makeOrgWithOwner();
+
+    $this->actingAs($owner)->post(route('products.store'), productPayload());
+    $product = Product::query()->firstOrFail();
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.store', $product), versionPayload([
+            'state' => ProductVersionState::Released->value,
+        ]));
+
+    $version = ProductVersion::query()->firstOrFail();
+
+    $campaign = \App\Models\PatchCampaign::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'target_version_id' => $version->id,
+        'title' => 'Cascade campaign',
+        'status' => \App\Enums\PatchCampaignStatus::Draft,
+        'created_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('products.destroy', $product))
+        ->assertRedirect(route('products.index'));
+
+    $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    $this->assertDatabaseMissing('patch_campaigns', ['id' => $campaign->id]);
+    $this->assertDatabaseMissing('product_versions', ['id' => $version->id]);
+});
+
+test('deleting a product removes evidence and sbom storage files', function () {
+    \Illuminate\Support\Facades\Storage::fake('local');
+
+    [$organization, $owner] = makeOrgWithOwner();
+
+    $this->actingAs($owner)->post(route('products.store'), productPayload());
+    $product = Product::query()->firstOrFail();
+
+    $evidencePath = "evidence/{$product->id}/probe.txt";
+    $sbomPath = "sboms/{$product->id}/probe.json";
+    $aiPath = 'ai-uploads/probe/doc.txt';
+
+    \Illuminate\Support\Facades\Storage::disk('local')->put($evidencePath, 'evidence-body');
+    \Illuminate\Support\Facades\Storage::disk('local')->put($sbomPath, '{"bom":true}');
+    \Illuminate\Support\Facades\Storage::disk('local')->put($aiPath, 'ai-upload');
+
+    \App\Models\Evidence::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'type' => \App\Enums\EvidenceType::Other,
+        'title' => 'Probe evidence',
+        'storage_path' => $evidencePath,
+        'freshness_status' => \App\Enums\EvidenceFreshnessStatus::Current,
+        'confidentiality' => \App\Enums\EvidenceConfidentiality::Internal,
+        'uploaded_by' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.store', $product), versionPayload());
+    $version = ProductVersion::query()->firstOrFail();
+
+    \App\Models\Sbom::query()->create([
+        'product_id' => $product->id,
+        'product_version_id' => $version->id,
+        'format' => \App\Enums\SbomFormat::CycloneDxJson,
+        'source_filename' => 'probe.json',
+        'storage_path' => $sbomPath,
+        'checksum_sha256' => hash('sha256', '{"bom":true}'),
+        'component_count' => 0,
+        'imported_by' => $owner->id,
+        'imported_at' => now(),
+    ]);
+
+    \App\Models\AiAnalysisJob::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'user_id' => $owner->id,
+        'type' => \App\Enums\AiAnalysisJobType::DocumentAnalyse,
+        'status' => \App\Enums\AiAnalysisJobStatus::Pending,
+        'payload' => ['stored_path' => $aiPath, 'filename' => 'doc.txt'],
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('products.destroy', $product))
+        ->assertRedirect(route('products.index'));
+
+    expect(\Illuminate\Support\Facades\Storage::disk('local')->exists($evidencePath))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->exists($sbomPath))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->exists($aiPath))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->exists("evidence/{$product->id}"))->toBeFalse()
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->exists("sboms/{$product->id}"))->toBeFalse();
+});
+
 test('developer cannot create versions', function () {
     [$organization, $owner] = makeOrgWithOwner();
     $developer = makeOrgDeveloper($organization);

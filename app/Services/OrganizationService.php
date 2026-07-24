@@ -3,11 +3,17 @@
 namespace App\Services;
 
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class OrganizationService
 {
+    public function __construct(
+        private readonly ProductStorageCleanup $productStorage,
+    ) {
+    }
+
     /**
      * Permanently destroy an organization and its tenant data.
      *
@@ -24,6 +30,11 @@ class OrganizationService
                 ->where('users.is_platform_admin', false)
                 ->pluck('users.id')
                 ->all();
+
+            Product::query()
+                ->where('organization_id', $organization->id)
+                ->orderBy('id')
+                ->each(fn(Product $product) => $this->productStorage->purge($product));
 
             $organization->delete();
 

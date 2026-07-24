@@ -854,7 +854,7 @@
         "created": "Product created.",
         "updated": "Product updated.",
         "deleted": "Product deleted.",
-        "confirm_delete": "Delete this product and all its versions permanently?",
+        "confirm_delete": "Delete this product permanently? All related versions, campaigns, deployments, vulnerabilities, evidence files, and other product data will also be removed. This cannot be undone.",
         "search_placeholder": "Search by name, slug, type or status...",
         "show_more": "Show more...",
         "empty": "No products found.",

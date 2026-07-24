@@ -16,6 +16,7 @@ use App\Services\ImportSuggestionService;
 use App\Services\ProductIntegrationLinkService;
 use App\Services\ProductReadinessService;
 use App\Services\ProductRepositoryService;
+use App\Services\ProductStorageCleanup;
 use App\Services\ScopeAssessmentService;
 use App\Services\VcsImportSuggestionService;
 use App\Support\AuditLogger;
@@ -35,6 +36,7 @@ class ProductController extends Controller
         private readonly ProductIntegrationLinkService $integrationLinks,
         private readonly ImportSuggestionService $importSuggestions,
         private readonly AiAssistantService $assistant,
+        private readonly ProductStorageCleanup $productStorage,
     ) {
     }
 
@@ -217,6 +219,7 @@ class ProductController extends Controller
         $actor = request()->user();
         AuditLogger::logProductDeleted($product, $actor);
 
+        $this->productStorage->purge($product);
         $product->delete();
 
         Inertia::flash('toast', [
