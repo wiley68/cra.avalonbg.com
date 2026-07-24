@@ -232,6 +232,98 @@ class GitLabPatProvider implements VcsProvider
         return [];
     }
 
+    /**
+     * Lists merged merge requests in a date window via project merge_requests API.
+     * Uses updated_after/before as a cheap server filter, then keeps rows whose merged_at
+     * falls within [fromDate, toDate] (inclusive calendar days).
+     *
+     * @return list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     merged_at: string|null,
+     *     user_login: string|null
+     * }>
+     */
+    public function listMergedPulls(
+        string $fullName,
+        string $fromDate,
+        string $toDate,
+        int $perPage = 30,
+    ): array {
+        $limit = max(1, min(100, $perPage));
+        $fetchLimit = min(100, max($limit, $limit * 2));
+
+        $response = $this->client()->get($this->projectUrl($fullName) . '/merge_requests', [
+            'state' => 'merged',
+            'updated_after' => $fromDate . 'T00:00:00Z',
+            'updated_before' => $toDate . 'T23:59:59Z',
+            'order_by' => 'updated_at',
+            'sort' => 'desc',
+            'per_page' => $fetchLimit,
+        ]);
+
+        if (in_array($response->status(), [401, 403, 404], true)) {
+            return [];
+        }
+
+        if (!$response->successful()) {
+            throw new RuntimeException('Failed to list GitLab merged merge requests (HTTP ' . $response->status() . ').');
+        }
+
+        $items = $response->json() ?? [];
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $from = $fromDate;
+        $to = $toDate;
+        $mapped = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $number = isset($item['iid']) ? (int) $item['iid'] : 0;
+            $htmlUrl = isset($item['web_url']) && is_string($item['web_url']) ? $item['web_url'] : null;
+            $title = isset($item['title']) && is_string($item['title']) ? $item['title'] : '';
+            $mergedAt = isset($item['merged_at']) && is_string($item['merged_at']) ? $item['merged_at'] : null;
+
+            if ($number < 1 || $htmlUrl === null || $htmlUrl === '') {
+                continue;
+            }
+
+            if ($mergedAt !== null) {
+                $mergedDay = substr($mergedAt, 0, 10);
+
+                if ($mergedDay < $from || $mergedDay > $to) {
+                    continue;
+                }
+            }
+
+            $author = is_array($item['author'] ?? null) ? $item['author'] : [];
+            $login = isset($author['username']) && is_string($author['username'])
+                ? $author['username']
+                : null;
+
+            $mapped[] = [
+                'number' => $number,
+                'title' => $title !== '' ? $title : ('MR !' . $number),
+                'html_url' => $htmlUrl,
+                'merged_at' => $mergedAt,
+                'user_login' => $login,
+            ];
+
+            if (count($mapped) >= $limit) {
+                break;
+            }
+        }
+
+        return $mapped;
+    }
+
     private function projectUrl(string $fullName): string
     {
         return rtrim($this->baseUrl, '/') . '/projects/' . rawurlencode($fullName);

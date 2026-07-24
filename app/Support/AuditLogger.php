@@ -2406,6 +2406,7 @@ class AuditLogger
      * @param  array{
      *     available: bool,
      *     reason: string|null,
+     *     provider?: string|null,
      *     repository_full_name: string|null,
      *     window: array{from: string, to: string, mode: string, anchor_date: string|null},
      *     count: int,
@@ -2425,7 +2426,7 @@ class AuditLogger
             ['field' => 'window_from', 'value' => $summary['window']['from']],
             ['field' => 'window_to', 'value' => $summary['window']['to']],
             ['field' => 'window_mode', 'value' => $summary['window']['mode']],
-            ['field' => 'provider', 'value' => 'github'],
+            ['field' => 'provider', 'value' => (string) ($summary['provider'] ?? 'unknown')],
         ];
 
         if ($summary['repository_full_name'] !== null) {

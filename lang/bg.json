@@ -1255,11 +1255,11 @@
             "search_placeholder": "Търсене по версия, състояние или git ref...",
             "merged_prs": {
                 "title": "Сляти pull request-и",
-                "subtitle": "Информативно резюме от свързаното GitHub хранилище. Нищо не се създава автоматично.",
+                "subtitle": "Информативно резюме от свързаното GitHub или GitLab хранилище. Нищо не се създава автоматично.",
                 "refresh": "Обнови резюмето",
                 "refreshed": "Резюмето на слятите pull request-и е обновено.",
                 "empty": "Няма сляти pull request-и в този период.",
-                "truncated": "Показани са първите :count резултата от GitHub търсенето.",
+                "truncated": "Показани са първите :count резултата.",
                 "cached_at": "Кеширано на",
                 "window_release": "Прозорец около release: :from – :to (±14 дни около :anchor)",
                 "window_rolling": "Плъзгащ прозорец: последните 30 дни (:from – :to)",
@@ -1271,11 +1271,12 @@
                     "author": "Автор"
                 },
                 "reasons": {
-                    "no_repository": "Свържете GitHub хранилище към продукта, за да видите слятите PR-и.",
-                    "not_github": "Резюмето на сляти PR-и в момента поддържа само GitHub хранилища.",
-                    "fetch_failed": "Неуспешно зареждане на сляти pull request-и от GitHub."
+                    "no_repository": "Свържете GitHub или GitLab хранилище към продукта, за да видите слятите PR-и.",
+                    "not_github": "Резюмето на сляти PR-и поддържа само GitHub и GitLab хранилища.",
+                    "unsupported_provider": "Резюмето на сляти PR-и поддържа само GitHub и GitLab хранилища.",
+                    "fetch_failed": "Неуспешно зареждане на сляти pull request-и от свързаното хранилище."
                 },
-                "fetch_failed": "Неуспешно зареждане на сляти pull request-и от GitHub."
+                "fetch_failed": "Неуспешно зареждане на сляти pull request-и от свързаното хранилище."
             },
             "fields": {
                 "version_number": "Номер на версия",

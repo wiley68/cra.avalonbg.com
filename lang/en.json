@@ -1255,11 +1255,11 @@
             "search_placeholder": "Search by version, state or git ref...",
             "merged_prs": {
                 "title": "Merged pull requests",
-                "subtitle": "Informational summary from the linked GitHub repository. Nothing is created automatically.",
+                "subtitle": "Informational summary from the linked GitHub or GitLab repository. Nothing is created automatically.",
                 "refresh": "Refresh summary",
                 "refreshed": "Merged pull request summary refreshed.",
                 "empty": "No merged pull requests in this window.",
-                "truncated": "Showing the first :count results from GitHub search.",
+                "truncated": "Showing the first :count results.",
                 "cached_at": "Cached at",
                 "window_release": "Release window: :from – :to (±14 days around :anchor)",
                 "window_rolling": "Rolling window: last 30 days (:from – :to)",
@@ -1271,11 +1271,12 @@
                     "author": "Author"
                 },
                 "reasons": {
-                    "no_repository": "Link a GitHub repository on the product to see merged PRs.",
-                    "not_github": "Merged PR summary currently supports GitHub repositories only.",
-                    "fetch_failed": "Could not load merged pull requests from GitHub."
+                    "no_repository": "Link a GitHub or GitLab repository on the product to see merged PRs.",
+                    "not_github": "Merged PR summary supports GitHub and GitLab repositories only.",
+                    "unsupported_provider": "Merged PR summary supports GitHub and GitLab repositories only.",
+                    "fetch_failed": "Could not load merged pull requests from the linked repository."
                 },
-                "fetch_failed": "Could not load merged pull requests from GitHub."
+                "fetch_failed": "Could not load merged pull requests from the linked repository."
             },
             "fields": {
                 "version_number": "Version number",

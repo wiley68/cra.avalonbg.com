@@ -40,6 +40,7 @@ type MergedPr = {
 type MergedPrSummary = {
     available: boolean;
     reason: string | null;
+    provider: string | null;
     repository_full_name: string | null;
     window: {
         from: string;

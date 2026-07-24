@@ -120,6 +120,28 @@ function linkGithubRepo(Product $product): ProductRepository
     ]);
 }
 
+function linkGitlabRepo(Product $product): ProductRepository
+{
+    $connection = OrganizationVcsConnection::query()->create([
+        'organization_id' => $product->organization_id,
+        'provider' => VcsProvider::Gitlab,
+        'auth_type' => VcsAuthType::Pat,
+        'token' => 'glpat_merged_mr_token',
+        'label' => 'GitLab',
+        'status' => VcsConnectionStatus::Active,
+        'last_verified_at' => now(),
+    ]);
+
+    return ProductRepository::query()->create([
+        'product_id' => $product->id,
+        'connection_id' => $connection->id,
+        'external_id' => '88',
+        'full_name' => 'acme/widget',
+        'remote_url' => 'https://gitlab.com/acme/widget',
+        'default_branch' => 'main',
+    ]);
+}
+
 test('release window is release_date plus or minus 14 days', function () {
     ['version' => $version] = makeMergedPrFixture('2026-07-15');
 
@@ -172,6 +194,7 @@ test('version show lists merged prs from github search without creating entities
         ->assertInertia(fn($page) => $page
             ->component('products/versions/Show')
             ->where('mergedPrSummary.available', true)
+            ->where('mergedPrSummary.provider', 'github')
             ->where('mergedPrSummary.count', 1)
             ->where('mergedPrSummary.window.mode', 'release_window')
             ->where('mergedPrSummary.prs.0.number', 42)
@@ -243,6 +266,18 @@ test('owner can refresh merged pr summary and viewer cannot', function () {
         ->post(route('products.versions.merged-prs.refresh', [$product, $version]))
         ->assertRedirect(route('products.versions.show', [$product, $version]));
 
+    $successLog = AuditLog::query()
+        ->where('event_type', AuditEventType::MergedPrSummaryRefreshSucceeded->value)
+        ->where('product_id', $product->id)
+        ->first();
+
+    expect($successLog)->not->toBeNull()
+        ->and($successLog->is_success)->toBeTrue()
+        ->and($successLog->user_id)->toBe($owner->id)
+        ->and($successLog->description)->toContain('"provider"')
+        ->and($successLog->description)->toContain('github')
+        ->and($successLog->description)->not->toContain('ghp_merged_pr_token');
+
     $this->actingAs($viewer)
         ->get(route('products.versions.show', [$product, $version]))
         ->assertOk()
@@ -250,9 +285,117 @@ test('owner can refresh merged pr summary and viewer cannot', function () {
             ->where('canManage', false)
             ->where('mergedPrSummary.available', true));
 
+    $auditCountBeforeForbidden = AuditLog::query()
+        ->whereIn('event_type', [
+            AuditEventType::MergedPrSummaryRefreshSucceeded->value,
+            AuditEventType::MergedPrSummaryRefreshFailed->value,
+        ])
+        ->count();
+
     $this->actingAs($viewer)
         ->post(route('products.versions.merged-prs.refresh', [$product, $version]))
         ->assertForbidden();
+
+    expect(AuditLog::query()
+        ->whereIn('event_type', [
+            AuditEventType::MergedPrSummaryRefreshSucceeded->value,
+            AuditEventType::MergedPrSummaryRefreshFailed->value,
+        ])
+        ->count())->toBe($auditCountBeforeForbidden);
+});
+
+test('failed merged pr refresh writes failed audit without secrets', function () {
+    Cache::flush();
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+    linkGithubRepo($product);
+
+    Http::fake([
+        'api.github.com/search/issues*' => Http::response(['message' => 'Server Error'], 500),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.refresh', [$product, $version]))
+        ->assertRedirect(route('products.versions.show', [$product, $version]));
+
+    $failedLog = AuditLog::query()
+        ->where('event_type', AuditEventType::MergedPrSummaryRefreshFailed->value)
+        ->where('product_id', $product->id)
+        ->first();
+
+    expect($failedLog)->not->toBeNull()
+        ->and($failedLog->is_success)->toBeFalse()
+        ->and($failedLog->description)->toContain('"reason"')
+        ->and($failedLog->description)->toContain('github')
+        ->and($failedLog->description)->not->toContain('ghp_merged_pr_token');
+});
+
+test('version show lists merged mrs from gitlab without creating entities', function () {
+    Cache::flush();
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+    linkGitlabRepo($product);
+
+    Http::fake([
+        'gitlab.com/api/v4/projects/*' => Http::response([
+            [
+                'iid' => 7,
+                'title' => 'Harden auth cookies',
+                'web_url' => 'https://gitlab.com/acme/widget/-/merge_requests/7',
+                'merged_at' => '2026-07-14T10:00:00.000Z',
+                'author' => ['username' => 'alice'],
+            ],
+            [
+                'iid' => 8,
+                'title' => 'Out of window',
+                'web_url' => 'https://gitlab.com/acme/widget/-/merge_requests/8',
+                'merged_at' => '2026-06-01T10:00:00.000Z',
+                'author' => ['username' => 'bob'],
+            ],
+        ], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('products.versions.show', [$product, $version]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/versions/Show')
+            ->where('mergedPrSummary.available', true)
+            ->where('mergedPrSummary.provider', 'gitlab')
+            ->where('mergedPrSummary.count', 1)
+            ->where('mergedPrSummary.prs.0.number', 7)
+            ->where('mergedPrSummary.prs.0.title', 'Harden auth cookies')
+            ->where('mergedPrSummary.prs.0.user_login', 'alice'));
+
+    Http::assertSent(fn($request) => str_contains($request->url(), 'gitlab.com/api/v4/projects/')
+        && str_contains($request->url(), '/merge_requests')
+        && $request['state'] === 'merged'
+        && str_starts_with((string) $request['updated_after'], '2026-07-01')
+        && str_starts_with((string) $request['updated_before'], '2026-07-29'));
+
+    expect(\App\Models\Task::query()->count())->toBe(0)
+        ->and(\App\Models\Evidence::query()->count())->toBe(0);
+});
+
+test('gitlab merged mr refresh audits provider without secrets', function () {
+    Cache::flush();
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+    linkGitlabRepo($product);
+
+    Http::fake([
+        'gitlab.com/api/v4/projects/*' => Http::response([], 200),
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.refresh', [$product, $version]))
+        ->assertRedirect(route('products.versions.show', [$product, $version]));
+
+    $successLog = AuditLog::query()
+        ->where('event_type', AuditEventType::MergedPrSummaryRefreshSucceeded->value)
+        ->where('product_id', $product->id)
+        ->first();
+
+    expect($successLog)->not->toBeNull()
+        ->and($successLog->description)->toContain('gitlab')
+        ->and($successLog->description)->not->toContain('glpat_merged_mr_token');
 });
 
 test('version show without repository explains why summary is unavailable', function () {

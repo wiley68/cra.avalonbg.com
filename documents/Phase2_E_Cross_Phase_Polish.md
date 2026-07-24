@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.7  
+**Версия:** 0.8  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -39,7 +39,7 @@
 | Queue                   | Document + verify `queue:work` + scheduler path (`ops:baseline-check`) | Supervisor/systemd unit templates (Could)   |
 | LLM                     | Enable/harden **existing** providers (`openai`/`anthropic`)            | New providers / fine-tuning (out)           |
 | Live LLM surfaces       | **Imported-finding triage + vulnerability triage** (Must)              | USI/incident/tech-doc drafts (as-is config) |
-| Merged-PR summary       | **GitHub first**; panel на **Product Version** show                    | GitLab parity (Should); AI summary (Could)  |
+| Merged-PR summary       | **GitHub + GitLab**; panel на **Product Version** show                 | AI summary (Could)                          |
 | Release window          | `released_at` ± **14 дни**; ако няма `released_at` → last **30** дни   | Manual date range (out of Must)             |
 | Cache                   | **On-demand** + short HTTP/response cache (~15 min)                    | Nightly DB snapshot (out of Must)           |
 | Auto-create entities    | **Не** — summary е informational / optional evidence ref (Should)      | Auto Task/Evidence create (out)             |
@@ -146,7 +146,7 @@ flowchart LR
 
 ### Should
 
-7. **Open** — GitLab parity за merged-PR summary (ако API позволява евтино)
+7. ~~GitLab parity за merged-PR summary (ако API позволява евтино)~~ **Done** (2026-07-24) — `GitLabPatProvider::listMergedPulls` + provider-aware `MergedPrSummaryService`
 8. **Open** — Optional „Save summary as evidence“ (immutable ref / markdown) — explicit action
 9. **Open** — Admin/ops signal: worker/schedule unhealthy hint (reuse `/integrations/health` or Settings)
 10. **Open** — Live connector smoke script/checklist (Jira / Snyk / ADO) — документиран, не задължителен CI
@@ -177,7 +177,7 @@ flowchart LR
 1. Staging/prod checklist: с активен `schedule:run` + `queue:work`, scheduled VCS и integration sync **изпълняват** jobs (не само Sync now).
 2. Manual **Sync now** продължава да работи **без** queue worker (`dispatchSync`).
 3. С `CRA_AI_PROVIDER=openai|anthropic` и валиден ключ, triage surfaces връщат live отговор; с stub/CI — тестовете минават без външни calls.
-4. Owner с GitHub link вижда **merged PRs summary** за release window на product version; Viewer може да чете, не refresh-ва manage actions.
+4. Owner с GitHub/GitLab link вижда **merged PRs/MRs summary** за release window на product version; Viewer може да чете, не refresh-ва manage actions.
 5. Summary **не** създава Task / Vulnerability / Evidence без изрично Accept / Save.
 6. Няма SSO/billing/нови scanner connectors в доставеното.
 7. Phase 2.1 VCS и Phase 2.8 integration contracts не са счупени (съществуващи feature tests зелени).
@@ -219,17 +219,17 @@ Candidate F: SSO / billing / onboarding
 
 ## 12. Тестове (план)
 
-| Област                | Подход                                                              |
-| --------------------- | ------------------------------------------------------------------- |
-| Must 4 regression     | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n |
-| Ops baseline (Must 1) | `OpsBaselineScheduleTest` + `ops:baseline-check`                    |
-| Schedule commands     | Feature: artisan commands enqueue/select due links                  |
-| Queue non-regression  | Sync now path без worker; Unique job behaviour запазен              |
-| AI stub + enablement  | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub     |
-| AI live (optional)    | `--group=live-ai` / manual smoke; не блокира CI                     |
-| Merged-PR summary     | `Http::fake` GitHub PR search/list; RBAC viewer vs owner            |
-| Audit / RBAC (Must 6) | Refresh audit (+no secrets); viewer cannot refresh / triage         |
-| Evidence save         | Should — explicit action creates evidence + audit                   |
+| Област                | Подход                                                               |
+| --------------------- | -------------------------------------------------------------------- |
+| Must 4 regression     | `Phase2EMust4RegressionTest` — stub AI + schedule w/o worker + i18n  |
+| Ops baseline (Must 1) | `OpsBaselineScheduleTest` + `ops:baseline-check`                     |
+| Schedule commands     | Feature: artisan commands enqueue/select due links                   |
+| Queue non-regression  | Sync now path без worker; Unique job behaviour запазен               |
+| AI stub + enablement  | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub      |
+| AI live (optional)    | `--group=live-ai` / manual smoke; не блокира CI                      |
+| Merged-PR summary     | `Http::fake` GitHub PR search + GitLab MR list; RBAC viewer vs owner |
+| Audit / RBAC (Must 6) | Refresh audit (+no secrets); viewer cannot refresh / triage          |
+| Evidence save         | Should — explicit action creates evidence + audit                    |
 
 ---
 
@@ -249,6 +249,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 0.8    | 2026-07-24 | Should 7 Done — GitLab merged-MR summary parity                       |
 | 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)   |
 | 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show        |
 | 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)   |

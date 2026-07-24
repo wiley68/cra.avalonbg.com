@@ -10,6 +10,7 @@ use App\Models\ProductRepository;
 use App\Models\ProductVersion;
 use App\Services\Vcs\GitHubAppTokenService;
 use App\Services\Vcs\GitHubPatProvider;
+use App\Services\Vcs\GitLabPatProvider;
 use App\Support\Translations;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -35,6 +36,7 @@ class MergedPrSummaryService
      * @return array{
      *     available: bool,
      *     reason: string|null,
+     *     provider: string|null,
      *     repository_full_name: string|null,
      *     window: array{from: string, to: string, mode: string, anchor_date: string|null},
      *     cached_at: string|null,
@@ -60,6 +62,7 @@ class MergedPrSummaryService
         $empty = [
             'available' => false,
             'reason' => null,
+            'provider' => null,
             'repository_full_name' => null,
             'window' => $window,
             'cached_at' => null,
@@ -80,14 +83,29 @@ class MergedPrSummaryService
 
         $connection = $repository->connection;
 
-        if ($connection === null || $connection->provider !== VcsProviderEnum::Github) {
+        if ($connection === null) {
             return array_merge($empty, [
-                'reason' => 'not_github',
+                'reason' => 'no_repository',
                 'repository_full_name' => $repository->full_name,
             ]);
         }
 
-        $cacheKey = $this->cacheKey($product->id, $version->id, $window['from'], $window['to']);
+        if (!in_array($connection->provider, [VcsProviderEnum::Github, VcsProviderEnum::Gitlab], true)) {
+            return array_merge($empty, [
+                'reason' => 'unsupported_provider',
+                'provider' => $connection->provider->value,
+                'repository_full_name' => $repository->full_name,
+            ]);
+        }
+
+        $provider = $connection->provider->value;
+        $cacheKey = $this->cacheKey(
+            $provider,
+            $product->id,
+            $version->id,
+            $window['from'],
+            $window['to'],
+        );
 
         if ($forceRefresh) {
             Cache::forget($cacheKey);
@@ -115,6 +133,7 @@ class MergedPrSummaryService
             return array_merge($empty, [
                 'available' => false,
                 'reason' => 'fetch_failed',
+                'provider' => $provider,
                 'repository_full_name' => $repository->full_name,
                 'error' => Translations::get('products.versions.merged_prs.fetch_failed'),
             ]);
@@ -123,6 +142,7 @@ class MergedPrSummaryService
         return [
             'available' => true,
             'reason' => null,
+            'provider' => $provider,
             'repository_full_name' => $repository->full_name,
             'window' => $window,
             'cached_at' => $payload['cached_at'],
@@ -175,9 +195,13 @@ class MergedPrSummaryService
         string $from,
         string $to,
     ): array {
-        $provider = new GitHubPatProvider($this->githubAccessToken($connection));
-
-        return $provider->listMergedPulls($repository->full_name, $from, $to, self::MAX_PRS);
+        return match ($connection->provider) {
+            VcsProviderEnum::Github => (new GitHubPatProvider($this->githubAccessToken($connection)))
+                ->listMergedPulls($repository->full_name, $from, $to, self::MAX_PRS),
+            VcsProviderEnum::Gitlab => (new GitLabPatProvider((string) $connection->token))
+                ->listMergedPulls($repository->full_name, $from, $to, self::MAX_PRS),
+            default => throw new \RuntimeException('Unsupported VCS provider for merged PR summary.'),
+        };
     }
 
     private function githubAccessToken(OrganizationVcsConnection $connection): string
@@ -188,8 +212,13 @@ class MergedPrSummaryService
         };
     }
 
-    private function cacheKey(int $productId, int $versionId, string $from, string $to): string
-    {
-        return "merged_pr_summary:{$productId}:{$versionId}:{$from}:{$to}";
+    private function cacheKey(
+        string $provider,
+        int $productId,
+        int $versionId,
+        string $from,
+        string $to,
+    ): string {
+        return "merged_pr_summary:{$provider}:{$productId}:{$versionId}:{$from}:{$to}";
     }
 }
