@@ -1850,7 +1850,7 @@ https://eur-lex.europa.eu/eli/reg/2024/2847/oj
 - [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md) — Closed: Secure Development Lifecycle ([Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md));
 - [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) — Closed: Technical Documentation (§5.12) — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md);
 - [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Closed: Integration wave 2 — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md); ops: [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md);
-- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Active (frozen): Cross-phase polish — Must 1–3 Done; ops: [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md), [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md).
+- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Active (frozen): Cross-phase polish — Must 1–4 Done; ops: [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md), [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md).
 
 ---
 
