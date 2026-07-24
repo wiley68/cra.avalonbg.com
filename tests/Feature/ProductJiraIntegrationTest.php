@@ -170,7 +170,7 @@ test('owner can sync jira issues into pending task suggestions', function () {
     ]);
 
     Http::fake([
-        'https://acme.atlassian.net/rest/api/3/search*' => Http::response([
+        'https://acme.atlassian.net/rest/api/3/search/jql' => Http::response([
             'issues' => [
                 [
                     'id' => '20001',
@@ -206,6 +206,20 @@ test('owner can sync jira issues into pending task suggestions', function () {
 
     expect($link->fresh()->last_sync_summary['issues_count'] ?? null)->toBe(1)
         ->and(AuditLog::query()->where('event_type', AuditEventType::IntegrationSyncSucceeded)->count())->toBe(1);
+
+    Http::assertSent(function ($request) {
+        return $request->method() === 'POST'
+            && $request->url() === 'https://acme.atlassian.net/rest/api/3/search/jql'
+            && ($request['jql'] ?? null) === 'project = "CRA" ORDER BY updated DESC'
+            && ($request['fields'] ?? null) === [
+                'summary',
+                'description',
+                'issuetype',
+                'priority',
+                'status',
+                'updated',
+            ];
+    });
 });
 
 test('owner can accept import suggestion as task', function () {

@@ -73,10 +73,19 @@ class JiraCloudProvider implements AlmProvider
         $key = strtoupper(trim($projectKey));
         $jql = sprintf('project = "%s" ORDER BY updated DESC', addslashes($key));
 
-        $response = $this->client()->get($this->baseUrl . '/rest/api/3/search', [
+        // Legacy GET/POST /rest/api/3/search was removed on Jira Cloud (410 Gone).
+        // Use the enhanced search endpoint instead.
+        $response = $this->client()->post($this->baseUrl . '/rest/api/3/search/jql', [
             'jql' => $jql,
             'maxResults' => max(1, min($maxResults, 100)),
-            'fields' => 'summary,description,issuetype,priority,status,updated',
+            'fields' => [
+                'summary',
+                'description',
+                'issuetype',
+                'priority',
+                'status',
+                'updated',
+            ],
         ]);
 
         if (!$response->successful()) {
