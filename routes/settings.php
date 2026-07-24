@@ -46,6 +46,10 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.snyk.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
+    Route::put(
+        'settings/integrations/providers/{integration}/sync-schedule',
+        [IntegrationController::class, 'updateIntegrationSyncSchedule'],
+    )->name('settings.integrations.providers.sync-schedule.update');
     Route::post('settings/integrations/{connection}/webhook-secret', [IntegrationController::class, 'rotateWebhookSecret'])
         ->name('settings.integrations.webhook-secret.rotate');
     Route::delete('settings/integrations/{connection}', [IntegrationController::class, 'destroy'])

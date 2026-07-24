@@ -70,6 +70,21 @@ class IntegrationConnectionService
         );
     }
 
+    public function updateSyncSchedule(
+        OrganizationIntegration $integration,
+        IntegrationSyncSchedule $schedule,
+        User $actor,
+    ): OrganizationIntegration {
+        $integration->update([
+            'sync_schedule' => $schedule,
+        ]);
+
+        $fresh = $integration->fresh();
+        AuditLogger::logIntegrationUpdated($fresh, $actor);
+
+        return $fresh;
+    }
+
     public function delete(OrganizationIntegration $integration, User $actor): void
     {
         AuditLogger::logIntegrationDisconnected($integration, $actor);

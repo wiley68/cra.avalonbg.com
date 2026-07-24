@@ -110,6 +110,14 @@ const gitlabScheduleForm = useForm({
     sync_schedule: 'off',
 });
 
+const jiraScheduleForm = useForm({
+    sync_schedule: 'off',
+});
+
+const snykScheduleForm = useForm({
+    sync_schedule: 'off',
+});
+
 const disconnectTarget = ref<DisconnectTarget | null>(null);
 const disconnecting = ref(false);
 const rotatingWebhook = ref(false);
@@ -217,6 +225,7 @@ watch(
         jiraForm.base_url = integration.base_url ?? '';
         jiraForm.email = integration.email ?? '';
         jiraForm.label = integration.label ?? 'Jira Cloud';
+        jiraScheduleForm.sync_schedule = integration.sync_schedule ?? 'off';
     },
     { immediate: true },
 );
@@ -230,6 +239,7 @@ watch(
 
         snykForm.base_url = integration.base_url ?? '';
         snykForm.label = integration.label ?? 'Snyk';
+        snykScheduleForm.sync_schedule = integration.sync_schedule ?? 'off';
     },
     { immediate: true },
 );
@@ -289,6 +299,36 @@ const saveGitlabSyncSchedule = () => {
 
     gitlabScheduleForm.put(
         IntegrationController.updateSyncSchedule.url(gitlabConnection.value.id),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const saveJiraSyncSchedule = () => {
+    if (!jiraIntegration.value) {
+        return;
+    }
+
+    jiraScheduleForm.put(
+        IntegrationController.updateIntegrationSyncSchedule.url(
+            jiraIntegration.value.id,
+        ),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const saveSnykSyncSchedule = () => {
+    if (!snykIntegration.value) {
+        return;
+    }
+
+    snykScheduleForm.put(
+        IntegrationController.updateIntegrationSyncSchedule.url(
+            snykIntegration.value.id,
+        ),
         {
             preserveScroll: true,
         },
@@ -1203,6 +1243,96 @@ const confirmDisconnect = () => {
                             {{ t('settings.integrations.disconnect') }}
                         </Button>
                     </div>
+
+                    <form
+                        v-if="canManage"
+                        class="space-y-3 border-t pt-4"
+                        @submit.prevent="saveJiraSyncSchedule"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="jira_sync_schedule">{{
+                                t('settings.integrations.sync_schedule')
+                            }}</Label>
+                            <Select
+                                :model-value="jiraScheduleForm.sync_schedule"
+                                @update:model-value="
+                                    (value) => {
+                                        if (typeof value === 'string') {
+                                            jiraScheduleForm.sync_schedule =
+                                                value;
+                                        }
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="jira_sync_schedule"
+                                    class="w-full max-w-xs"
+                                    data-test="jira-sync-schedule-select"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t(
+                                                'settings.integrations.sync_schedule_placeholder',
+                                            )
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="off">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.off',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="hourly">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.hourly',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="daily">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.daily',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.integration_sync_schedule_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="jiraScheduleForm.errors.sync_schedule"
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            :disabled="jiraScheduleForm.processing"
+                            data-test="save-jira-sync-schedule-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('settings.integrations.save_sync_schedule') }}
+                        </Button>
+                    </form>
+                    <p
+                        v-else
+                        class="border-t pt-4 text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.sync_schedule') }}:
+                        {{
+                            t(
+                                `settings.integrations.sync_schedules.${jiraIntegration.sync_schedule}`,
+                            )
+                        }}
+                    </p>
                 </div>
 
                 <div v-if="canManage" class="space-y-4 rounded-lg border p-4">
@@ -1386,6 +1516,96 @@ const confirmDisconnect = () => {
                             {{ t('settings.integrations.disconnect') }}
                         </Button>
                     </div>
+
+                    <form
+                        v-if="canManage"
+                        class="space-y-3 border-t pt-4"
+                        @submit.prevent="saveSnykSyncSchedule"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="snyk_sync_schedule">{{
+                                t('settings.integrations.sync_schedule')
+                            }}</Label>
+                            <Select
+                                :model-value="snykScheduleForm.sync_schedule"
+                                @update:model-value="
+                                    (value) => {
+                                        if (typeof value === 'string') {
+                                            snykScheduleForm.sync_schedule =
+                                                value;
+                                        }
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="snyk_sync_schedule"
+                                    class="w-full max-w-xs"
+                                    data-test="snyk-sync-schedule-select"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t(
+                                                'settings.integrations.sync_schedule_placeholder',
+                                            )
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="off">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.off',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="hourly">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.hourly',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="daily">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.daily',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.integration_sync_schedule_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="snykScheduleForm.errors.sync_schedule"
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            :disabled="snykScheduleForm.processing"
+                            data-test="save-snyk-sync-schedule-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('settings.integrations.save_sync_schedule') }}
+                        </Button>
+                    </form>
+                    <p
+                        v-else
+                        class="border-t pt-4 text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.sync_schedule') }}:
+                        {{
+                            t(
+                                `settings.integrations.sync_schedules.${snykIntegration.sync_schedule}`,
+                            )
+                        }}
+                    </p>
                 </div>
 
                 <div v-if="canManage" class="space-y-4 rounded-lg border p-4">

@@ -3759,6 +3759,7 @@
             "sync_schedule": "Scheduled sync",
             "sync_schedule_placeholder": "Select frequency",
             "sync_schedule_help": "Applies to all product repositories linked through this connection. The scheduler runs hourly and syncs only when due.",
+            "integration_sync_schedule_help": "Applies to all product links for this connector. The scheduler runs hourly and syncs only when due.",
             "save_sync_schedule": "Save schedule",
             "sync_schedule_updated": "Sync schedule updated.",
             "sync_schedules": {

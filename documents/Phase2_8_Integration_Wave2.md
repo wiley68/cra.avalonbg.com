@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.8  
+**Версия:** 0.9  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should/Could open  
+**Статус:** Active — Must Done; Should 7 Done; Should 8–12 / Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -240,7 +240,7 @@ POST   /api/webhooks/snyk/{integration}
 
 ### Should
 
-7. Scheduled sync (`off`/`hourly`/`daily`) + `integrations:sync-scheduled` artisan + scheduler entry
+7. ~~Scheduled sync (`off`/`hourly`/`daily`) + `integrations:sync-scheduled` artisan + scheduler entry~~ **Done** (2026-07-24)
 8. Manual sync hardening (unique job, soft-fail on missing scopes, last_error in summary)
 9. Map Snyk findings → existing SBOM / `product_components` where purl/name matches
 10. Readiness gaps + dashboard counts for pending suggestions / failed syncs
@@ -315,18 +315,18 @@ Reuse:
 
 ## 13. Тестове (план)
 
-| Област            | Предложение                                                      |
-| ----------------- | ---------------------------------------------------------------- |
-| Models            | `IntegrationWave2ModelsTest` — **Done**                          |
-| Jira connect/sync | `JiraIntegrationSettingsTest` — connect/disconnect **Done**      |
-| Product Jira link | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done** |
-| Snyk connect/sync | `SnykIntegrationTest` — connect/link/sync/accept **Done**        |
-| Evidence snapshot | Jira/Snyk sync → `integration_snapshot` + checksum **Done**      |
-| Accept / dismiss  | Task + vulnerability creation **Done**                           |
-| RBAC              | `IntegrationWave2RbacTest` + settings/product tests **Done**     |
-| Schedule          | `integrations:sync-scheduled` command test                       |
-| Azure DevOps      | Provider adapter test (Should 11)                                |
-| Readiness         | Pending suggestions gap (Should 10)                              |
+| Област            | Предложение                                                                       |
+| ----------------- | --------------------------------------------------------------------------------- |
+| Models            | `IntegrationWave2ModelsTest` — **Done**                                           |
+| Jira connect/sync | `JiraIntegrationSettingsTest` — connect/disconnect **Done**                       |
+| Product Jira link | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done**                  |
+| Snyk connect/sync | `SnykIntegrationTest` — connect/link/sync/accept **Done**                         |
+| Evidence snapshot | Jira/Snyk sync → `integration_snapshot` + checksum **Done**                       |
+| Accept / dismiss  | Task + vulnerability creation **Done**                                            |
+| RBAC              | `IntegrationWave2RbacTest` + settings/product tests **Done**                      |
+| Schedule          | `IntegrationScheduledSyncTest` — schedule update + artisan + hourly cron **Done** |
+| Azure DevOps      | Provider adapter test (Should 11)                                                 |
+| Readiness         | Pending suggestions gap (Should 10)                                               |
 
 ---
 
@@ -334,6 +334,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.9    | 2026-07-24 | Should 7 Done — scheduled sync + `integrations:sync-scheduled` + Settings UI   |
 | 0.8    | 2026-07-24 | Must 6 Done — i18n polish + RBAC feature coverage; Must slice complete         |
 | 0.7    | 2026-07-24 | Must 5 Done — evidence snapshot on Jira/Snyk sync + audit evidence refs        |
 | 0.6    | 2026-07-24 | Must 4 Done — Snyk Settings + Product link/sync → vuln suggestions → Accept    |

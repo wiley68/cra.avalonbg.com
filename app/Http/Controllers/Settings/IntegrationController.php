@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\IntegrationSyncSchedule;
 use App\Enums\VcsSyncSchedule;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
@@ -9,6 +10,7 @@ use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreJiraIntegrationRequest;
 use App\Http\Requests\Settings\StoreSnykIntegrationRequest;
+use App\Http\Requests\Settings\UpdateIntegrationSyncScheduleRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
@@ -224,6 +226,24 @@ class IntegrationController extends Controller
         $this->connections->updateSyncSchedule(
             connection: $connection,
             schedule: $request->enum('sync_schedule', VcsSyncSchedule::class),
+            actor: $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.sync_schedule_updated'),
+        ]);
+
+        return back();
+    }
+
+    public function updateIntegrationSyncSchedule(
+        UpdateIntegrationSyncScheduleRequest $request,
+        OrganizationIntegration $integration,
+    ): RedirectResponse {
+        $this->integrations->updateSyncSchedule(
+            integration: $integration,
+            schedule: $request->enum('sync_schedule', IntegrationSyncSchedule::class),
             actor: $request->user(),
         );
 
