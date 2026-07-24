@@ -3689,6 +3689,8 @@
             "vcs_repository_unlinked": "Product repository unlinked",
             "vcs_sync_succeeded": "VCS sync succeeded",
             "vcs_sync_failed": "VCS sync failed",
+            "merged_pr_summary_refresh_succeeded": "Merged PR summary refreshed",
+            "merged_pr_summary_refresh_failed": "Merged PR summary refresh failed",
             "vcs_suggestion_accepted": "VCS suggestion accepted",
             "vcs_suggestion_dismissed": "VCS suggestion dismissed",
             "integration_connected": "Integration connected",

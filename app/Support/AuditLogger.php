@@ -28,6 +28,7 @@ use App\Models\ProductIncident;
 use App\Models\ProductIntegrationLink;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
+use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\SdlException;
 use App\Models\SdlRun;
@@ -2398,6 +2399,66 @@ class AuditLogger
                 ['field' => 'full_name', 'value' => $repository->full_name],
                 ['field' => 'error', 'value' => $error],
             ],
+        );
+    }
+
+    /**
+     * @param  array{
+     *     available: bool,
+     *     reason: string|null,
+     *     repository_full_name: string|null,
+     *     window: array{from: string, to: string, mode: string, anchor_date: string|null},
+     *     count: int,
+     *     truncated: bool,
+     *     error: string|null
+     * }  $summary
+     */
+    public static function logMergedPrSummaryRefreshed(
+        Product $product,
+        ProductVersion $version,
+        User $actor,
+        array $summary,
+    ): void {
+        $details = [
+            ['field' => 'product_version_id', 'value' => (string) $version->id],
+            ['field' => 'version_number', 'value' => $version->version_number],
+            ['field' => 'window_from', 'value' => $summary['window']['from']],
+            ['field' => 'window_to', 'value' => $summary['window']['to']],
+            ['field' => 'window_mode', 'value' => $summary['window']['mode']],
+            ['field' => 'provider', 'value' => 'github'],
+        ];
+
+        if ($summary['repository_full_name'] !== null) {
+            $details[] = ['field' => 'full_name', 'value' => $summary['repository_full_name']];
+        }
+
+        if ($summary['available']) {
+            $details[] = ['field' => 'count', 'value' => (string) $summary['count']];
+            $details[] = ['field' => 'truncated', 'value' => $summary['truncated'] ? '1' : '0'];
+
+            self::persist(
+                type: AuditEventType::MergedPrSummaryRefreshSucceeded,
+                success: true,
+                source: self::resolveSource(),
+                actor: $actor,
+                organizationId: $product->organization_id,
+                productId: $product->id,
+                details: $details,
+            );
+
+            return;
+        }
+
+        $details[] = ['field' => 'reason', 'value' => (string) ($summary['reason'] ?? 'fetch_failed')];
+
+        self::persist(
+            type: AuditEventType::MergedPrSummaryRefreshFailed,
+            success: false,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: $details,
         );
     }
 

@@ -119,7 +119,7 @@ class ProductAssistantController extends Controller
     ): RedirectResponse {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
-        $this->authorize('view', [$product, $organization]);
+        $this->authorize('update', [$product, $organization]);
 
         $result = $this->queuedAnalysis->queueTriageVulnerability(
             $product,

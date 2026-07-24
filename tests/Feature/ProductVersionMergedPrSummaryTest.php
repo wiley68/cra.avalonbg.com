@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
@@ -9,6 +10,7 @@ use App\Enums\SupportStatus;
 use App\Enums\VcsAuthType;
 use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
+use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
@@ -183,6 +185,13 @@ test('version show lists merged prs from github search without creating entities
 
     expect(\App\Models\Task::query()->count())->toBe(0)
         ->and(\App\Models\Evidence::query()->count())->toBe(0);
+
+    expect(AuditLog::query()
+        ->whereIn('event_type', [
+            AuditEventType::MergedPrSummaryRefreshSucceeded->value,
+            AuditEventType::MergedPrSummaryRefreshFailed->value,
+        ])
+        ->count())->toBe(0);
 });
 
 test('merged pr summary is cached for fifteen minutes', function () {

@@ -3687,6 +3687,8 @@
             "vcs_repository_unlinked": "Премахната връзка към product хранилище",
             "vcs_sync_succeeded": "Успешен VCS sync",
             "vcs_sync_failed": "Неуспешен VCS sync",
+            "merged_pr_summary_refresh_succeeded": "Резюме на сляти PR-и обновено",
+            "merged_pr_summary_refresh_failed": "Неуспешно обновяване на резюме на сляти PR-и",
             "vcs_suggestion_accepted": "VCS предложение е прието",
             "vcs_suggestion_dismissed": "VCS предложение е отхвърлено",
             "integration_connected": "Интеграцията е свързана",

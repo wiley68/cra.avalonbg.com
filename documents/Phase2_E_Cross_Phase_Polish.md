@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–5 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -142,7 +142,7 @@ flowchart LR
 3. ~~Live LLM enablement guide: `CRA_AI_PROVIDER` openai/anthropic; stub default за CI; smoke за imported-finding + vulnerability triage~~ **Done** (2026-07-24) — [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md), `ops:ai-check`, `LiveLlmEnablementTest`
 4. ~~Feature tests: AI paths с stub; queue/schedule commands не чупят без worker; i18n EN/BG за triage UI~~ **Done** (2026-07-24) — `Phase2EMust4RegressionTest`; BG triage copy fix
 5. ~~GitHub **merged-PR summary** MVP: `release_date` ±14d (else last 30d) на Product Version show; no auto-entity create~~ **Done** (2026-07-24) — `MergedPrSummaryService`, Version Show panel, `Http::fake` tests
-6. **Open** — Audit: summary refresh / LLM live calls (без secrets); RBAC viewer read-only
+6. ~~Audit: summary refresh / LLM live calls (без secrets); RBAC viewer read-only~~ **Done** (2026-07-24) — `MergedPrSummaryRefresh*` audit; triage authorize `update`; viewer forbidden tests
 
 ### Should
 
@@ -228,6 +228,7 @@ Candidate F: SSO / billing / onboarding
 | AI stub + enablement  | `LiveLlmEnablementTest` + existing triage stub tests; CI = stub     |
 | AI live (optional)    | `--group=live-ai` / manual smoke; не блокира CI                     |
 | Merged-PR summary     | `Http::fake` GitHub PR search/list; RBAC viewer vs owner            |
+| Audit / RBAC (Must 6) | Refresh audit (+no secrets); viewer cannot refresh / triage         |
 | Evidence save         | Should — explicit action creates evidence + audit                   |
 
 ---
@@ -248,6 +249,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 0.7    | 2026-07-24 | Must 6 Done — merged-PR refresh audit + viewer RBAC (triage update)   |
 | 0.6    | 2026-07-24 | Must 5 Done — GitHub merged-PR summary on Product Version show        |
 | 0.5    | 2026-07-24 | Must 4 Done — regression tests (stub AI, schedule w/o worker, i18n)   |
 | 0.4    | 2026-07-24 | Must 3 Done — live LLM enablement guide + `ops:ai-check`              |

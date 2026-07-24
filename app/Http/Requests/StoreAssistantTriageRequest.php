@@ -17,7 +17,7 @@ class StoreAssistantTriageRequest extends FormRequest
 
         return $organization !== null
             && $product->organization_id === $organization->id
-            && ($this->user()?->can('view', [$product, $organization]) ?? false);
+            && ($this->user()?->can('update', [$product, $organization]) ?? false);
     }
 
     /**

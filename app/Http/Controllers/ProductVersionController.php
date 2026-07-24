@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Services\MergedPrSummaryService;
+use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -88,6 +89,13 @@ class ProductVersionController extends Controller
         $this->authorize('update', [$product, $organization]);
 
         $summary = $this->mergedPrSummaries->summarize($product, $version, forceRefresh: true);
+
+        AuditLogger::logMergedPrSummaryRefreshed(
+            $product,
+            $version,
+            request()->user(),
+            $summary,
+        );
 
         Inertia::flash('toast', [
             'type' => $summary['available'] ? 'success' : 'error',
