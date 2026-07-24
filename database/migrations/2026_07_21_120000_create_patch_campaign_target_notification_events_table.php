@@ -9,9 +9,7 @@ return new class extends Migration {
     {
         Schema::create('patch_campaign_target_notification_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patch_campaign_target_id')
-                ->constrained('patch_campaign_targets')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('patch_campaign_target_id');
             $table->string('event_type');
             $table->string('channel');
             $table->string('status_before')->nullable();
@@ -20,6 +18,11 @@ return new class extends Migration {
             $table->string('recipient')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
+
+            $table->foreign('patch_campaign_target_id', 'pct_notif_events_target_fk')
+                ->references('id')
+                ->on('patch_campaign_targets')
+                ->cascadeOnDelete();
 
             $table->index(['patch_campaign_target_id', 'created_at'], 'pct_notification_events_target_created');
         });
