@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.2  
+**Версия:** 0.3  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — plan frozen (Must / Should / Could)  
+**Статус:** Active — Must 1 Done; Must 2–6 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -231,7 +231,7 @@ POST   /api/webhooks/snyk/{integration}
 
 ### Must
 
-1. Migrations + models + enums (`organization_integrations`, links, sync runs, `import_suggestions`)
+1. ~~Migrations + models + enums (`organization_integrations`, links, sync runs, `import_suggestions`)~~ **Done** (2026-07-24)
 2. Settings UI: connect / verify / disconnect **Jira Cloud** (API token) + audit
 3. Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task
 4. Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability
@@ -317,7 +317,7 @@ Reuse:
 
 | Област            | Предложение                                           |
 | ----------------- | ----------------------------------------------------- |
-| Models            | Integration / link / suggestion model tests           |
+| Models            | `IntegrationWave2ModelsTest` — **Done**               |
 | Jira connect/sync | `JiraIntegrationTest` (`Http::fake`)                  |
 | Snyk connect/sync | `SnykIntegrationTest`                                 |
 | Accept / dismiss  | Task + vulnerability creation; dismissed no re-upsert |
@@ -332,5 +332,6 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.3    | 2026-07-24 | Must 1 Done — integration tables/models/enums + audit events + model tests     |
 | 0.2    | 2026-07-24 | Full Must/Should/Could; freeze Jira Cloud + Snyk API token; schema/UI/AC/risks |
 | 0.1    | 2026-07-24 | Skeleton след Phase 2.7 closeout — §7 Integration wave 2 (кандидат D)          |

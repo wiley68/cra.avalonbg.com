@@ -113,6 +113,15 @@ enum AuditEventType: string
     case VcsSyncFailed = 'vcs_sync_failed';
     case VcsSuggestionAccepted = 'vcs_suggestion_accepted';
     case VcsSuggestionDismissed = 'vcs_suggestion_dismissed';
+    case IntegrationConnected = 'integration_connected';
+    case IntegrationUpdated = 'integration_updated';
+    case IntegrationDisconnected = 'integration_disconnected';
+    case IntegrationLinked = 'integration_linked';
+    case IntegrationUnlinked = 'integration_unlinked';
+    case IntegrationSyncSucceeded = 'integration_sync_succeeded';
+    case IntegrationSyncFailed = 'integration_sync_failed';
+    case ImportSuggestionAccepted = 'import_suggestion_accepted';
+    case ImportSuggestionDismissed = 'import_suggestion_dismissed';
     case AiRequestCompleted = 'ai_request_completed';
     case AiDocumentAnalysed = 'ai_document_analysed';
     case AiDraftGenerated = 'ai_draft_generated';

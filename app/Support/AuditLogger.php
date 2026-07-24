@@ -56,6 +56,7 @@ class AuditLogger
         'two_factor_recovery_codes',
         'prompt',
         'api_key',
+        'credentials',
         'context',
         'messages',
     ];
