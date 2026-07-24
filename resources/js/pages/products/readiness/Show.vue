@@ -29,6 +29,7 @@ import { index as productsIndex } from '@/routes/products';
 import { show as readinessShow } from '@/routes/products/readiness';
 import { index as securityInstructionsIndex } from '@/routes/products/security-instructions';
 import { index as productSdlIndex } from '@/routes/products/sdl';
+import { index as technicalDocumentationIndex } from '@/routes/products/technical-documentation';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -37,7 +38,7 @@ type ReadinessSection = {
     key: string;
     status: 'pass' | 'warn' | 'fail' | 'na';
     summary: string;
-    metrics?: Record<string, number | string | null>;
+    metrics?: Record<string, number | string | boolean | null>;
 };
 
 type ReadinessGap = {
@@ -149,6 +150,8 @@ const resolveLink = (link: string | null): string | null => {
             return securityInstructionsIndex(id).url;
         case 'sdl':
             return productSdlIndex(id).url;
+        case 'technical-documentation':
+            return technicalDocumentationIndex(id).url;
         default:
             return null;
     }

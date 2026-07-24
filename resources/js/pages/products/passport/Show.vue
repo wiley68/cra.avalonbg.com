@@ -14,6 +14,7 @@ import {
 } from '@/routes/products/readiness';
 import { index as productsIndex } from '@/routes/products';
 import { show as passportShow } from '@/routes/products/passport';
+import { index as technicalDocumentationIndex } from '@/routes/products/technical-documentation';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 
@@ -56,7 +57,7 @@ type ReadinessSection = {
     key: string;
     status: 'pass' | 'warn' | 'fail' | 'na';
     summary: string;
-    metrics?: Record<string, number | string | null>;
+    metrics?: Record<string, number | string | boolean | null>;
 };
 
 type ReadinessReport = {
@@ -138,12 +139,10 @@ const techDocsSection = computed(
 );
 
 const techDocsOutlineKeys = [
-    'identification',
-    'versions',
-    'support',
-    'risks',
-    'sbom',
-    'evidence',
+    'published_package',
+    'sections_complete_flag',
+    'linked_usi',
+    'linked_sdl',
 ] as const;
 
 const techDocsOutline = computed(() => {
@@ -155,6 +154,10 @@ const techDocsOutline = computed(() => {
         done: Boolean(metrics[key]),
     }));
 });
+
+const techDocsHref = computed(
+    () => technicalDocumentationIndex(props.product.id).url,
+);
 
 const exportUrl = computed(() => readinessExport(props.product.id).url);
 const readinessUrl = computed(() => readinessShow(props.product.id).url);
@@ -447,6 +450,13 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                     </span>
                 </li>
             </ul>
+            <div>
+                <Button as-child variant="outline" size="sm">
+                    <Link :href="techDocsHref">
+                        {{ t('products.passport.tech_docs_open') }}
+                    </Link>
+                </Button>
+            </div>
         </section>
 
         <section class="space-y-3 rounded-lg border p-5">

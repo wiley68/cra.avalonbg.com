@@ -883,16 +883,15 @@
             "support_title": "Support periods",
             "people_title": "Responsible persons",
             "sections_title": "Passport coverage",
-            "tech_docs_title": "Technical documentation outline",
-            "tech_docs_intro": "Checklist of core documentation areas derived from product data. This is not a full document workspace.",
+            "tech_docs_title": "Technical documentation",
+            "tech_docs_intro": "Status of the §5.12 technical documentation workspace for this product — published package, section completeness, and linked USI / SDL references.",
+            "tech_docs_open": "Open technical documentation",
             "tech_docs": {
                 "outline": {
-                    "identification": "Product identification",
-                    "versions": "Version history",
-                    "support": "Support period statement",
-                    "risks": "Cybersecurity risk assessment",
-                    "sbom": "SBOM / component inventory",
-                    "evidence": "Supporting evidence records"
+                    "published_package": "Published documentation package",
+                    "sections_complete_flag": "Applicable sections complete",
+                    "linked_usi": "Linked published USI",
+                    "linked_sdl": "Linked SDL run reference"
                 }
             },
             "scope": "CRA applicability",
@@ -2290,9 +2289,12 @@
                     "none": "No approved or released versions yet."
                 },
                 "technical_documentation": {
-                    "complete": "Core documentation outline areas are covered by product data.",
-                    "partial": "Some documentation outline areas are still incomplete.",
-                    "missing": "Too few documentation outline areas are covered."
+                    "published": "A published technical documentation package is available.",
+                    "usi_unlinked": "Technical documentation is published but has no linked published USI.",
+                    "incomplete": "The latest published package has incomplete applicable sections.",
+                    "draft_or_review": "Technical documentation exists only as draft or under review.",
+                    "missing": "No published technical documentation package yet.",
+                    "not_required": "Technical documentation is not required for out-of-scope products."
                 },
                 "repository": {
                     "not_linked": "No GitHub repository is linked to this product.",
@@ -2341,7 +2343,10 @@
                 "tasks_overdue": "Complete overdue corrective tasks.",
                 "responsible_persons": "Assign a product owner or security contact.",
                 "release_awaiting": "Advance versions out of security review / release candidate.",
-                "technical_documentation": "Complete core documentation outline areas (identity, versions, support, risks, SBOM, evidence).",
+                "technical_documentation": "Publish a technical documentation package for this product.",
+                "technical_documentation_missing": "Publish a technical documentation package for this in-scope product.",
+                "technical_documentation_incomplete": "Complete all applicable sections on the published technical documentation package.",
+                "technical_documentation_usi_unlinked": "Link a published user security instruction to the technical documentation package.",
                 "no_repository_linked": "Link a GitHub repository on the product edit page.",
                 "ci_failing": "Fix failing CI on the linked repository default branch, then sync again.",
                 "reporting": "Review vulnerability reporting deadlines."

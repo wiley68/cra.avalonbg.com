@@ -16,6 +16,7 @@ use App\Enums\ScopeStatus;
 use App\Enums\SdlRunStatus;
 use App\Enums\SupportStatus;
 use App\Enums\TaskStatus;
+use App\Enums\TechnicalDocumentationStatus;
 use App\Enums\UserSecurityInstructionStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
 use App\Enums\VulnerabilityStatus;
@@ -32,6 +33,7 @@ use App\Models\ProductVulnerability;
 use App\Models\Sbom;
 use App\Models\SdlRun;
 use App\Models\Task;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\UserSecurityInstruction;
 use Illuminate\Support\Carbon;
 
@@ -39,6 +41,7 @@ class ProductReadinessService
 {
     public function __construct(
         private readonly ProductDeploymentService $deployments,
+        private readonly TechnicalDocumentationService $technicalDocumentation,
     ) {
     }
 
@@ -75,7 +78,7 @@ class ProductReadinessService
 
     /**
      * Readiness card color: incomplete when passport modules are incomplete, or when
-     * readiness-only sections (policies / security instructions / SDL) have gaps.
+     * readiness-only sections (policies / security instructions / SDL / tech-doc) have gaps.
      *
      * @param  'empty'|'complete'|'incomplete'  $passportAggregate
      * @return 'empty'|'complete'|'incomplete'
@@ -86,6 +89,7 @@ class ProductReadinessService
             $this->policiesSection($product),
             $this->securityInstructionsSection($product),
             $this->sdlSection($product),
+            $this->technicalDocumentationSection($product),
         ] as $section) {
             if (in_array($section['status'], ['fail', 'warn'], true)) {
                 return 'incomplete';
@@ -925,59 +929,111 @@ class ProductReadinessService
     }
 
     /**
-     * Thin technical documentation outline derived from existing module coverage.
+     * Technical documentation readiness based on published §5.12 packages.
      *
      * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
      */
     private function technicalDocumentationSection(Product $product): array
     {
-        $checks = [
-            'identification' => filled($product->name)
-                && $product->product_type !== null
-                && filled($product->manufacturer),
-            'risks' => ProductRisk::query()->where('product_id', $product->id)->exists(),
-            'sbom' => ProductComponent::query()->where('product_id', $product->id)->exists()
-                || Sbom::query()->where('product_id', $product->id)->exists(),
-            'support' => $product->supportPeriods()->exists()
-                || filled($product->support_period_notes)
-                || filled($product->end_of_support_policy),
-            'evidence' => Evidence::query()->where('product_id', $product->id)->exists(),
-            'versions' => $product->versions()->exists(),
+        $publishedCount = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->where('status', TechnicalDocumentationStatus::Published)
+            ->count();
+
+        $draftOrReviewCount = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->whereIn('status', [
+                TechnicalDocumentationStatus::Draft,
+                TechnicalDocumentationStatus::UnderReview,
+            ])
+            ->count();
+
+        $retiredCount = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->where('status', TechnicalDocumentationStatus::Retired)
+            ->count();
+
+        /** @var TechnicalDocumentationPackage|null $latestPublished */
+        $latestPublished = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->where('status', TechnicalDocumentationStatus::Published)
+            ->with('sections')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $sectionsTotal = $latestPublished?->sections->count() ?? 0;
+        $sectionsApplicable = $latestPublished?->sections
+            ->filter(fn($section) => $section->is_applicable)
+            ->count() ?? 0;
+        $incompleteKeys = $latestPublished !== null
+            ? $this->technicalDocumentation->incompleteSectionKeys($latestPublished)
+            : [];
+        $sectionsIncomplete = count($incompleteKeys);
+        $sectionsComplete = max(0, $sectionsApplicable - $sectionsIncomplete);
+        $linkedUsi = $latestPublished?->user_security_instruction_id !== null;
+        $linkedSdl = $latestPublished?->sdl_run_id !== null;
+
+        $metrics = [
+            'published' => $publishedCount,
+            'draft_or_review' => $draftOrReviewCount,
+            'retired' => $retiredCount,
+            'sections_total' => $sectionsTotal,
+            'sections_applicable' => $sectionsApplicable,
+            'sections_complete' => $sectionsComplete,
+            'sections_incomplete' => $sectionsIncomplete,
+            'published_package' => $publishedCount > 0,
+            'sections_complete_flag' => $publishedCount > 0 && $sectionsIncomplete === 0,
+            'linked_usi' => $linkedUsi,
+            'linked_sdl' => $linkedSdl,
         ];
 
-        $complete = count(array_filter($checks));
-        $total = count($checks);
-        $metrics = array_merge($checks, [
-            'outline_complete' => $complete,
-            'outline_total' => $total,
-        ]);
-
-        if ($complete === $total) {
+        if ($product->scope_status === ScopeStatus::OutOfScope) {
             return [
                 'key' => 'technical_documentation',
-                'status' => 'pass',
-                'summary' => 'complete',
+                'status' => 'na',
+                'summary' => 'not_required',
                 'metrics' => $metrics,
             ];
         }
 
-        if ($complete >= 3) {
+        if ($publishedCount === 0) {
+            return [
+                'key' => 'technical_documentation',
+                'status' => 'fail',
+                'summary' => $draftOrReviewCount > 0 ? 'draft_or_review' : 'missing',
+                'gap_key' => 'products.readiness.gaps.technical_documentation_missing',
+                'link' => 'technical-documentation',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($sectionsIncomplete > 0) {
+            return [
+                'key' => 'technical_documentation',
+                'status' => 'fail',
+                'summary' => 'incomplete',
+                'gap_key' => 'products.readiness.gaps.technical_documentation_incomplete',
+                'link' => 'technical-documentation',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if (!$linkedUsi) {
             return [
                 'key' => 'technical_documentation',
                 'status' => 'warn',
-                'summary' => 'partial',
-                'gap_key' => 'products.readiness.gaps.technical_documentation',
-                'link' => 'edit',
+                'summary' => 'usi_unlinked',
+                'gap_key' => 'products.readiness.gaps.technical_documentation_usi_unlinked',
+                'link' => 'technical-documentation',
                 'metrics' => $metrics,
             ];
         }
 
         return [
             'key' => 'technical_documentation',
-            'status' => 'fail',
-            'summary' => 'missing',
-            'gap_key' => 'products.readiness.gaps.technical_documentation',
-            'link' => 'edit',
+            'status' => 'pass',
+            'summary' => 'published',
             'metrics' => $metrics,
         ];
     }

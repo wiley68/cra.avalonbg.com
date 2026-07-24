@@ -608,11 +608,16 @@ class TechnicalDocumentationService
             ]);
     }
 
-    private function assertPublishableSections(TechnicalDocumentationPackage $package): void
+    /**
+     * Section keys that block publish when applicable content is empty.
+     *
+     * @return list<string>
+     */
+    public function incompleteSectionKeys(TechnicalDocumentationPackage $package): array
     {
         $package->loadMissing('sections');
 
-        $incomplete = $package->sections
+        return $package->sections
             ->filter(function (TechnicalDocumentationSection $section): bool {
                 if (!$section->is_applicable) {
                     return false;
@@ -627,12 +632,30 @@ class TechnicalDocumentationService
             ->map(fn(TechnicalDocumentationSection $section) => $section->section_key->value)
             ->values()
             ->all();
+    }
+
+    private function assertPublishableSections(TechnicalDocumentationPackage $package): void
+    {
+        $incomplete = $this->incompleteSectionKeys($package);
 
         if ($incomplete !== []) {
+            $labels = array_map(
+                function (string $key): string {
+                    $translated = Translations::get(
+                        'products.technical_documentation.sections.' . $key,
+                    );
+
+                    return $translated === 'products.technical_documentation.sections.' . $key
+                        ? $key
+                        : $translated;
+                },
+                $incomplete,
+            );
+
             throw ValidationException::withMessages([
                 'sections' => [
                     Translations::get('products.technical_documentation.publish_sections_incomplete', [
-                        'sections' => implode(', ', $incomplete),
+                        'sections' => implode(', ', $labels),
                     ]),
                 ],
             ]);

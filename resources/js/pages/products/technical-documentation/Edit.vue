@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
     Archive,
     ArrowLeft,
@@ -11,6 +11,7 @@ import {
     Send,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
@@ -165,6 +166,18 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const page = usePage();
+
+const showRequestErrors = (errors: Record<string, string>) => {
+    const message =
+        errors.sections ||
+        errors.status ||
+        Object.values(errors).find((value) => typeof value === 'string');
+
+    if (message) {
+        toast.error(String(message));
+    }
+};
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -199,6 +212,15 @@ const form = useForm({
         is_applicable: section.is_applicable,
         override_reason: section.override_reason ?? '',
     })),
+});
+
+const lifecycleError = computed(() => {
+    const errors: Record<string, string | undefined> = {
+        ...(page.props.errors as Record<string, string | undefined>),
+        ...(form.errors as Record<string, string | undefined>),
+    };
+
+    return errors['sections'] || errors['status'] || undefined;
 });
 
 const showSubmitDialog = ref(false);
@@ -406,7 +428,14 @@ const doRefreshGenerated = () => {
         return;
     }
 
-    router.post(refreshGenerated(routeArgs).url, {}, { preserveScroll: true });
+    router.post(
+        refreshGenerated(routeArgs).url,
+        {},
+        {
+            preserveScroll: true,
+            onError: showRequestErrors,
+        },
+    );
 };
 
 const openSubmitDialog = () => {
@@ -421,6 +450,7 @@ const doSubmitReview = () => {
         }))
         .post(submitReview(routeArgs).url, {
             preserveScroll: true,
+            onError: showRequestErrors,
             onSuccess: () => {
                 showSubmitDialog.value = false;
                 submitForm.reset();
@@ -429,12 +459,26 @@ const doSubmitReview = () => {
 };
 
 const doPublish = () => {
-    router.post(publishPackage(routeArgs).url, {}, { preserveScroll: true });
+    router.post(
+        publishPackage(routeArgs).url,
+        {},
+        {
+            preserveScroll: true,
+            onError: showRequestErrors,
+        },
+    );
 };
 
 const doRetire = () => {
     showRetireDialog.value = false;
-    router.post(retirePackage(routeArgs).url, {}, { preserveScroll: true });
+    router.post(
+        retirePackage(routeArgs).url,
+        {},
+        {
+            preserveScroll: true,
+            onError: showRequestErrors,
+        },
+    );
 };
 
 const submit = () => {
@@ -574,6 +618,13 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                 {{ t('products.technical_documentation.retire') }}
             </Button>
         </div>
+
+        <p
+            v-if="lifecycleError"
+            class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+        >
+            {{ lifecycleError }}
+        </p>
 
         <p
             v-if="readOnly"
@@ -1277,7 +1328,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     </template>
                 </div>
 
-                <InputError :message="form.errors.sections" />
+                <InputError :message="lifecycleError" />
             </div>
 
             <div v-if="!readOnly" class="flex justify-end">

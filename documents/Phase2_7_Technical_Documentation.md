@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.1  
+**Версия:** 1.2  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done; Should 7–10 Done  
+**Статус:** Active — Must 1–6 Done; Should 7–11 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -159,7 +159,7 @@ GET    /internal-api/products/{product}/technical-documentation
 8. ~~Delta UI (changed sections / stale evidence hints)~~ **Done** (2026-07-24)
 9. ~~PDF/Markdown export~~ **Done** (2026-07-24)
 10. ~~Link published USI + optional SDL run reference~~ **Done** (2026-07-24)
-11. Readiness gap upgrade (beyond thin outline)
+11. ~~Readiness gap upgrade (beyond thin outline)~~ **Done** (2026-07-24)
 12. Dedicated `technical_documentation.*` permissions + product nav card
 
 ### Could
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                            |
 | ------ | ---------- | ---------------------------------------------------------------------------------- |
+| 1.2    | 2026-07-24 | Should 11 Done — readiness/passport gap on published tech-doc package              |
 | 1.1    | 2026-07-24 | Should 10 Done — link published USI + optional SDL run + linked section summary    |
 | 1.0    | 2026-07-24 | Should 9 Done — PDF/Markdown export + audit + Edit export actions                  |
 | 0.9    | 2026-07-24 | Should 8 Done — delta UI (changed badges/diff) + product stale evidence hints      |
