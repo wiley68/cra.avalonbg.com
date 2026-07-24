@@ -2198,6 +2198,12 @@ class AuditLogger
                 ['field' => 'sync_run_id', 'value' => (string) $run->id],
                 ['field' => 'provider', 'value' => $link->integration->provider->value],
                 ['field' => 'issues_count', 'value' => (string) ($run->summary['issues_count'] ?? 0)],
+                ['field' => 'findings_count', 'value' => (string) ($run->summary['findings_count'] ?? 0)],
+                ['field' => 'evidence_id', 'value' => (string) ($run->summary['evidence_id'] ?? '')],
+                [
+                    'field' => 'evidence_checksum_sha256',
+                    'value' => (string) ($run->summary['evidence_checksum_sha256'] ?? ''),
+                ],
             ],
         );
     }

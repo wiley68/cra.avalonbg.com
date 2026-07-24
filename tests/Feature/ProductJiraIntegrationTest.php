@@ -2,6 +2,7 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceType;
 use App\Enums\ImportSuggestionKind;
 use App\Enums\ImportSuggestionStatus;
 use App\Enums\IntegrationAuthType;
@@ -14,6 +15,7 @@ use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
 use App\Enums\TaskStatus;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\ImportSuggestion;
 use App\Models\IntegrationSyncRun;
 use App\Models\Organization;
@@ -26,6 +28,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -158,6 +161,8 @@ test('owner can unlink jira project', function () {
 });
 
 test('owner can sync jira issues into pending task suggestions', function () {
+    Storage::fake('local');
+
     ['owner' => $owner, 'product' => $product, 'integration' => $integration] = makeJiraProductLinkFixture();
 
     $link = ProductIntegrationLink::query()->create([
@@ -194,6 +199,8 @@ test('owner can sync jira issues into pending task suggestions', function () {
 
     $suggestion = ImportSuggestion::query()->first();
     $run = IntegrationSyncRun::query()->first();
+    $evidence = Evidence::query()->first();
+    $summary = $link->fresh()->last_sync_summary;
 
     expect($run)->not->toBeNull()
         ->and($run->status)->toBe(IntegrationSyncRunStatus::Succeeded)
@@ -204,8 +211,17 @@ test('owner can sync jira issues into pending task suggestions', function () {
         ->and($suggestion->title)->toBe('CRA-1: Fix auth gap')
         ->and($suggestion->payload['html_url'] ?? null)->toBe('https://acme.atlassian.net/browse/CRA-1');
 
-    expect($link->fresh()->last_sync_summary['issues_count'] ?? null)->toBe(1)
-        ->and(AuditLog::query()->where('event_type', AuditEventType::IntegrationSyncSucceeded)->count())->toBe(1);
+    expect($evidence)->not->toBeNull()
+        ->and($evidence->type)->toBe(EvidenceType::IntegrationSnapshot)
+        ->and($evidence->source)->toBe('jira:CRA')
+        ->and($evidence->product_id)->toBe($product->id)
+        ->and($evidence->checksum_sha256)->not->toBeEmpty()
+        ->and($summary['issues_count'] ?? null)->toBe(1)
+        ->and($summary['evidence_id'] ?? null)->toBe($evidence->id)
+        ->and($summary['evidence_checksum_sha256'] ?? null)->toBe($evidence->checksum_sha256)
+        ->and($summary['issue_refs'][0]['key'] ?? null)->toBe('CRA-1')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::IntegrationSyncSucceeded)->count())->toBe(1)
+        ->and(AuditLog::query()->where('event_type', AuditEventType::EvidenceCreated)->count())->toBe(1);
 
     Http::assertSent(function ($request) {
         return $request->method() === 'POST'

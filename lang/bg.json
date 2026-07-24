@@ -950,7 +950,8 @@
                 "issues": "Issues",
                 "pending_tasks": "Чакащи предложения за задачи",
                 "sync_error": "Грешка при синхронизация",
-                "project_label": "Проект"
+                "project_label": "Проект",
+                "evidence": "Evidence snapshot"
             },
             "snyk": {
                 "org_id": "Snyk organization ID",
@@ -974,7 +975,8 @@
                 "last_synced": "Последна синхронизация",
                 "findings": "Findings",
                 "pending_vulnerabilities": "Чакащи предложения за уязвимости",
-                "sync_error": "Грешка при синхронизация"
+                "sync_error": "Грешка при синхронизация",
+                "evidence": "Evidence snapshot"
             },
             "suggestions": {
                 "title": "Предложения за импорт",

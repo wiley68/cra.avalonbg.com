@@ -2,6 +2,7 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceType;
 use App\Enums\ImportSuggestionKind;
 use App\Enums\ImportSuggestionStatus;
 use App\Enums\IntegrationAuthType;
@@ -15,6 +16,7 @@ use App\Enums\ScopeStatus;
 use App\Enums\VulnerabilityDiscoverySource;
 use App\Enums\VulnerabilityStatus;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\ImportSuggestion;
 use App\Models\IntegrationSyncRun;
 use App\Models\Organization;
@@ -27,6 +29,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -207,6 +210,8 @@ test('owner can link snyk project and audit is recorded', function () {
 });
 
 test('owner can sync snyk findings into pending vulnerability suggestions', function () {
+    Storage::fake('local');
+
     ['owner' => $owner, 'product' => $product, 'integration' => $integration] = makeSnykProductFixture();
 
     $link = ProductIntegrationLink::query()->create([
@@ -246,6 +251,8 @@ test('owner can sync snyk findings into pending vulnerability suggestions', func
 
     $suggestion = ImportSuggestion::query()->first();
     $run = IntegrationSyncRun::query()->first();
+    $evidence = Evidence::query()->first();
+    $summary = $link->fresh()->last_sync_summary;
 
     expect($run)->not->toBeNull()
         ->and($run->status)->toBe(IntegrationSyncRunStatus::Succeeded)
@@ -256,8 +263,16 @@ test('owner can sync snyk findings into pending vulnerability suggestions', func
         ->and($suggestion->payload['cve_id'] ?? null)->toBe('CVE-2026-9999')
         ->and($suggestion->payload['severity'] ?? null)->toBe('high');
 
-    expect($link->fresh()->last_sync_summary['findings_count'] ?? null)->toBe(1)
-        ->and(AuditLog::query()->where('event_type', AuditEventType::IntegrationSyncSucceeded)->count())->toBe(1);
+    expect($evidence)->not->toBeNull()
+        ->and($evidence->type)->toBe(EvidenceType::IntegrationSnapshot)
+        ->and($evidence->source)->toBe('snyk:org-1/proj-1')
+        ->and($evidence->product_id)->toBe($product->id)
+        ->and($summary['findings_count'] ?? null)->toBe(1)
+        ->and($summary['evidence_id'] ?? null)->toBe($evidence->id)
+        ->and($summary['evidence_checksum_sha256'] ?? null)->toBe($evidence->checksum_sha256)
+        ->and($summary['finding_refs'][0]['external_id'] ?? null)->toBe('issue-1')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::IntegrationSyncSucceeded)->count())->toBe(1)
+        ->and(AuditLog::query()->where('event_type', AuditEventType::EvidenceCreated)->count())->toBe(1);
 
     Http::assertSent(function ($request) {
         return $request->method() === 'GET'

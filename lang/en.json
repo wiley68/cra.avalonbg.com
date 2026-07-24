@@ -950,7 +950,8 @@
                 "issues": "Issues",
                 "pending_tasks": "Pending task suggestions",
                 "sync_error": "Sync error",
-                "project_label": "Project"
+                "project_label": "Project",
+                "evidence": "Evidence snapshot"
             },
             "snyk": {
                 "org_id": "Snyk organization ID",
@@ -974,7 +975,8 @@
                 "last_synced": "Last synced",
                 "findings": "Findings",
                 "pending_vulnerabilities": "Pending vulnerability suggestions",
-                "sync_error": "Sync error"
+                "sync_error": "Sync error",
+                "evidence": "Evidence snapshot"
             },
             "suggestions": {
                 "title": "Import suggestions",

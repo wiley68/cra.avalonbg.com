@@ -15,6 +15,7 @@ class ScannerSyncService
 {
     public function __construct(
         private readonly ImportSuggestionService $suggestions,
+        private readonly EvidenceService $evidence,
     ) {
     }
 
@@ -51,10 +52,24 @@ class ScannerSyncService
                 'org_id' => $orgId,
                 'project_id' => $projectId,
                 'findings_count' => count($findings),
+                'finding_refs' => $this->findingRefs($findings),
                 'synced_at' => now()->toIso8601String(),
                 'sync_run_id' => $run->id,
                 ...$suggestionStats,
             ];
+
+            $snapshot = $this->evidence->createIntegrationSnapshot(
+                product: $link->product,
+                snapshot: $summary,
+                title: 'Snyk sync — ' . ($link->external_label ?: $projectId) . ' — ' . now()->format('Y-m-d H:i'),
+                source: 'snyk:' . $orgId . '/' . $projectId,
+                uploader: $actor,
+                notes: 'Auto-created from integration sync run #' . $run->id,
+                filenamePrefix: 'snyk-sync',
+            );
+
+            $summary['evidence_id'] = $snapshot->id;
+            $summary['evidence_checksum_sha256'] = $snapshot->checksum_sha256;
 
             $link->update([
                 'last_synced_at' => now(),
@@ -102,5 +117,45 @@ class ScannerSyncService
 
             return $run->fresh();
         }
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $findings
+     * @return list<array{
+     *     external_id: string,
+     *     cve_id: string|null,
+     *     snyk_issue_key: string|null,
+     *     html_url: string|null,
+     *     severity: string|null
+     * }>
+     */
+    private function findingRefs(array $findings): array
+    {
+        $refs = [];
+
+        foreach (array_slice($findings, 0, 50) as $finding) {
+            $externalId = trim((string) ($finding['external_id'] ?? ''));
+            if ($externalId === '') {
+                continue;
+            }
+
+            $refs[] = [
+                'external_id' => $externalId,
+                'cve_id' => isset($finding['cve_id']) && is_string($finding['cve_id'])
+                    ? $finding['cve_id']
+                    : null,
+                'snyk_issue_key' => isset($finding['snyk_issue_key']) && is_string($finding['snyk_issue_key'])
+                    ? $finding['snyk_issue_key']
+                    : null,
+                'html_url' => isset($finding['html_url']) && is_string($finding['html_url'])
+                    ? $finding['html_url']
+                    : null,
+                'severity' => isset($finding['severity']) && is_string($finding['severity'])
+                    ? $finding['severity']
+                    : null,
+            ];
+        }
+
+        return $refs;
     }
 }

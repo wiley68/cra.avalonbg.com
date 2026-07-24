@@ -186,6 +186,7 @@ class EvidenceService
         string $source,
         ?User $uploader = null,
         ?string $notes = null,
+        string $filenamePrefix = 'integration-sync',
     ): Evidence {
         $json = json_encode(
             $snapshot,
@@ -196,7 +197,8 @@ class EvidenceService
             throw new \RuntimeException('Failed to encode integration snapshot JSON.');
         }
 
-        $filename = 'vcs-sync-' . now()->format('Ymd-His') . '.json';
+        $safePrefix = preg_replace('/[^A-Za-z0-9._-]+/', '-', $filenamePrefix) ?: 'integration-sync';
+        $filename = $safePrefix . '-' . now()->format('Ymd-His') . '.json';
         $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
         Storage::disk('local')->put($storagePath, $json);
 

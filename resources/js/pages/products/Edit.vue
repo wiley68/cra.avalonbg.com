@@ -188,6 +188,8 @@ type JiraLinkPayload = {
         issues_count?: number;
         pending_task_suggestions?: number;
         task_suggestions_upserted?: number;
+        evidence_id?: number;
+        evidence_checksum_sha256?: string | null;
         error?: string;
     } | null;
 };
@@ -209,6 +211,8 @@ type SnykLinkPayload = {
         findings_count?: number;
         pending_vulnerability_suggestions?: number;
         vulnerability_suggestions_upserted?: number;
+        evidence_id?: number;
+        evidence_checksum_sha256?: string | null;
         error?: string;
     } | null;
 };
@@ -1608,6 +1612,33 @@ const textareaClass =
                                             .pending_task_suggestions ?? 0
                                     }}
                                 </p>
+                                <p
+                                    v-if="
+                                        jira_link.last_sync_summary.evidence_id
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.integrations.jira.evidence',
+                                        )
+                                    }}: #{{
+                                        jira_link.last_sync_summary.evidence_id
+                                    }}
+                                    <span
+                                        v-if="
+                                            jira_link.last_sync_summary
+                                                .evidence_checksum_sha256
+                                        "
+                                        class="font-mono text-xs"
+                                    >
+                                        ({{
+                                            jira_link.last_sync_summary.evidence_checksum_sha256.slice(
+                                                0,
+                                                12,
+                                            )
+                                        }}…)
+                                    </span>
+                                </p>
                             </template>
                         </div>
                     </div>
@@ -1877,6 +1908,33 @@ const textareaClass =
                                             .pending_vulnerability_suggestions ??
                                         0
                                     }}
+                                </p>
+                                <p
+                                    v-if="
+                                        snyk_link.last_sync_summary.evidence_id
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.integrations.snyk.evidence',
+                                        )
+                                    }}: #{{
+                                        snyk_link.last_sync_summary.evidence_id
+                                    }}
+                                    <span
+                                        v-if="
+                                            snyk_link.last_sync_summary
+                                                .evidence_checksum_sha256
+                                        "
+                                        class="font-mono text-xs"
+                                    >
+                                        ({{
+                                            snyk_link.last_sync_summary.evidence_checksum_sha256.slice(
+                                                0,
+                                                12,
+                                            )
+                                        }}…)
+                                    </span>
                                 </p>
                             </template>
                         </div>

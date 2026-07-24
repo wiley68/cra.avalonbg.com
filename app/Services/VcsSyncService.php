@@ -71,6 +71,7 @@ class VcsSyncService
                 source: $repository->connection->provider->value . ':' . $fullName,
                 uploader: $actor,
                 notes: 'Auto-created from VCS sync run #' . $run->id,
+                filenamePrefix: 'vcs-sync',
             );
 
             $summary['evidence_id'] = $snapshot->id;

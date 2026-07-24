@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–4 Done; Must 5–6 open  
+**Статус:** Active — Must 1–5 Done; Must 6 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -235,7 +235,7 @@ POST   /api/webhooks/snyk/{integration}
 2. ~~Settings UI: connect / verify / disconnect **Jira Cloud** (API token) + audit~~ **Done** (2026-07-24)
 3. ~~Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task~~ **Done** (2026-07-24)
 4. ~~Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability~~ **Done** (2026-07-24)
-5. Evidence immutable ref / optional snapshot on successful sync; AuditLogger coverage
+5. ~~Evidence immutable ref / optional snapshot on successful sync; AuditLogger coverage~~ **Done** (2026-07-24)
 6. i18n EN/BG + feature tests (`Http::fake()`; viewer cannot manage connectors / accept)
 
 ### Should
@@ -320,9 +320,10 @@ Reuse:
 | Models            | `IntegrationWave2ModelsTest` — **Done**                          |
 | Jira connect/sync | `JiraIntegrationSettingsTest` — connect/disconnect **Done**      |
 | Product Jira link | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done** |
-| Snyk connect/sync | `SnykIntegrationTest`                                            |
-| Accept / dismiss  | Task creation **Done** (Jira); vulnerability creation (Must 4)   |
-| RBAC              | Viewer forbidden manage/accept                                   |
+| Snyk connect/sync | `SnykIntegrationTest` — connect/link/sync/accept **Done**        |
+| Evidence snapshot | Jira/Snyk sync → `integration_snapshot` + checksum **Done**      |
+| Accept / dismiss  | Task + vulnerability creation **Done**                           |
+| RBAC              | Viewer forbidden manage/accept — covered in feature tests        |
 | Schedule          | `integrations:sync-scheduled` command test                       |
 | Azure DevOps      | Provider adapter test (Should 11)                                |
 | Readiness         | Pending suggestions gap (Should 10)                              |
@@ -333,6 +334,8 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.7    | 2026-07-24 | Must 5 Done — evidence snapshot on Jira/Snyk sync + audit evidence refs        |
+| 0.6    | 2026-07-24 | Must 4 Done — Snyk Settings + Product link/sync → vuln suggestions → Accept    |
 | 0.5    | 2026-07-24 | Must 3 Done — Product↔Jira link, sync→task suggestions, Accept/Dismiss→Task    |
 | 0.4    | 2026-07-24 | Must 2 Done — Jira Cloud Settings connect/verify/disconnect + audit            |
 | 0.3    | 2026-07-24 | Must 1 Done — integration tables/models/enums + audit events + model tests     |
