@@ -23,6 +23,8 @@ test('roles and permissions are seeded from config', function () {
         'incidents.manage',
         'sdl.view',
         'sdl.manage',
+        'technical_documentation.view',
+        'technical_documentation.manage',
     );
 
     $platformAdmin = Role::query()

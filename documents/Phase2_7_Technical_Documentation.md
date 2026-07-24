@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done; Should 7–11 Done  
+**Статус:** Active — Must 1–6 Done; Should 7–12 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -160,7 +160,7 @@ GET    /internal-api/products/{product}/technical-documentation
 9. ~~PDF/Markdown export~~ **Done** (2026-07-24)
 10. ~~Link published USI + optional SDL run reference~~ **Done** (2026-07-24)
 11. ~~Readiness gap upgrade (beyond thin outline)~~ **Done** (2026-07-24)
-12. Dedicated `technical_documentation.*` permissions + product nav card
+12. ~~Dedicated `technical_documentation.*` permissions + product nav card~~ **Done** (2026-07-24)
 
 ### Could
 
@@ -229,17 +229,18 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                                            |
-| ------ | ---------- | ---------------------------------------------------------------------------------- |
-| 1.2    | 2026-07-24 | Should 11 Done — readiness/passport gap on published tech-doc package              |
-| 1.1    | 2026-07-24 | Should 10 Done — link published USI + optional SDL run + linked section summary    |
-| 1.0    | 2026-07-24 | Should 9 Done — PDF/Markdown export + audit + Edit export actions                  |
-| 0.9    | 2026-07-24 | Should 8 Done — delta UI (changed badges/diff) + product stale evidence hints      |
-| 0.8    | 2026-07-24 | Should 7 Done — version pin inherit from previous published + changed_since_parent |
-| 0.7    | 2026-07-23 | Must 6 Done — EN/BG polish, generator locale labels, viewer/locked tests           |
-| 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                    |
-| 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)         |
-| 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders)   |
-| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                     |
-| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                       |
-| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C)      |
+| Версия | Дата       | Промяна                                                                                  |
+| ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 1.3    | 2026-07-24 | Should 12 Done — dedicated tech-doc permissions + nav `can_view_technical_documentation` |
+| 1.2    | 2026-07-24 | Should 11 Done — readiness/passport gap on published tech-doc package                    |
+| 1.1    | 2026-07-24 | Should 10 Done — link published USI + optional SDL run + linked section summary          |
+| 1.0    | 2026-07-24 | Should 9 Done — PDF/Markdown export + audit + Edit export actions                        |
+| 0.9    | 2026-07-24 | Should 8 Done — delta UI (changed badges/diff) + product stale evidence hints            |
+| 0.8    | 2026-07-24 | Should 7 Done — version pin inherit from previous published + changed_since_parent       |
+| 0.7    | 2026-07-23 | Must 6 Done — EN/BG polish, generator locale labels, viewer/locked tests                 |
+| 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                          |
+| 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)               |
+| 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders)         |
+| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                           |
+| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                             |
+| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C)            |

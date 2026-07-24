@@ -90,6 +90,7 @@ export type ProductModuleDefinition = {
         | 'can_view_vulnerabilities'
         | 'can_view_incidents'
         | 'can_view_sdl'
+        | 'can_view_technical_documentation'
         | 'can_view_evidence'
         | 'can_view_tasks';
 };
@@ -238,7 +239,7 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.technical_documentation.description',
         icon: FileText,
         href: (productId) => technicalDocumentationIndex(productId).url,
-        canViewFlag: 'can_view_products',
+        canViewFlag: 'can_view_technical_documentation',
     },
 ];
 

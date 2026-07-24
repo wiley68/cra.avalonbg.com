@@ -27,6 +27,8 @@ export type User = {
     can_manage_incidents?: boolean;
     can_view_sdl?: boolean;
     can_manage_sdl?: boolean;
+    can_view_technical_documentation?: boolean;
+    can_manage_technical_documentation?: boolean;
     can_view_evidence?: boolean;
     can_manage_evidence?: boolean;
     can_view_tasks?: boolean;

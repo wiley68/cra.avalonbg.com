@@ -97,6 +97,12 @@ class HandleInertiaRequests extends Middleware
         $canManageSdl = $user !== null && $organization !== null
             ? $user->canManageSdl($organization)
             : false;
+        $canViewTechnicalDocumentation = $user !== null && $organization !== null
+            ? $user->canViewTechnicalDocumentation($organization)
+            : false;
+        $canManageTechnicalDocumentation = $user !== null && $organization !== null
+            ? $user->canManageTechnicalDocumentation($organization)
+            : false;
         $canViewEvidence = $user !== null && $organization !== null
             ? $user->canViewEvidence($organization)
             : false;
@@ -158,6 +164,8 @@ class HandleInertiaRequests extends Middleware
                     'can_manage_incidents' => $canManageIncidents,
                     'can_view_sdl' => $canViewSdl,
                     'can_manage_sdl' => $canManageSdl,
+                    'can_view_technical_documentation' => $canViewTechnicalDocumentation,
+                    'can_manage_technical_documentation' => $canManageTechnicalDocumentation,
                     'can_view_evidence' => $canViewEvidence,
                     'can_manage_evidence' => $canManageEvidence,
                     'can_view_tasks' => $canViewTasks,

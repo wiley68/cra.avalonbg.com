@@ -39,7 +39,7 @@ class TechnicalDocumentationController extends Controller
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
             'versions' => $this->versionOptions($product),
-            'canManage' => request()->user()->canManageProducts($organization),
+            'canManage' => request()->user()->canManageTechnicalDocumentation($organization),
         ]);
     }
 
@@ -107,7 +107,7 @@ class TechnicalDocumentationController extends Controller
             'package' => $this->packages->detailPayload($package),
             'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
-            'canManage' => request()->user()->canManageProducts($organization),
+            'canManage' => request()->user()->canManageTechnicalDocumentation($organization),
             'memberOptions' => $this->memberOptions($organization),
             'reviewTask' => $this->packages->openReviewTaskPayload($package),
             'evidenceFreshness' => $this->packages->evidenceFreshnessSummary($product),

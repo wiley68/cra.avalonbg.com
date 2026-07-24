@@ -30,6 +30,8 @@ enum PermissionSlug: string
     case IncidentsManage = 'incidents.manage';
     case SdlView = 'sdl.view';
     case SdlManage = 'sdl.manage';
+    case TechnicalDocumentationView = 'technical_documentation.view';
+    case TechnicalDocumentationManage = 'technical_documentation.manage';
     case EvidenceView = 'evidence.view';
     case EvidenceManage = 'evidence.manage';
     case TasksView = 'tasks.view';
