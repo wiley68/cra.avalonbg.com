@@ -46,6 +46,8 @@ class OpenAiProvider implements AiProvider
             $system .= "\n\n" . AiSdlStageNotesDraftPrompt::systemAddon();
         } elseif ($mode === 'vulnerability_triage') {
             $system .= "\n\n" . AiVulnerabilityTriagePrompt::systemAddon();
+        } elseif ($mode === 'imported_finding_triage') {
+            $system .= "\n\n" . AiImportedFindingTriagePrompt::systemAddon();
         }
 
         $payloadMessages = [
@@ -73,7 +75,7 @@ class OpenAiProvider implements AiProvider
             'temperature' => 0.2,
         ];
 
-        if (in_array($mode, ['document_analyse', 'draft_generate', 'usi_section_draft', 'tech_doc_section_draft', 'incident_summary', 'sdl_stage_notes', 'vulnerability_triage'], true)) {
+        if (in_array($mode, ['document_analyse', 'draft_generate', 'usi_section_draft', 'tech_doc_section_draft', 'incident_summary', 'sdl_stage_notes', 'vulnerability_triage', 'imported_finding_triage'], true)) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
 

@@ -1926,6 +1926,37 @@ class AuditLogger
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $meta
+     */
+    public static function logAiImportedFindingTriageSuggested(
+        Product $product,
+        ImportSuggestion|VcsImportSuggestion $suggestion,
+        User $actor,
+        array $meta,
+    ): void {
+        $source = $suggestion instanceof ImportSuggestion ? 'import' : 'vcs';
+
+        self::persist(
+            type: AuditEventType::AiImportedFindingTriageSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: [
+                ['field' => 'suggestion_id', 'value' => (string) $suggestion->id],
+                ['field' => 'suggestion_source', 'value' => $source],
+                ['field' => 'external_id', 'value' => (string) $suggestion->external_id],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+                ['field' => 'suggested_severity', 'value' => (string) ($meta['suggested_severity'] ?? '')],
+            ],
+        );
+    }
+
     public static function logReadinessReportExported(Product $product, User $actor): void
     {
         self::persist(

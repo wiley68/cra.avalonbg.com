@@ -197,6 +197,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/vcs-suggestions/{suggestion}/dismiss',
             [ProductVcsImportSuggestionController::class, 'dismiss'],
         )->name('products.vcs-suggestions.dismiss');
+        Route::post(
+            'products/{product}/vcs-suggestions/{suggestion}/ai-triage',
+            [ProductVcsImportSuggestionController::class, 'suggestAiTriage'],
+        )->name('products.vcs-suggestions.ai-triage');
         Route::put(
             'products/{product}/integrations/{provider}',
             [ProductIntegrationController::class, 'update'],
@@ -221,6 +225,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/import-suggestions/{suggestion}/dismiss',
             [ProductImportSuggestionController::class, 'dismiss'],
         )->name('products.import-suggestions.dismiss');
+        Route::post(
+            'products/{product}/import-suggestions/{suggestion}/ai-triage',
+            [ProductImportSuggestionController::class, 'suggestAiTriage'],
+        )->name('products.import-suggestions.ai-triage');
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
             ->name('products.scope-assessment.preview');
         Route::get('products/{product}/scope-assessments/latest', [ProductScopeAssessmentController::class, 'show'])

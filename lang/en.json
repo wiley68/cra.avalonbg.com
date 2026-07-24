@@ -1065,7 +1065,14 @@
                 "accept": "Accept",
                 "dismiss": "Dismiss",
                 "accepted": "Suggestion accepted.",
-                "dismissed": "Suggestion dismissed."
+                "dismissed": "Suggestion dismissed.",
+                "ai_triage_suggest": "AI triage summary",
+                "ai_triage_loading": "Generating…",
+                "ai_triage_discard": "Discard summary",
+                "ai_triage_disclaimer": "Draft only; human review required before Accept. Nothing is auto-accepted.",
+                "ai_triage_error": "Could not generate an AI triage summary.",
+                "ai_triage_empty": "No triage summary.",
+                "ai_triage_suggested_severity": "Suggested severity"
             }
         },
         "repository": {
@@ -3637,6 +3644,7 @@
             "ai_incident_summary_draft_suggested": "AI incident summary draft suggested",
             "ai_sdl_stage_notes_draft_suggested": "AI SDL stage notes draft suggested",
             "ai_vulnerability_triage_suggested": "AI vulnerability triage suggested",
+            "ai_imported_finding_triage_suggested": "AI triage summary suggested for imported finding",
             "user_security_instruction_created": "User security instructions created",
             "user_security_instruction_updated": "User security instructions updated",
             "user_security_instruction_deleted": "User security instructions deleted",

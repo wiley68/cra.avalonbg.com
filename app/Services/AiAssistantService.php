@@ -16,6 +16,7 @@ use App\Enums\UserSecurityInstructionSectionKey;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\PatchCampaign;
+use App\Models\ImportSuggestion;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
@@ -24,10 +25,13 @@ use App\Models\SdlRun;
 use App\Models\TechnicalDocumentationPackage;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
+use App\Models\VcsImportSuggestion;
 use App\Services\Ai\AiDocumentAnalysePrompt;
 use App\Services\Ai\AiDocumentTextExtractor;
 use App\Services\Ai\AiDraftParser;
 use App\Services\Ai\AiDraftPrompt;
+use App\Services\Ai\AiImportedFindingTriageParser;
+use App\Services\Ai\AiImportedFindingTriagePrompt;
 use App\Services\Ai\AiIncidentSummaryDraftParser;
 use App\Services\Ai\AiIncidentSummaryDraftPrompt;
 use App\Services\Ai\AiSdlStageNotesDraftParser;
@@ -712,6 +716,92 @@ class AiAssistantService
             'model' => $completion['model'],
             'draft_parsed' => true,
             'locale' => $resolvedLocale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
+    }
+
+    /**
+     * AI triage summary for a pending imported vulnerability finding.
+     * Never accepts/dismisses the suggestion or creates a ProductVulnerability.
+     *
+     * @return array{
+     *     draft: array{
+     *         summary_markdown: string,
+     *         suggested_severity: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestImportedFindingTriageSummary(
+        Product $product,
+        ImportSuggestion|VcsImportSuggestion $suggestion,
+        User $user,
+        ?string $note = null,
+        ?string $locale = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($suggestion->product_id !== $product->id) {
+            abort(404);
+        }
+
+        AiImportedFindingTriagePrompt::assertPendingVulnerability($suggestion);
+
+        $resolvedLocale = $locale
+            ?? $product->organization?->locale
+            ?? app()->getLocale()
+            ?? 'en';
+
+        if (!in_array($resolvedLocale, ['en', 'bg'], true)) {
+            $resolvedLocale = 'en';
+        }
+
+        $context = $this->contextBuilder->forProduct($product);
+        $findingContext = AiImportedFindingTriagePrompt::findingContext($suggestion);
+        $prompt = AiImportedFindingTriagePrompt::userPrompt(
+            $resolvedLocale,
+            $context,
+            $findingContext,
+            $note,
+        );
+
+        $payload = is_array($suggestion->payload) ? $suggestion->payload : [];
+        $title = $suggestion instanceof ImportSuggestion
+            ? ($suggestion->title !== '' ? $suggestion->title : (string) ($payload['title'] ?? $suggestion->external_id))
+            : (string) ($payload['title'] ?? $suggestion->external_id);
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'imported_finding_triage',
+            'locale' => $resolvedLocale,
+            'suggestion_id' => $suggestion->id,
+            'suggestion_title' => $title,
+            'suggestion_source' => $suggestion instanceof ImportSuggestion ? 'import' : 'vcs',
+        ]);
+
+        $draft = AiImportedFindingTriageParser::parse($completion['content']);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiImportedFindingTriageSuggested($product, $suggestion, $user, [
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $resolvedLocale,
+            'suggested_severity' => $draft['suggested_severity'],
         ]);
 
         return [

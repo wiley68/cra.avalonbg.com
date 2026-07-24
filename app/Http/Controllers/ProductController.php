@@ -10,6 +10,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Services\AiAssistantService;
 use App\Services\ClassificationAssessmentService;
 use App\Services\ImportSuggestionService;
 use App\Services\ProductIntegrationLinkService;
@@ -33,6 +34,7 @@ class ProductController extends Controller
         private readonly VcsImportSuggestionService $vcsSuggestions,
         private readonly ProductIntegrationLinkService $integrationLinks,
         private readonly ImportSuggestionService $importSuggestions,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -158,6 +160,7 @@ class ProductController extends Controller
                 $this->integrationLinks->sarifLinkForProduct($product),
             ),
             'import_suggestions' => $this->importSuggestions->pendingPayloadForProduct($product->id),
+            'aiEnabled' => $this->assistant->isEnabled(),
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),
             ),

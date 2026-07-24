@@ -5,15 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\ImportSuggestion;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Services\AiAssistantService;
 use App\Services\ImportSuggestionService;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductImportSuggestionController extends Controller
 {
     public function __construct(
         private readonly ImportSuggestionService $suggestions,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -49,6 +53,38 @@ class ProductImportSuggestionController extends Controller
         ]);
 
         return back();
+    }
+
+    public function suggestAiTriage(
+        Request $request,
+        Product $product,
+        ImportSuggestion $suggestion,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertSuggestionBelongsToProduct($product, $suggestion);
+        $this->authorize('update', [$product, $organization]);
+
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $result = $this->assistant->suggestImportedFindingTriageSummary(
+            $product,
+            $suggestion,
+            $request->user(),
+            $validated['note'] ?? null,
+            $organization->resolvedLocale(),
+        );
+
+        return response()->json([
+            'summary_markdown' => $result['draft']['summary_markdown'],
+            'suggested_severity' => $result['draft']['suggested_severity'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
+        ]);
     }
 
     private function currentOrganization(): Organization

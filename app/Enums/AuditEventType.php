@@ -130,6 +130,7 @@ enum AuditEventType: string
     case AiIncidentSummaryDraftSuggested = 'ai_incident_summary_draft_suggested';
     case AiSdlStageNotesDraftSuggested = 'ai_sdl_stage_notes_draft_suggested';
     case AiVulnerabilityTriageSuggested = 'ai_vulnerability_triage_suggested';
+    case AiImportedFindingTriageSuggested = 'ai_imported_finding_triage_suggested';
 
     public function label(): string
     {

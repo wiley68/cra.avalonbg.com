@@ -19,6 +19,7 @@ import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
+import ImportedFindingAiTriage from '@/components/products/ImportedFindingAiTriage.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
@@ -296,6 +297,7 @@ const props = defineProps<{
     sarif_integration?: SnykIntegrationOption | null;
     sarif_link?: SnykLinkPayload | null;
     import_suggestions?: ImportSuggestionPayload[];
+    aiEnabled?: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -1641,6 +1643,15 @@ const textareaClass =
                                     }}
                                 </Button>
                             </div>
+                            <ImportedFindingAiTriage
+                                v-if="
+                                    aiEnabled &&
+                                    suggestion.kind === 'vulnerability'
+                                "
+                                :product-id="product.id"
+                                :suggestion-id="suggestion.id"
+                                source="vcs"
+                            />
                         </li>
                     </ul>
                 </div>
@@ -2663,6 +2674,12 @@ const textareaClass =
                                     }}
                                 </Button>
                             </div>
+                            <ImportedFindingAiTriage
+                                v-if="aiEnabled"
+                                :product-id="product.id"
+                                :suggestion-id="suggestion.id"
+                                source="import"
+                            />
                         </li>
                     </ul>
                 </div>
@@ -2946,6 +2963,12 @@ const textareaClass =
                                     }}
                                 </Button>
                             </div>
+                            <ImportedFindingAiTriage
+                                v-if="aiEnabled"
+                                :product-id="product.id"
+                                :suggestion-id="suggestion.id"
+                                source="import"
+                            />
                         </li>
                     </ul>
                 </div>

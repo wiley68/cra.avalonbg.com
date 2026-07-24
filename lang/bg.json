@@ -1065,7 +1065,14 @@
                 "accept": "Приеми",
                 "dismiss": "Отхвърли",
                 "accepted": "Предложението е прието.",
-                "dismissed": "Предложението е отхвърлено."
+                "dismissed": "Предложението е отхвърлено.",
+                "ai_triage_suggest": "AI triage summary",
+                "ai_triage_loading": "Генериране…",
+                "ai_triage_discard": "Отхвърли summary",
+                "ai_triage_disclaimer": "Само чернова; нужен е human review преди Accept. Нищо не се приема автоматично.",
+                "ai_triage_error": "Неуспешно генериране на AI triage summary.",
+                "ai_triage_empty": "Няма triage summary.",
+                "ai_triage_suggested_severity": "Предложена тежест"
             }
         },
         "repository": {
@@ -3635,6 +3642,7 @@
             "ai_incident_summary_draft_suggested": "Предложена AI чернова за summary на инцидент",
             "ai_sdl_stage_notes_draft_suggested": "Предложена AI чернова за бележки на SDL етап",
             "ai_vulnerability_triage_suggested": "Предложен AI triage на уязвимост",
+            "ai_imported_finding_triage_suggested": "Предложен AI triage summary за импортиран finding",
             "user_security_instruction_created": "Инструкции за сигурност създадени",
             "user_security_instruction_updated": "Инструкции за сигурност обновени",
             "user_security_instruction_deleted": "Инструкции за сигурност изтрити",

@@ -168,6 +168,27 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'imported_finding_triage') {
+            $locale = (string) ($options['locale'] ?? 'en');
+            $title = (string) ($options['suggestion_title'] ?? 'Imported finding');
+            $summary = $locale === 'bg'
+                ? "## {$title}\n\nТова е stub triage summary за импортиран finding.\n\n- Прегледайте преди Accept или Dismiss\n- Нищо не се приема автоматично\n- Проверете CVE, package и matched SBOM компоненти"
+                : "## {$title}\n\nThis is a stub triage summary for an imported finding.\n\n- Review before Accept or Dismiss\n- Nothing is auto-accepted\n- Verify CVE, package, and matched SBOM components";
+
+            $payload = [
+                'summary_markdown' => $summary,
+                'suggested_severity' => 'high',
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; human review required before Accept. Nothing is auto-accepted.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         if (($options['mode'] ?? null) === 'sdl_stage_notes') {
             $locale = (string) ($options['locale'] ?? 'en');
             $title = (string) ($options['sdl_run_title'] ?? 'SDL run');

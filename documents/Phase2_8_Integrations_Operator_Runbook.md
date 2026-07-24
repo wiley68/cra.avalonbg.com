@@ -85,6 +85,10 @@ Import създава pending vulnerability suggestions (същият Accept/Dis
 
 Опционално поле `external_ticket_url` на **vulnerability** и **incident** (Create/Edit). Ръчна връзка към външен helpdesk (Zendesk, Jira SM, …) — **без** API sync и **без** промяна на deployments. На Edit страницата има „Open support ticket“ линк, когато URL е попълнен.
 
+### AI triage for imported findings (Could 16)
+
+На Product Edit (Snyk / SARIF / VCS vulnerability suggestions) бутон **AI triage summary** генерира чернова (summary + suggested severity) за human review. **Не** Accept-ва suggestion и **не** създава `ProductVulnerability`. Accept остава ръчен клик след преглед.
+
 ---
 
 ## 3. Rate limits & soft-fail

@@ -67,6 +67,8 @@ class AnthropicAiProvider implements AiProvider
             $system .= "\n\n" . AiSdlStageNotesDraftPrompt::systemAddon();
         } elseif ($mode === 'vulnerability_triage') {
             $system .= "\n\n" . AiVulnerabilityTriagePrompt::systemAddon();
+        } elseif ($mode === 'imported_finding_triage') {
+            $system .= "\n\n" . AiImportedFindingTriagePrompt::systemAddon();
         }
 
         try {

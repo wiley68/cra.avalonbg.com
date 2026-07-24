@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.16  
+**Версия:** 0.18  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should Done; Could 13–15 Done; Could 16–18 open
+**Статус:** Active — Must Done; Should Done; Could 13–16 Done; Could 17–18 open
 
 **Родителски документи:**
 
@@ -253,7 +253,7 @@ POST   /api/webhooks/snyk/{integration}
 13. ~~Renovate / deeper Dependabot campaign links (beyond 2.1 alert suggestions)~~ **Done** (2026-07-24)
 14. ~~Trivy / SARIF (или SonarQube) scanner adapter via uploaded/CI artifact **или** API~~ **Done** (2026-07-24) — SARIF upload (Trivy / SonarQube SARIF export); no Sonar API yet
 15. ~~Customer support system light link (external ticket URL on incident/vuln — ≠ deployments rewrite)~~ **Done** (2026-07-24)
-16. AI triage summary for imported findings (human review; no auto-accept)
+16. ~~AI triage summary for imported findings (human review; no auto-accept)~~ **Done** (2026-07-24)
 17. Org-level integrations health index (DataTable: provider, status, last sync, errors)
 18. Auditor export: sync health / last-error summary (Markdown/PDF)
 
@@ -333,6 +333,7 @@ Reuse:
 | Dependabot+/Renovate | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done**       |
 | SARIF / Trivy        | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                        |
 | Support ticket link  | `ProductVulnerabilityRegisterTest` + `ProductIncidentCrudTest` — external_ticket_url **Done** |
+| AI finding triage    | `ImportSuggestionAiTriageTest` — stub draft + no auto-accept **Done**                         |
 
 ---
 
@@ -340,6 +341,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                              |
 | ------ | ---------- | ------------------------------------------------------------------------------------ |
+| 0.18   | 2026-07-24 | Could 16 Done — AI triage summary for pending imported findings (no auto-accept)     |
 | 0.17   | 2026-07-24 | Could 15 Done — external_ticket_url on vulnerability + incident (support light link) |
 | 0.16   | 2026-07-24 | Could 14 Done — SARIF/Trivy artifact upload → vulnerability suggestions              |
 | 0.15   | 2026-07-24 | Could 13 Done — Dependabot/Renovate PR links + remediation_pr_url + campaign CTA     |
