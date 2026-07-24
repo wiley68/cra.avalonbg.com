@@ -151,6 +151,7 @@ class SnykApiProvider implements ScannerProvider
                 'severity' => $severity,
                 'package_name' => $package['name'],
                 'package_ecosystem' => $package['ecosystem'],
+                'package_purl' => $package['purl'],
                 'html_url' => $htmlUrl,
                 'snyk_issue_key' => $issueKey,
                 'created_at' => $createdAt,
@@ -226,19 +227,34 @@ class SnykApiProvider implements ScannerProvider
 
     /**
      * @param  array<string, mixed>  $attributes
-     * @return array{name: string|null, ecosystem: string|null}
+     * @return array{name: string|null, ecosystem: string|null, purl: string|null}
      */
     private function packageFromAttributes(array $attributes): array
     {
         $coordinates = $attributes['coordinates'] ?? null;
         if (is_array($coordinates) && isset($coordinates[0]) && is_array($coordinates[0])) {
-            $repr = $coordinates[0]['representations'] ?? null;
+            $coord = $coordinates[0];
+            $purl = isset($coord['purl']) && is_string($coord['purl']) && $coord['purl'] !== ''
+                ? $coord['purl']
+                : null;
+            $repr = $coord['representations'] ?? null;
             if (is_string($repr) && $repr !== '') {
                 return [
                     'name' => $repr,
-                    'ecosystem' => isset($coordinates[0]['ecosystem']) && is_string($coordinates[0]['ecosystem'])
-                        ? $coordinates[0]['ecosystem']
+                    'ecosystem' => isset($coord['ecosystem']) && is_string($coord['ecosystem'])
+                        ? $coord['ecosystem']
                         : null,
+                    'purl' => $purl,
+                ];
+            }
+
+            if ($purl !== null) {
+                return [
+                    'name' => $purl,
+                    'ecosystem' => isset($coord['ecosystem']) && is_string($coord['ecosystem'])
+                        ? $coord['ecosystem']
+                        : null,
+                    'purl' => $purl,
                 ];
             }
         }
@@ -249,11 +265,14 @@ class SnykApiProvider implements ScannerProvider
             $ecosystem = isset($package['ecosystem']) && is_string($package['ecosystem'])
                 ? $package['ecosystem']
                 : null;
+            $purl = isset($package['purl']) && is_string($package['purl']) && $package['purl'] !== ''
+                ? $package['purl']
+                : null;
 
-            return ['name' => $name, 'ecosystem' => $ecosystem];
+            return ['name' => $name, 'ecosystem' => $ecosystem, 'purl' => $purl];
         }
 
-        return ['name' => null, 'ecosystem' => null];
+        return ['name' => null, 'ecosystem' => null, 'purl' => null];
     }
 
     /**

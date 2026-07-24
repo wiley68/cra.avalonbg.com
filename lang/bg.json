@@ -988,6 +988,7 @@
                 "last_synced": "Последна синхронизация",
                 "findings": "Находки",
                 "pending_vulnerabilities": "Чакащи предложения за уязвимости",
+                "matched_components": "Предложения със съвпадение в SBOM",
                 "sync_error": "Грешка при синхронизация",
                 "sync_warning": "Предупреждение при синхронизация",
                 "evidence": "Снимка на evidence"
@@ -996,6 +997,7 @@
                 "title": "Предложения за импорт",
                 "kind_task": "Задача",
                 "kind_vulnerability": "Уязвимост",
+                "matched_components": "Съвпадащи SBOM компоненти",
                 "accept": "Приеми",
                 "dismiss": "Отхвърли",
                 "accepted": "Предложението е прието.",

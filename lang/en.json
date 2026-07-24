@@ -988,6 +988,7 @@
                 "last_synced": "Last synced",
                 "findings": "Findings",
                 "pending_vulnerabilities": "Pending vulnerability suggestions",
+                "matched_components": "Suggestions matched to SBOM",
                 "sync_error": "Sync error",
                 "sync_warning": "Sync warning",
                 "evidence": "Evidence snapshot"
@@ -996,6 +997,7 @@
                 "title": "Import suggestions",
                 "kind_task": "Task",
                 "kind_vulnerability": "Vulnerability",
+                "matched_components": "Matched SBOM components",
                 "accept": "Accept",
                 "dismiss": "Dismiss",
                 "accepted": "Suggestion accepted.",

@@ -213,6 +213,7 @@ type SnykLinkPayload = {
         findings_count?: number;
         pending_vulnerability_suggestions?: number;
         vulnerability_suggestions_upserted?: number;
+        suggestions_with_component_matches?: number;
         evidence_id?: number;
         evidence_checksum_sha256?: string | null;
         error?: string;
@@ -235,6 +236,12 @@ type ImportSuggestionPayload = {
     severity: string | null;
     cve_id: string | null;
     package_name: string | null;
+    matched_components?: Array<{
+        id: number;
+        name: string;
+        version: string | null;
+        purl: string | null;
+    }>;
 };
 
 const props = defineProps<{
@@ -1943,6 +1950,23 @@ const textareaClass =
                                 </p>
                                 <p
                                     v-if="
+                                        (snyk_link.last_sync_summary
+                                            .suggestions_with_component_matches ??
+                                            0) > 0
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.integrations.snyk.matched_components',
+                                        )
+                                    }}:
+                                    {{
+                                        snyk_link.last_sync_summary
+                                            .suggestions_with_component_matches
+                                    }}
+                                </p>
+                                <p
+                                    v-if="
                                         snyk_link.last_sync_summary.evidence_id
                                     "
                                 >
@@ -2068,6 +2092,29 @@ const textareaClass =
                                     class="text-xs text-muted-foreground"
                                 >
                                     {{ suggestion.package_name }}
+                                </p>
+                                <p
+                                    v-if="
+                                        suggestion.matched_components &&
+                                        suggestion.matched_components.length > 0
+                                    "
+                                    class="text-xs text-muted-foreground"
+                                    data-test="matched-components"
+                                >
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.matched_components',
+                                        )
+                                    }}:
+                                    {{
+                                        suggestion.matched_components
+                                            .map((component) =>
+                                                component.version
+                                                    ? `${component.name}@${component.version}`
+                                                    : component.name,
+                                            )
+                                            .join(', ')
+                                    }}
                                 </p>
                             </div>
                             <div class="flex shrink-0 gap-2">
