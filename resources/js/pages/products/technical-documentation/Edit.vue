@@ -4,6 +4,7 @@ import {
     Archive,
     ArrowLeft,
     CheckCircle2,
+    FileDown,
     Pencil,
     RefreshCcw,
     Save,
@@ -44,6 +45,7 @@ import { index as evidenceIndex } from '@/routes/products/evidence';
 import { edit as editTask } from '@/routes/products/tasks';
 import {
     edit as packagesEdit,
+    exportMethod as exportPackage,
     index as packagesIndex,
     publish as publishPackage,
     refreshGenerated,
@@ -290,6 +292,27 @@ const reviewTaskHref = computed(() => {
     }).url;
 });
 
+const exportRouteArgs = computed(() => ({
+    product: props.product.id,
+    package: props.package.id,
+}));
+
+const exportMarkdownUrl = computed(
+    () =>
+        exportPackage({
+            ...exportRouteArgs.value,
+            format: 'markdown',
+        }).url,
+);
+
+const exportPdfUrl = computed(
+    () =>
+        exportPackage({
+            ...exportRouteArgs.value,
+            format: 'pdf',
+        }).url,
+);
+
 const localeLabel = (value: string): string => {
     const key = `products.technical_documentation.locales.${value}`;
     const translated = t(key);
@@ -425,6 +448,22 @@ const submit = () => {
                     {{
                         t('products.technical_documentation.refresh_generated')
                     }}
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportMarkdownUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t(
+                                'products.technical_documentation.export_markdown',
+                            )
+                        }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('products.technical_documentation.export_pdf') }}
+                    </a>
                 </Button>
                 <Button as-child variant="outline">
                     <Link :href="packagesIndex(props.product.id)">

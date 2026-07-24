@@ -3220,7 +3220,22 @@
             "delta_unchanged_summary": "No saved section differences vs the previous published package yet.",
             "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current).",
             "stale_evidence_hint": ":stale of :total product evidence records need attention (expired: :expired, review due: :review_due). Review them before relying on this documentation package.",
-            "stale_evidence_link": "Open evidence register"
+            "stale_evidence_link": "Open evidence register",
+            "export_markdown": "Export Markdown",
+            "export_pdf": "Export PDF",
+            "export": {
+                "title": "Technical documentation",
+                "disclaimer": "This document is an internal technical documentation package for conformity preparation. It is not a legal compliance certificate or authority submission package.",
+                "generated_at": "Generated at",
+                "published_at": "Published at",
+                "meta_organization": "Organization",
+                "meta_product": "Product",
+                "section_overview": "Overview",
+                "section_contents": "Sections",
+                "source": "Source",
+                "empty": "Not provided.",
+                "invalid_format": "Export format must be markdown or pdf."
+            }
         }
     },
     "audit_logs": {
@@ -3376,7 +3391,8 @@
             "technical_documentation_generated_refreshed": "Technical documentation generated sections refreshed",
             "technical_documentation_submitted": "Technical documentation submitted for review",
             "technical_documentation_published": "Technical documentation published",
-            "technical_documentation_retired": "Technical documentation retired"
+            "technical_documentation_retired": "Technical documentation retired",
+            "technical_documentation_exported": "Technical documentation exported"
         },
         "event_sources": {
             "workspace": "Workspace",

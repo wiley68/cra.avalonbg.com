@@ -777,6 +777,26 @@ class AuditLogger
         );
     }
 
+    public static function logTechnicalDocumentationExported(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+        string $format,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'format', 'value' => $format],
+            ],
+        );
+    }
+
     public static function logIncidentStatusUpdated(
         ProductIncident $incident,
         User $actor,

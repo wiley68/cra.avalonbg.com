@@ -10,10 +10,12 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\TechnicalDocumentationPackage;
+use App\Services\TechnicalDocumentationExportService;
 use App\Services\TechnicalDocumentationService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -22,6 +24,7 @@ class TechnicalDocumentationController extends Controller
 {
     public function __construct(
         private readonly TechnicalDocumentationService $packages,
+        private readonly TechnicalDocumentationExportService $exports,
     ) {
     }
 
@@ -243,6 +246,25 @@ class TechnicalDocumentationController extends Controller
         ]);
 
         return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
+    public function export(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+        string $format,
+    ): Response {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('view', [$package, $organization]);
+
+        return $this->exports->export(
+            $package,
+            $product,
+            $organization,
+            $format,
+            request()->user(),
+        );
     }
 
     /**

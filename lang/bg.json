@@ -3220,7 +3220,22 @@
             "delta_unchanged_summary": "Няма записани разлики спрямо предишния публикуван пакет.",
             "diff_applicable_changed": "Приложимостта е променена спрямо предишната версия (:previous → :current).",
             "stale_evidence_hint": ":stale от :total evidence записа за продукта изискват внимание (изтекли: :expired, за преглед: :review_due). Прегледайте ги преди да разчитате на този пакет документация.",
-            "stale_evidence_link": "Отвори регистъра на evidence"
+            "stale_evidence_link": "Отвори регистъра на evidence",
+            "export_markdown": "Експорт Markdown",
+            "export_pdf": "Експорт PDF",
+            "export": {
+                "title": "Техническа документация",
+                "disclaimer": "Този документ е вътрешен пакет техническа документация за подготовка за оценка на съответствие. Не е правен сертификат за съответствие и не е пакет за подаване към орган.",
+                "generated_at": "Генерирано на",
+                "published_at": "Публикувано на",
+                "meta_organization": "Организация",
+                "meta_product": "Продукт",
+                "section_overview": "Преглед",
+                "section_contents": "Секции",
+                "source": "Източник",
+                "empty": "Не е предоставено.",
+                "invalid_format": "Форматът за експорт трябва да е markdown или pdf."
+            }
         }
     },
     "audit_logs": {
@@ -3374,7 +3389,8 @@
             "technical_documentation_generated_refreshed": "Generated секции на техническата документация обновени",
             "technical_documentation_submitted": "Техническа документация изпратена за преглед",
             "technical_documentation_published": "Техническа документация публикувана",
-            "technical_documentation_retired": "Техническа документация извадена от употреба"
+            "technical_documentation_retired": "Техническа документация извадена от употреба",
+            "technical_documentation_exported": "Техническа документация експортирана"
         },
         "event_sources": {
             "workspace": "Workspace",
