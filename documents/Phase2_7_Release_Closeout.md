@@ -226,7 +226,7 @@ Phase 2.7 Technical Documentation — Closed 2026-07-24
     ↓
 Phase 2.8 Integration wave 2 — Closed 2026-07-24
     ↓
-Candidate E polish (препоръчан next)
+Candidate E polish — Active: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md)
 ```
 
 ---
@@ -235,5 +235,6 @@ Candidate E polish (препоръчан next)
 
 | Версия | Дата       | Промяна                                                                               |
 | ------ | ---------- | ------------------------------------------------------------------------------------- |
+| 1.2    | 2026-07-24 | Pointer → Phase 2_E skeleton Active                                                   |
 | 1.1    | 2026-07-24 | Pointer sync — Phase 2.8 Closed; next → Candidate E polish                            |
 | 1.0    | 2026-07-24 | Formal Phase 2.7 exit; Must+Should+Could Done; pointer → Phase 2.8 Integration wave 2 |

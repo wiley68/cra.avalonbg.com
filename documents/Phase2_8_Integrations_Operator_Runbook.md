@@ -1,9 +1,10 @@
 # Phase 2.8 — Integrations operator runbook
 
-**Версия:** 1.1  
+**Версия:** 1.2  
 **Дата:** 24 юли 2026 г.  
 **Родител:** [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) (Closed)  
 **Closeout:** [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)  
+**Ops baseline (2_E):** [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md)  
 **Свързано:** [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md) (VCS connectors)
 
 Кратък ops справочник за ALM/scanner connectors (Jira Cloud, Azure DevOps, Snyk) и как се пазят секрети, какви scopes са нужни, как се държат rate limits и какъв е threat model-ът.
@@ -124,12 +125,16 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 | `integrations:sync-scheduled` | hourly (`routes/console.php`) | Dispatch `SyncProductIntegrationJob` за active connectors с schedule `hourly` / `daily`, когато `isDue(last_synced_at)` |
 | `vcs:sync-scheduled`          | hourly                        | Същото за VCS product repos (2.1)                                                                                       |
 
-**Ops P1 за scheduled sync:**
+**Полният production/staging baseline (Phase 2_E Must 1):** [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) — cron, `QUEUE_CONNECTION`, `ops:baseline-check`, staging checklist.
+
+**Кратък ops списък:**
 
 1. Laravel scheduler трябва да върви (`* * * * * php artisan schedule:run`).
 2. Queue worker трябва да консумира jobs (`php artisan queue:work` или еквивалент) — schedule ползва `dispatch()`, не `dispatchSync`.
-3. Org трябва да е `is_active`; connector status `active`; schedule ≠ `off`.
-4. Schedule се задава per connector в Settings → Integrations (`off` / `hourly` / `daily`).
+3. `QUEUE_CONNECTION` ≠ `sync` (препоръка: `database` или `redis`).
+4. Org трябва да е `is_active`; connector status `active`; schedule ≠ `off`.
+5. Schedule се задава per connector в Settings → Integrations (`off` / `hourly` / `daily`).
+6. Verify: `php artisan ops:baseline-check`.
 
 Без queue worker: **Sync now** все още работи; scheduled sync няма да върви.
 
@@ -167,14 +172,15 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 
 ## 7. Къде в UI / код
 
-| Повърхност                        | Път                                                                     |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| Org connectors                    | Settings → Integrations                                                 |
-| Product link / Sync / suggestions | Product → Edit → Integrations                                           |
-| Readiness / dashboard gaps        | Product readiness + org dashboard counts                                |
-| Providers                         | `app/Services/Integrations/{JiraCloud,AzureDevOps,SnykApi}Provider.php` |
-| Sync services                     | `AlmSyncService`, `ScannerSyncService`                                  |
-| Job                               | `SyncProductIntegrationJob`                                             |
-| Schedule command                  | `integrations:sync-scheduled`                                           |
-| Org health + auditor export       | `/integrations/health` (Markdown/PDF)                                   |
-| Phase exit                        | [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)            |
+| Повърхност                        | Път                                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| Org connectors                    | Settings → Integrations                                                                 |
+| Product link / Sync / suggestions | Product → Edit → Integrations                                                           |
+| Readiness / dashboard gaps        | Product readiness + org dashboard counts                                                |
+| Providers                         | `app/Services/Integrations/{JiraCloud,AzureDevOps,SnykApi}Provider.php`                 |
+| Sync services                     | `AlmSyncService`, `ScannerSyncService`                                                  |
+| Job                               | `SyncProductIntegrationJob`                                                             |
+| Schedule command                  | `integrations:sync-scheduled`                                                           |
+| Ops baseline (2_E Must 1)         | `php artisan ops:baseline-check` — [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) |
+| Org health + auditor export       | `/integrations/health` (Markdown/PDF)                                                   |
+| Phase exit                        | [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)                            |

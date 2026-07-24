@@ -302,7 +302,7 @@ Phase 2.2–2.7 product modules — Closed
     ↓
 Phase 2.8 Integration wave 2 (този документ)
     ↓
-(по-късно) Candidate E polish / platform SSO·billing — TBD
+(по-късно) Candidate E polish — Active: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) / platform SSO·billing — TBD
 ```
 
 Reuse:

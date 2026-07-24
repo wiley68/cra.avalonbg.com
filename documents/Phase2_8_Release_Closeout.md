@@ -210,10 +210,13 @@ Phase 2.8 Integration wave 2 — Closed 2026-07-24
 Candidate E polish (препоръчан next plan)  |  Candidate F platform  |  optional 2.9 scanners
 ```
 
+> **Update (2026-07-24):** Skeleton активен — [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md).
+
 ---
 
 ## 9. История на документа
 
 | Версия | Дата       | Промяна                                                                                        |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------- |
+| 1.1    | 2026-07-24 | Pointer → Phase 2_E skeleton Active                                                            |
 | 1.0    | 2026-07-24 | Formal Phase 2.8 exit; Must+Should+Could Done; pointer → Candidate E polish / F platform / 2.9 |
