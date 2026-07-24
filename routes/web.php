@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ProductRequirementApiController;
 use App\Http\Controllers\Api\ProductRiskApiController;
 use App\Http\Controllers\Api\UserSecurityInstructionApiController;
 use App\Http\Controllers\Api\TechnicalDocumentationApiController;
+use App\Http\Controllers\Api\TechnicalDocumentationOrgApiController;
 use App\Http\Controllers\Api\ProductSupportPeriodApiController;
 use App\Http\Controllers\Api\ProductVersionApiController;
 use App\Http\Controllers\Api\ProductVulnerabilityApiController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
 use App\Http\Controllers\UserSecurityInstructionController;
 use App\Http\Controllers\TechnicalDocumentationController;
+use App\Http\Controllers\TechnicalDocumentationOrgController;
 use App\Http\Controllers\ProductScopeAssessmentController;
 use App\Http\Controllers\ProductSupportPeriodController;
 use App\Http\Controllers\ProductVersionController;
@@ -120,6 +122,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('incidents.index');
         Route::get('sdl', [SdlController::class, 'index'])
             ->name('sdl.index');
+        Route::get('technical-documentation', [TechnicalDocumentationOrgController::class, 'index'])
+            ->name('technical-documentation.index');
 
         Route::get('policies/template', [OrgPolicyController::class, 'template'])
             ->name('policies.template');
@@ -482,6 +486,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('incidents.index');
             Route::get('sdl', [SdlApiController::class, 'index'])
                 ->name('sdl.index');
+            Route::get('technical-documentation', [TechnicalDocumentationOrgApiController::class, 'index'])
+                ->name('technical-documentation.index');
             Route::get('policies', [OrgPolicyApiController::class, 'index'])
                 ->name('policies.index');
             Route::get('auditor/packages', [AuditorReviewPackageApiController::class, 'index'])

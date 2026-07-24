@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     Building2,
     ClipboardCheck,
+    FileText,
     HardDriveDownload,
     History,
     LayoutGrid,
@@ -39,6 +40,7 @@ import { index as auditLogsIndex } from '@/routes/audit-logs';
 import { index as productsIndex } from '@/routes/products';
 import { index as usersIndex } from '@/routes/users';
 import { index as sdlIndex } from '@/routes/sdl';
+import { index as technicalDocumentationIndex } from '@/routes/technical-documentation';
 import type { NavItem } from '@/types';
 import { index as controlsIndex } from '@/routes/controls';
 import { index as customersIndex } from '@/routes/customers';
@@ -115,6 +117,14 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: t('nav.sdl'),
             href: sdlIndex(),
             icon: Workflow,
+        });
+    }
+
+    if (user.can_view_technical_documentation) {
+        items.push({
+            title: t('nav.technical_documentation'),
+            href: technicalDocumentationIndex(),
+            icon: FileText,
         });
     }
 

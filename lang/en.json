@@ -389,6 +389,7 @@
         "auditor": "Auditor reviews",
         "incidents": "Incidents",
         "sdl": "SDL",
+        "technical_documentation": "Technical documentation",
         "controls": "Controls",
         "logs": "Journals",
         "audit": "Audit",
@@ -410,6 +411,15 @@
         "title": "Secure development lifecycle",
         "subtitle": "Cross-product SDL runs and release security gates for your organization",
         "search_placeholder": "Search by title, product, status or stage...",
+        "columns": {
+            "product": "Product"
+        }
+    },
+    "technical_documentation": {
+        "index_title": "Technical documentation",
+        "title": "Technical documentation",
+        "subtitle": "Cross-product technical documentation packages for your organization",
+        "search_placeholder": "Search by title, product, status or version…",
         "columns": {
             "product": "Product"
         }

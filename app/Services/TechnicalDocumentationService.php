@@ -105,6 +105,61 @@ class TechnicalDocumentationService
             ->through(fn(TechnicalDocumentationPackage $package) => $this->listItemPayload($package));
     }
 
+    public function paginateForOrganization(
+        Organization $organization,
+        int $perPage = 10,
+        int $page = 1,
+        string $sortBy = 'updated_at',
+        string $sortOrder = 'desc',
+        string $search = '',
+    ): LengthAwarePaginator {
+        $query = TechnicalDocumentationPackage::query()
+            ->where('organization_id', $organization->id)
+            ->with(['product:id,name', 'productVersion:id,version_number'])
+            ->withCount('sections');
+
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('title', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhere('version_label', 'like', "%{$search}%")
+                    ->orWhere('locale', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas(
+                        'product',
+                        fn($productQuery) => $productQuery->where('name', 'like', "%{$search}%"),
+                    )
+                    ->orWhereHas(
+                        'productVersion',
+                        fn($versionQuery) => $versionQuery->where('version_number', 'like', "%{$search}%"),
+                    );
+
+                if (ctype_digit($search)) {
+                    $builder->orWhere('id', (int) $search);
+                }
+            });
+        }
+
+        $orderColumn = match ($sortBy) {
+            'id' => 'id',
+            'title' => 'title',
+            'status' => 'status',
+            'version_label' => 'version_label',
+            'locale' => 'locale',
+            'published_at' => 'published_at',
+            'product_version_number' => 'product_version_id',
+            'product_name' => 'product_id',
+            default => 'updated_at',
+        };
+
+        $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
+
+        return $query
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(fn(TechnicalDocumentationPackage $package) => $this->listItemPayload($package));
+    }
+
     /**
      * @param  array{
      *     title: string,
@@ -880,6 +935,8 @@ class TechnicalDocumentationService
      *     status: string,
      *     version_label: string,
      *     locale: string,
+     *     product_id: int,
+     *     product_name: string,
      *     product_version_id: int|null,
      *     product_version_number: string|null,
      *     published_at: string|null,
@@ -889,7 +946,7 @@ class TechnicalDocumentationService
      */
     public function listItemPayload(TechnicalDocumentationPackage $package): array
     {
-        $package->loadMissing(['productVersion:id,version_number']);
+        $package->loadMissing(['product:id,name', 'productVersion:id,version_number']);
 
         return [
             'id' => $package->id,
@@ -897,6 +954,8 @@ class TechnicalDocumentationService
             'status' => $package->status->value,
             'version_label' => $package->version_label,
             'locale' => $package->locale,
+            'product_id' => $package->product_id,
+            'product_name' => $package->product?->name ?? '',
             'product_version_id' => $package->product_version_id,
             'product_version_number' => $package->productVersion?->version_number,
             'published_at' => $package->published_at?->toIso8601String(),

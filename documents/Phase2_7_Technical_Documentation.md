@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done; Should 7–12 Done  
+**Статус:** Active — Must 1–6 Done; Should 7–12 Done; Could 13 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -164,7 +164,7 @@ GET    /internal-api/products/{product}/technical-documentation
 
 ### Could
 
-13. Org-level cross-product tech-doc index
+13. ~~Org-level cross-product tech-doc index~~ **Done** (2026-07-24)
 14. AI draft for authored sections (human review)
 15. Release ZIP export (PDF + Markdown + linked USI README)
 16. Auto-mark stale evidence when freshness expires
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                  |
 | ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 1.4    | 2026-07-24 | Could 13 Done — org-level cross-product tech-doc index + sidebar                         |
 | 1.3    | 2026-07-24 | Should 12 Done — dedicated tech-doc permissions + nav `can_view_technical_documentation` |
 | 1.2    | 2026-07-24 | Should 11 Done — readiness/passport gap on published tech-doc package                    |
 | 1.1    | 2026-07-24 | Should 10 Done — link published USI + optional SDL run + linked section summary          |
