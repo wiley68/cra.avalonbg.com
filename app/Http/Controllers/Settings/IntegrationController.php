@@ -7,8 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
+use App\Http\Requests\Settings\StoreJiraIntegrationRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
+use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
+use App\Services\IntegrationConnectionService;
 use App\Services\VcsConnectionService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +23,7 @@ class IntegrationController extends Controller
 {
     public function __construct(
         private readonly VcsConnectionService $connections,
+        private readonly IntegrationConnectionService $integrations,
     ) {
     }
 
@@ -56,8 +60,31 @@ class IntegrationController extends Controller
                 'created_at' => $connection->created_at?->toIso8601String(),
             ]);
 
+        $integrations = OrganizationIntegration::query()
+            ->where('organization_id', $organization->id)
+            ->orderBy('provider')
+            ->get()
+            ->map(fn(OrganizationIntegration $integration): array => [
+                'id' => $integration->id,
+                'provider' => $integration->provider->value,
+                'category' => $integration->category->value,
+                'auth_type' => $integration->auth_type->value,
+                'label' => $integration->label,
+                'status' => $integration->status->value,
+                'sync_schedule' => $integration->sync_schedule->value,
+                'base_url' => is_array($integration->credentials)
+                    ? ($integration->credentials['base_url'] ?? null)
+                    : null,
+                'email' => is_array($integration->credentials)
+                    ? ($integration->credentials['email'] ?? null)
+                    : null,
+                'last_verified_at' => $integration->last_verified_at?->toIso8601String(),
+                'created_at' => $integration->created_at?->toIso8601String(),
+            ]);
+
         return Inertia::render('settings/Integrations', [
             'connections' => $connections,
+            'integrations' => $integrations,
             'canManage' => $user->canManageProducts($organization),
             'revealed_webhook_secret' => $request->session()->pull('revealed_webhook_secret'),
         ]);
@@ -136,6 +163,33 @@ class IntegrationController extends Controller
         return back();
     }
 
+    public function storeJira(StoreJiraIntegrationRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->integrations->storeJira(
+            organization: $organization,
+            actor: $request->user(),
+            credentials: [
+                'base_url' => $request->string('base_url')->toString(),
+                'email' => $request->string('email')->toString(),
+                'api_token' => $request->string('api_token')->toString(),
+            ],
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.jira_connected'),
+        ]);
+
+        return back();
+    }
+
     public function updateSyncSchedule(
         UpdateVcsConnectionSyncScheduleRequest $request,
         OrganizationVcsConnection $connection,
@@ -195,6 +249,31 @@ class IntegrationController extends Controller
         }
 
         $this->connections->delete($connection, $user);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.disconnected'),
+        ]);
+
+        return back();
+    }
+
+    public function destroyIntegration(
+        Request $request,
+        OrganizationIntegration $integration,
+    ): RedirectResponse {
+        $user = $request->user();
+        $organization = $user?->currentOrganization();
+
+        if ($organization === null || $integration->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if (!$user->canManageProducts($organization)) {
+            abort(403);
+        }
+
+        $this->integrations->delete($integration, $user);
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -59,7 +59,8 @@ test('owner can view integrations settings', function () {
         ->assertInertia(fn($page) => $page
             ->component('settings/Integrations')
             ->where('canManage', true)
-            ->has('connections', 0));
+            ->has('connections', 0)
+            ->has('integrations', 0));
 });
 
 test('owner can connect github with valid pat and audit is recorded', function () {

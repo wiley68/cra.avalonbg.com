@@ -40,10 +40,14 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.github.app.store');
     Route::post('settings/integrations/gitlab', [IntegrationController::class, 'storeGitlab'])
         ->name('settings.integrations.gitlab.store');
+    Route::post('settings/integrations/jira', [IntegrationController::class, 'storeJira'])
+        ->name('settings.integrations.jira.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
     Route::post('settings/integrations/{connection}/webhook-secret', [IntegrationController::class, 'rotateWebhookSecret'])
         ->name('settings.integrations.webhook-secret.rotate');
     Route::delete('settings/integrations/{connection}', [IntegrationController::class, 'destroy'])
         ->name('settings.integrations.destroy');
+    Route::delete('settings/integrations/providers/{integration}', [IntegrationController::class, 'destroyIntegration'])
+        ->name('settings.integrations.providers.destroy');
 });

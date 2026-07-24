@@ -14,6 +14,7 @@ use App\Models\Evidence;
 use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
+use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
 use App\Models\Product;
@@ -56,6 +57,7 @@ class AuditLogger
         'two_factor_recovery_codes',
         'prompt',
         'api_key',
+        'api_token',
         'credentials',
         'context',
         'messages',
@@ -2077,6 +2079,58 @@ class AuditLogger
                 ['field' => 'provider', 'value' => $connection->provider->value],
                 ['field' => 'auth_type', 'value' => $connection->auth_type->value],
                 ['field' => 'label', 'value' => $connection->label],
+            ],
+        );
+    }
+
+    public static function logIntegrationConnected(OrganizationIntegration $integration, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IntegrationConnected,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $integration->organization_id,
+            details: [
+                ['field' => 'integration_id', 'value' => (string) $integration->id],
+                ['field' => 'provider', 'value' => $integration->provider->value],
+                ['field' => 'auth_type', 'value' => $integration->auth_type->value],
+                ['field' => 'label', 'value' => $integration->label],
+            ],
+        );
+    }
+
+    public static function logIntegrationUpdated(OrganizationIntegration $integration, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IntegrationUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $integration->organization_id,
+            details: [
+                ['field' => 'integration_id', 'value' => (string) $integration->id],
+                ['field' => 'provider', 'value' => $integration->provider->value],
+                ['field' => 'auth_type', 'value' => $integration->auth_type->value],
+                ['field' => 'label', 'value' => $integration->label],
+                ['field' => 'sync_schedule', 'value' => $integration->sync_schedule->value],
+            ],
+        );
+    }
+
+    public static function logIntegrationDisconnected(OrganizationIntegration $integration, User $actor): void
+    {
+        self::persist(
+            type: AuditEventType::IntegrationDisconnected,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $integration->organization_id,
+            details: [
+                ['field' => 'integration_id', 'value' => (string) $integration->id],
+                ['field' => 'provider', 'value' => $integration->provider->value],
+                ['field' => 'auth_type', 'value' => $integration->auth_type->value],
+                ['field' => 'label', 'value' => $integration->label],
             ],
         );
     }

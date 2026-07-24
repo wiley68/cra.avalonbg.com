@@ -38,8 +38,28 @@ type VcsConnection = {
     created_at: string | null;
 };
 
+type OrganizationIntegrationRow = {
+    id: number;
+    provider: string;
+    category: string;
+    auth_type: string;
+    label: string | null;
+    status: string;
+    sync_schedule: 'off' | 'hourly' | 'daily' | string;
+    base_url: string | null;
+    email: string | null;
+    last_verified_at: string | null;
+    created_at: string | null;
+};
+
+type DisconnectTarget = {
+    type: 'vcs' | 'integration';
+    id: number;
+};
+
 const props = defineProps<{
     connections: VcsConnection[];
+    integrations: OrganizationIntegrationRow[];
     canManage: boolean;
     revealed_webhook_secret?: string | null;
 }>();
@@ -69,6 +89,13 @@ const gitlabForm = useForm({
     label: 'GitLab',
 });
 
+const jiraForm = useForm({
+    base_url: '',
+    email: '',
+    api_token: '',
+    label: 'Jira Cloud',
+});
+
 const scheduleForm = useForm({
     sync_schedule: 'off',
 });
@@ -77,16 +104,16 @@ const gitlabScheduleForm = useForm({
     sync_schedule: 'off',
 });
 
-const disconnectId = ref<number | null>(null);
+const disconnectTarget = ref<DisconnectTarget | null>(null);
 const disconnecting = ref(false);
 const rotatingWebhook = ref(false);
 const copyFeedback = ref<'url' | 'secret' | null>(null);
 
 const disconnectDialogOpen = computed({
-    get: () => disconnectId.value !== null,
+    get: () => disconnectTarget.value !== null,
     set: (value: boolean) => {
         if (!value) {
-            disconnectId.value = null;
+            disconnectTarget.value = null;
         }
     },
 });
@@ -99,9 +126,21 @@ const gitlabConnection = computed(() =>
     props.connections.find((connection) => connection.provider === 'gitlab'),
 );
 
-const defaultTab = (): 'github' | 'gitlab' => {
+const jiraIntegration = computed(() =>
+    props.integrations.find((integration) => integration.provider === 'jira'),
+);
+
+const defaultTab = (): 'github' | 'gitlab' | 'jira' => {
     if (props.revealed_webhook_secret) {
         return 'github';
+    }
+
+    if (
+        !githubConnection.value &&
+        !gitlabConnection.value &&
+        jiraIntegration.value
+    ) {
+        return 'jira';
     }
 
     if (!githubConnection.value && gitlabConnection.value) {
@@ -111,7 +150,7 @@ const defaultTab = (): 'github' | 'gitlab' => {
     return 'github';
 };
 
-const activeTab = ref<'github' | 'gitlab'>(defaultTab());
+const activeTab = ref<'github' | 'gitlab' | 'jira'>(defaultTab());
 
 watch(
     () => props.revealed_webhook_secret,
@@ -149,6 +188,20 @@ watch(
     { immediate: true },
 );
 
+watch(
+    jiraIntegration,
+    (integration) => {
+        if (!integration) {
+            return;
+        }
+
+        jiraForm.base_url = integration.base_url ?? '';
+        jiraForm.email = integration.email ?? '';
+        jiraForm.label = integration.label ?? 'Jira Cloud';
+    },
+    { immediate: true },
+);
+
 const connectGithub = () => {
     githubForm.post(IntegrationController.storeGithub.url(), {
         preserveScroll: true,
@@ -167,6 +220,13 @@ const connectGitlab = () => {
     gitlabForm.post(IntegrationController.storeGitlab.url(), {
         preserveScroll: true,
         onSuccess: () => gitlabForm.reset('token'),
+    });
+};
+
+const connectJira = () => {
+    jiraForm.post(IntegrationController.storeJira.url(), {
+        preserveScroll: true,
+        onSuccess: () => jiraForm.reset('api_token'),
     });
 };
 
@@ -249,16 +309,22 @@ const copyRevealedWebhookSecret = () => {
 };
 
 const confirmDisconnect = () => {
-    if (disconnectId.value === null) {
+    if (disconnectTarget.value === null) {
         return;
     }
 
+    const target = disconnectTarget.value;
+    const url =
+        target.type === 'integration'
+            ? IntegrationController.destroyIntegration.url(target.id)
+            : IntegrationController.destroy.url(target.id);
+
     disconnecting.value = true;
-    router.delete(IntegrationController.destroy.url(disconnectId.value), {
+    router.delete(url, {
         preserveScroll: true,
         onFinish: () => {
             disconnecting.value = false;
-            disconnectId.value = null;
+            disconnectTarget.value = null;
         },
     });
 };
@@ -277,7 +343,12 @@ const confirmDisconnect = () => {
         />
 
         <Tabs
-            v-if="canManage || githubConnection || gitlabConnection"
+            v-if="
+                canManage ||
+                githubConnection ||
+                gitlabConnection ||
+                jiraIntegration
+            "
             v-model="activeTab"
             class="gap-6"
         >
@@ -287,6 +358,9 @@ const confirmDisconnect = () => {
                 </TabsTrigger>
                 <TabsTrigger value="gitlab" class="flex-1 sm:flex-none">
                     {{ t('settings.integrations.gitlab') }}
+                </TabsTrigger>
+                <TabsTrigger value="jira" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.jira') }}
                 </TabsTrigger>
             </TabsList>
 
@@ -338,7 +412,12 @@ const confirmDisconnect = () => {
                             v-if="canManage"
                             type="button"
                             variant="destructive"
-                            @click="disconnectId = githubConnection.id"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'vcs',
+                                    id: githubConnection.id,
+                                }
+                            "
                         >
                             <Trash2 class="h-4 w-4" />
                             {{ t('settings.integrations.disconnect') }}
@@ -834,7 +913,12 @@ const confirmDisconnect = () => {
                             v-if="canManage"
                             type="button"
                             variant="destructive"
-                            @click="disconnectId = gitlabConnection.id"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'vcs',
+                                    id: gitlabConnection.id,
+                                }
+                            "
                         >
                             <Trash2 class="h-4 w-4" />
                             {{ t('settings.integrations.disconnect') }}
@@ -1006,6 +1090,196 @@ const confirmDisconnect = () => {
 
                 <p
                     v-else-if="!gitlabConnection"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+
+            <TabsContent value="jira" class="space-y-6">
+                <div
+                    v-if="jiraIntegration"
+                    class="space-y-4 rounded-lg border p-4"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 font-medium">
+                                <GitBranch class="h-4 w-4" />
+                                {{
+                                    jiraIntegration.label ||
+                                    t('settings.integrations.jira')
+                                }}
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.status') }}:
+                                {{
+                                    t(
+                                        `settings.integrations.statuses.${jiraIntegration.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="jiraIntegration.base_url"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.jira_base_url') }}:
+                                {{ jiraIntegration.base_url }}
+                            </p>
+                            <p
+                                v-if="jiraIntegration.email"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.jira_email') }}:
+                                {{ jiraIntegration.email }}
+                            </p>
+                            <p
+                                v-if="jiraIntegration.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        jiraIntegration.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            data-test="disconnect-jira-button"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'integration',
+                                    id: jiraIntegration.id,
+                                }
+                            "
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-if="canManage" class="space-y-4 rounded-lg border p-4">
+                    <div class="space-y-1">
+                        <h2 class="font-medium">
+                            {{
+                                jiraIntegration
+                                    ? t(
+                                          'settings.integrations.update_jira_title',
+                                      )
+                                    : t(
+                                          'settings.integrations.connect_jira_title',
+                                      )
+                            }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'settings.integrations.connect_jira_description',
+                                )
+                            }}
+                        </p>
+                    </div>
+
+                    <form class="space-y-4" @submit.prevent="connectJira">
+                        <div class="grid gap-2">
+                            <Label for="jira_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="jira_label"
+                                v-model="jiraForm.label"
+                                :placeholder="t('settings.integrations.jira')"
+                            />
+                            <InputError :message="jiraForm.errors.label" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="jira_base_url">{{
+                                t('settings.integrations.jira_base_url')
+                            }}</Label>
+                            <Input
+                                id="jira_base_url"
+                                v-model="jiraForm.base_url"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.jira_base_url_placeholder',
+                                    )
+                                "
+                                data-test="jira-base-url-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.jira_base_url_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError :message="jiraForm.errors.base_url" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="jira_email">{{
+                                t('settings.integrations.jira_email')
+                            }}</Label>
+                            <Input
+                                id="jira_email"
+                                v-model="jiraForm.email"
+                                type="email"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.jira_email_placeholder',
+                                    )
+                                "
+                                data-test="jira-email-input"
+                            />
+                            <InputError :message="jiraForm.errors.email" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="jira_api_token">{{
+                                t('settings.integrations.jira_api_token')
+                            }}</Label>
+                            <PasswordInput
+                                id="jira_api_token"
+                                v-model="jiraForm.api_token"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.jira_api_token_placeholder',
+                                    )
+                                "
+                                data-test="jira-api-token-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.jira_api_token_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError :message="jiraForm.errors.api_token" />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            :disabled="jiraForm.processing"
+                            data-test="connect-jira-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                jiraIntegration
+                                    ? t('settings.integrations.update_token')
+                                    : t('settings.integrations.connect_jira')
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!jiraIntegration"
                     class="text-sm text-muted-foreground"
                 >
                     {{ t('settings.integrations.provider_not_connected') }}
