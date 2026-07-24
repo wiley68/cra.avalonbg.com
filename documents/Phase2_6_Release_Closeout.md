@@ -217,7 +217,7 @@ Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23
     ↓
 Phase 2.7 Technical Documentation — Closed 2026-07-24
     ↓
-Phase 2.8 Integration wave 2 — Active (skeleton)
+Phase 2.8 Integration wave 2 — Active (plan)
 ```
 
 ---
