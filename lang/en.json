@@ -692,6 +692,8 @@
         "view_evidence": "View evidence",
         "supersedes_none": "None",
         "cannot_delete_approved": "Approved policies cannot be deleted. Retire them instead.",
+        "delete_disabled_approved": "Delete (retire first)",
+        "delete_failed": "Could not delete this policy.",
         "cannot_delete_open_tasks": "This policy has an open review task. Complete, cancel, or delete that task before deleting the policy.",
         "only_draft_submit": "Only draft policies can be submitted for review.",
         "only_under_review_approve": "Only policies under review can be approved.",

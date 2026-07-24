@@ -119,6 +119,14 @@ const confirmDelete = (): void => {
         onSuccess: () => {
             void fetch();
         },
+        onError: (errors) => {
+            const message = Object.values(errors)[0];
+            toast.error(
+                typeof message === 'string'
+                    ? message
+                    : t('policies.delete_failed'),
+            );
+        },
     });
 };
 

@@ -126,10 +126,12 @@ export const createPolicyColumns = ({
         enableSorting: false,
         header: () => t('common.actions'),
         cell: ({ row }) => {
+            const isApproved = row.original.status === 'approved';
             const actions: {
                 label: string;
                 icon: typeof Pencil;
                 variant?: 'default' | 'destructive';
+                disabled?: boolean;
                 onSelect: () => void;
             }[] = [
                 {
@@ -141,11 +143,14 @@ export const createPolicyColumns = ({
                 },
             ];
 
-            if (canManage && row.original.status !== 'approved') {
+            if (canManage) {
                 actions.push({
-                    label: t('common.delete'),
+                    label: isApproved
+                        ? t('policies.delete_disabled_approved')
+                        : t('common.delete'),
                     icon: Trash2,
                     variant: 'destructive',
+                    disabled: isApproved,
                     onSelect: () => onDelete(row.original.id),
                 });
             }
