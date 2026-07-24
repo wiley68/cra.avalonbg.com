@@ -210,6 +210,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ProductIntegrationController::class, 'sync'],
         )->name('products.integrations.sync');
         Route::post(
+            'products/{product}/integrations/sarif/upload',
+            [ProductIntegrationController::class, 'uploadSarif'],
+        )->name('products.integrations.sarif.upload');
+        Route::post(
             'products/{product}/import-suggestions/{suggestion}/accept',
             [ProductImportSuggestionController::class, 'accept'],
         )->name('products.import-suggestions.accept');

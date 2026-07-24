@@ -6,12 +6,14 @@ use App\Enums\IntegrationProvider;
 use App\Enums\IntegrationSyncRunStatus;
 use App\Http\Requests\StoreProductAzureDevOpsLinkRequest;
 use App\Http\Requests\StoreProductJiraLinkRequest;
+use App\Http\Requests\StoreProductSarifUploadRequest;
 use App\Http\Requests\StoreProductSnykLinkRequest;
 use App\Jobs\SyncProductIntegrationJob;
 use App\Models\IntegrationSyncRun;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\ProductIntegrationLinkService;
+use App\Services\SarifImportService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,9 @@ class ProductIntegrationController extends Controller
 {
     public function __construct(
         private readonly ProductIntegrationLinkService $links,
-    ) {}
+        private readonly SarifImportService $sarifImports,
+    ) {
+    }
 
     public function update(Request $request, Product $product, string $provider): RedirectResponse
     {
@@ -34,6 +38,48 @@ class ProductIntegrationController extends Controller
             IntegrationProvider::AzureDevops->value => $this->updateAzureDevOps($request, $product),
             default => abort(404),
         };
+    }
+
+    public function uploadSarif(StoreProductSarifUploadRequest $request, Product $product): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+
+        $run = $this->sarifImports->import(
+            product: $product,
+            file: $request->file('file'),
+            actor: $request->user(),
+        );
+
+        $summary = is_array($run->summary) ? $run->summary : [];
+
+        if ($run->status === IntegrationSyncRunStatus::Failed) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => Translations::get('products.integrations.sarif.import_failed'),
+            ]);
+
+            return back();
+        }
+
+        $softFail = ($summary['soft_fail'] ?? false) === true
+            || (isset($summary['last_error']) && is_string($summary['last_error']) && $summary['last_error'] !== '');
+
+        if ($softFail) {
+            Inertia::flash('toast', [
+                'type' => 'warning',
+                'message' => Translations::get('products.integrations.sarif.import_partial'),
+            ]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.integrations.sarif.import_succeeded'),
+        ]);
+
+        return back();
     }
 
     public function destroy(Product $product, string $provider): RedirectResponse
@@ -53,7 +99,7 @@ class ProductIntegrationController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get($this->messagePrefix($integrationProvider).'.unlinked'),
+            'message' => Translations::get($this->messagePrefix($integrationProvider) . '.unlinked'),
         ]);
 
         return back();
@@ -84,7 +130,7 @@ class ProductIntegrationController extends Controller
         if ($run?->status === IntegrationSyncRunStatus::Failed) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => Translations::get($prefix.'.sync_failed'),
+                'message' => Translations::get($prefix . '.sync_failed'),
             ]);
 
             return back();
@@ -97,7 +143,7 @@ class ProductIntegrationController extends Controller
         if ($softFail) {
             Inertia::flash('toast', [
                 'type' => 'warning',
-                'message' => Translations::get($prefix.'.sync_partial'),
+                'message' => Translations::get($prefix . '.sync_partial'),
             ]);
 
             return back();
@@ -105,7 +151,7 @@ class ProductIntegrationController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get($prefix.'.sync_succeeded'),
+            'message' => Translations::get($prefix . '.sync_succeeded'),
         ]);
 
         return back();
@@ -175,6 +221,7 @@ class ProductIntegrationController extends Controller
             IntegrationProvider::Jira->value => IntegrationProvider::Jira,
             IntegrationProvider::Snyk->value => IntegrationProvider::Snyk,
             IntegrationProvider::AzureDevops->value => IntegrationProvider::AzureDevops,
+            IntegrationProvider::Sarif->value => IntegrationProvider::Sarif,
             default => abort(404),
         };
     }
@@ -184,6 +231,7 @@ class ProductIntegrationController extends Controller
         return match ($provider) {
             IntegrationProvider::Snyk => 'products.integrations.snyk',
             IntegrationProvider::AzureDevops => 'products.integrations.azure_devops',
+            IntegrationProvider::Sarif => 'products.integrations.sarif',
             default => 'products.integrations.jira',
         };
     }

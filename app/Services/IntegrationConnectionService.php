@@ -98,6 +98,21 @@ class IntegrationConnectionService
         );
     }
 
+    public function storeSarif(
+        Organization $organization,
+        User $actor,
+        ?string $label = null,
+    ): OrganizationIntegration {
+        return $this->upsert(
+            organization: $organization,
+            actor: $actor,
+            provider: IntegrationProvider::Sarif,
+            credentials: [],
+            label: $label ?: 'SARIF / Trivy',
+            authType: IntegrationAuthType::None,
+        );
+    }
+
     public function updateSyncSchedule(
         OrganizationIntegration $integration,
         IntegrationSyncSchedule $schedule,
@@ -128,6 +143,7 @@ class IntegrationConnectionService
         IntegrationProvider $provider,
         array $credentials,
         string $label,
+        IntegrationAuthType $authType = IntegrationAuthType::ApiToken,
     ): OrganizationIntegration {
         $existing = OrganizationIntegration::query()
             ->where('organization_id', $organization->id)
@@ -136,8 +152,8 @@ class IntegrationConnectionService
 
         $attributes = [
             'category' => $provider->category(),
-            'auth_type' => IntegrationAuthType::ApiToken,
-            'credentials' => $credentials,
+            'auth_type' => $authType,
+            'credentials' => $credentials === [] ? null : $credentials,
             'label' => $label,
             'status' => IntegrationConnectionStatus::Active,
             'last_verified_at' => now(),
@@ -167,8 +183,8 @@ class IntegrationConnectionService
     {
         $normalized = rtrim(trim($baseUrl), '/');
 
-        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
-            $normalized = 'https://'.$normalized;
+        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://' . $normalized;
         }
 
         return $normalized;
@@ -181,7 +197,7 @@ class IntegrationConnectionService
             ->withHeaders([
                 'User-Agent' => 'CRA-Compliance-Workspace',
             ])
-            ->get($baseUrl.'/rest/api/3/myself');
+            ->get($baseUrl . '/rest/api/3/myself');
 
         if ($response->successful()) {
             return;
@@ -200,8 +216,8 @@ class IntegrationConnectionService
             return 'https://api.snyk.io';
         }
 
-        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
-            $normalized = 'https://'.$normalized;
+        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://' . $normalized;
         }
 
         return $normalized;
@@ -210,13 +226,13 @@ class IntegrationConnectionService
     private function verifySnykApiToken(string $baseUrl, string $apiToken): void
     {
         $response = Http::withHeaders([
-            'Authorization' => 'token '.$apiToken,
+            'Authorization' => 'token ' . $apiToken,
             'Content-Type' => 'application/vnd.api+json',
             'Accept' => 'application/vnd.api+json',
             'User-Agent' => 'CRA-Compliance-Workspace',
-        ])->get($baseUrl.'/rest/self', [
-            'version' => '2024-10-15',
-        ]);
+        ])->get($baseUrl . '/rest/self', [
+                    'version' => '2024-10-15',
+                ]);
 
         if ($response->successful()) {
             return;
@@ -235,8 +251,8 @@ class IntegrationConnectionService
             return 'https://dev.azure.com';
         }
 
-        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
-            $normalized = 'https://'.$normalized;
+        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://' . $normalized;
         }
 
         return $normalized;
@@ -249,7 +265,7 @@ class IntegrationConnectionService
             ->withHeaders([
                 'User-Agent' => 'CRA-Compliance-Workspace',
             ])
-            ->get($baseUrl.'/'.rawurlencode($organization).'/_apis/projects', [
+            ->get($baseUrl . '/' . rawurlencode($organization) . '/_apis/projects', [
                 'api-version' => '7.1',
                 '$top' => 1,
             ]);

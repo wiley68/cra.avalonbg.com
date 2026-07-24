@@ -46,6 +46,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.snyk.store');
     Route::post('settings/integrations/azure-devops', [IntegrationController::class, 'storeAzureDevOps'])
         ->name('settings.integrations.azure-devops.store');
+    Route::post('settings/integrations/sarif', [IntegrationController::class, 'storeSarif'])
+        ->name('settings.integrations.sarif.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
     Route::put(

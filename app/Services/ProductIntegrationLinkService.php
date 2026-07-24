@@ -118,6 +118,39 @@ class ProductIntegrationLinkService
         return $this->linkForProduct($product, IntegrationProvider::AzureDevops);
     }
 
+    public function sarifLinkForProduct(Product $product): ?ProductIntegrationLink
+    {
+        return $this->linkForProduct($product, IntegrationProvider::Sarif);
+    }
+
+    public function ensureSarifLink(Product $product, User $actor): ProductIntegrationLink
+    {
+        $existing = $this->sarifLinkForProduct($product);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $integration = $this->activeIntegration(
+            $product->organization_id,
+            IntegrationProvider::Sarif,
+            'file',
+        );
+
+        return $this->upsertLink(
+            product: $product,
+            integration: $integration,
+            actor: $actor,
+            attributes: [
+                'external_project_key' => null,
+                'external_target_id' => null,
+                'external_label' => 'SARIF uploads',
+                'config' => [
+                    'source' => 'upload',
+                ],
+            ],
+        );
+    }
+
     public function linkForProvider(Product $product, IntegrationProvider $provider): ?ProductIntegrationLink
     {
         return $this->linkForProduct($product, $provider);
@@ -172,6 +205,22 @@ class ProductIntegrationLinkService
     }
 
     /**
+     * @return array{
+     *     id: int,
+     *     provider: string,
+     *     external_project_key: string|null,
+     *     external_target_id: string|null,
+     *     external_label: string|null,
+     *     last_synced_at: string|null,
+     *     last_sync_summary: array<string, mixed>|null
+     * }|null
+     */
+    public function sarifPayload(?ProductIntegrationLink $link): ?array
+    {
+        return $this->linkPayload($link);
+    }
+
+    /**
      * @return array{connected: bool, label: string|null, status: string|null}|null
      */
     public function jiraIntegrationOption(Organization $organization): ?array
@@ -193,6 +242,14 @@ class ProductIntegrationLinkService
     public function azureDevOpsIntegrationOption(Organization $organization): ?array
     {
         return $this->integrationOption($organization, IntegrationProvider::AzureDevops);
+    }
+
+    /**
+     * @return array{connected: bool, label: string|null, status: string|null}|null
+     */
+    public function sarifIntegrationOption(Organization $organization): ?array
+    {
+        return $this->integrationOption($organization, IntegrationProvider::Sarif);
     }
 
     /**
@@ -310,6 +367,7 @@ class ProductIntegrationLinkService
             $messageKey = match ($provider) {
                 IntegrationProvider::Snyk => 'products.integrations.snyk_not_connected',
                 IntegrationProvider::AzureDevops => 'products.integrations.azure_devops_not_connected',
+                IntegrationProvider::Sarif => 'products.integrations.sarif_not_connected',
                 default => 'products.integrations.jira_not_connected',
             };
 

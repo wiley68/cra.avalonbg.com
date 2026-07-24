@@ -18,7 +18,8 @@ class ScannerSyncService
     public function __construct(
         private readonly ImportSuggestionService $suggestions,
         private readonly EvidenceService $evidence,
-    ) {}
+    ) {
+    }
 
     public function sync(ProductIntegrationLink $link, ?User $actor = null): IntegrationSyncRun
     {
@@ -32,6 +33,12 @@ class ScannerSyncService
         ]);
 
         try {
+            if ($link->integration->provider === IntegrationProvider::Sarif) {
+                throw new \RuntimeException(
+                    Translations::get('products.integrations.sarif.upload_only'),
+                );
+            }
+
             if ($link->integration->provider !== IntegrationProvider::Snyk) {
                 throw new \RuntimeException(
                     Translations::get('products.integrations.snyk_sync_not_implemented'),
@@ -79,10 +86,10 @@ class ScannerSyncService
             $snapshot = $this->evidence->createIntegrationSnapshot(
                 product: $link->product,
                 snapshot: $summary,
-                title: 'Snyk sync — '.($link->external_label ?: $projectId).' — '.now()->format('Y-m-d H:i'),
-                source: 'snyk:'.$orgId.'/'.$projectId,
+                title: 'Snyk sync — ' . ($link->external_label ?: $projectId) . ' — ' . now()->format('Y-m-d H:i'),
+                source: 'snyk:' . $orgId . '/' . $projectId,
                 uploader: $actor,
-                notes: 'Auto-created from integration sync run #'.$run->id,
+                notes: 'Auto-created from integration sync run #' . $run->id,
                 filenamePrefix: 'snyk-sync',
             );
 

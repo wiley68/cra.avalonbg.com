@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.15  
+**Версия:** 0.16  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should Done; Could 13 Done; Could 14–18 open
+**Статус:** Active — Must Done; Should Done; Could 13–14 Done; Could 15–18 open
 
 **Родителски документи:**
 
@@ -62,17 +62,17 @@
 
 ### Кандидати от Nachalen §7 — покритие в 2.8
 
-| Кандидат                 | Phase 2.8                                   |
-| ------------------------ | ------------------------------------------- |
-| Jira                     | **Must**                                    |
-| Snyk                     | **Must**                                    |
-| Azure DevOps             | **Should 11** (втори ALM)                   |
-| Trivy / SARIF            | **Could 14**                                |
-| Renovate / Dependabot+   | **Could 13** (depth beyond 2.1 suggestions) |
-| SonarQube                | **Could 14** (или Phase 2.9)                |
-| Container registries     | Out / Phase 2.9                             |
-| Customer support systems | **Could 15** (light link only)              |
-| OWASP Dependency-Check   | Out / Phase 2.9 (overlap with Snyk/Trivy)   |
+| Кандидат                 | Phase 2.8                                       |
+| ------------------------ | ----------------------------------------------- |
+| Jira                     | **Must**                                        |
+| Snyk                     | **Must**                                        |
+| Azure DevOps             | **Should 11** (втори ALM)                       |
+| Trivy / SARIF            | **Could 14 Done** (SARIF upload)                |
+| Renovate / Dependabot+   | **Could 13 Done**                               |
+| SonarQube                | Covered via SARIF upload in Could 14; API later |
+| Container registries     | Out / Phase 2.9                                 |
+| Customer support systems | **Could 15** (light link only)                  |
+| OWASP Dependency-Check   | Out / Phase 2.9 (overlap with Snyk/Trivy)       |
 
 ---
 
@@ -251,7 +251,7 @@ POST   /api/webhooks/snyk/{integration}
 ### Could
 
 13. ~~Renovate / deeper Dependabot campaign links (beyond 2.1 alert suggestions)~~ **Done** (2026-07-24)
-14. Trivy / SARIF (или SonarQube) scanner adapter via uploaded/CI artifact **или** API
+14. ~~Trivy / SARIF (или SonarQube) scanner adapter via uploaded/CI artifact **или** API~~ **Done** (2026-07-24) — SARIF upload (Trivy / SonarQube SARIF export); no Sonar API yet
 15. Customer support system light link (external ticket URL on incident/vuln — ≠ deployments rewrite)
 16. AI triage summary for imported findings (human review; no auto-accept)
 17. Org-level integrations health index (DataTable: provider, status, last sync, errors)
@@ -331,6 +331,7 @@ Reuse:
 | Readiness            | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done**       |
 | Azure DevOps         | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**            |
 | Dependabot+/Renovate | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done** |
+| SARIF / Trivy        | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                  |
 
 ---
 
@@ -338,6 +339,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                          |
 | ------ | ---------- | -------------------------------------------------------------------------------- |
+| 0.16   | 2026-07-24 | Could 14 Done — SARIF/Trivy artifact upload → vulnerability suggestions          |
 | 0.15   | 2026-07-24 | Could 13 Done — Dependabot/Renovate PR links + remediation_pr_url + campaign CTA |
 | 0.14   | 2026-07-24 | Should 12 Done — operator runbook (secrets, scopes, rate limits, threat model)   |
 | 0.13   | 2026-07-24 | Should 11 Done — Azure DevOps ALM (PAT) work items → task suggestions            |

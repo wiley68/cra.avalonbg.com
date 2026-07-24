@@ -10,6 +10,7 @@ use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreJiraIntegrationRequest;
+use App\Http\Requests\Settings\StoreSarifIntegrationRequest;
 use App\Http\Requests\Settings\StoreSnykIntegrationRequest;
 use App\Http\Requests\Settings\UpdateIntegrationSyncScheduleRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
@@ -28,7 +29,8 @@ class IntegrationController extends Controller
     public function __construct(
         private readonly VcsConnectionService $connections,
         private readonly IntegrationConnectionService $integrations,
-    ) {}
+    ) {
+    }
 
     public function edit(Request $request): Response
     {
@@ -39,7 +41,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization) && ! $user->canViewProducts($organization)) {
+        if (!$user->canManageProducts($organization) && !$user->canViewProducts($organization)) {
             abort(403);
         }
 
@@ -47,7 +49,7 @@ class IntegrationController extends Controller
             ->where('organization_id', $organization->id)
             ->orderBy('provider')
             ->get()
-            ->map(fn (OrganizationVcsConnection $connection): array => [
+            ->map(fn(OrganizationVcsConnection $connection): array => [
                 'id' => $connection->id,
                 'provider' => $connection->provider->value,
                 'auth_type' => $connection->auth_type->value,
@@ -67,7 +69,7 @@ class IntegrationController extends Controller
             ->where('organization_id', $organization->id)
             ->orderBy('provider')
             ->get()
-            ->map(fn (OrganizationIntegration $integration): array => [
+            ->map(fn(OrganizationIntegration $integration): array => [
                 'id' => $integration->id,
                 'provider' => $integration->provider->value,
                 'category' => $integration->category->value,
@@ -249,6 +251,28 @@ class IntegrationController extends Controller
         return back();
     }
 
+    public function storeSarif(StoreSarifIntegrationRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->integrations->storeSarif(
+            organization: $organization,
+            actor: $request->user(),
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.sarif_connected'),
+        ]);
+
+        return back();
+    }
+
     public function updateSyncSchedule(
         UpdateVcsConnectionSyncScheduleRequest $request,
         OrganizationVcsConnection $connection,
@@ -296,7 +320,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization)) {
+        if (!$user->canManageProducts($organization)) {
             abort(403);
         }
 
@@ -321,7 +345,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization)) {
+        if (!$user->canManageProducts($organization)) {
             abort(403);
         }
 
@@ -346,7 +370,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (! $user->canManageProducts($organization)) {
+        if (!$user->canManageProducts($organization)) {
             abort(403);
         }
 

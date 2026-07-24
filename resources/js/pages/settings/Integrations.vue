@@ -110,6 +110,10 @@ const azureDevOpsForm = useForm({
     label: 'Azure DevOps',
 });
 
+const sarifForm = useForm({
+    label: 'SARIF / Trivy',
+});
+
 const scheduleForm = useForm({
     sync_schedule: 'off',
 });
@@ -166,8 +170,12 @@ const azureDevOpsIntegration = computed(() =>
     ),
 );
 
+const sarifIntegration = computed(() =>
+    props.integrations.find((integration) => integration.provider === 'sarif'),
+);
+
 const defaultTab = ():
-    'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk' => {
+    'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk' | 'sarif' => {
     if (props.revealed_webhook_secret) {
         return 'github';
     }
@@ -176,6 +184,18 @@ const defaultTab = ():
         !githubConnection.value &&
         !gitlabConnection.value &&
         !jiraIntegration.value &&
+        !azureDevOpsIntegration.value &&
+        !snykIntegration.value &&
+        sarifIntegration.value
+    ) {
+        return 'sarif';
+    }
+
+    if (
+        !githubConnection.value &&
+        !gitlabConnection.value &&
+        !jiraIntegration.value &&
+        !azureDevOpsIntegration.value &&
         snykIntegration.value
     ) {
         return 'snyk';
@@ -196,9 +216,9 @@ const defaultTab = ():
     return 'github';
 };
 
-const activeTab = ref<'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk'>(
-    defaultTab(),
-);
+const activeTab = ref<
+    'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk' | 'sarif'
+>(defaultTab());
 
 watch(
     () => props.revealed_webhook_secret,
@@ -320,6 +340,12 @@ const connectAzureDevOps = () => {
     azureDevOpsForm.post(IntegrationController.storeAzureDevOps.url(), {
         preserveScroll: true,
         onSuccess: () => azureDevOpsForm.reset('pat'),
+    });
+};
+
+const connectSarif = () => {
+    sarifForm.post(IntegrationController.storeSarif.url(), {
+        preserveScroll: true,
     });
 };
 
@@ -487,7 +513,8 @@ const confirmDisconnect = () => {
                 gitlabConnection ||
                 jiraIntegration ||
                 azureDevOpsIntegration ||
-                snykIntegration
+                snykIntegration ||
+                sarifIntegration
             "
             v-model="activeTab"
             class="gap-6"
@@ -507,6 +534,9 @@ const confirmDisconnect = () => {
                 </TabsTrigger>
                 <TabsTrigger value="snyk" class="flex-1 sm:flex-none">
                     {{ t('settings.integrations.snyk') }}
+                </TabsTrigger>
+                <TabsTrigger value="sarif" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.sarif') }}
                 </TabsTrigger>
             </TabsList>
 
@@ -2072,6 +2102,114 @@ const confirmDisconnect = () => {
 
                 <p
                     v-else-if="!snykIntegration"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+
+            <TabsContent value="sarif" class="space-y-6">
+                <div
+                    v-if="sarifIntegration"
+                    class="space-y-4 rounded-lg border p-4"
+                    data-test="sarif-integration-card"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <p class="font-medium">
+                                {{
+                                    sarifIntegration.label ||
+                                    t('settings.integrations.sarif')
+                                }}
+                            </p>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t('settings.integrations.auth_methods.none')
+                                }}
+                            </p>
+                            <p
+                                v-if="sarifIntegration.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        sarifIntegration.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'integration',
+                                    id: sarifIntegration.id,
+                                }
+                            "
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-if="canManage" class="space-y-4 rounded-lg border p-4">
+                    <div>
+                        <h3 class="font-medium">
+                            {{
+                                sarifIntegration
+                                    ? t(
+                                          'settings.integrations.update_sarif_title',
+                                      )
+                                    : t(
+                                          'settings.integrations.connect_sarif_title',
+                                      )
+                            }}
+                        </h3>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'settings.integrations.connect_sarif_description',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <form
+                        class="space-y-3"
+                        data-test="sarif-enable-form"
+                        @submit.prevent="connectSarif"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="sarif_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="sarif_label"
+                                v-model="sarifForm.label"
+                                :placeholder="t('settings.integrations.sarif')"
+                            />
+                            <InputError :message="sarifForm.errors.label" />
+                        </div>
+                        <Button
+                            type="submit"
+                            :disabled="sarifForm.processing"
+                            data-test="enable-sarif-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                sarifIntegration
+                                    ? t('common.save')
+                                    : t('settings.integrations.enable_sarif')
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!sarifIntegration"
                     class="text-sm text-muted-foreground"
                 >
                     {{ t('settings.integrations.provider_not_connected') }}

@@ -918,7 +918,8 @@
             "repository": "Хранилище",
             "jira": "Jira",
             "azure_devops": "Azure DevOps",
-            "snyk": "Snyk"
+            "snyk": "Snyk",
+            "sarif": "SARIF / Trivy"
         },
         "integrations": {
             "jira_not_connected": "Свържете Jira Cloud в Настройки → Интеграции, преди да свържете проект.",
@@ -933,6 +934,7 @@
             "snyk_project_fetch_failed": "Неуспешно зареждане на Snyk проекта. Проверете org/project ID и credentials.",
             "snyk_findings_fetch_failed": "Неуспешно зареждане на Snyk findings за този проект.",
             "snyk_findings_scope_denied": "Snyk отказа достъп до findings за този проект (липсващи права, проектът не е намерен или rate limit). Синхронизацията завърши без импорт на findings.",
+            "sarif_not_connected": "Активирайте SARIF / Trivy uploads в Настройки → Интеграции преди да импортирате scan.",
             "suggestion_not_pending": "Това предложение за импорт вече не е в изчакване.",
             "unsupported_suggestion_kind": "Този тип предложение за импорт не се поддържа.",
             "jira_provider_mismatch": "Интеграцията не е Jira връзка.",
@@ -1027,6 +1029,33 @@
                 "sync_error": "Грешка при синхронизация",
                 "sync_warning": "Предупреждение при синхронизация",
                 "evidence": "Снимка на evidence"
+            },
+            "sarif": {
+                "file": "SARIF файл",
+                "file_help": "Качете SARIF 2.1.0 JSON export (Trivy, SonarQube SARIF, GitHub code scanning, …).",
+                "upload": "Качи SARIF",
+                "unlink": "Премахни връзката",
+                "unlink_confirm_title": "Премахване на SARIF uploads?",
+                "unlink_confirm": "Продуктът вече няма да приема SARIF uploads за тази връзка. Pending suggestions остават до dismiss.",
+                "no_connection": "Активирайте SARIF / Trivy в Настройки → Интеграции преди да качвате scans.",
+                "open_integrations": "Отвори интеграции",
+                "unlinked": "SARIF връзката е премахната.",
+                "import_succeeded": "SARIF импортът завърши.",
+                "import_partial": "SARIF импортът завърши с предупреждение. Проверете детайлите.",
+                "import_failed": "SARIF импортът не успя. Проверете детайлите.",
+                "upload_only": "SARIF не поддържа Sync now — качете SARIF артефакт вместо това.",
+                "last_imported": "Последен импорт",
+                "findings": "Находки",
+                "pending_vulnerabilities": "Чакащи предложения за уязвимости",
+                "matched_components": "Предложения със съвпадение в SBOM",
+                "import_error": "Грешка при импорт",
+                "import_warning": "Предупреждение при импорт",
+                "evidence": "Снимка на evidence",
+                "raw_evidence": "Суров scan evidence",
+                "tool": "Инструмент",
+                "invalid_empty": "Каченият SARIF файл е празен.",
+                "invalid_json": "Каченият файл не е валиден JSON.",
+                "invalid_schema": "Каченият файл не е валиден SARIF документ (липсват runs)."
             },
             "suggestions": {
                 "title": "Предложения за импорт",
@@ -3752,6 +3781,11 @@
             "connect_snyk_title": "Свързване със Snyk",
             "update_snyk_title": "Обновяване на Snyk връзката",
             "connect_snyk_description": "Използвайте Snyk API token (Enterprise). Токенът се съхранява криптиран и не се показва отново.",
+            "sarif_connected": "SARIF / Trivy uploads са активирани.",
+            "connect_sarif_title": "Активиране на SARIF / Trivy uploads",
+            "update_sarif_title": "SARIF / Trivy uploads",
+            "connect_sarif_description": "Позволете на продуктите да импортират vulnerability findings от SARIF артефакти (Trivy, SonarQube SARIF export, CI scanners). Не е нужен API token.",
+            "enable_sarif": "Активирай SARIF uploads",
             "azure_devops_connected": "Azure DevOps е свързан.",
             "azure_devops_credentials_invalid": "Azure DevOps отхвърли тези credentials. Проверете името на организацията и PAT.",
             "connect_azure_devops_title": "Свързване с Azure DevOps",
@@ -3768,7 +3802,8 @@
             "auth_methods": {
                 "pat": "Personal access token",
                 "github_app": "GitHub App",
-                "api_token": "API token"
+                "api_token": "API token",
+                "none": "Без API token — само качване на артефакти"
             },
             "auth_type_label": "Удостоверяване",
             "label": "Етикет",

@@ -918,7 +918,8 @@
             "repository": "Repository",
             "jira": "Jira",
             "azure_devops": "Azure DevOps",
-            "snyk": "Snyk"
+            "snyk": "Snyk",
+            "sarif": "SARIF / Trivy"
         },
         "integrations": {
             "jira_not_connected": "Connect Jira Cloud in Settings → Integrations before linking a project.",
@@ -933,6 +934,7 @@
             "snyk_project_fetch_failed": "Could not fetch the Snyk project. Check the org/project IDs and credentials.",
             "snyk_findings_fetch_failed": "Could not fetch Snyk findings for this project.",
             "snyk_findings_scope_denied": "Snyk denied access to findings for this project (missing permissions, project not found, or rate limited). Sync completed without importing findings.",
+            "sarif_not_connected": "Enable SARIF / Trivy uploads in Settings → Integrations before importing a scan.",
             "suggestion_not_pending": "This import suggestion is not pending.",
             "unsupported_suggestion_kind": "This import suggestion type is not supported.",
             "jira_provider_mismatch": "The integration is not a Jira connection.",
@@ -1027,6 +1029,33 @@
                 "sync_error": "Sync error",
                 "sync_warning": "Sync warning",
                 "evidence": "Evidence snapshot"
+            },
+            "sarif": {
+                "file": "SARIF file",
+                "file_help": "Upload a SARIF 2.1.0 JSON export (Trivy, SonarQube SARIF, GitHub code scanning, …).",
+                "upload": "Upload SARIF",
+                "unlink": "Unlink",
+                "unlink_confirm_title": "Unlink SARIF uploads?",
+                "unlink_confirm": "The product will no longer accept SARIF uploads on this link. Pending suggestions remain until dismissed.",
+                "no_connection": "Enable SARIF / Trivy in Settings → Integrations before uploading scans.",
+                "open_integrations": "Open integrations",
+                "unlinked": "SARIF link removed.",
+                "import_succeeded": "SARIF import completed.",
+                "import_partial": "SARIF import completed with a warning. Check the last import details.",
+                "import_failed": "SARIF import failed. Check the last import details.",
+                "upload_only": "SARIF does not support Sync now — upload a SARIF artifact instead.",
+                "last_imported": "Last imported",
+                "findings": "Findings",
+                "pending_vulnerabilities": "Pending vulnerability suggestions",
+                "matched_components": "Suggestions matched to SBOM",
+                "import_error": "Import error",
+                "import_warning": "Import warning",
+                "evidence": "Evidence snapshot",
+                "raw_evidence": "Raw scan evidence",
+                "tool": "Tool",
+                "invalid_empty": "The uploaded SARIF file is empty.",
+                "invalid_json": "The uploaded file is not valid JSON.",
+                "invalid_schema": "The uploaded file is not a valid SARIF document (missing runs)."
             },
             "suggestions": {
                 "title": "Import suggestions",
@@ -3736,12 +3765,13 @@
         "integrations": {
             "title": "Integrations",
             "heading": "Integrations",
-            "description": "Connect GitHub, GitLab, Jira, or Snyk so products can sync evidence and import findings.",
+            "description": "Connect GitHub, GitLab, Jira, Azure DevOps, Snyk, or SARIF uploads so products can sync evidence and import findings.",
             "github": "GitHub",
             "gitlab": "GitLab",
             "jira": "Jira",
             "azure_devops": "Azure DevOps",
             "snyk": "Snyk",
+            "sarif": "SARIF / Trivy",
             "connect_github_title": "Connect GitHub",
             "update_github_title": "Update GitHub connection",
             "connect_github_description": "Connect with a personal access token or a GitHub App installation. Credentials are stored encrypted and never shown again.",
@@ -3754,6 +3784,11 @@
             "connect_snyk_title": "Connect Snyk",
             "update_snyk_title": "Update Snyk connection",
             "connect_snyk_description": "Use a Snyk API token (Enterprise). The token is stored encrypted and never shown again.",
+            "sarif_connected": "SARIF / Trivy uploads enabled.",
+            "connect_sarif_title": "Enable SARIF / Trivy uploads",
+            "update_sarif_title": "SARIF / Trivy uploads",
+            "connect_sarif_description": "Allow products to import vulnerability findings from SARIF artifacts (Trivy, SonarQube SARIF export, CI scanners). No API token is required.",
+            "enable_sarif": "Enable SARIF uploads",
             "azure_devops_connected": "Azure DevOps connected.",
             "azure_devops_credentials_invalid": "Azure DevOps rejected these credentials. Check the organization name and PAT.",
             "connect_azure_devops_title": "Connect Azure DevOps",
@@ -3770,7 +3805,8 @@
             "auth_methods": {
                 "pat": "Personal access token",
                 "github_app": "GitHub App",
-                "api_token": "API token"
+                "api_token": "API token",
+                "none": "No API token — artifact upload only"
             },
             "auth_type_label": "Auth",
             "label": "Label",

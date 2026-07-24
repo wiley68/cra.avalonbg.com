@@ -28,7 +28,8 @@ class ImportSuggestionService
         private readonly TaskService $tasks,
         private readonly ProductVulnerabilityService $vulnerabilities,
         private readonly ComponentMatchService $componentMatcher,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  list<array{
@@ -69,7 +70,7 @@ class ImportSuggestionService
             }
 
             $payload = [
-                'title' => mb_substr($key.': '.$title, 0, 255),
+                'title' => mb_substr($key . ': ' . $title, 0, 255),
                 'summary' => $issue['summary'] ?? null,
                 'issue_key' => $key,
                 'issue_type' => $issue['issue_type'] ?? null,
@@ -166,8 +167,8 @@ class ImportSuggestionService
                 ? $finding['package_purl']
                 : null;
 
-            if ($packageName !== null && $packageName !== '' && ! str_contains($title, $packageName)) {
-                $title = mb_substr($packageName.': '.$title, 0, 255);
+            if ($packageName !== null && $packageName !== '' && !str_contains($title, $packageName)) {
+                $title = mb_substr($packageName . ': ' . $title, 0, 255);
             } else {
                 $title = mb_substr($title !== '' ? $title : $externalId, 0, 255);
             }
@@ -252,6 +253,7 @@ class ImportSuggestionService
         return ImportSuggestion::query()
             ->where('product_id', $productId)
             ->where('status', ImportSuggestionStatus::Pending)
+            ->with(['link.integration'])
             ->orderByDesc('id')
             ->get()
             ->map(function (ImportSuggestion $suggestion): array {
@@ -259,7 +261,7 @@ class ImportSuggestionService
                 $matchedComponents = [];
                 if (is_array($payload['matched_components'] ?? null)) {
                     foreach ($payload['matched_components'] as $row) {
-                        if (! is_array($row) || ! isset($row['id'])) {
+                        if (!is_array($row) || !isset($row['id'])) {
                             continue;
                         }
 
@@ -275,6 +277,7 @@ class ImportSuggestionService
                 return [
                     'id' => $suggestion->id,
                     'kind' => $suggestion->kind->value,
+                    'provider' => $suggestion->link?->integration?->provider?->value,
                     'external_id' => $suggestion->external_id,
                     'title' => $suggestion->title !== ''
                         ? $suggestion->title
@@ -378,11 +381,11 @@ class ImportSuggestionService
             : 'Jira issue';
 
         $descriptionLines = [
-            'Imported from '.$sourceLabel.' '.$issueKey.'.',
+            'Imported from ' . $sourceLabel . ' ' . $issueKey . '.',
         ];
 
         if ($htmlUrl !== null) {
-            $descriptionLines[] = 'URL: '.$htmlUrl;
+            $descriptionLines[] = 'URL: ' . $htmlUrl;
         }
 
         if ($summary !== null && $summary !== '') {
@@ -427,15 +430,15 @@ class ImportSuggestionService
 
         $notes = [];
         if (isset($payload['snyk_issue_key']) && is_string($payload['snyk_issue_key'])) {
-            $notes[] = 'Snyk: '.$payload['snyk_issue_key'];
+            $notes[] = 'Snyk: ' . $payload['snyk_issue_key'];
         }
         if (isset($payload['package_name']) && is_string($payload['package_name'])) {
-            $notes[] = 'Package: '.$payload['package_name'];
+            $notes[] = 'Package: ' . $payload['package_name'];
         }
         if (isset($payload['package_ecosystem']) && is_string($payload['package_ecosystem'])) {
-            $notes[] = 'Ecosystem: '.$payload['package_ecosystem'];
+            $notes[] = 'Ecosystem: ' . $payload['package_ecosystem'];
         }
-        $notes[] = 'Imported from integration suggestion #'.$suggestion->id;
+        $notes[] = 'Imported from integration suggestion #' . $suggestion->id;
 
         $cvss = null;
         if (isset($payload['cvss_score']) && is_numeric($payload['cvss_score'])) {
@@ -462,12 +465,12 @@ class ImportSuggestionService
         if ($componentIds === [] && is_array($payload['matched_component_ids'] ?? null)) {
             $componentIds = array_values(array_filter(
                 array_map('intval', $payload['matched_component_ids']),
-                static fn (int $id): bool => $id > 0,
+                static fn(int $id): bool => $id > 0,
             ));
         }
 
         if ($componentIds !== []) {
-            $notes[] = 'Linked SBOM components: '.implode(', ', $componentIds);
+            $notes[] = 'Linked SBOM components: ' . implode(', ', $componentIds);
         }
 
         return $this->vulnerabilities->create(
@@ -500,7 +503,7 @@ class ImportSuggestionService
 
     private function mapPriority(mixed $priority): TaskPriority
     {
-        if (! is_string($priority) || $priority === '') {
+        if (!is_string($priority) || $priority === '') {
             return TaskPriority::Medium;
         }
 
@@ -520,7 +523,7 @@ class ImportSuggestionService
 
     private function mapSeverity(mixed $severity): VulnerabilityBusinessSeverity
     {
-        if (! is_string($severity) || $severity === '') {
+        if (!is_string($severity) || $severity === '') {
             return VulnerabilityBusinessSeverity::Medium;
         }
 

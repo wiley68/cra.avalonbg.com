@@ -11,6 +11,7 @@ import {
     Ticket,
     Trash2,
     Shield,
+    Upload,
     X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -52,6 +53,7 @@ import {
     sync as syncIntegration,
     update as updateIntegration,
 } from '@/routes/products/integrations';
+import { upload as uploadSarif } from '@/routes/products/integrations/sarif';
 import {
     accept as acceptImportSuggestion,
     dismiss as dismissImportSuggestion,
@@ -240,6 +242,7 @@ type SnykLinkPayload = {
         pending_vulnerability_suggestions?: number;
         vulnerability_suggestions_upserted?: number;
         suggestions_with_component_matches?: number;
+        tool_name?: string | null;
         evidence_id?: number;
         evidence_checksum_sha256?: string | null;
         error?: string;
@@ -251,6 +254,7 @@ type SnykLinkPayload = {
 type ImportSuggestionPayload = {
     id: number;
     kind: 'task' | 'vulnerability' | string;
+    provider?: string | null;
     external_id: string;
     title: string;
     summary: string | null;
@@ -289,6 +293,8 @@ const props = defineProps<{
     azure_devops_link?: AzureDevOpsLinkPayload | null;
     snyk_integration?: SnykIntegrationOption | null;
     snyk_link?: SnykLinkPayload | null;
+    sarif_integration?: SnykIntegrationOption | null;
+    sarif_link?: SnykLinkPayload | null;
     import_suggestions?: ImportSuggestionPayload[];
 }>();
 
@@ -307,10 +313,12 @@ const showUnlinkRepositoryDialog = ref(false);
 const showUnlinkJiraDialog = ref(false);
 const showUnlinkAzureDevOpsDialog = ref(false);
 const showUnlinkSnykDialog = ref(false);
+const showUnlinkSarifDialog = ref(false);
 const syncingRepository = ref(false);
 const syncingJira = ref(false);
 const syncingAzureDevOps = ref(false);
 const syncingSnyk = ref(false);
+const uploadingSarif = ref(false);
 const suggestionActionId = ref<number | null>(null);
 const importSuggestionActionId = ref<number | null>(null);
 
@@ -328,7 +336,16 @@ const pendingAzureDevOpsSuggestions = computed(() =>
 );
 const pendingSnykSuggestions = computed(() =>
     pendingImportSuggestions.value.filter(
-        (suggestion) => suggestion.kind === 'vulnerability',
+        (suggestion) =>
+            suggestion.kind === 'vulnerability' &&
+            suggestion.provider !== 'sarif',
+    ),
+);
+const pendingSarifSuggestions = computed(() =>
+    pendingImportSuggestions.value.filter(
+        (suggestion) =>
+            suggestion.kind === 'vulnerability' &&
+            suggestion.provider === 'sarif',
     ),
 );
 
@@ -351,6 +368,10 @@ const snykForm = useForm({
     project_id: props.snyk_link?.external_target_id ?? '',
 });
 
+const sarifForm = useForm({
+    file: null as File | null,
+});
+
 const activeVcsConnections = computed(() =>
     (props.vcs_connections ?? []).filter(
         (connection) => connection.status === 'active',
@@ -367,6 +388,10 @@ const hasAzureDevOpsConnection = computed(
 
 const snykConnected = computed(
     () => props.snyk_integration?.connected === true,
+);
+
+const sarifConnected = computed(
+    () => props.sarif_integration?.connected === true,
 );
 
 const linkRepository = () => {
@@ -564,6 +589,42 @@ const confirmUnlinkSnyk = () => {
                 showUnlinkSnykDialog.value = false;
                 snykForm.org_id = '';
                 snykForm.project_id = '';
+            },
+        },
+    );
+};
+
+const onSarifFileChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    sarifForm.file = input.files?.[0] ?? null;
+};
+
+const uploadSarifFile = () => {
+    if (!sarifForm.file) {
+        return;
+    }
+
+    uploadingSarif.value = true;
+    sarifForm.post(uploadSarif.url(props.product.id), {
+        forceFormData: true,
+        preserveScroll: true,
+        onFinish: () => {
+            uploadingSarif.value = false;
+            sarifForm.reset('file');
+        },
+    });
+};
+
+const confirmUnlinkSarif = () => {
+    router.delete(
+        destroyIntegration.url({
+            product: props.product.id,
+            provider: 'sarif',
+        }),
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                showUnlinkSarifDialog.value = false;
             },
         },
     );
@@ -2679,6 +2740,266 @@ const textareaClass =
             </form>
         </section>
 
+        <section
+            class="space-y-4 rounded-lg border p-6"
+            data-test="sarif-section"
+        >
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('products.sections.sarif') }}
+            </h2>
+
+            <div v-if="sarif_link" class="space-y-3 rounded-lg border p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 font-medium">
+                            <Shield class="h-4 w-4" />
+                            <span>
+                                {{
+                                    sarif_link.external_label ||
+                                    t('products.sections.sarif')
+                                }}
+                            </span>
+                        </div>
+                        <p
+                            v-if="sarif_link.last_synced_at"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{
+                                t('products.integrations.sarif.last_imported')
+                            }}:
+                            {{
+                                new Date(
+                                    sarif_link.last_synced_at,
+                                ).toLocaleString()
+                            }}
+                        </p>
+                        <div
+                            v-if="sarif_link.last_sync_summary"
+                            class="space-y-1 text-sm text-muted-foreground"
+                        >
+                            <p
+                                v-if="
+                                    sarif_link.last_sync_summary.last_error ||
+                                    sarif_link.last_sync_summary.error
+                                "
+                            >
+                                {{
+                                    sarif_link.last_sync_summary.soft_fail
+                                        ? t(
+                                              'products.integrations.sarif.import_warning',
+                                          )
+                                        : t(
+                                              'products.integrations.sarif.import_error',
+                                          )
+                                }}:
+                                {{
+                                    sarif_link.last_sync_summary.last_error ||
+                                    sarif_link.last_sync_summary.error
+                                }}
+                            </p>
+                            <template
+                                v-if="!sarif_link.last_sync_summary.error"
+                            >
+                                <p
+                                    v-if="
+                                        sarif_link.last_sync_summary.tool_name
+                                    "
+                                >
+                                    {{ t('products.integrations.sarif.tool') }}:
+                                    {{ sarif_link.last_sync_summary.tool_name }}
+                                </p>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.sarif.findings',
+                                        )
+                                    }}:
+                                    {{
+                                        sarif_link.last_sync_summary
+                                            .findings_count ?? 0
+                                    }}
+                                </p>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.sarif.pending_vulnerabilities',
+                                        )
+                                    }}:
+                                    {{
+                                        sarif_link.last_sync_summary
+                                            .pending_vulnerability_suggestions ??
+                                        0
+                                    }}
+                                </p>
+                            </template>
+                        </div>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        @click="showUnlinkSarifDialog = true"
+                    >
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('products.integrations.sarif.unlink') }}
+                    </Button>
+                </div>
+
+                <div
+                    v-if="pendingSarifSuggestions.length > 0"
+                    class="space-y-3 border-t pt-3"
+                    data-test="sarif-import-suggestions"
+                >
+                    <h3 class="text-sm font-medium">
+                        {{ t('products.integrations.suggestions.title') }}
+                        <span class="text-muted-foreground">
+                            ({{ pendingSarifSuggestions.length }})
+                        </span>
+                    </h3>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="suggestion in pendingSarifSuggestions"
+                            :key="suggestion.id"
+                            class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="rounded bg-muted px-1.5 py-0.5 text-xs font-medium"
+                                    >
+                                        {{
+                                            importSuggestionKindLabel(
+                                                suggestion.kind,
+                                            )
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.severity"
+                                        class="text-xs text-muted-foreground uppercase"
+                                    >
+                                        {{ suggestion.severity }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.cve_id"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.cve_id }}
+                                    </span>
+                                </div>
+                                <p class="font-medium">
+                                    {{ suggestion.title }}
+                                </p>
+                                <p
+                                    v-if="suggestion.summary"
+                                    class="line-clamp-2 text-sm text-muted-foreground"
+                                >
+                                    {{ suggestion.summary }}
+                                </p>
+                                <p
+                                    v-if="suggestion.package_name"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ suggestion.package_name }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    @click="
+                                        acceptImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <Check class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.accept',
+                                        )
+                                    }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    @click="
+                                        dismissImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <X class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.dismiss',
+                                        )
+                                    }}
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                v-if="!sarifConnected"
+                class="space-y-2 text-sm text-muted-foreground"
+            >
+                <p>{{ t('products.integrations.sarif.no_connection') }}</p>
+                <Button type="button" variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{ t('products.integrations.sarif.open_integrations') }}
+                    </Link>
+                </Button>
+            </div>
+
+            <form
+                v-else
+                class="space-y-4"
+                data-test="sarif-upload-form"
+                @submit.prevent="uploadSarifFile"
+            >
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="sarif_file"
+                        :help="t('products.integrations.sarif.file_help')"
+                    >
+                        {{ t('products.integrations.sarif.file') }}
+                    </FieldLabel>
+                    <Input
+                        id="sarif_file"
+                        type="file"
+                        accept=".json,.sarif,application/json"
+                        data-test="sarif-file-input"
+                        @change="onSarifFileChange"
+                    />
+                    <InputError :message="sarifForm.errors.file" />
+                </div>
+                <Button
+                    type="submit"
+                    :disabled="
+                        sarifForm.processing ||
+                        uploadingSarif ||
+                        !sarifForm.file
+                    "
+                    data-test="upload-sarif-button"
+                >
+                    <Upload class="h-4 w-4" />
+                    {{ t('products.integrations.sarif.upload') }}
+                </Button>
+            </form>
+        </section>
+
         <AppAlertDialog
             v-model:open="showDeleteDialog"
             :title="t('common.delete_confirm_title')"
@@ -2720,6 +3041,14 @@ const textareaClass =
             :description="t('products.integrations.snyk.unlink_confirm')"
             :confirm-label="t('products.integrations.snyk.unlink')"
             @confirm="confirmUnlinkSnyk"
+        />
+
+        <AppAlertDialog
+            v-model:open="showUnlinkSarifDialog"
+            :title="t('products.integrations.sarif.unlink_confirm_title')"
+            :description="t('products.integrations.sarif.unlink_confirm')"
+            :confirm-label="t('products.integrations.sarif.unlink')"
+            @confirm="confirmUnlinkSarif"
         />
 
         <ScopeWizard

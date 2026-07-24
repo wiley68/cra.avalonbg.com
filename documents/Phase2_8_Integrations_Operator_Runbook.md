@@ -71,6 +71,16 @@ GitHub PAT / GitHub App / GitLab PAT — виж Phase 2.1. Schedule: `vcs:sync-s
 
 **Dependabot / Renovate depth (Could 13):** GitHub sync също чете open PRs от `dependabot[bot]` / `renovate[bot]`, линква ги към matching Dependabot alerts по package name и създава suggestions за unmatched Renovate PRs. Accept записва `remediation_pr_url` на vulnerability и redirect-ва към Edit с **Start patch campaign** CTA.
 
+### SARIF / Trivy (Could 14)
+
+| Поле    | Описание                                                                    |
+| ------- | --------------------------------------------------------------------------- |
+| Auth    | `none` — без API token                                                      |
+| Enable  | Settings → Integrations → SARIF / Trivy                                     |
+| Product | Upload SARIF 2.1.0 JSON (Trivy `--format sarif`, SonarQube SARIF export, …) |
+
+Import създава pending vulnerability suggestions (същият Accept/Dismiss gate като Snyk). Невалиден JSON/schema → soft-fail + `last_error`, без suggestions. Суровият файл се пази като evidence `vulnerability_scan`; summary → `integration_snapshot`.
+
 ---
 
 ## 3. Rate limits & soft-fail

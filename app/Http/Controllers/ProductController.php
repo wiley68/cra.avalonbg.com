@@ -33,7 +33,8 @@ class ProductController extends Controller
         private readonly VcsImportSuggestionService $vcsSuggestions,
         private readonly ProductIntegrationLinkService $integrationLinks,
         private readonly ImportSuggestionService $importSuggestions,
-    ) {}
+    ) {
+    }
 
     public function index(): Response
     {
@@ -72,8 +73,8 @@ class ProductController extends Controller
             'classification_reviewed_by' => $user->id,
         ]);
 
-        $openScopeWizard = ! $request->boolean('skip_scope_wizard');
-        $openClassificationWizard = ! $request->boolean('skip_classification_wizard');
+        $openScopeWizard = !$request->boolean('skip_scope_wizard');
+        $openClassificationWizard = !$request->boolean('skip_classification_wizard');
 
         if ($request->filled('scope_assessment.answers')) {
             $this->scopeAssessments->storeAndApply(
@@ -151,6 +152,10 @@ class ProductController extends Controller
             'azure_devops_integration' => $this->integrationLinks->azureDevOpsIntegrationOption($organization),
             'azure_devops_link' => $this->integrationLinks->azureDevOpsPayload(
                 $this->integrationLinks->azureDevOpsLinkForProduct($product),
+            ),
+            'sarif_integration' => $this->integrationLinks->sarifIntegrationOption($organization),
+            'sarif_link' => $this->integrationLinks->sarifPayload(
+                $this->integrationLinks->sarifLinkForProduct($product),
             ),
             'import_suggestions' => $this->importSuggestions->pendingPayloadForProduct($product->id),
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
@@ -257,7 +262,7 @@ class ProductController extends Controller
         return $organization->users()
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email'])
-            ->map(fn ($user) => [
+            ->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
