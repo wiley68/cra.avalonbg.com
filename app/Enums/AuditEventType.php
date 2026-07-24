@@ -113,6 +113,7 @@ enum AuditEventType: string
     case VcsSyncFailed = 'vcs_sync_failed';
     case MergedPrSummaryRefreshSucceeded = 'merged_pr_summary_refresh_succeeded';
     case MergedPrSummaryRefreshFailed = 'merged_pr_summary_refresh_failed';
+    case MergedPrSummarySavedAsEvidence = 'merged_pr_summary_saved_as_evidence';
     case VcsSuggestionAccepted = 'vcs_suggestion_accepted';
     case VcsSuggestionDismissed = 'vcs_suggestion_dismissed';
     case IntegrationConnected = 'integration_connected';

@@ -10,6 +10,7 @@ use App\Models\Evidence;
 use App\Models\OrgPolicy;
 use App\Models\Product;
 use App\Models\ProductRisk;
+use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
@@ -313,6 +314,85 @@ class EvidenceService
             'uploaded_by' => $uploader->id,
             'notes' => 'Published from user security instructions (locale: '
                 . $instruction->locale . ').',
+        ]);
+
+        AuditLogger::logEvidenceCreated($evidence, $uploader);
+
+        return $evidence;
+    }
+
+    /**
+     * Persist a merged PR/MR summary snapshot as Markdown evidence (type=document).
+     *
+     * @param  array{
+     *     provider: string|null,
+     *     repository_full_name: string|null,
+     *     window: array{from: string, to: string, mode: string, anchor_date: string|null},
+     *     count: int,
+     *     truncated: bool
+     * }  $summary
+     */
+    public function createFromMergedPrSummary(
+        Product $product,
+        ProductVersion $version,
+        User $uploader,
+        array $summary,
+        string $markdownBody,
+    ): Evidence {
+        if ($version->product_id !== $product->id) {
+            throw ValidationException::withMessages([
+                'product_version_id' => [Translations::get('products.versions.merged_prs.save_version_invalid')],
+            ]);
+        }
+
+        $safeVersion = preg_replace('/[^A-Za-z0-9._-]+/', '-', $version->version_number) ?: 'version';
+        $filename = sprintf(
+            'merged-prs-%s-%s-%s.md',
+            $safeVersion,
+            $summary['window']['from'],
+            $summary['window']['to'],
+        );
+        $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
+        $sourceToken = uniqid('', true);
+
+        Storage::disk('local')->put($storagePath, $markdownBody);
+
+        $provider = (string) ($summary['provider'] ?? 'unknown');
+        $repo = (string) ($summary['repository_full_name'] ?? '—');
+
+        $evidence = Evidence::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'product_version_id' => $version->id,
+            'type' => EvidenceType::Document,
+            'title' => sprintf(
+                'Merged PRs — %s (%s – %s)',
+                $version->version_number,
+                $summary['window']['from'],
+                $summary['window']['to'],
+            ),
+            'source' => sprintf(
+                'merged_pr_summary:version:%d:window:%s:%s:%s',
+                $version->id,
+                $summary['window']['from'],
+                $summary['window']['to'],
+                $sourceToken,
+            ),
+            'owner_user_id' => $uploader->id,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $markdownBody),
+            'confidentiality' => EvidenceConfidentiality::Internal,
+            'collected_at' => now(),
+            'freshness_status' => EvidenceFreshnessStatus::Current,
+            'uploaded_by' => $uploader->id,
+            'notes' => sprintf(
+                'Saved from merged PR summary (provider: %s, repository: %s, count: %d%s).',
+                $provider,
+                $repo,
+                $summary['count'],
+                !empty($summary['truncated']) ? ', truncated' : '',
+            ),
         ]);
 
         AuditLogger::logEvidenceCreated($evidence, $uploader);

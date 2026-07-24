@@ -77,6 +77,7 @@ class ProductVersionController extends Controller
             'product' => $this->productSummary($product),
             'version' => $this->versionPayload($version),
             'mergedPrSummary' => $this->mergedPrSummaries->summarize($product, $version),
+            'mergedPrEvidence' => $this->mergedPrSummaries->latestSavedEvidenceSummary($version),
             'canManage' => request()->user()->canManageProducts($organization),
         ]);
     }
@@ -103,6 +104,23 @@ class ProductVersionController extends Controller
                 ? Translations::get('products.versions.merged_prs.refreshed')
                 : ($summary['error']
                     ?? Translations::get('products.versions.merged_prs.reasons.' . ($summary['reason'] ?? 'fetch_failed'))),
+        ]);
+
+        return redirect()->route('products.versions.show', [$product, $version]);
+    }
+
+    public function saveMergedPrsAsEvidence(Product $product, ProductVersion $version): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertVersionBelongsToProduct($product, $version);
+        $this->authorize('update', [$product, $organization]);
+
+        $this->mergedPrSummaries->saveAsEvidence($product, $version, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.versions.merged_prs.saved_as_evidence'),
         ]);
 
         return redirect()->route('products.versions.show', [$product, $version]);

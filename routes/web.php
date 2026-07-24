@@ -491,6 +491,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/versions/{version}/merged-prs/refresh',
             [ProductVersionController::class, 'refreshMergedPrs'],
         )->name('products.versions.merged-prs.refresh')->scopeBindings();
+        Route::post(
+            'products/{product}/versions/{version}/merged-prs/save-evidence',
+            [ProductVersionController::class, 'saveMergedPrsAsEvidence'],
+        )->name('products.versions.merged-prs.save-evidence')->scopeBindings();
         Route::resource('products.support-periods', ProductSupportPeriodController::class)
             ->except(['show'])
             ->parameters(['support-periods' => 'support_period'])

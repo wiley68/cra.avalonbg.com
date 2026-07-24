@@ -2463,6 +2463,38 @@ class AuditLogger
         );
     }
 
+    public static function logMergedPrSummarySavedAsEvidence(
+        Product $product,
+        ProductVersion $version,
+        Evidence $evidence,
+        User $actor,
+        array $summary,
+    ): void {
+        $details = [
+            ['field' => 'product_version_id', 'value' => (string) $version->id],
+            ['field' => 'version_number', 'value' => $version->version_number],
+            ['field' => 'evidence_id', 'value' => (string) $evidence->id],
+            ['field' => 'provider', 'value' => (string) ($summary['provider'] ?? 'unknown')],
+            ['field' => 'window_from', 'value' => $summary['window']['from'] ?? ''],
+            ['field' => 'window_to', 'value' => $summary['window']['to'] ?? ''],
+            ['field' => 'count', 'value' => (string) ($summary['count'] ?? 0)],
+        ];
+
+        if (($summary['repository_full_name'] ?? null) !== null) {
+            $details[] = ['field' => 'full_name', 'value' => (string) $summary['repository_full_name']];
+        }
+
+        self::persist(
+            type: AuditEventType::MergedPrSummarySavedAsEvidence,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $product->organization_id,
+            productId: $product->id,
+            details: $details,
+        );
+    }
+
     public static function logVcsSuggestionAccepted(VcsImportSuggestion $suggestion, User $actor): void
     {
         $suggestion->loadMissing('product');

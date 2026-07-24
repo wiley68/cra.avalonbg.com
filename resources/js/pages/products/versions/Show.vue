@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Eye, Pencil, RefreshCcw } from '@lucide/vue';
-import { computed } from 'vue';
+import { ArrowLeft, Eye, FileUp, Pencil, RefreshCcw } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
+import { edit as editEvidence } from '@/routes/products/evidence';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     edit as versionsEdit,
     index as versionsIndex,
     show as versionsShow,
 } from '@/routes/products/versions';
-import { refresh as refreshMergedPrs } from '@/routes/products/versions/merged-prs';
+import {
+    refresh as refreshMergedPrs,
+    saveEvidence as saveMergedPrsEvidence,
+} from '@/routes/products/versions/merged-prs';
 
 type ProductSummary = { id: number; name: string; slug: string };
 
@@ -56,14 +61,21 @@ type MergedPrSummary = {
     error: string | null;
 };
 
+type MergedPrEvidence = {
+    id: number;
+    title: string;
+};
+
 const props = defineProps<{
     product: ProductSummary;
     version: VersionDetail;
     mergedPrSummary: MergedPrSummary;
+    mergedPrEvidence: MergedPrEvidence | null;
     canManage: boolean;
 }>();
 
 const { t } = useTranslations();
+const showSaveEvidenceDialog = ref(false);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -127,12 +139,40 @@ const unavailableMessage = computed(() => {
     return translated === key ? reason : translated;
 });
 
+const canSaveEvidence = computed(
+    () => props.canManage && props.mergedPrSummary.available,
+);
+
+const evidenceHref = computed(() => {
+    if (props.mergedPrEvidence === null) {
+        return null;
+    }
+
+    return editEvidence({
+        product: props.product.id,
+        evidence: props.mergedPrEvidence.id,
+    }).url;
+});
+
 const doRefresh = () => {
     if (!props.canManage) {
         return;
     }
 
     router.post(refreshMergedPrs(routeArgs).url, {}, { preserveScroll: true });
+};
+
+const doSaveEvidence = () => {
+    if (!canSaveEvidence.value) {
+        return;
+    }
+
+    showSaveEvidenceDialog.value = false;
+    router.post(
+        saveMergedPrsEvidence(routeArgs).url,
+        {},
+        { preserveScroll: true },
+    );
 };
 
 const formatDateTime = (value: string | null): string => {
@@ -234,15 +274,34 @@ const formatDateTime = (value: string | null): string => {
                         {{ t('products.versions.merged_prs.subtitle') }}
                     </p>
                 </div>
-                <Button
-                    v-if="canManage"
-                    type="button"
-                    variant="outline"
-                    @click="doRefresh"
-                >
-                    <RefreshCcw class="h-4 w-4" />
-                    {{ t('products.versions.merged_prs.refresh') }}
-                </Button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button
+                        v-if="canManage"
+                        type="button"
+                        variant="outline"
+                        @click="doRefresh"
+                    >
+                        <RefreshCcw class="h-4 w-4" />
+                        {{ t('products.versions.merged_prs.refresh') }}
+                    </Button>
+                    <Button
+                        v-if="canSaveEvidence"
+                        type="button"
+                        variant="outline"
+                        @click="showSaveEvidenceDialog = true"
+                    >
+                        <FileUp class="h-4 w-4" />
+                        {{ t('products.versions.merged_prs.save_as_evidence') }}
+                    </Button>
+                    <Button v-if="evidenceHref" as-child variant="outline">
+                        <Link :href="evidenceHref">
+                            <Pencil class="h-4 w-4" />
+                            {{
+                                t('products.versions.merged_prs.view_evidence')
+                            }}
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <p class="text-sm text-muted-foreground">{{ windowLabel }}</p>
@@ -329,5 +388,17 @@ const formatDateTime = (value: string | null): string => {
                 </ul>
             </template>
         </div>
+
+        <AppAlertDialog
+            v-model:open="showSaveEvidenceDialog"
+            :title="
+                t('products.versions.merged_prs.confirm_save_evidence_title')
+            "
+            :description="
+                t('products.versions.merged_prs.confirm_save_evidence')
+            "
+            @confirm="doSaveEvidence"
+            @cancel="showSaveEvidenceDialog = false"
+        />
     </div>
 </template>

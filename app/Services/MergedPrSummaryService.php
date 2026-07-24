@@ -4,17 +4,22 @@ namespace App\Services;
 
 use App\Enums\VcsAuthType;
 use App\Enums\VcsProvider as VcsProviderEnum;
+use App\Models\Evidence;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
 use App\Models\ProductRepository;
 use App\Models\ProductVersion;
+use App\Models\User;
 use App\Services\Vcs\GitHubAppTokenService;
 use App\Services\Vcs\GitHubPatProvider;
 use App\Services\Vcs\GitLabPatProvider;
+use App\Support\AuditLogger;
 use App\Support\Translations;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class MergedPrSummaryService
@@ -29,6 +34,7 @@ class MergedPrSummaryService
 
     public function __construct(
         private readonly GitHubAppTokenService $githubAppTokens,
+        private readonly EvidenceService $evidence,
     ) {
     }
 
@@ -155,6 +161,70 @@ class MergedPrSummaryService
     }
 
     /**
+     * Snapshot the current merged PR/MR summary as immutable Markdown evidence.
+     */
+    public function saveAsEvidence(
+        Product $product,
+        ProductVersion $version,
+        User $actor,
+    ): Evidence {
+        $summary = $this->summarize($product, $version);
+
+        if (!$summary['available']) {
+            throw ValidationException::withMessages([
+                'merged_prs' => [
+                    $summary['error']
+                    ?? Translations::get(
+                        'products.versions.merged_prs.reasons.' . ($summary['reason'] ?? 'fetch_failed'),
+                    ),
+                ],
+            ]);
+        }
+
+        return DB::transaction(function () use ($product, $version, $actor, $summary): Evidence {
+            $body = $this->toMarkdown($product, $version, $summary);
+            $evidence = $this->evidence->createFromMergedPrSummary(
+                $product,
+                $version,
+                $actor,
+                $summary,
+                $body,
+            );
+
+            AuditLogger::logMergedPrSummarySavedAsEvidence(
+                $product,
+                $version,
+                $evidence,
+                $actor,
+                $summary,
+            );
+
+            return $evidence;
+        });
+    }
+
+    /**
+     * @return array{id: int, title: string}|null
+     */
+    public function latestSavedEvidenceSummary(ProductVersion $version): ?array
+    {
+        $evidence = Evidence::query()
+            ->where('product_version_id', $version->id)
+            ->where('source', 'like', 'merged_pr_summary:version:' . $version->id . ':%')
+            ->latest('id')
+            ->first(['id', 'title']);
+
+        if ($evidence === null) {
+            return null;
+        }
+
+        return [
+            'id' => $evidence->id,
+            'title' => $evidence->title,
+        ];
+    }
+
+    /**
      * @return array{from: string, to: string, mode: string, anchor_date: string|null}
      */
     public function resolveWindow(ProductVersion $version, ?CarbonInterface $now = null): array
@@ -178,6 +248,72 @@ class MergedPrSummaryService
             'mode' => 'rolling_30_days',
             'anchor_date' => null,
         ];
+    }
+
+    /**
+     * @param  array{
+     *     provider: string|null,
+     *     repository_full_name: string|null,
+     *     window: array{from: string, to: string, mode: string, anchor_date: string|null},
+     *     cached_at: string|null,
+     *     count: int,
+     *     truncated: bool,
+     *     prs: list<array{
+     *         number: int,
+     *         title: string,
+     *         html_url: string,
+     *         merged_at: string|null,
+     *         user_login: string|null
+     *     }>
+     * }  $summary
+     */
+    public function toMarkdown(Product $product, ProductVersion $version, array $summary): string
+    {
+        $lines = [
+            '# Merged pull requests — ' . $product->name . ' ' . $version->version_number,
+            '',
+            '- Product: ' . $product->name,
+            '- Version: ' . $version->version_number,
+            '- Repository: ' . ($summary['repository_full_name'] ?? '—'),
+            '- Provider: ' . ($summary['provider'] ?? '—'),
+            '- Window: ' . $summary['window']['from'] . ' – ' . $summary['window']['to']
+            . ' (' . $summary['window']['mode'] . ')',
+            '- Count: ' . $summary['count'] . ($summary['truncated'] ? ' (truncated)' : ''),
+        ];
+
+        if ($summary['cached_at'] !== null) {
+            $lines[] = '- Snapshot source cached at: ' . $summary['cached_at'];
+        }
+
+        $lines[] = '- Saved at: ' . now()->toIso8601String();
+        $lines[] = '';
+        $lines[] = '## Pull requests';
+        $lines[] = '';
+
+        if ($summary['prs'] === []) {
+            $lines[] = '_No merged pull requests in this window._';
+            $lines[] = '';
+
+            return implode("\n", $lines);
+        }
+
+        $lines[] = '| # | Title | Author | Merged at | URL |';
+        $lines[] = '| --- | --- | --- | --- | --- |';
+
+        foreach ($summary['prs'] as $pr) {
+            $lines[] = sprintf(
+                '| %d | %s | %s | %s | %s |',
+                $pr['number'],
+                $this->escapeMarkdownCell($pr['title']),
+                $this->escapeMarkdownCell($pr['user_login'] ?? '—'),
+                $pr['merged_at'] ?? '—',
+                $pr['html_url'],
+            );
+        }
+
+        $lines[] = '';
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -220,5 +356,10 @@ class MergedPrSummaryService
         string $to,
     ): string {
         return "merged_pr_summary:{$provider}:{$productId}:{$versionId}:{$from}:{$to}";
+    }
+
+    private function escapeMarkdownCell(string $value): string
+    {
+        return str_replace(['|', "\n", "\r"], ['\\|', ' ', ''], $value);
     }
 }

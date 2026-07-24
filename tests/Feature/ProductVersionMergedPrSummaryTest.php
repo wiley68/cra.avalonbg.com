@@ -2,6 +2,7 @@
 
 use App\Enums\AuditEventType;
 use App\Enums\ClassificationStatus;
+use App\Enums\EvidenceType;
 use App\Enums\LicensingModel;
 use App\Enums\ProductType;
 use App\Enums\ProductVersionState;
@@ -11,18 +12,21 @@ use App\Enums\VcsAuthType;
 use App\Enums\VcsConnectionStatus;
 use App\Enums\VcsProvider;
 use App\Models\AuditLog;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\OrganizationVcsConnection;
 use App\Models\Product;
 use App\Models\ProductRepository;
 use App\Models\ProductVersion;
 use App\Models\Role;
+use App\Models\Task;
 use App\Models\User;
 use App\Services\MergedPrSummaryService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -142,6 +146,25 @@ function linkGitlabRepo(Product $product): ProductRepository
     ]);
 }
 
+function fakeGithubMergedPrSearchWithOneItem(): void
+{
+    Http::fake([
+        'api.github.com/search/issues*' => Http::response([
+            'total_count' => 1,
+            'incomplete_results' => false,
+            'items' => [
+                [
+                    'number' => 42,
+                    'title' => 'Harden auth cookies',
+                    'html_url' => 'https://github.com/acme/widget/pull/42',
+                    'closed_at' => '2026-07-14T10:00:00Z',
+                    'user' => ['login' => 'alice'],
+                ],
+            ],
+        ], 200),
+    ]);
+}
+
 test('release window is release_date plus or minus 14 days', function () {
     ['version' => $version] = makeMergedPrFixture('2026-07-15');
 
@@ -206,8 +229,8 @@ test('version show lists merged prs from github search without creating entities
         && str_contains(urldecode((string) $request['q']), 'is:merged')
         && str_contains(urldecode((string) $request['q']), 'merged:2026-07-01..2026-07-29'));
 
-    expect(\App\Models\Task::query()->count())->toBe(0)
-        ->and(\App\Models\Evidence::query()->count())->toBe(0);
+    expect(Task::query()->count())->toBe(0)
+        ->and(Evidence::query()->count())->toBe(0);
 
     expect(AuditLog::query()
         ->whereIn('event_type', [
@@ -371,8 +394,8 @@ test('version show lists merged mrs from gitlab without creating entities', func
         && str_starts_with((string) $request['updated_after'], '2026-07-01')
         && str_starts_with((string) $request['updated_before'], '2026-07-29'));
 
-    expect(\App\Models\Task::query()->count())->toBe(0)
-        ->and(\App\Models\Evidence::query()->count())->toBe(0);
+    expect(Task::query()->count())->toBe(0)
+        ->and(Evidence::query()->count())->toBe(0);
 });
 
 test('gitlab merged mr refresh audits provider without secrets', function () {
@@ -396,6 +419,103 @@ test('gitlab merged mr refresh audits provider without secrets', function () {
     expect($successLog)->not->toBeNull()
         ->and($successLog->description)->toContain('gitlab')
         ->and($successLog->description)->not->toContain('glpat_merged_mr_token');
+});
+
+test('viewer cannot save merged pr summary as evidence', function () {
+    Cache::flush();
+    [
+        'organization' => $organization,
+        'product' => $product,
+        'version' => $version,
+    ] = makeMergedPrFixture();
+    $viewer = makeMergedPrViewer($organization);
+    linkGithubRepo($product);
+    fakeGithubMergedPrSearchWithOneItem();
+
+    $this->actingAs($viewer)
+        ->post(route('products.versions.merged-prs.save-evidence', [$product, $version]))
+        ->assertForbidden();
+
+    expect(Evidence::query()->count())->toBe(0);
+});
+
+test('owner can save merged pr summary as evidence', function () {
+    Storage::fake('local');
+    Cache::flush();
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+    linkGithubRepo($product);
+    fakeGithubMergedPrSearchWithOneItem();
+
+    $this->actingAs($owner)
+        ->get(route('products.versions.show', [$product, $version]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page->where('mergedPrEvidence', null));
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.save-evidence', [$product, $version]))
+        ->assertRedirect(route('products.versions.show', [$product, $version]));
+
+    $evidence = Evidence::query()->where('product_version_id', $version->id)->firstOrFail();
+    $markdown = Storage::disk('local')->get($evidence->storage_path);
+
+    expect($evidence->type)->toBe(EvidenceType::Document)
+        ->and($evidence->product_id)->toBe($product->id)
+        ->and($evidence->source)->toStartWith('merged_pr_summary:version:' . $version->id . ':')
+        ->and($evidence->title)->toContain('2.1.0')
+        ->and($markdown)->toContain('Harden auth cookies')
+        ->and($markdown)->toContain('acme/widget');
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::MergedPrSummarySavedAsEvidence->value)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::EvidenceCreated->value)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+
+    $saveAudit = AuditLog::query()
+        ->where('event_type', AuditEventType::MergedPrSummarySavedAsEvidence->value)
+        ->first();
+
+    expect($saveAudit)->not->toBeNull()
+        ->and($saveAudit->description)->not->toContain('ghp_merged_pr_token');
+
+    $this->actingAs($owner)
+        ->get(route('products.versions.show', [$product, $version]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('mergedPrEvidence.id', $evidence->id)
+            ->where('mergedPrEvidence.title', $evidence->title));
+});
+
+test('owner can save multiple merged pr summary evidence snapshots', function () {
+    Storage::fake('local');
+    Cache::flush();
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+    linkGithubRepo($product);
+    fakeGithubMergedPrSearchWithOneItem();
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.save-evidence', [$product, $version]))
+        ->assertRedirect();
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.save-evidence', [$product, $version]))
+        ->assertRedirect();
+
+    expect(Evidence::query()->where('product_version_id', $version->id)->count())->toBe(2);
+});
+
+test('cannot save merged pr summary as evidence when unavailable', function () {
+    ['owner' => $owner, 'product' => $product, 'version' => $version] = makeMergedPrFixture();
+
+    $this->actingAs($owner)
+        ->post(route('products.versions.merged-prs.save-evidence', [$product, $version]))
+        ->assertSessionHasErrors('merged_prs');
+
+    expect(Evidence::query()->count())->toBe(0);
 });
 
 test('version show without repository explains why summary is unavailable', function () {
