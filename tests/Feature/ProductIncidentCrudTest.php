@@ -161,6 +161,48 @@ test('owner can create incident with affected versions', function () {
         ->and($incident->versions()->pluck('product_versions.id')->all())->toContain($version->id);
 });
 
+test('owner can store and update external ticket url on incident', function () {
+    [$organization, $owner] = makeIncidentsOrgWithOwner();
+    [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);
+
+    $this->actingAs($owner)
+        ->post(route('products.incidents.store', $product), [
+            'title' => 'Support-linked incident',
+            'status' => IncidentStatus::Open->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'version_ids' => [$version->id],
+            'external_ticket_url' => 'https://zendesk.example.com/agent/tickets/441',
+        ])
+        ->assertRedirect();
+
+    $incident = ProductIncident::query()
+        ->where('product_id', $product->id)
+        ->where('title', 'Support-linked incident')
+        ->firstOrFail();
+
+    expect($incident->external_ticket_url)->toBe('https://zendesk.example.com/agent/tickets/441');
+
+    $this->actingAs($owner)
+        ->put(route('products.incidents.update', [$product, $incident]), [
+            'title' => 'Support-linked incident',
+            'status' => IncidentStatus::Investigating->value,
+            'severity' => IncidentSeverity::Medium->value,
+            'version_ids' => [$version->id],
+            'external_ticket_url' => 'https://zendesk.example.com/agent/tickets/441-b',
+        ])
+        ->assertRedirect();
+
+    expect($incident->fresh()->external_ticket_url)
+        ->toBe('https://zendesk.example.com/agent/tickets/441-b');
+
+    $this->actingAs($owner)
+        ->get(route('products.incidents.edit', [$product, $incident]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('products/incidents/Edit')
+            ->where('incident.external_ticket_url', 'https://zendesk.example.com/agent/tickets/441-b'));
+});
+
 test('owner can attach customers and deployments to incident', function () {
     [$organization, $owner] = makeIncidentsOrgWithOwner();
     [$product, $version] = makeProductWithVersionForIncidents($organization, $owner);

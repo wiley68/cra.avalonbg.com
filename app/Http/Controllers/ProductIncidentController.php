@@ -458,6 +458,7 @@ class ProductIncidentController extends Controller
             'awareness_at' => $request->input('awareness_at') ?: null,
             'classified_at' => $request->input('classified_at') ?: null,
             'notes' => $request->input('notes'),
+            'external_ticket_url' => $request->input('external_ticket_url'),
         ];
     }
 

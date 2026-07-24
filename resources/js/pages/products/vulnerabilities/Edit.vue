@@ -57,6 +57,7 @@ type VulnerabilityDetail = {
     cve_id: string | null;
     advisory_url: string | null;
     remediation_pr_url: string | null;
+    external_ticket_url: string | null;
     discovery_source: string;
     discovered_at: string | null;
     awareness_at: string | null;
@@ -141,6 +142,7 @@ const form = useForm({
     cve_id: props.vulnerability.cve_id ?? '',
     advisory_url: props.vulnerability.advisory_url ?? '',
     remediation_pr_url: props.vulnerability.remediation_pr_url ?? '',
+    external_ticket_url: props.vulnerability.external_ticket_url ?? '',
     discovery_source: props.vulnerability.discovery_source,
     discovered_at: props.vulnerability.discovered_at ?? '',
     awareness_at: props.vulnerability.awareness_at ?? '',
@@ -392,6 +394,47 @@ const toggleId = (
                             </a>
                         </p>
                         <InputError :message="form.errors.remediation_pr_url" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="external_ticket_url"
+                            :help="
+                                t(
+                                    'products.vulnerabilities.help.external_ticket_url',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.vulnerabilities.fields.external_ticket_url',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="external_ticket_url"
+                            v-model="form.external_ticket_url"
+                        />
+                        <p
+                            v-if="form.external_ticket_url"
+                            class="text-xs text-muted-foreground"
+                        >
+                            <a
+                                :href="form.external_ticket_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline-offset-4 hover:underline"
+                            >
+                                {{
+                                    t(
+                                        'products.vulnerabilities.open_external_ticket',
+                                    )
+                                }}
+                            </a>
+                        </p>
+                        <InputError
+                            :message="form.errors.external_ticket_url"
+                        />
                     </div>
 
                     <div class="grid gap-2">

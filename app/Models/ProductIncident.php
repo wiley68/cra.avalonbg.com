@@ -39,6 +39,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $closed_at
  * @property int|null $closed_by
  * @property string|null $notes
+ * @property string|null $external_ticket_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Organization|null $organization
@@ -70,6 +71,7 @@ use Illuminate\Support\Carbon;
     'closed_at',
     'closed_by',
     'notes',
+    'external_ticket_url',
 ])]
 class ProductIncident extends Model
 {

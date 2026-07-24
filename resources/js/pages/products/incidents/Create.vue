@@ -90,6 +90,7 @@ const form = useForm({
     awareness_at: '',
     classified_at: '',
     notes: '',
+    external_ticket_url: '',
     version_ids: [] as number[],
     customer_ids: [] as number[],
     deployment_ids: [] as number[],
@@ -611,6 +612,20 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                         rows="3"
                     />
                     <InputError :message="form.errors.notes" />
+                </div>
+
+                <div class="grid gap-2 sm:col-span-2">
+                    <FieldLabel
+                        html-for="external_ticket_url"
+                        :help="t('products.incidents.help.external_ticket_url')"
+                    >
+                        {{ t('products.incidents.fields.external_ticket_url') }}
+                    </FieldLabel>
+                    <Input
+                        id="external_ticket_url"
+                        v-model="form.external_ticket_url"
+                    />
+                    <InputError :message="form.errors.external_ticket_url" />
                 </div>
             </div>
 

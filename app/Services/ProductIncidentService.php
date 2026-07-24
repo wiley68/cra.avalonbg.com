@@ -636,6 +636,7 @@ class ProductIncidentService
             'closed_by_name' => $incident->closer?->name,
             'is_terminal' => $incident->isTerminal(),
             'notes' => $incident->notes,
+            'external_ticket_url' => $incident->external_ticket_url,
             'version_ids' => $incident->versions->pluck('id')->all(),
             'customer_ids' => $incident->customers->pluck('id')->all(),
             'deployment_ids' => $incident->deployments->pluck('id')->all(),

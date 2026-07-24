@@ -66,6 +66,7 @@ const form = useForm({
     cve_id: '',
     advisory_url: '',
     remediation_pr_url: '',
+    external_ticket_url: '',
     discovery_source:
         props.options.discovery_sources[0] ?? 'internal_discovery',
     discovered_at: '',
@@ -231,6 +232,28 @@ const toggleId = (
                         v-model="form.remediation_pr_url"
                     />
                     <InputError :message="form.errors.remediation_pr_url" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="external_ticket_url"
+                        :help="
+                            t(
+                                'products.vulnerabilities.help.external_ticket_url',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.vulnerabilities.fields.external_ticket_url',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Input
+                        id="external_ticket_url"
+                        v-model="form.external_ticket_url"
+                    />
+                    <InputError :message="form.errors.external_ticket_url" />
                 </div>
 
                 <div class="grid gap-2">

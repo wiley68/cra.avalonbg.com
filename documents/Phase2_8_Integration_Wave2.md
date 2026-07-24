@@ -2,7 +2,7 @@
 
 **Версия:** 0.16  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should Done; Could 13–14 Done; Could 15–18 open
+**Статус:** Active — Must Done; Should Done; Could 13–15 Done; Could 16–18 open
 
 **Родителски документи:**
 
@@ -71,7 +71,7 @@
 | Renovate / Dependabot+   | **Could 13 Done**                               |
 | SonarQube                | Covered via SARIF upload in Could 14; API later |
 | Container registries     | Out / Phase 2.9                                 |
-| Customer support systems | **Could 15** (light link only)                  |
+| Customer support systems | **Could 15 Done** (light link only)             |
 | OWASP Dependency-Check   | Out / Phase 2.9 (overlap with Snyk/Trivy)       |
 
 ---
@@ -252,7 +252,7 @@ POST   /api/webhooks/snyk/{integration}
 
 13. ~~Renovate / deeper Dependabot campaign links (beyond 2.1 alert suggestions)~~ **Done** (2026-07-24)
 14. ~~Trivy / SARIF (или SonarQube) scanner adapter via uploaded/CI artifact **или** API~~ **Done** (2026-07-24) — SARIF upload (Trivy / SonarQube SARIF export); no Sonar API yet
-15. Customer support system light link (external ticket URL on incident/vuln — ≠ deployments rewrite)
+15. ~~Customer support system light link (external ticket URL on incident/vuln — ≠ deployments rewrite)~~ **Done** (2026-07-24)
 16. AI triage summary for imported findings (human review; no auto-accept)
 17. Org-level integrations health index (DataTable: provider, status, last sync, errors)
 18. Auditor export: sync health / last-error summary (Markdown/PDF)
@@ -316,42 +316,44 @@ Reuse:
 
 ## 13. Тестове (план)
 
-| Област               | Предложение                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| Models               | `IntegrationWave2ModelsTest` — **Done**                                                 |
-| Jira connect/sync    | `JiraIntegrationSettingsTest` — connect/disconnect **Done**                             |
-| Product Jira link    | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done**                        |
-| Snyk connect/sync    | `SnykIntegrationTest` — connect/link/sync/accept **Done**                               |
-| Evidence snapshot    | Jira/Snyk sync → `integration_snapshot` + checksum **Done**                             |
-| Accept / dismiss     | Task + vulnerability creation **Done**                                                  |
-| RBAC                 | `IntegrationWave2RbacTest` + settings/product tests **Done**                            |
-| Schedule             | `IntegrationScheduledSyncTest` — schedule update + artisan + hourly cron **Done**       |
-| Sync hardening       | `IntegrationSyncHardeningTest` — unique job + soft-fail + last_error **Done**           |
-| SBOM mapping         | `SnykComponentMatchTest` — purl/name match → vulnerability components **Done**          |
-| Readiness            | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done**       |
-| Azure DevOps         | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**            |
-| Dependabot+/Renovate | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done** |
-| SARIF / Trivy        | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                  |
+| Област               | Предложение                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| Models               | `IntegrationWave2ModelsTest` — **Done**                                                       |
+| Jira connect/sync    | `JiraIntegrationSettingsTest` — connect/disconnect **Done**                                   |
+| Product Jira link    | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done**                              |
+| Snyk connect/sync    | `SnykIntegrationTest` — connect/link/sync/accept **Done**                                     |
+| Evidence snapshot    | Jira/Snyk sync → `integration_snapshot` + checksum **Done**                                   |
+| Accept / dismiss     | Task + vulnerability creation **Done**                                                        |
+| RBAC                 | `IntegrationWave2RbacTest` + settings/product tests **Done**                                  |
+| Schedule             | `IntegrationScheduledSyncTest` — schedule update + artisan + hourly cron **Done**             |
+| Sync hardening       | `IntegrationSyncHardeningTest` — unique job + soft-fail + last_error **Done**                 |
+| SBOM mapping         | `SnykComponentMatchTest` — purl/name match → vulnerability components **Done**                |
+| Readiness            | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done**             |
+| Azure DevOps         | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**                  |
+| Dependabot+/Renovate | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done**       |
+| SARIF / Trivy        | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                        |
+| Support ticket link  | `ProductVulnerabilityRegisterTest` + `ProductIncidentCrudTest` — external_ticket_url **Done** |
 
 ---
 
 ## 14. История
 
-| Версия | Дата       | Промяна                                                                          |
-| ------ | ---------- | -------------------------------------------------------------------------------- |
-| 0.16   | 2026-07-24 | Could 14 Done — SARIF/Trivy artifact upload → vulnerability suggestions          |
-| 0.15   | 2026-07-24 | Could 13 Done — Dependabot/Renovate PR links + remediation_pr_url + campaign CTA |
-| 0.14   | 2026-07-24 | Should 12 Done — operator runbook (secrets, scopes, rate limits, threat model)   |
-| 0.13   | 2026-07-24 | Should 11 Done — Azure DevOps ALM (PAT) work items → task suggestions            |
-| 0.12   | 2026-07-24 | Should 10 Done — readiness gaps + dashboard pending/failed integration counts    |
-| 0.11   | 2026-07-24 | Should 9 Done — Snyk findings → SBOM/product_components match on sync/accept     |
-| 0.10   | 2026-07-24 | Should 8 Done — unique sync job + soft-fail scopes + last_error in summary       |
-| 0.9    | 2026-07-24 | Should 7 Done — scheduled sync + `integrations:sync-scheduled` + Settings UI     |
-| 0.8    | 2026-07-24 | Must 6 Done — i18n polish + RBAC feature coverage; Must slice complete           |
-| 0.7    | 2026-07-24 | Must 5 Done — evidence snapshot on Jira/Snyk sync + audit evidence refs          |
-| 0.6    | 2026-07-24 | Must 4 Done — Snyk Settings + Product link/sync → vuln suggestions → Accept      |
-| 0.5    | 2026-07-24 | Must 3 Done — Product↔Jira link, sync→task suggestions, Accept/Dismiss→Task      |
-| 0.4    | 2026-07-24 | Must 2 Done — Jira Cloud Settings connect/verify/disconnect + audit              |
-| 0.3    | 2026-07-24 | Must 1 Done — integration tables/models/enums + audit events + model tests       |
-| 0.2    | 2026-07-24 | Full Must/Should/Could; freeze Jira Cloud + Snyk API token; schema/UI/AC/risks   |
-| 0.1    | 2026-07-24 | Skeleton след Phase 2.7 closeout — §7 Integration wave 2 (кандидат D)            |
+| Версия | Дата       | Промяна                                                                              |
+| ------ | ---------- | ------------------------------------------------------------------------------------ |
+| 0.17   | 2026-07-24 | Could 15 Done — external_ticket_url on vulnerability + incident (support light link) |
+| 0.16   | 2026-07-24 | Could 14 Done — SARIF/Trivy artifact upload → vulnerability suggestions              |
+| 0.15   | 2026-07-24 | Could 13 Done — Dependabot/Renovate PR links + remediation_pr_url + campaign CTA     |
+| 0.14   | 2026-07-24 | Should 12 Done — operator runbook (secrets, scopes, rate limits, threat model)       |
+| 0.13   | 2026-07-24 | Should 11 Done — Azure DevOps ALM (PAT) work items → task suggestions                |
+| 0.12   | 2026-07-24 | Should 10 Done — readiness gaps + dashboard pending/failed integration counts        |
+| 0.11   | 2026-07-24 | Should 9 Done — Snyk findings → SBOM/product_components match on sync/accept         |
+| 0.10   | 2026-07-24 | Should 8 Done — unique sync job + soft-fail scopes + last_error in summary           |
+| 0.9    | 2026-07-24 | Should 7 Done — scheduled sync + `integrations:sync-scheduled` + Settings UI         |
+| 0.8    | 2026-07-24 | Must 6 Done — i18n polish + RBAC feature coverage; Must slice complete               |
+| 0.7    | 2026-07-24 | Must 5 Done — evidence snapshot on Jira/Snyk sync + audit evidence refs              |
+| 0.6    | 2026-07-24 | Must 4 Done — Snyk Settings + Product link/sync → vuln suggestions → Accept          |
+| 0.5    | 2026-07-24 | Must 3 Done — Product↔Jira link, sync→task suggestions, Accept/Dismiss→Task          |
+| 0.4    | 2026-07-24 | Must 2 Done — Jira Cloud Settings connect/verify/disconnect + audit                  |
+| 0.3    | 2026-07-24 | Must 1 Done — integration tables/models/enums + audit events + model tests           |
+| 0.2    | 2026-07-24 | Full Must/Should/Could; freeze Jira Cloud + Snyk API token; schema/UI/AC/risks       |
+| 0.1    | 2026-07-24 | Skeleton след Phase 2.7 closeout — §7 Integration wave 2 (кандидат D)                |

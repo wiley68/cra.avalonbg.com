@@ -131,6 +131,7 @@ type IncidentDetail = {
     closed_by_name: string | null;
     is_terminal: boolean;
     notes: string | null;
+    external_ticket_url: string | null;
     version_ids: number[];
     customer_ids: number[];
     deployment_ids: number[];
@@ -217,6 +218,7 @@ const form = useForm({
     awareness_at: props.incident.awareness_at ?? '',
     classified_at: props.incident.classified_at ?? '',
     notes: props.incident.notes ?? '',
+    external_ticket_url: props.incident.external_ticket_url ?? '',
     version_ids: [...props.incident.version_ids],
     customer_ids: [...props.incident.customer_ids],
     deployment_ids: [...props.incident.deployment_ids],
@@ -1289,6 +1291,43 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                             rows="3"
                         />
                         <InputError :message="form.errors.notes" />
+                    </div>
+
+                    <div class="grid gap-2 sm:col-span-2">
+                        <FieldLabel
+                            html-for="external_ticket_url"
+                            :help="
+                                t('products.incidents.help.external_ticket_url')
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.incidents.fields.external_ticket_url',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="external_ticket_url"
+                            v-model="form.external_ticket_url"
+                        />
+                        <p
+                            v-if="form.external_ticket_url"
+                            class="text-xs text-muted-foreground"
+                        >
+                            <a
+                                :href="form.external_ticket_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline-offset-4 hover:underline"
+                            >
+                                {{
+                                    t('products.incidents.open_external_ticket')
+                                }}
+                            </a>
+                        </p>
+                        <InputError
+                            :message="form.errors.external_ticket_url"
+                        />
                     </div>
                 </div>
 

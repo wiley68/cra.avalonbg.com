@@ -54,6 +54,7 @@ class UpdateProductIncidentRequest extends FormRequest
             'awareness_at' => ['nullable', 'date'],
             'classified_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'external_ticket_url' => ['nullable', 'string', 'max:2048'],
             'version_ids' => ['nullable', 'array'],
             'version_ids.*' => [
                 'integer',

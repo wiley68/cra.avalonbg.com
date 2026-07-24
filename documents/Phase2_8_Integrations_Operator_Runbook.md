@@ -81,6 +81,10 @@ GitHub PAT / GitHub App / GitLab PAT — виж Phase 2.1. Schedule: `vcs:sync-s
 
 Import създава pending vulnerability suggestions (същият Accept/Dismiss gate като Snyk). Невалиден JSON/schema → soft-fail + `last_error`, без suggestions. Суровият файл се пази като evidence `vulnerability_scan`; summary → `integration_snapshot`.
 
+### Customer support light link (Could 15)
+
+Опционално поле `external_ticket_url` на **vulnerability** и **incident** (Create/Edit). Ръчна връзка към външен helpdesk (Zendesk, Jira SM, …) — **без** API sync и **без** промяна на deployments. На Edit страницата има „Open support ticket“ линк, когато URL е попълнен.
+
 ---
 
 ## 3. Rate limits & soft-fail
