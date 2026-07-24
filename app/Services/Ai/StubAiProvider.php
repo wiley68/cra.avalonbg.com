@@ -126,6 +126,28 @@ class StubAiProvider implements AiProvider
             ];
         }
 
+        if (($options['mode'] ?? null) === 'tech_doc_section_draft') {
+            $sectionKey = (string) ($options['section_key'] ?? 'architecture');
+            $locale = (string) ($options['locale'] ?? 'en');
+            $title = (string) ($options['section_title'] ?? $sectionKey);
+            $body = $locale === 'bg'
+                ? "## {$title}\n\nТова е stub чернова за техническа документация, секция `{$sectionKey}`.\n\n- Прегледайте съдържанието преди запис\n- Не публикувайте без human review\n- Допълнете с реални факти за продукта"
+                : "## {$title}\n\nThis is a stub draft for technical documentation section `{$sectionKey}`.\n\n- Review the content before saving\n- Do not publish without human review\n- Replace with product-specific facts";
+
+            $payload = [
+                'section_key' => $sectionKey,
+                'body_markdown' => $body,
+                'human_review_required' => true,
+                'disclaimer' => 'Draft only; human review required before save/publish.',
+            ];
+
+            return [
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '{}',
+                'provider' => AiProviderDriver::Stub->value,
+                'model' => 'stub-local-template',
+            ];
+        }
+
         if (($options['mode'] ?? null) === 'incident_summary') {
             $locale = (string) ($options['locale'] ?? 'en');
             $title = (string) ($options['incident_title'] ?? 'Incident');

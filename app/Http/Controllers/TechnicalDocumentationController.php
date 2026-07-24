@@ -10,9 +10,11 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\TechnicalDocumentationPackage;
+use App\Services\AiAssistantService;
 use App\Services\TechnicalDocumentationExportService;
 use App\Services\TechnicalDocumentationService;
 use App\Support\Translations;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,6 +27,7 @@ class TechnicalDocumentationController extends Controller
     public function __construct(
         private readonly TechnicalDocumentationService $packages,
         private readonly TechnicalDocumentationExportService $exports,
+        private readonly AiAssistantService $assistant,
     ) {
     }
 
@@ -108,11 +111,49 @@ class TechnicalDocumentationController extends Controller
             'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
             'canManage' => request()->user()->canManageTechnicalDocumentation($organization),
+            'aiEnabled' => $this->assistant->isEnabled(),
             'memberOptions' => $this->memberOptions($organization),
             'reviewTask' => $this->packages->openReviewTaskPayload($package),
             'evidenceFreshness' => $this->packages->evidenceFreshnessSummary($product),
             'published_usi' => $this->packages->publishedUsiOptions($product),
             'sdl_runs' => $this->packages->sdlRunOptions($product),
+        ]);
+    }
+
+    public function suggestAiDraft(
+        Request $request,
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): JsonResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $validated = $request->validate([
+            'section_key' => ['required', 'string', Rule::enum(TechnicalDocumentationSectionKey::class)],
+            'current_body' => ['nullable', 'string', 'max:50000'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $sectionKey = TechnicalDocumentationSectionKey::from($validated['section_key']);
+
+        $result = $this->assistant->suggestTechDocSectionDraft(
+            $product,
+            $package,
+            $request->user(),
+            $sectionKey,
+            $validated['current_body'] ?? null,
+            $validated['note'] ?? null,
+        );
+
+        return response()->json([
+            'section_key' => $result['draft']['section_key'],
+            'body_markdown' => $result['draft']['body_markdown'],
+            'human_review_required' => true,
+            'disclaimer' => $result['draft']['disclaimer'],
+            'provider' => $result['provider'],
+            'model' => $result['model'],
         ]);
     }
 

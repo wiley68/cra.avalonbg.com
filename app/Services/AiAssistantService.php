@@ -10,6 +10,8 @@ use App\Enums\AiMessageRole;
 use App\Enums\AiProviderDriver;
 use App\Enums\EmbeddingProviderDriver;
 use App\Enums\SdlStage;
+use App\Enums\TechnicalDocumentationSectionKey;
+use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\UserSecurityInstructionSectionKey;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
@@ -19,6 +21,7 @@ use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
 use App\Models\ProductVulnerability;
 use App\Models\SdlRun;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Services\Ai\AiDocumentAnalysePrompt;
@@ -30,6 +33,8 @@ use App\Services\Ai\AiIncidentSummaryDraftPrompt;
 use App\Services\Ai\AiSdlStageNotesDraftParser;
 use App\Services\Ai\AiSdlStageNotesDraftPrompt;
 use App\Services\Ai\AiSuggestionsParser;
+use App\Services\Ai\AiTechDocSectionDraftParser;
+use App\Services\Ai\AiTechDocSectionDraftPrompt;
 use App\Services\Ai\AiUsiSectionDraftParser;
 use App\Services\Ai\AiUsiSectionDraftPrompt;
 use App\Services\Ai\AiVulnerabilityTriageParser;
@@ -544,6 +549,92 @@ class AiAssistantService
             'model' => $completion['model'],
             'draft_parsed' => true,
             'locale' => $instruction->locale,
+        ]);
+
+        return [
+            'draft' => $draft,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+        ];
+    }
+
+    /**
+     * Suggest a technical documentation authored-section draft for human review (does not persist).
+     *
+     * @return array{
+     *     draft: array{
+     *         section_key: string,
+     *         body_markdown: string,
+     *         human_review_required: bool,
+     *         disclaimer: string
+     *     },
+     *     provider: string,
+     *     model: string|null
+     * }
+     */
+    public function suggestTechDocSectionDraft(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+        User $user,
+        TechnicalDocumentationSectionKey $sectionKey,
+        ?string $currentBody = null,
+        ?string $note = null,
+    ): array {
+        $this->assertEnabled();
+
+        if ($package->product_id !== $product->id) {
+            abort(404);
+        }
+
+        if (!$package->isEditable()) {
+            throw ValidationException::withMessages([
+                'section_key' => Translations::get('products.technical_documentation.cannot_edit_locked'),
+            ]);
+        }
+
+        if ($sectionKey->defaultSource() !== TechnicalDocumentationSectionSource::Authored) {
+            throw ValidationException::withMessages([
+                'section_key' => Translations::get('products.technical_documentation.ai_draft_authored_only'),
+            ]);
+        }
+
+        $sectionTitle = Translations::get(
+            'products.technical_documentation.sections.' . $sectionKey->value,
+        );
+        $context = $this->contextBuilder->forProduct($product);
+        $prompt = AiTechDocSectionDraftPrompt::userPrompt(
+            $sectionKey,
+            is_string($sectionTitle) ? $sectionTitle : $sectionKey->value,
+            $package->locale,
+            $context,
+            $currentBody,
+            $note,
+        );
+
+        $completion = $this->provider->complete([
+            ['role' => 'user', 'content' => $prompt],
+        ], [
+            'context' => $context,
+            'mode' => 'tech_doc_section_draft',
+            'section_key' => $sectionKey->value,
+            'section_title' => is_string($sectionTitle) ? $sectionTitle : $sectionKey->value,
+            'locale' => $package->locale,
+            'package_id' => $package->id,
+        ]);
+
+        $draft = AiTechDocSectionDraftParser::parse($completion['content'], $sectionKey);
+        if ($draft === null) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.provider_failed'),
+            ]);
+        }
+
+        AuditLogger::logAiTechDocSectionDraftSuggested($package, $user, [
+            'section_key' => $sectionKey->value,
+            'provider' => $completion['provider'],
+            'model' => $completion['model'],
+            'draft_parsed' => true,
+            'locale' => $package->locale,
         ]);
 
         return [

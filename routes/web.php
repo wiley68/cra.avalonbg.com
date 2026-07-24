@@ -253,6 +253,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [TechnicalDocumentationController::class, 'refreshGenerated'],
         )->name('products.technical-documentation.refresh-generated')->scopeBindings();
         Route::post(
+            'products/{product}/technical-documentation/{package}/ai-draft',
+            [TechnicalDocumentationController::class, 'suggestAiDraft'],
+        )->name('products.technical-documentation.ai-draft')->scopeBindings();
+        Route::post(
             'products/{product}/technical-documentation/{package}/submit-review',
             [TechnicalDocumentationController::class, 'submitReview'],
         )->name('products.technical-documentation.submit-review')->scopeBindings();

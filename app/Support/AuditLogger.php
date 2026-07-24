@@ -1818,6 +1818,29 @@ class AuditLogger
         );
     }
 
+    public static function logAiTechDocSectionDraftSuggested(
+        TechnicalDocumentationPackage $package,
+        User $actor,
+        array $meta,
+    ): void {
+        self::persist(
+            type: AuditEventType::AiTechDocSectionDraftSuggested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $package->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'section_key', 'value' => (string) ($meta['section_key'] ?? '')],
+                ['field' => 'provider', 'value' => (string) ($meta['provider'] ?? '')],
+                ['field' => 'model', 'value' => (string) ($meta['model'] ?? '')],
+                ['field' => 'draft_parsed', 'value' => !empty($meta['draft_parsed']) ? '1' : '0'],
+                ['field' => 'locale', 'value' => (string) ($meta['locale'] ?? '')],
+            ],
+        );
+    }
+
     public static function logAiIncidentSummaryDraftSuggested(
         ProductIncident $incident,
         User $actor,
