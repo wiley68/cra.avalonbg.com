@@ -259,15 +259,19 @@ test('edit page exposes jira integration without api token', function () {
         'last_verified_at' => now(),
     ]);
 
+    $expectedProvider = 'jira';
+    $expectedBaseUrl = 'https://acme.atlassian.net';
+    $expectedEmail = 'owner@acme.example';
+
     $this->actingAs($owner)
         ->get(route('settings.integrations.edit'))
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
             ->component('settings/Integrations')
             ->has('integrations', 1)
-            ->where('integrations.0.provider', 'jira')
-            ->where('integrations.0.base_url', 'https://acme.atlassian.net')
-            ->where('integrations.0.email', 'owner@acme.example')
+            ->where('integrations.0.provider', $expectedProvider)
+            ->where('integrations.0.base_url', $expectedBaseUrl)
+            ->where('integrations.0.email', $expectedEmail)
             ->missing('integrations.0.credentials')
             ->missing('integrations.0.api_token'));
 });
