@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\ProductVulnerabilityApiController;
 use App\Http\Controllers\Api\ProductIncidentApiController;
 use App\Http\Controllers\Api\ProductSdlApiController;
 use App\Http\Controllers\Api\IncidentApiController;
+use App\Http\Controllers\Api\IntegrationHealthApiController;
 use App\Http\Controllers\Api\SdlApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\OrgPolicyApiController;
@@ -44,6 +45,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\IntegrationHealthController;
 use App\Http\Controllers\SdlController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\OrgPolicyController;
@@ -102,6 +104,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['password.changed', 'two-factor.enabled'])->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+        Route::get('integrations/health', [IntegrationHealthController::class, 'index'])
+            ->name('integrations.health.index');
 
         Route::resource('users', UserController::class)->except(['show']);
         Route::post('users/{user}/reset-two-factor', [UserController::class, 'resetTwoFactor'])
@@ -516,6 +521,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('internal-api')->name('internal.')->group(function () {
             Route::get('users', [UserApiController::class, 'index'])
                 ->name('users.index');
+            Route::get('integrations/health', [IntegrationHealthApiController::class, 'index'])
+                ->name('integrations.health.index');
             Route::get('controls', [ControlApiController::class, 'index'])
                 ->name('controls.index');
             Route::get('customers', [CustomerApiController::class, 'index'])

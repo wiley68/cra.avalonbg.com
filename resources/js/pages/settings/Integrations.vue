@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { Copy, GitBranch, RefreshCw, Save, Shield, Trash2 } from '@lucide/vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import {
+    Activity,
+    Copy,
+    GitBranch,
+    RefreshCw,
+    Save,
+    Shield,
+    Trash2,
+} from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import IntegrationController from '@/actions/App/Http/Controllers/Settings/IntegrationController';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -20,6 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
+import { index as integrationHealthIndex } from '@/routes/integrations/health';
 import { edit } from '@/routes/settings/integrations';
 
 type VcsConnection = {
@@ -500,11 +509,19 @@ const confirmDisconnect = () => {
     <h1 class="sr-only">{{ t('settings.integrations.title') }}</h1>
 
     <div class="space-y-6">
-        <Heading
-            variant="small"
-            :title="t('settings.integrations.heading')"
-            :description="t('settings.integrations.description')"
-        />
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <Heading
+                variant="small"
+                :title="t('settings.integrations.heading')"
+                :description="t('settings.integrations.description')"
+            />
+            <Button variant="outline" size="sm" as-child>
+                <Link :href="integrationHealthIndex()">
+                    <Activity class="h-4 w-4" />
+                    {{ t('settings.integrations.health_link') }}
+                </Link>
+            </Button>
+        </div>
 
         <Tabs
             v-if="

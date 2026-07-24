@@ -380,6 +380,32 @@
             "last_owner_delete": "Cannot delete the last organization owner."
         }
     },
+    "integrations": {
+        "health": {
+            "index_title": "Integration health",
+            "title": "Integration health",
+            "subtitle": "Org-wide sync status for product links and repositories",
+            "search_placeholder": "Search by provider, product, target or error…",
+            "open_settings": "Manage connectors",
+            "open_product": "Open product",
+            "columns": {
+                "provider": "Provider",
+                "product": "Product",
+                "target": "Target",
+                "connection_status": "Connection",
+                "last_synced_at": "Last sync",
+                "health": "Health",
+                "last_error": "Last error",
+                "pending_suggestions": "Pending"
+            },
+            "status": {
+                "ok": "OK",
+                "soft_fail": "Soft fail",
+                "failed": "Failed",
+                "never": "Never synced"
+            }
+        }
+    },
     "nav": {
         "organizations": "Organizations",
         "users": "Users",
@@ -3774,12 +3800,14 @@
             "profile": "Profile",
             "security": "Security",
             "appearance": "Appearance",
-            "integrations": "Integrations"
+            "integrations": "Integrations",
+            "integration_health": "Integration health"
         },
         "integrations": {
             "title": "Integrations",
             "heading": "Integrations",
             "description": "Connect GitHub, GitLab, Jira, Azure DevOps, Snyk, or SARIF uploads so products can sync evidence and import findings.",
+            "health_link": "View sync health",
             "github": "GitHub",
             "gitlab": "GitLab",
             "jira": "Jira",

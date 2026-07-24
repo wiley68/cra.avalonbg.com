@@ -8,6 +8,7 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { useTranslations } from '@/composables/useTranslations';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { index as integrationHealthIndex } from '@/routes/integrations/health';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
@@ -31,6 +32,10 @@ const sidebarNavItems = computed<NavItem[]>(() => [
     {
         title: t('settings.nav.integrations'),
         href: editIntegrations(),
+    },
+    {
+        title: t('settings.nav.integration_health'),
+        href: integrationHealthIndex(),
     },
 ]);
 

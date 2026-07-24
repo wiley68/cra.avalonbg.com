@@ -380,6 +380,32 @@
             "last_owner_delete": "Не може да се изтрие последният собственик на организацията."
         }
     },
+    "integrations": {
+        "health": {
+            "index_title": "Здраве на интеграциите",
+            "title": "Здраве на интеграциите",
+            "subtitle": "Статус на sync за product links и хранилища в организацията",
+            "search_placeholder": "Търсене по provider, продукт, target или грешка…",
+            "open_settings": "Управление на connectors",
+            "open_product": "Отвори продукт",
+            "columns": {
+                "provider": "Provider",
+                "product": "Продукт",
+                "target": "Цел",
+                "connection_status": "Връзка",
+                "last_synced_at": "Последен sync",
+                "health": "Здраве",
+                "last_error": "Последна грешка",
+                "pending_suggestions": "Pending"
+            },
+            "status": {
+                "ok": "OK",
+                "soft_fail": "Soft fail",
+                "failed": "Неуспешен",
+                "never": "Без sync"
+            }
+        }
+    },
     "nav": {
         "organizations": "Организации",
         "users": "Потребители",
@@ -3772,12 +3798,14 @@
             "profile": "Профил",
             "security": "Сигурност",
             "appearance": "Изглед",
-            "integrations": "Интеграции"
+            "integrations": "Интеграции",
+            "integration_health": "Здраве на интеграциите"
         },
         "integrations": {
             "title": "Интеграции",
             "heading": "Интеграции",
             "description": "Свържете GitHub, GitLab, Jira или Snyk, за да синхронизирате evidence и да импортирате findings.",
+            "health_link": "Виж sync health",
             "github": "GitHub",
             "gitlab": "GitLab",
             "jira": "Jira",
