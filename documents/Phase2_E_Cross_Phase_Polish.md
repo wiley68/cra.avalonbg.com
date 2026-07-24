@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.2  
+**Версия:** 0.3  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–2 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -137,7 +137,7 @@ flowchart LR
 ### Must
 
 1. ~~Ops baseline: document + verify scheduler + `queue:work` path за `vcs:sync-scheduled` и `integrations:sync-scheduled`~~ **Done** (2026-07-24) — [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md), `ops:baseline-check`, `OpsBaselineScheduleTest`
-2. **Open** — Queue hardening: failed job visibility / retry expectations; Sync now остава `dispatchSync` (не регресия)
+2. ~~Queue hardening: failed job visibility / retry expectations; Sync now остава `dispatchSync`~~ **Done** (2026-07-24) — `$tries`/`$backoff`/`$timeout`, `failed()` → `last_sync_summary.queue_failed`, `DB_QUEUE_RETRY_AFTER`, `QueueHardeningTest`
 3. **Open** — Live LLM enablement guide: `CRA_AI_PROVIDER` openai/anthropic; stub остава default за CI; smoke checklist за imported-finding + vulnerability triage
 4. **Open** — Feature tests: AI paths с stub; queue/schedule commands не чупят без worker; i18n където има нов UI copy
 5. **Open** — GitHub **merged-PR summary** MVP: `released_at` ±14d (else last 30d) на Product Version show; no auto-entity create
@@ -246,5 +246,6 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                               |
 | ------ | ---------- | --------------------------------------------------------------------- |
+| 0.3    | 2026-07-24 | Must 2 Done — queue hardening (retries, failed visibility, Sync now)  |
 | 0.2    | 2026-07-24 | Freeze Must/Should/Could; roadmap → internal test → F; Must 1 Done    |
 | 0.1    | 2026-07-24 | Skeleton — Active след Phase 2.8 exit; Must/Should/Could draft slices |

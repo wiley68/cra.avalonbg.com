@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Schedule;
 
@@ -10,7 +11,7 @@ class OpsBaselineCheck extends Command
 {
     protected $signature = 'ops:baseline-check';
 
-    protected $description = 'Verify scheduler + queue baseline for scheduled VCS/integration sync (Phase 2_E Must 1)';
+    protected $description = 'Verify scheduler + queue baseline for scheduled VCS/integration sync (Phase 2_E Must 1–2)';
 
     public function handle(): int
     {
@@ -41,6 +42,28 @@ class OpsBaselineCheck extends Command
                 } else {
                     $this->line("Table [{$table}]: ok");
                 }
+            }
+
+            if (Schema::hasTable('failed_jobs')) {
+                try {
+                    $failedCount = (int) DB::table('failed_jobs')->count();
+                    if ($failedCount > 0) {
+                        $this->warn("failed_jobs count: {$failedCount} — inspect with `php artisan queue:failed`");
+                    } else {
+                        $this->line('failed_jobs count: 0');
+                    }
+                } catch (\Throwable $e) {
+                    $this->warn('Could not count failed_jobs: ' . $e->getMessage());
+                }
+            }
+
+            $retryAfter = (int) config('queue.connections.database.retry_after', 90);
+            $jobTimeout = 90;
+            if ($retryAfter <= $jobTimeout) {
+                $this->error("database retry_after ({$retryAfter}) must be greater than sync job timeout ({$jobTimeout}). Set DB_QUEUE_RETRY_AFTER>=150.");
+                $ok = false;
+            } else {
+                $this->info("database retry_after: {$retryAfter} (> job timeout {$jobTimeout})");
             }
         }
 
@@ -75,8 +98,9 @@ class OpsBaselineCheck extends Command
 
         $this->newLine();
         $this->line('Reminder: cron must call `php artisan schedule:run` every minute.');
-        $this->line('Reminder: `php artisan queue:work` must consume dispatched jobs.');
+        $this->line('Reminder: `php artisan queue:work --tries=3 --timeout=90` must consume dispatched jobs.');
         $this->line('Manual Sync now uses dispatchSync and does not require the worker.');
+        $this->line('Hard sync failures: 3 tries with backoff 15/60/120s; then failed_jobs + last_sync_summary.queue_failed.');
 
         if ($ok) {
             $this->newLine();

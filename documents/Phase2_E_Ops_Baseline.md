@@ -1,8 +1,8 @@
 # Phase 2_E — Ops baseline (scheduler + queue)
 
-**Версия:** 1.0  
+**Версия:** 1.1  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1)  
+**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2)  
 **Свързано:** [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) §4
 
 > Цел: production/staging path за **scheduled** VCS + integration sync. Manual **Sync now** не зависи от този baseline.
@@ -32,12 +32,13 @@ cron (* * * * *) → schedule:run
 
 ## 2. Env notes
 
-| Променлива         | Препоръка (staging/prod)         | Бележка                                                                                |
-| ------------------ | -------------------------------- | -------------------------------------------------------------------------------------- |
-| `QUEUE_CONNECTION` | `database` (default) или `redis` | **Не** `sync` — иначе `dispatch()` се изпълнява inline в `schedule:run` и блокира cron |
-| `DB_*`             | Работеща DB                      | Нужна за `jobs` / `failed_jobs` при `database` driver                                  |
-| `APP_ENV`          | `staging` / `production`         | —                                                                                      |
-| `APP_KEY`          | Set                              | Encrypt за integration/VCS credentials                                                 |
+| Променлива             | Препоръка (staging/prod)         | Бележка                                                                                |
+| ---------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+| `QUEUE_CONNECTION`     | `database` (default) или `redis` | **Не** `sync` — иначе `dispatch()` се изпълнява inline в `schedule:run` и блокира cron |
+| `DB_QUEUE_RETRY_AFTER` | **≥ 150** (default 150)          | Трябва да е **>** sync job `$timeout` (90), иначе Laravel може да пусне дубликат job   |
+| `DB_*`                 | Работеща DB                      | Нужна за `jobs` / `failed_jobs` при `database` driver                                  |
+| `APP_ENV`              | `staging` / `production`         | —                                                                                      |
+| `APP_KEY`              | Set                              | Encrypt за integration/VCS credentials                                                 |
 
 Таблици (миграция `0001_01_01_000002_create_jobs_table`): `jobs`, `job_batches`, `failed_jobs`.
 
@@ -71,8 +72,10 @@ php artisan schedule:list
 
 ```bash
 cd /var/www/cra.avalonbg.com
-php artisan queue:work --sleep=1 --tries=3 --timeout=120
+php artisan queue:work --sleep=1 --tries=3 --timeout=90
 ```
+
+Job-level defaults (Must 2): `$tries = 3`, `$backoff = [15, 60, 120]`, `$timeout = 90` на `SyncProductIntegrationJob` / `SyncProductRepositoryJob`. Soft-fail HTTP (401/403/429) **не** хвърля — job успява с `last_error`. Hard exception → retries → `failed_jobs` + `last_sync_summary.queue_failed` (видимо в `/integrations/health`).
 
 Production: supervisor/systemd с `queue:work` (или `queue:listen`) + `queue:restart` след deploy. Sample unit → Could 13.
 
@@ -86,13 +89,24 @@ php artisan queue:monitor default --max=100
 
 ---
 
-## 5. Staging verification checklist (Must 1)
+## 4b. Failed job visibility (Must 2)
+
+| Къде                                            | Какво                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| `failed_jobs` table / `queue:failed`            | Laravel payload след изчерпани tries                                           |
+| `last_sync_summary.queue_failed` + `last_error` | Product link / VCS repo — health = `failed`                                    |
+| `ops:baseline-check`                            | Печата `failed_jobs count` + retry_after vs timeout                            |
+| Manual Sync now                                 | `dispatchSync` — **не** минава през queue; при hard throw също вика `failed()` |
+
+---
+
+## 5. Staging verification checklist (Must 1–2)
 
 Изпълни в staging (или local с `QUEUE_CONNECTION=database` + worker):
 
 1. [ ] `php artisan migrate` — `jobs` / `failed_jobs` съществуват.
-2. [ ] `QUEUE_CONNECTION` ≠ `sync` (`.env`).
-3. [ ] `php artisan ops:baseline-check` → exit 0.
+2. [ ] `QUEUE_CONNECTION` ≠ `sync` (`.env`); `DB_QUEUE_RETRY_AFTER` ≥ 150 (или default).
+3. [ ] `php artisan ops:baseline-check` → exit 0 (incl. retry_after + failed_jobs count).
 4. [ ] `php artisan schedule:list` показва `vcs:sync-scheduled` и `integrations:sync-scheduled` като `0 * * * *`.
 5. [ ] Cron (или ръчно) пуска `php artisan schedule:run` без error.
 6. [ ] Settings → Integrations: connector **active**, schedule `hourly` или `daily`; product link съществува; org `is_active`.
@@ -100,10 +114,11 @@ php artisan queue:monitor default --max=100
     - `php artisan integrations:sync-scheduled` / `vcs:sync-scheduled` → „Dispatched N …“
     - ред(ове) в `jobs` **или** worker лог показва обработка.
 8. [ ] Worker консумира job; `/integrations/health` или product link summary се обновява (без soft-fail при валиден token).
-9. [ ] С **спрян** worker: **Sync now** в UI все още успява (`dispatchSync`).
+9. [ ] С **спрян** worker: **Sync now** в UI все още успява (`dispatchSync`); **няма** нов ред в `jobs`.
 10. [ ] С спрян worker + schedule: jobs се трупат в `jobs` (доказателство, че schedule ≠ sync).
+11. [ ] След hard failure: `queue:failed` и/или health `failed` с `queue_failed` в summary.
 
-**Verified (automated):** 2026-07-24 — `schedule:list` съдържа и двете hourly команди; artisan signatures налични; feature test `OpsBaselineScheduleTest` (4/4). Staging/prod: попълни checklist по-горе + `php artisan ops:baseline-check` на host с работеща DB.
+**Verified (automated):** 2026-07-24 — `OpsBaselineScheduleTest` + `QueueHardeningTest` зелени. Staging/prod: попълни checklist + `ops:baseline-check` на host с работеща DB.
 
 ---
 
@@ -120,18 +135,20 @@ php artisan queue:monitor default --max=100
 
 ## 7. Troubleshooting
 
-| Симптом                        | Проверка                                                                     |
-| ------------------------------ | ---------------------------------------------------------------------------- |
-| Schedule „върви“, но няма sync | Има ли `queue:work`? `jobs` расте ли?                                        |
-| `QUEUE_CONNECTION=sync`        | Смени на `database`; schedule ще блокира иначе                               |
-| Dispatched 0; skipped N        | Schedule `off`, не due, или няма links                                       |
-| Soft-fail в summary            | Token/scopes — [Phase2_8 runbook](Phase2_8_Integrations_Operator_Runbook.md) |
-| Failed jobs                    | `queue:failed` + retry; виж exception (без secrets в logs)                   |
+| Симптом                          | Проверка                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| Schedule „върви“, но няма sync   | Има ли `queue:work`? `jobs` расте ли?                                        |
+| `QUEUE_CONNECTION=sync`          | Смени на `database`; schedule ще блокира иначе                               |
+| Dispatched 0; skipped N          | Schedule `off`, не due, или няма links                                       |
+| Soft-fail в summary              | Token/scopes — [Phase2_8 runbook](Phase2_8_Integrations_Operator_Runbook.md) |
+| Failed jobs / health failed      | `queue:failed` + retry; виж `last_sync_summary.queue_failed` (без secrets)   |
+| Дублирани jobs / release mid-run | `DB_QUEUE_RETRY_AFTER` трябва да е > `$timeout` (90)                         |
 
 ---
 
 ## 8. История
 
-| Версия | Дата       | Промяна                                          |
-| ------ | ---------- | ------------------------------------------------ |
-| 1.0    | 2026-07-24 | Must 1 — ops baseline doc + `ops:baseline-check` |
+| Версия | Дата       | Промяна                                                              |
+| ------ | ---------- | -------------------------------------------------------------------- |
+| 1.1    | 2026-07-24 | Must 2 — retries, failed visibility, retry_after, Sync now checklist |
+| 1.0    | 2026-07-24 | Must 1 — ops baseline doc + `ops:baseline-check`                     |

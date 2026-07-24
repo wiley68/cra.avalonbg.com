@@ -112,9 +112,11 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 
 **Hard fail** остава за липсващи credentials, грешен provider, или неуспешен connect/verify при Settings.
 
-**Manual Sync now:** `SyncProductIntegrationJob::dispatchSync` — синхронно в HTTP request; не зависи от queue worker.
+**Manual Sync now:** `SyncProductIntegrationJob::dispatchSync` — синхронно в HTTP request; не зависи от queue worker. (Регресия покрита в Phase 2_E Must 2 / `QueueHardeningTest`.)
 
 **Unique job:** `ShouldBeUnique` за `linkId`, `uniqueFor = 300` s — намалява stampede при двойно кликване / overlapping schedule.
+
+**Queue hardening (2_E Must 2):** `$tries = 3`, backoff `15/60/120`, `$timeout = 90`; след изчерпани tries → `failed_jobs` + `last_sync_summary.queue_failed` (health `failed`). Soft-fail HTTP **не** влиза в retry storm.
 
 ---
 
