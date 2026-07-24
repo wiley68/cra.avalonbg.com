@@ -9,6 +9,7 @@ use App\Models\ProductIntegrationLink;
 use App\Models\User;
 use App\Services\Integrations\JiraCloudProvider;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Throwable;
 
 class AlmSyncService
@@ -32,12 +33,16 @@ class AlmSyncService
 
         try {
             if ($link->integration->provider !== IntegrationProvider::Jira) {
-                throw new \RuntimeException('Only Jira ALM sync is implemented.');
+                throw new \RuntimeException(
+                    Translations::get('products.integrations.jira_sync_not_implemented'),
+                );
             }
 
             $projectKey = trim((string) ($link->external_project_key ?? ''));
             if ($projectKey === '') {
-                throw new \RuntimeException('Jira project key is missing on the product link.');
+                throw new \RuntimeException(
+                    Translations::get('products.integrations.jira_project_key_missing'),
+                );
             }
 
             $provider = JiraCloudProvider::fromIntegration($link->integration);

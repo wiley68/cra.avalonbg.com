@@ -9,6 +9,7 @@ use App\Models\ProductIntegrationLink;
 use App\Models\User;
 use App\Services\Integrations\SnykApiProvider;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Throwable;
 
 class ScannerSyncService
@@ -32,7 +33,9 @@ class ScannerSyncService
 
         try {
             if ($link->integration->provider !== IntegrationProvider::Snyk) {
-                throw new \RuntimeException('Only Snyk scanner sync is implemented.');
+                throw new \RuntimeException(
+                    Translations::get('products.integrations.snyk_sync_not_implemented'),
+                );
             }
 
             $config = is_array($link->config) ? $link->config : [];
@@ -40,7 +43,9 @@ class ScannerSyncService
             $projectId = trim((string) ($link->external_target_id ?? ''));
 
             if ($orgId === '' || $projectId === '') {
-                throw new \RuntimeException('Snyk org or project id is missing on the product link.');
+                throw new \RuntimeException(
+                    Translations::get('products.integrations.snyk_target_missing'),
+                );
             }
 
             $provider = SnykApiProvider::fromIntegration($link->integration);

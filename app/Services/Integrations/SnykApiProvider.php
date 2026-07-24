@@ -26,7 +26,9 @@ class SnykApiProvider implements ScannerProvider
     public static function fromIntegration(OrganizationIntegration $integration): self
     {
         if ($integration->provider !== IntegrationProvider::Snyk) {
-            throw new RuntimeException('Integration is not a Snyk connection.');
+            throw new RuntimeException(
+                Translations::get('products.integrations.snyk_provider_mismatch'),
+            );
         }
 
         $credentials = is_array($integration->credentials) ? $integration->credentials : [];

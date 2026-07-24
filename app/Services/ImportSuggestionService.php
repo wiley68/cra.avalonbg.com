@@ -16,6 +16,7 @@ use App\Models\ProductVulnerability;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\Translations;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
@@ -272,7 +273,7 @@ class ImportSuggestionService
     {
         if ($suggestion->status !== ImportSuggestionStatus::Pending) {
             throw ValidationException::withMessages([
-                'suggestion' => ['Suggestion is not pending.'],
+                'suggestion' => [Translations::get('products.integrations.suggestion_not_pending')],
             ]);
         }
 
@@ -281,7 +282,9 @@ class ImportSuggestionService
         $entity = match ($suggestion->kind) {
             ImportSuggestionKind::Task => $this->acceptTask($suggestion, $actor),
             ImportSuggestionKind::Vulnerability => $this->acceptVulnerability($suggestion),
-            default => throw new RuntimeException('Unsupported import suggestion kind.'),
+            default => throw new RuntimeException(
+                Translations::get('products.integrations.unsupported_suggestion_kind'),
+            ),
         };
 
         $suggestion->update([
@@ -299,7 +302,7 @@ class ImportSuggestionService
     {
         if ($suggestion->status !== ImportSuggestionStatus::Pending) {
             throw ValidationException::withMessages([
-                'suggestion' => ['Suggestion is not pending.'],
+                'suggestion' => [Translations::get('products.integrations.suggestion_not_pending')],
             ]);
         }
 

@@ -4,7 +4,7 @@
 
 **Версия на документа:** 1.9  
 **Дата:** 24 юли 2026 г.  
-**Статус:** MVP 0.1 exited → Phase 2.1–2.7 Closed → Phase 2.8 Active (plan)  
+**Статус:** MVP 0.1 exited → Phase 2.1–2.7 Closed → Phase 2.8 Active (Must Done; Should/Could open)  
 **Предназначение:** Работен план за проучване, проектиране и разработване на SaaS/self-hosted система за управление на продуктовата сигурност и подготовката за съответствие с Cyber Resilience Act (CRA).
 
 > **Важно:** Системата не трябва да обещава автоматично или юридически гарантирано съответствие. Тя трябва да организира, автоматизира и документира процесите, решенията и доказателствата, необходими за CRA readiness и conformity assessment.
@@ -1504,7 +1504,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 - scanner / dependency feeds (Snyk, Trivy, Renovate, …) as reviewable drafts;
 - reuse Phase 2.1 connector patterns; no full ALM clone / own scanner engine.
 
-> **Статус:** Active — plan frozen (Must/Should/Could) — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md).
+> **Статус:** Active — Must Done (2026-07-24); Should/Could open — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md).
 
 ---
 
@@ -1841,7 +1841,7 @@ https://eur-lex.europa.eu/eli/reg/2024/2847/oj
 - [Phase2_5_Security_Incident_Management.md](Phase2_5_Security_Incident_Management.md) — Closed: Security Incident Management ([Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md));
 - [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md) — Closed: Secure Development Lifecycle ([Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md));
 - [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) — Closed: Technical Documentation (§5.12) — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md);
-- [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Active: Integration wave 2 plan (Must/Should/Could).
+- [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Active: Integration wave 2 — Must Done; Should/Could open.
 
 ---
 

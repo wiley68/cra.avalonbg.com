@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.7  
+**Версия:** 0.8  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–5 Done; Must 6 open  
+**Статус:** Active — Must Done; Should/Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -236,7 +236,7 @@ POST   /api/webhooks/snyk/{integration}
 3. ~~Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task~~ **Done** (2026-07-24)
 4. ~~Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability~~ **Done** (2026-07-24)
 5. ~~Evidence immutable ref / optional snapshot on successful sync; AuditLogger coverage~~ **Done** (2026-07-24)
-6. i18n EN/BG + feature tests (`Http::fake()`; viewer cannot manage connectors / accept)
+6. ~~i18n EN/BG + feature tests (`Http::fake()`; viewer cannot manage connectors / accept)~~ **Done** (2026-07-24)
 
 ### Should
 
@@ -323,7 +323,7 @@ Reuse:
 | Snyk connect/sync | `SnykIntegrationTest` — connect/link/sync/accept **Done**        |
 | Evidence snapshot | Jira/Snyk sync → `integration_snapshot` + checksum **Done**      |
 | Accept / dismiss  | Task + vulnerability creation **Done**                           |
-| RBAC              | Viewer forbidden manage/accept — covered in feature tests        |
+| RBAC              | `IntegrationWave2RbacTest` + settings/product tests **Done**     |
 | Schedule          | `integrations:sync-scheduled` command test                       |
 | Azure DevOps      | Provider adapter test (Should 11)                                |
 | Readiness         | Pending suggestions gap (Should 10)                              |
@@ -334,6 +334,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.8    | 2026-07-24 | Must 6 Done — i18n polish + RBAC feature coverage; Must slice complete         |
 | 0.7    | 2026-07-24 | Must 5 Done — evidence snapshot on Jira/Snyk sync + audit evidence refs        |
 | 0.6    | 2026-07-24 | Must 4 Done — Snyk Settings + Product link/sync → vuln suggestions → Accept    |
 | 0.5    | 2026-07-24 | Must 3 Done — Product↔Jira link, sync→task suggestions, Accept/Dismiss→Task    |

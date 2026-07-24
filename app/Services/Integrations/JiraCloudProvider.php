@@ -23,7 +23,9 @@ class JiraCloudProvider implements AlmProvider
     public static function fromIntegration(OrganizationIntegration $integration): self
     {
         if ($integration->provider !== IntegrationProvider::Jira) {
-            throw new RuntimeException('Integration is not a Jira connection.');
+            throw new RuntimeException(
+                Translations::get('products.integrations.jira_provider_mismatch'),
+            );
         }
 
         $credentials = is_array($integration->credentials) ? $integration->credentials : [];

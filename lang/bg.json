@@ -930,6 +930,14 @@
             "snyk_project_not_found": "Snyk проектът не е намерен с текущите credentials.",
             "snyk_project_fetch_failed": "Неуспешно зареждане на Snyk проекта. Проверете org/project ID и credentials.",
             "snyk_findings_fetch_failed": "Неуспешно зареждане на Snyk findings за този проект.",
+            "suggestion_not_pending": "Това предложение за импорт вече не е в изчакване.",
+            "unsupported_suggestion_kind": "Този тип предложение за импорт не се поддържа.",
+            "jira_provider_mismatch": "Интеграцията не е Jira връзка.",
+            "jira_project_key_missing": "Липсва Jira project key в продуктовата връзка.",
+            "jira_sync_not_implemented": "За тази връзка е имплементирана само Jira ALM синхронизация.",
+            "snyk_provider_mismatch": "Интеграцията не е Snyk връзка.",
+            "snyk_target_missing": "Липсва Snyk organization или project id в продуктовата връзка.",
+            "snyk_sync_not_implemented": "За тази връзка е имплементирана само Snyk scanner синхронизация.",
             "jira": {
                 "project_key": "Ключ на Jira проект",
                 "project_key_help": "Project key, както се показва в Jira (напр. CRA).",
@@ -951,7 +959,7 @@
                 "pending_tasks": "Чакащи предложения за задачи",
                 "sync_error": "Грешка при синхронизация",
                 "project_label": "Проект",
-                "evidence": "Evidence snapshot"
+                "evidence": "Снимка на evidence"
             },
             "snyk": {
                 "org_id": "Snyk organization ID",
@@ -973,10 +981,10 @@
                 "sync_succeeded": "Snyk синхронизацията завърши.",
                 "sync_failed": "Snyk синхронизацията не успя. Проверете детайлите от последната синхронизация.",
                 "last_synced": "Последна синхронизация",
-                "findings": "Findings",
+                "findings": "Находки",
                 "pending_vulnerabilities": "Чакащи предложения за уязвимости",
                 "sync_error": "Грешка при синхронизация",
-                "evidence": "Evidence snapshot"
+                "evidence": "Снимка на evidence"
             },
             "suggestions": {
                 "title": "Предложения за импорт",
