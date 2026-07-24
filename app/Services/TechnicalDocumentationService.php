@@ -105,7 +105,8 @@ class TechnicalDocumentationService
      *     version_label: string,
      *     locale: string,
      *     notes?: string|null,
-     *     product_version_id?: int|null
+     *     product_version_id?: int|null,
+     *     inherit_from_previous?: bool
      * }  $attributes
      */
     public function create(Product $product, array $attributes, User $actor): TechnicalDocumentationPackage
@@ -113,6 +114,13 @@ class TechnicalDocumentationService
         return DB::transaction(function () use ($product, $attributes, $actor): TechnicalDocumentationPackage {
             $locale = $attributes['locale'];
             $productVersionId = $attributes['product_version_id'] ?? null;
+            $inherit = (bool) ($attributes['inherit_from_previous'] ?? true);
+
+            $parent = $this->findPreviousPublished(
+                $product,
+                $locale,
+                $productVersionId,
+            );
 
             $package = TechnicalDocumentationPackage::query()->create([
                 'organization_id' => $product->organization_id,
@@ -123,23 +131,29 @@ class TechnicalDocumentationService
                 'version_label' => trim($attributes['version_label']),
                 'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
-                'supersedes_id' => $this->findPublishedSibling(
-                    $product,
-                    $locale,
-                    $productVersionId,
-                )?->id,
+                'supersedes_id' => $parent?->id,
             ]);
 
+            $parentSections = collect();
+            if ($inherit && $parent !== null) {
+                $parent->loadMissing('sections');
+                $parentSections = $parent->sections
+                    ->keyBy(fn(TechnicalDocumentationSection $section) => $section->section_key->value);
+            }
+
             foreach (TechnicalDocumentationSectionKey::ordered() as $key) {
+                /** @var TechnicalDocumentationSection|null $from */
+                $from = $inherit ? $parentSections->get($key->value) : null;
+
                 TechnicalDocumentationSection::query()->create([
                     'package_id' => $package->id,
                     'section_key' => $key,
-                    'source' => $key->defaultSource(),
-                    'body_markdown' => null,
-                    'generated_payload' => null,
-                    'sort_order' => $key->defaultSortOrder(),
-                    'is_applicable' => true,
-                    'override_reason' => null,
+                    'source' => $from?->source ?? $key->defaultSource(),
+                    'body_markdown' => $from?->body_markdown,
+                    'generated_payload' => $from?->generated_payload,
+                    'sort_order' => $from?->sort_order ?? $key->defaultSortOrder(),
+                    'is_applicable' => $from?->is_applicable ?? true,
+                    'override_reason' => $from?->override_reason,
                     'changed_since_parent' => false,
                 ]);
             }
@@ -147,9 +161,13 @@ class TechnicalDocumentationService
             $package->load(['sections', 'product.productOwner:id,name', 'product.securityContact:id,name']);
             $this->generator->refreshPackage($package);
 
+            if ($parent !== null) {
+                $this->syncChangedSinceParentFlags($package->fresh(['sections']), $parent);
+            }
+
             AuditLogger::logTechnicalDocumentationCreated($package, $actor);
 
-            return $package->fresh(['sections']);
+            return $package->fresh(['sections', 'supersedes']);
         });
     }
 
@@ -184,7 +202,7 @@ class TechnicalDocumentationService
 
             $package->loadMissing('product');
 
-            $publishedSibling = $this->findPublishedSibling(
+            $previous = $this->findPreviousPublished(
                 $package->product,
                 $locale,
                 $productVersionId,
@@ -197,8 +215,13 @@ class TechnicalDocumentationService
                 'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
                 'product_version_id' => $productVersionId,
-                'supersedes_id' => $publishedSibling?->id,
+                'supersedes_id' => $previous?->id,
             ]);
+
+            $previous?->loadMissing('sections');
+            $parentSections = $previous?->sections
+                ->keyBy(fn(TechnicalDocumentationSection $section) => $section->section_key->value)
+                ?? collect();
 
             $sectionsByKey = $package->sections()
                 ->get()
@@ -230,10 +253,14 @@ class TechnicalDocumentationService
                     $payload['body_markdown'] = filled($body) ? (string) $body : null;
                 }
 
+                /** @var TechnicalDocumentationSection|null $parentSection */
+                $parentSection = $parentSections->get($key);
+                $section->fill($payload);
+                $payload['changed_since_parent'] = $this->sectionChangedSinceParent($section, $parentSection);
                 $section->update($payload);
             }
 
-            $fresh = $package->fresh(['sections', 'productVersion:id,version_number', 'publisher:id,name']);
+            $fresh = $package->fresh(['sections', 'productVersion:id,version_number', 'publisher:id,name', 'supersedes']);
 
             AuditLogger::logTechnicalDocumentationUpdated($fresh, $actor);
 
@@ -276,8 +303,17 @@ class TechnicalDocumentationService
         }
 
         return DB::transaction(function () use ($package, $actor, $keys): TechnicalDocumentationPackage {
-            $package->loadMissing(['product.productOwner:id,name', 'product.securityContact:id,name', 'sections']);
+            $package->loadMissing([
+                'product.productOwner:id,name',
+                'product.securityContact:id,name',
+                'sections',
+                'supersedes.sections',
+            ]);
             $result = $this->generator->refreshPackage($package, $keys);
+
+            if ($package->supersedes !== null) {
+                $this->syncChangedSinceParentFlags($package->fresh(['sections']), $package->supersedes);
+            }
 
             $fresh = $package->fresh([
                 'sections',
@@ -407,7 +443,7 @@ class TechnicalDocumentationService
         return DB::transaction(function () use ($package, $actor): TechnicalDocumentationPackage {
             $package->loadMissing('product');
 
-            $previous = $this->findPublishedSibling(
+            $previous = $this->findPreviousPublished(
                 $package->product,
                 $package->locale,
                 $package->product_version_id,
@@ -553,7 +589,7 @@ class TechnicalDocumentationService
             'sections',
             'publisher:id,name',
             'productVersion:id,version_number',
-            'supersedes',
+            'supersedes.sections',
         ]);
 
         $previous = $package->supersedes;
@@ -574,6 +610,18 @@ class TechnicalDocumentationService
             'supersedes_title' => $previous
                 ? $previous->title . ' (' . $previous->version_label . ')'
                 : null,
+            'supersedes_sections' => $previous
+                ? $previous->sections
+                    ->keyBy(fn(TechnicalDocumentationSection $section) => $section->section_key->value)
+                    ->map(fn(TechnicalDocumentationSection $section) => [
+                        'source' => $section->source->value,
+                        'body_markdown' => $section->body_markdown,
+                        'generated_payload' => $section->generated_payload,
+                        'is_applicable' => $section->is_applicable,
+                        'override_reason' => $section->override_reason,
+                    ])
+                    ->all()
+                : [],
             'sections' => $package->sections
                 ->sortBy('sort_order')
                 ->values()
@@ -624,6 +672,22 @@ class TechnicalDocumentationService
         ];
     }
 
+    /**
+     * Whether the product has any published package that could be inherited from.
+     */
+    public function hasPublishedPrevious(Product $product, ?string $locale = null): bool
+    {
+        $query = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->where('status', TechnicalDocumentationStatus::Published->value);
+
+        if ($locale !== null) {
+            $query->where('locale', $locale);
+        }
+
+        return $query->exists();
+    }
+
     private function findPublishedSibling(
         Product $product,
         string $locale,
@@ -647,6 +711,92 @@ class TechnicalDocumentationService
         }
 
         return $query->first();
+    }
+
+    /**
+     * Previous published package for supersedes / inherit.
+     *
+     * Prefer exact version-scope sibling; for version-pinned creates, fall back to
+     * latest published in the same locale (e.g. product-wide or older version).
+     */
+    private function findPreviousPublished(
+        Product $product,
+        string $locale,
+        ?int $productVersionId,
+        ?int $exceptId = null,
+    ): ?TechnicalDocumentationPackage {
+        $exact = $this->findPublishedSibling(
+            $product,
+            $locale,
+            $productVersionId,
+            $exceptId,
+        );
+
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        if ($productVersionId === null) {
+            return null;
+        }
+
+        $query = TechnicalDocumentationPackage::query()
+            ->where('product_id', $product->id)
+            ->where('locale', $locale)
+            ->where('status', TechnicalDocumentationStatus::Published->value)
+            ->orderByDesc('id');
+
+        if ($exceptId !== null) {
+            $query->whereKeyNot($exceptId);
+        }
+
+        return $query->first();
+    }
+
+    private function syncChangedSinceParentFlags(
+        TechnicalDocumentationPackage $package,
+        TechnicalDocumentationPackage $parent,
+    ): void {
+        $parent->loadMissing('sections');
+        $parentSections = $parent->sections
+            ->keyBy(fn(TechnicalDocumentationSection $section) => $section->section_key->value);
+
+        foreach ($package->sections as $section) {
+            /** @var TechnicalDocumentationSection|null $parentSection */
+            $parentSection = $parentSections->get($section->section_key->value);
+            $changed = $this->sectionChangedSinceParent($section, $parentSection);
+
+            if ($section->changed_since_parent !== $changed) {
+                $section->update(['changed_since_parent' => $changed]);
+            }
+        }
+    }
+
+    private function sectionChangedSinceParent(
+        TechnicalDocumentationSection $section,
+        ?TechnicalDocumentationSection $parent,
+    ): bool {
+        if ($parent === null) {
+            return false;
+        }
+
+        if ($section->source !== $parent->source) {
+            return true;
+        }
+
+        if ($section->is_applicable !== $parent->is_applicable) {
+            return true;
+        }
+
+        if ((string) ($section->override_reason ?? '') !== (string) ($parent->override_reason ?? '')) {
+            return true;
+        }
+
+        if ((string) ($section->body_markdown ?? '') !== (string) ($parent->body_markdown ?? '')) {
+            return true;
+        }
+
+        return json_encode($section->generated_payload) !== json_encode($parent->generated_payload);
     }
 
     private function assertEditable(TechnicalDocumentationPackage $package): void

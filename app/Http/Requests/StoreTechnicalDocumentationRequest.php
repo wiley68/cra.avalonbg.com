@@ -27,6 +27,7 @@ class StoreTechnicalDocumentationRequest extends FormRequest
             'version_label' => ['required', 'string', 'max:40'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
             'notes' => ['nullable', 'string'],
+            'inherit_from_previous' => ['sometimes', 'boolean'],
             'product_version_id' => [
                 'nullable',
                 'integer',

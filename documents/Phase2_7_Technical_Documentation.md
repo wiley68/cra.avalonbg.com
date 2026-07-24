@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 0.7  
-**Дата:** 23 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done (Should/Could remaining)  
+**Версия:** 0.8  
+**Дата:** 24 юли 2026 г.  
+**Статус:** Active — Must 1–6 Done; Should 7 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -155,7 +155,7 @@ GET    /internal-api/products/{product}/technical-documentation
 
 ### Should
 
-7. Version-pinned packages + inherit from previous published
+7. ~~Version-pinned packages + inherit from previous published~~ **Done** (2026-07-24)
 8. Delta UI (changed sections / stale evidence hints)
 9. PDF/Markdown export
 10. Link published USI + optional SDL run reference
@@ -229,12 +229,13 @@ Reuse:
 
 ## 12. История
 
-| Версия | Дата       | Промяна                                                                          |
-| ------ | ---------- | -------------------------------------------------------------------------------- |
-| 0.7    | 2026-07-23 | Must 6 Done — EN/BG polish, generator locale labels, viewer/locked tests         |
-| 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                  |
-| 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)       |
-| 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders) |
-| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                   |
-| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                     |
-| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C)    |
+| Версия | Дата       | Промяна                                                                            |
+| ------ | ---------- | ---------------------------------------------------------------------------------- |
+| 0.8    | 2026-07-24 | Should 7 Done — version pin inherit from previous published + changed_since_parent |
+| 0.7    | 2026-07-23 | Must 6 Done — EN/BG polish, generator locale labels, viewer/locked tests           |
+| 0.6    | 2026-07-23 | Must 5 Done — draft→review→publish→retire + review task + audit                    |
+| 0.5    | 2026-07-23 | Must 4 Done — generate-from-modules + Refresh generated (payload envelope)         |
+| 0.4    | 2026-07-23 | Must 3 Done — section editor (authored Markdown + generated/linked placeholders)   |
+| 0.3    | 2026-07-23 | Must 2 Done — product-scoped CRUD + Index DataTable + nav card                     |
+| 0.2    | 2026-07-23 | Must 1 Done — packages/sections schema + enums + model tests                       |
+| 0.1    | 2026-07-23 | Skeleton след Phase 2.6 closeout — §5.12 Technical Documentation (кандидат C)      |

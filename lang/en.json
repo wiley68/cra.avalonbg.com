@@ -3107,7 +3107,8 @@
                 "supplemental_notes": "Supplemental notes",
                 "is_applicable": "Applicable",
                 "override_reason": "Not-applicable reason",
-                "assignee": "Assignee"
+                "assignee": "Assignee",
+                "inherit_from_previous": "Inherit from previous published"
             },
             "help": {
                 "title": "Package title shown in lists and exports.",
@@ -3117,7 +3118,8 @@
                 "body": "Markdown content for this authored section.",
                 "supplemental_notes": "Optional Markdown notes kept alongside generated or linked content. Module refresh will not overwrite these notes.",
                 "override_reason": "Explain why this section does not apply to the product.",
-                "assignee_user_id": "Optional reviewer. Defaults to you if left empty."
+                "assignee_user_id": "Optional reviewer. Defaults to you if left empty.",
+                "inherit_from_previous": "Copy section content from the latest published package (same locale). Version-pinned packages can inherit from product-wide or an older version. Generated sections are refreshed afterward."
             },
             "generated": {
                 "empty": "No module data found for this section yet.",

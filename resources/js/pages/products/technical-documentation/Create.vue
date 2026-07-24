@@ -13,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
@@ -34,6 +35,7 @@ const props = defineProps<{
         section_keys: string[];
         default_locale: string;
     };
+    hasPublishedPrevious: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -57,6 +59,7 @@ const form = useForm({
     locale: props.options.default_locale || props.options.locales[0] || 'en',
     notes: '',
     product_version_id: '' as number | '',
+    inherit_from_previous: props.hasPublishedPrevious,
 });
 
 const localeLabel = (value: string): string => {
@@ -71,6 +74,9 @@ const submit = () => {
         ...data,
         product_version_id:
             data.product_version_id === '' ? null : data.product_version_id,
+        inherit_from_previous: props.hasPublishedPrevious
+            ? data.inherit_from_previous
+            : false,
     })).post(store(props.product.id).url);
 };
 </script>
@@ -100,6 +106,30 @@ const submit = () => {
         </div>
 
         <form class="space-y-4" @submit.prevent="submit">
+            <div
+                v-if="hasPublishedPrevious"
+                class="flex items-center justify-between gap-4 rounded-md border px-3 py-2"
+            >
+                <div>
+                    <Label for="inherit_from_previous">{{
+                        t(
+                            'products.technical_documentation.fields.inherit_from_previous',
+                        )
+                    }}</Label>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t(
+                                'products.technical_documentation.help.inherit_from_previous',
+                            )
+                        }}
+                    </p>
+                </div>
+                <Switch
+                    id="inherit_from_previous"
+                    v-model="form.inherit_from_previous"
+                />
+            </div>
+
             <div class="grid gap-2">
                 <FieldLabel
                     html-for="title"

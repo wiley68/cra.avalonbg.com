@@ -51,6 +51,7 @@ class TechnicalDocumentationController extends Controller
             'product' => $this->productPayload($product),
             'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
+            'hasPublishedPrevious' => $this->packages->hasPublishedPrevious($product),
         ]);
     }
 
@@ -66,6 +67,7 @@ class TechnicalDocumentationController extends Controller
                 'version_label' => $request->string('version_label')->toString(),
                 'locale' => $request->string('locale')->toString(),
                 'notes' => $request->input('notes'),
+                'inherit_from_previous' => $request->boolean('inherit_from_previous', true),
                 'product_version_id' => $request->input('product_version_id') !== null
                     ? (int) $request->input('product_version_id')
                     : null,
