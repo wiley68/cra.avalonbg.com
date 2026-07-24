@@ -6,15 +6,19 @@ use App\Enums\TechnicalDocumentationSectionKey;
 use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\TechnicalDocumentationStatus;
 use App\Enums\EvidenceFreshnessStatus;
+use App\Enums\SdlRunStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\SdlRun;
 use App\Models\Task;
 use App\Models\TechnicalDocumentationPackage;
 use App\Models\TechnicalDocumentationSection;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -108,7 +112,9 @@ class TechnicalDocumentationService
      *     locale: string,
      *     notes?: string|null,
      *     product_version_id?: int|null,
-     *     inherit_from_previous?: bool
+     *     inherit_from_previous?: bool,
+     *     user_security_instruction_id?: int|null,
+     *     sdl_run_id?: int|null
      * }  $attributes
      */
     public function create(Product $product, array $attributes, User $actor): TechnicalDocumentationPackage
@@ -124,6 +130,23 @@ class TechnicalDocumentationService
                 $productVersionId,
             );
 
+            $usiId = $attributes['user_security_instruction_id'] ?? null;
+            $sdlRunId = $attributes['sdl_run_id'] ?? null;
+
+            if ($inherit && $parent !== null) {
+                $usiId ??= $parent->user_security_instruction_id;
+                $sdlRunId ??= $parent->sdl_run_id;
+            }
+
+            $this->assertPublishedUsiBelongsToProduct(
+                $product,
+                $usiId !== null ? (int) $usiId : null,
+            );
+            $this->assertSdlRunBelongsToProduct(
+                $product,
+                $sdlRunId !== null ? (int) $sdlRunId : null,
+            );
+
             $package = TechnicalDocumentationPackage::query()->create([
                 'organization_id' => $product->organization_id,
                 'product_id' => $product->id,
@@ -134,6 +157,8 @@ class TechnicalDocumentationService
                 'locale' => $locale,
                 'notes' => $attributes['notes'] ?? null,
                 'supersedes_id' => $parent?->id,
+                'user_security_instruction_id' => $usiId,
+                'sdl_run_id' => $sdlRunId,
             ]);
 
             $parentSections = collect();
@@ -160,7 +185,13 @@ class TechnicalDocumentationService
                 ]);
             }
 
-            $package->load(['sections', 'product.productOwner:id,name', 'product.securityContact:id,name']);
+            $package->load([
+                'sections',
+                'product.productOwner:id,name',
+                'product.securityContact:id,name',
+                'userSecurityInstruction',
+                'sdlRun',
+            ]);
             $this->generator->refreshPackage($package);
 
             if ($parent !== null) {
@@ -169,7 +200,7 @@ class TechnicalDocumentationService
 
             AuditLogger::logTechnicalDocumentationCreated($package, $actor);
 
-            return $package->fresh(['sections', 'supersedes']);
+            return $package->fresh(['sections', 'supersedes', 'userSecurityInstruction', 'sdlRun']);
         });
     }
 
@@ -180,6 +211,8 @@ class TechnicalDocumentationService
      *     locale: string,
      *     notes?: string|null,
      *     product_version_id?: int|null,
+     *     user_security_instruction_id?: int|null,
+     *     sdl_run_id?: int|null,
      *     sections: list<array{
      *         section_key: string,
      *         body_markdown?: string|null,
@@ -204,6 +237,25 @@ class TechnicalDocumentationService
 
             $package->loadMissing('product');
 
+            $usiId = array_key_exists('user_security_instruction_id', $attributes)
+                ? $attributes['user_security_instruction_id']
+                : $package->user_security_instruction_id;
+            $sdlRunId = array_key_exists('sdl_run_id', $attributes)
+                ? $attributes['sdl_run_id']
+                : $package->sdl_run_id;
+
+            $this->assertPublishedUsiBelongsToProduct(
+                $package->product,
+                $usiId !== null ? (int) $usiId : null,
+            );
+            $this->assertSdlRunBelongsToProduct(
+                $package->product,
+                $sdlRunId !== null ? (int) $sdlRunId : null,
+            );
+
+            $linksChanged = (int) ($package->user_security_instruction_id ?? 0) !== (int) ($usiId ?? 0)
+                || (int) ($package->sdl_run_id ?? 0) !== (int) ($sdlRunId ?? 0);
+
             $previous = $this->findPreviousPublished(
                 $package->product,
                 $locale,
@@ -218,6 +270,8 @@ class TechnicalDocumentationService
                 'notes' => $attributes['notes'] ?? null,
                 'product_version_id' => $productVersionId,
                 'supersedes_id' => $previous?->id,
+                'user_security_instruction_id' => $usiId,
+                'sdl_run_id' => $sdlRunId,
             ]);
 
             $previous?->loadMissing('sections');
@@ -262,7 +316,35 @@ class TechnicalDocumentationService
                 $section->update($payload);
             }
 
-            $fresh = $package->fresh(['sections', 'productVersion:id,version_number', 'publisher:id,name', 'supersedes']);
+            if ($linksChanged) {
+                $package->loadMissing([
+                    'sections',
+                    'product.productOwner:id,name',
+                    'product.securityContact:id,name',
+                    'userSecurityInstruction',
+                    'sdlRun',
+                ]);
+                $this->generator->refreshPackage(
+                    $package,
+                    [TechnicalDocumentationSectionKey::UserSecurityInstructions],
+                );
+
+                if ($previous !== null) {
+                    $this->syncChangedSinceParentFlags(
+                        $package->fresh(['sections']),
+                        $previous,
+                    );
+                }
+            }
+
+            $fresh = $package->fresh([
+                'sections',
+                'productVersion:id,version_number',
+                'publisher:id,name',
+                'supersedes',
+                'userSecurityInstruction.productVersion:id,version_number',
+                'sdlRun.version:id,version_number',
+            ]);
 
             AuditLogger::logTechnicalDocumentationUpdated($fresh, $actor);
 
@@ -283,9 +365,9 @@ class TechnicalDocumentationService
     }
 
     /**
-     * Refresh generated section snapshots from product modules.
+     * Refresh generated and linked section snapshots from product modules.
      *
-     * Does not overwrite authored/linked sections or supplemental body_markdown notes.
+     * Does not overwrite authored sections or supplemental body_markdown notes.
      *
      * @param  list<string>|null  $sectionKeys
      */
@@ -592,9 +674,13 @@ class TechnicalDocumentationService
             'publisher:id,name',
             'productVersion:id,version_number',
             'supersedes.sections',
+            'userSecurityInstruction.productVersion:id,version_number',
+            'sdlRun.version:id,version_number',
         ]);
 
         $previous = $package->supersedes;
+        $usi = $package->userSecurityInstruction;
+        $sdl = $package->sdlRun;
 
         return [
             'id' => $package->id,
@@ -608,6 +694,27 @@ class TechnicalDocumentationService
             'published_by_name' => $package->publisher?->name,
             'product_version_id' => $package->product_version_id,
             'product_version_number' => $package->productVersion?->version_number,
+            'user_security_instruction_id' => $package->user_security_instruction_id,
+            'sdl_run_id' => $package->sdl_run_id,
+            'linked_usi' => $usi === null
+                ? null
+                : [
+                    'id' => $usi->id,
+                    'title' => $usi->title,
+                    'version_label' => $usi->version_label,
+                    'locale' => $usi->locale,
+                    'product_version_id' => $usi->product_version_id,
+                    'version_number' => $usi->productVersion?->version_number,
+                ],
+            'linked_sdl' => $sdl === null
+                ? null
+                : [
+                    'id' => $sdl->id,
+                    'title' => $sdl->title,
+                    'status' => $sdl->status->value,
+                    'product_version_id' => $sdl->product_version_id,
+                    'version_number' => $sdl->version?->version_number,
+                ],
             'supersedes_id' => $package->supersedes_id,
             'supersedes_title' => $previous
                 ? $previous->title . ' (' . $previous->version_label . ')'
@@ -640,6 +747,107 @@ class TechnicalDocumentationService
                 ])
                 ->all(),
         ];
+    }
+
+    /**
+     * @return list<array{
+     *     id: int,
+     *     title: string,
+     *     version_label: string,
+     *     locale: string,
+     *     product_version_id: int|null,
+     *     version_number: string|null
+     * }>
+     */
+    public function publishedUsiOptions(Product $product): array
+    {
+        return UserSecurityInstruction::query()
+            ->where('product_id', $product->id)
+            ->where('status', UserSecurityInstructionStatus::Published)
+            ->with('productVersion:id,version_number')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'version_label', 'locale', 'product_version_id'])
+            ->map(fn(UserSecurityInstruction $instruction) => [
+                'id' => $instruction->id,
+                'title' => $instruction->title,
+                'version_label' => $instruction->version_label,
+                'locale' => $instruction->locale,
+                'product_version_id' => $instruction->product_version_id,
+                'version_number' => $instruction->productVersion?->version_number,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array{
+     *     id: int,
+     *     title: string,
+     *     status: string,
+     *     product_version_id: int|null,
+     *     version_number: string|null
+     * }>
+     */
+    public function sdlRunOptions(Product $product): array
+    {
+        return SdlRun::query()
+            ->where('product_id', $product->id)
+            ->where('status', '!=', SdlRunStatus::Cancelled->value)
+            ->with('version:id,version_number')
+            ->orderByRaw("CASE WHEN status = ? THEN 0 ELSE 1 END", [SdlRunStatus::Approved->value])
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'status', 'product_version_id'])
+            ->map(fn(SdlRun $run) => [
+                'id' => $run->id,
+                'title' => $run->title,
+                'status' => $run->status->value,
+                'product_version_id' => $run->product_version_id,
+                'version_number' => $run->version?->version_number,
+            ])
+            ->all();
+    }
+
+    private function assertPublishedUsiBelongsToProduct(Product $product, ?int $instructionId): void
+    {
+        if ($instructionId === null) {
+            return;
+        }
+
+        $exists = UserSecurityInstruction::query()
+            ->whereKey($instructionId)
+            ->where('product_id', $product->id)
+            ->where('status', UserSecurityInstructionStatus::Published)
+            ->exists();
+
+        if (!$exists) {
+            throw ValidationException::withMessages([
+                'user_security_instruction_id' => [
+                    Translations::get('products.technical_documentation.usi_link_invalid'),
+                ],
+            ]);
+        }
+    }
+
+    private function assertSdlRunBelongsToProduct(Product $product, ?int $runId): void
+    {
+        if ($runId === null) {
+            return;
+        }
+
+        $exists = SdlRun::query()
+            ->whereKey($runId)
+            ->where('product_id', $product->id)
+            ->where('status', '!=', SdlRunStatus::Cancelled->value)
+            ->exists();
+
+        if (!$exists) {
+            throw ValidationException::withMessages([
+                'sdl_run_id' => [
+                    Translations::get('products.technical_documentation.sdl_link_invalid'),
+                ],
+            ]);
+        }
     }
 
     /**

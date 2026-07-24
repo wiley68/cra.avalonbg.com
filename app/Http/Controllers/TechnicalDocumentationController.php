@@ -55,6 +55,8 @@ class TechnicalDocumentationController extends Controller
             'versions' => $this->versionOptions($product),
             'options' => $this->enumOptions($organization),
             'hasPublishedPrevious' => $this->packages->hasPublishedPrevious($product),
+            'published_usi' => $this->packages->publishedUsiOptions($product),
+            'sdl_runs' => $this->packages->sdlRunOptions($product),
         ]);
     }
 
@@ -73,6 +75,12 @@ class TechnicalDocumentationController extends Controller
                 'inherit_from_previous' => $request->boolean('inherit_from_previous', true),
                 'product_version_id' => $request->input('product_version_id') !== null
                     ? (int) $request->input('product_version_id')
+                    : null,
+                'user_security_instruction_id' => $request->input('user_security_instruction_id') !== null
+                    ? (int) $request->input('user_security_instruction_id')
+                    : null,
+                'sdl_run_id' => $request->input('sdl_run_id') !== null
+                    ? (int) $request->input('sdl_run_id')
                     : null,
             ],
             $request->user(),
@@ -103,6 +111,8 @@ class TechnicalDocumentationController extends Controller
             'memberOptions' => $this->memberOptions($organization),
             'reviewTask' => $this->packages->openReviewTaskPayload($package),
             'evidenceFreshness' => $this->packages->evidenceFreshnessSummary($product),
+            'published_usi' => $this->packages->publishedUsiOptions($product),
+            'sdl_runs' => $this->packages->sdlRunOptions($product),
         ]);
     }
 
@@ -124,6 +134,12 @@ class TechnicalDocumentationController extends Controller
                 'notes' => $request->input('notes'),
                 'product_version_id' => $request->input('product_version_id') !== null
                     ? (int) $request->input('product_version_id')
+                    : null,
+                'user_security_instruction_id' => $request->input('user_security_instruction_id') !== null
+                    ? (int) $request->input('user_security_instruction_id')
+                    : null,
+                'sdl_run_id' => $request->input('sdl_run_id') !== null
+                    ? (int) $request->input('sdl_run_id')
                     : null,
                 'sections' => $request->input('sections', []),
             ],

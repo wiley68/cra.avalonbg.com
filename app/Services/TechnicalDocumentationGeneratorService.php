@@ -12,8 +12,10 @@ use App\Models\ProductRisk;
 use App\Models\ProductSupportPeriod;
 use App\Models\ProductVersion;
 use App\Models\Sbom;
+use App\Models\SdlRun;
 use App\Models\TechnicalDocumentationPackage;
 use App\Models\TechnicalDocumentationSection;
+use App\Models\UserSecurityInstruction;
 use App\Support\Translations;
 use Illuminate\Support\Collection;
 
@@ -28,7 +30,14 @@ class TechnicalDocumentationGeneratorService
     {
         return array_values(array_filter(
             TechnicalDocumentationSectionKey::ordered(),
-            fn(TechnicalDocumentationSectionKey $key) => $key->defaultSource() === TechnicalDocumentationSectionSource::Generated,
+            fn(TechnicalDocumentationSectionKey $key) => in_array(
+                $key->defaultSource(),
+                [
+                    TechnicalDocumentationSectionSource::Generated,
+                    TechnicalDocumentationSectionSource::Linked,
+                ],
+                true,
+            ),
         ));
     }
 
@@ -40,7 +49,14 @@ class TechnicalDocumentationGeneratorService
         TechnicalDocumentationPackage $package,
         ?array $keys = null,
     ): array {
-        $package->loadMissing(['product.productOwner:id,name', 'product.securityContact:id,name', 'sections']);
+        $package->loadMissing([
+            'product.productOwner:id,name',
+            'product.securityContact:id,name',
+            'sections',
+            'userSecurityInstruction.productVersion:id,version_number',
+            'userSecurityInstruction.sections',
+            'sdlRun.version:id,version_number',
+        ]);
 
         $targetKeys = $keys ?? $this->refreshableKeys();
         $refreshed = [];
@@ -58,7 +74,13 @@ class TechnicalDocumentationGeneratorService
                 continue;
             }
 
-            if ($section->source !== TechnicalDocumentationSectionSource::Generated) {
+            $canRefresh = match ($section->source) {
+                TechnicalDocumentationSectionSource::Generated => true,
+                TechnicalDocumentationSectionSource::Linked => $key === TechnicalDocumentationSectionKey::UserSecurityInstructions,
+                default => false,
+            };
+
+            if (!$canRefresh) {
                 $skipped[] = $key->value;
 
                 continue;
@@ -110,6 +132,7 @@ class TechnicalDocumentationGeneratorService
             TechnicalDocumentationSectionKey::ReleaseHistory => $this->releaseHistory($product, $locale),
             TechnicalDocumentationSectionKey::EssentialRequirementsMatrix => $this->requirementsMatrix($product, $locale),
             TechnicalDocumentationSectionKey::DesignDevelopmentControls => $this->controls($product, $locale),
+            TechnicalDocumentationSectionKey::UserSecurityInstructions => $this->userSecurityInstructions($package, $locale),
             default => throw new \InvalidArgumentException('Section is not generated: ' . $key->value),
         };
 
@@ -664,6 +687,120 @@ class TechnicalDocumentationGeneratorService
         }
 
         return ['controls', $facts, implode("\n", $lines)];
+    }
+
+    /**
+     * @return array{0: string, 1: array<string, mixed>, 2: string}
+     */
+    private function userSecurityInstructions(
+        TechnicalDocumentationPackage $package,
+        string $locale,
+    ): array {
+        $package->loadMissing([
+            'userSecurityInstruction.productVersion:id,version_number',
+            'userSecurityInstruction.sections',
+            'sdlRun.version:id,version_number',
+        ]);
+
+        /** @var UserSecurityInstruction|null $usi */
+        $usi = $package->userSecurityInstruction;
+        /** @var SdlRun|null $sdl */
+        $sdl = $package->sdlRun;
+
+        $facts = [
+            'linked' => $usi !== null,
+            'usi_id' => $usi?->id,
+            'usi_title' => $usi?->title,
+            'usi_version_label' => $usi?->version_label,
+            'usi_locale' => $usi?->locale,
+            'usi_product_version_number' => $usi?->productVersion?->version_number,
+            'usi_published_at' => $usi?->published_at?->toIso8601String(),
+            'usi_sections_count' => $usi !== null ? $usi->sections->count() : 0,
+            'sdl_run_id' => $sdl?->id,
+            'sdl_title' => $sdl?->title,
+            'sdl_status' => $sdl?->status->value,
+            'sdl_product_version_number' => $sdl?->version?->version_number,
+        ];
+
+        $lines = [
+            '# ' . $this->sectionTitle(
+                TechnicalDocumentationSectionKey::UserSecurityInstructions->value,
+                $locale,
+            ),
+            '',
+        ];
+
+        if ($usi === null) {
+            $lines[] = Translations::get(
+                'products.technical_documentation.linked_usi_empty',
+                [],
+                $locale,
+            );
+        } else {
+            $lines[] = $this->bullet($locale, 'label_usi_title', (string) $usi->title);
+            $lines[] = $this->bullet($locale, 'label_usi_version', (string) $usi->version_label);
+            $lines[] = $this->bullet(
+                $locale,
+                'label_usi_locale',
+                strtoupper((string) $usi->locale),
+            );
+            $lines[] = $this->bullet(
+                $locale,
+                'label_usi_product_version',
+                $usi->productVersion?->version_number
+                ?: Translations::get(
+                    'products.technical_documentation.product_wide',
+                    [],
+                    $locale,
+                ),
+            );
+            if ($usi->published_at !== null) {
+                $lines[] = $this->bullet(
+                    $locale,
+                    'label_usi_published_at',
+                    $usi->published_at->toIso8601String(),
+                );
+            }
+            $lines[] = $this->bullet(
+                $locale,
+                'label_usi_sections',
+                (string) $usi->sections->count(),
+            );
+        }
+
+        if ($sdl !== null) {
+            $lines[] = '';
+            $lines[] = '## ' . Translations::get(
+                'products.technical_documentation.generated.heading_linked_sdl',
+                [],
+                $locale,
+            );
+            $lines[] = '';
+            $lines[] = $this->bullet($locale, 'label_sdl_title', (string) $sdl->title);
+            $lines[] = $this->bullet(
+                $locale,
+                'label_sdl_status',
+                Translations::get(
+                    'products.sdl.statuses.' . $sdl->status->value,
+                    [],
+                    $locale,
+                ),
+            );
+            $lines[] = $this->bullet(
+                $locale,
+                'label_sdl_product_version',
+                $sdl->version?->version_number
+                ?: Translations::get(
+                    'products.technical_documentation.product_wide',
+                    [],
+                    $locale,
+                ),
+            );
+        }
+
+        $lines[] = '';
+
+        return ['user_security_instructions', $facts, implode("\n", $lines)];
     }
 
     /**

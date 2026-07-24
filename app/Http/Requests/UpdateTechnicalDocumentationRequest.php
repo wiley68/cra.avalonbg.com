@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\SdlRunStatus;
 use App\Enums\TechnicalDocumentationSectionKey;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Models\Organization;
 use App\Models\TechnicalDocumentationPackage;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,6 +28,8 @@ class UpdateTechnicalDocumentationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $productId = $this->route('product')?->id;
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'version_label' => ['required', 'string', 'max:40'],
@@ -35,7 +39,25 @@ class UpdateTechnicalDocumentationRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::exists('product_versions', 'id')->where(
-                    fn($query) => $query->where('product_id', $this->route('product')?->id),
+                    fn($query) => $query->where('product_id', $productId),
+                ),
+            ],
+            'user_security_instruction_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('user_security_instructions', 'id')->where(
+                    fn($query) => $query
+                        ->where('product_id', $productId)
+                        ->where('status', UserSecurityInstructionStatus::Published->value),
+                ),
+            ],
+            'sdl_run_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('sdl_runs', 'id')->where(
+                    fn($query) => $query
+                        ->where('product_id', $productId)
+                        ->where('status', '!=', SdlRunStatus::Cancelled->value),
                 ),
             ],
             'sections' => ['required', 'array', 'min:1'],

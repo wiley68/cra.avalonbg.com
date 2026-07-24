@@ -256,12 +256,25 @@ class TechnicalDocumentationExportService
 
     private function linkedSectionMarkdown(TechnicalDocumentationSection $section): string
     {
-        $notes = trim((string) $section->body_markdown);
-        if ($notes !== '') {
-            return $notes;
+        $parts = [];
+        $generated = $this->payloadMarkdown($section->generated_payload);
+
+        if ($generated !== '') {
+            $parts[] = $generated;
         }
 
-        return Translations::get('products.technical_documentation.linked_placeholder');
+        $notes = trim((string) $section->body_markdown);
+        if ($notes !== '') {
+            $parts[] = '#### ' . Translations::get('products.technical_documentation.fields.supplemental_notes');
+            $parts[] = '';
+            $parts[] = $notes;
+        }
+
+        if ($parts === []) {
+            return Translations::get('products.technical_documentation.linked_placeholder');
+        }
+
+        return implode("\n", $parts);
     }
 
     /**

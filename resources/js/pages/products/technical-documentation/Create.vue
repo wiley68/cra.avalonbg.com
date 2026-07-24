@@ -25,6 +25,21 @@ import {
 
 type ProductSummary = { id: number; name: string; slug: string };
 type VersionOption = { id: number; version_number: string };
+type PublishedUsiOption = {
+    id: number;
+    title: string;
+    version_label: string;
+    locale: string;
+    product_version_id: number | null;
+    version_number: string | null;
+};
+type SdlRunOption = {
+    id: number;
+    title: string;
+    status: string;
+    product_version_id: number | null;
+    version_number: string | null;
+};
 
 const props = defineProps<{
     product: ProductSummary;
@@ -36,6 +51,8 @@ const props = defineProps<{
         default_locale: string;
     };
     hasPublishedPrevious: boolean;
+    published_usi: PublishedUsiOption[];
+    sdl_runs: SdlRunOption[];
 }>();
 
 const { t } = useTranslations();
@@ -59,6 +76,8 @@ const form = useForm({
     locale: props.options.default_locale || props.options.locales[0] || 'en',
     notes: '',
     product_version_id: '' as number | '',
+    user_security_instruction_id: '' as number | '',
+    sdl_run_id: '' as number | '',
     inherit_from_previous: props.hasPublishedPrevious,
 });
 
@@ -69,11 +88,34 @@ const localeLabel = (value: string): string => {
     return translated === key ? value.toUpperCase() : translated;
 };
 
+const usiOptionLabel = (item: PublishedUsiOption): string => {
+    const version = item.version_number
+        ? item.version_number
+        : t('products.technical_documentation.product_wide');
+
+    return `${item.title} (${item.version_label}, ${item.locale.toUpperCase()}, ${version})`;
+};
+
+const sdlOptionLabel = (item: SdlRunOption): string => {
+    const statusKey = `products.sdl.statuses.${item.status}`;
+    const status = t(statusKey) === statusKey ? item.status : t(statusKey);
+    const version = item.version_number
+        ? item.version_number
+        : t('products.technical_documentation.product_wide');
+
+    return `${item.title} (${status}, ${version})`;
+};
+
 const submit = () => {
     form.transform((data) => ({
         ...data,
         product_version_id:
             data.product_version_id === '' ? null : data.product_version_id,
+        user_security_instruction_id:
+            data.user_security_instruction_id === ''
+                ? null
+                : data.user_security_instruction_id,
+        sdl_run_id: data.sdl_run_id === '' ? null : data.sdl_run_id,
         inherit_from_previous: props.hasPublishedPrevious
             ? data.inherit_from_previous
             : false,
@@ -254,6 +296,140 @@ const submit = () => {
                     class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
                 <InputError :message="form.errors.notes" />
+            </div>
+
+            <div class="space-y-3 rounded-md border p-3">
+                <div>
+                    <h2 class="text-sm font-medium">
+                        {{
+                            t(
+                                'products.technical_documentation.documentation_links_heading',
+                            )
+                        }}
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        {{
+                            t(
+                                'products.technical_documentation.documentation_links_help',
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="user_security_instruction_id"
+                        :help="
+                            t(
+                                'products.technical_documentation.help.linked_usi',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.fields.linked_usi',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select
+                        :model-value="
+                            form.user_security_instruction_id === ''
+                                ? '__none__'
+                                : String(form.user_security_instruction_id)
+                        "
+                        @update:model-value="
+                            (value) => {
+                                form.user_security_instruction_id =
+                                    value === '__none__' ||
+                                    value === undefined ||
+                                    value === null
+                                        ? ''
+                                        : Number(value);
+                            }
+                        "
+                    >
+                        <SelectTrigger
+                            id="user_security_instruction_id"
+                            class="w-full"
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none__">
+                                {{
+                                    t(
+                                        'products.technical_documentation.none_selected',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="item in published_usi"
+                                :key="item.id"
+                                :value="String(item.id)"
+                            >
+                                {{ usiOptionLabel(item) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError
+                        :message="form.errors.user_security_instruction_id"
+                    />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="sdl_run_id"
+                        :help="
+                            t(
+                                'products.technical_documentation.help.linked_sdl',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.fields.linked_sdl',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Select
+                        :model-value="
+                            form.sdl_run_id === ''
+                                ? '__none__'
+                                : String(form.sdl_run_id)
+                        "
+                        @update:model-value="
+                            (value) => {
+                                form.sdl_run_id =
+                                    value === '__none__' ||
+                                    value === undefined ||
+                                    value === null
+                                        ? ''
+                                        : Number(value);
+                            }
+                        "
+                    >
+                        <SelectTrigger id="sdl_run_id" class="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="__none__">
+                                {{
+                                    t(
+                                        'products.technical_documentation.none_selected',
+                                    )
+                                }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="item in sdl_runs"
+                                :key="item.id"
+                                :value="String(item.id)"
+                            >
+                                {{ sdlOptionLabel(item) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors.sdl_run_id" />
+                </div>
             </div>
 
             <div class="flex justify-end">
