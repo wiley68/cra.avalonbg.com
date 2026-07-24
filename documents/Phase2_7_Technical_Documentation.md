@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.6  
+**Версия:** 1.7  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–6 Done; Should 7–12 Done; Could 13–15 Done  
+**Статус:** Active — Must 1–6 Done; Should 7–12 Done; Could 13–16 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -167,7 +167,7 @@ GET    /internal-api/products/{product}/technical-documentation
 13. ~~Org-level cross-product tech-doc index~~ **Done** (2026-07-24)
 14. ~~AI draft for authored sections (human review)~~ **Done** (2026-07-24)
 15. ~~Release ZIP export (PDF + Markdown + linked USI README)~~ **Done** (2026-07-24)
-16. Auto-mark stale evidence when freshness expires
+16. ~~Auto-mark stale evidence when freshness expires~~ **Done** (2026-07-24)
 17. Dependency / SBOM compare between versions in delta report
 18. Conformity assessment path checklist + DoC field pack (manual)
 
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                  |
 | ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 1.7    | 2026-07-24 | Could 16 Done — daily `evidence:refresh-freshness` auto-marks expired/review_due         |
 | 1.6    | 2026-07-24 | Could 15 Done — release ZIP (PDF + Markdown + linked USI README)                         |
 | 1.5    | 2026-07-24 | Could 14 Done — AI draft for authored sections (suggest → preview → apply, no auto-save) |
 | 1.4    | 2026-07-24 | Could 13 Done — org-level cross-product tech-doc index + sidebar                         |

@@ -486,6 +486,58 @@ class EvidenceService
     }
 
     /**
+     * Persist derived freshness for evidence rows whose dates have elapsed.
+     * Manual overrides (superseded / invalid) are left unchanged.
+     *
+     * @return array{scanned: int, updated: int}
+     */
+    public function refreshDerivedFreshnessStatuses(
+        ?int $organizationId = null,
+        bool $dryRun = false,
+        ?CarbonInterface $now = null,
+    ): array {
+        $scanned = 0;
+        $updated = 0;
+        $now ??= now();
+
+        $query = Evidence::query()->orderBy('id');
+
+        if ($organizationId !== null) {
+            $query->where('organization_id', $organizationId);
+        }
+
+        $query->chunkById(200, function ($rows) use (&$scanned, &$updated, $dryRun, $now): void {
+            foreach ($rows as $evidence) {
+                /** @var Evidence $evidence */
+                $scanned++;
+
+                $derived = self::deriveFreshness(
+                    $evidence->freshness_status,
+                    $evidence->valid_until,
+                    $evidence->review_due_at,
+                    $now,
+                );
+
+                if ($derived === $evidence->freshness_status) {
+                    continue;
+                }
+
+                $updated++;
+
+                if (!$dryRun) {
+                    $evidence->freshness_status = $derived;
+                    $evidence->saveQuietly();
+                }
+            }
+        });
+
+        return [
+            'scanned' => $scanned,
+            'updated' => $updated,
+        ];
+    }
+
+    /**
      * @return array{storage_path: string|null, source_filename: string|null, checksum_sha256: string|null}
      */
     private function storeFile(Product $product, ?UploadedFile $file): array

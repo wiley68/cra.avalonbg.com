@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('audit-logs:prune')->daily();
+Schedule::command('evidence:refresh-freshness')->daily();
 Schedule::command('vcs:sync-scheduled')->hourly();
