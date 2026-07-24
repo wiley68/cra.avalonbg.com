@@ -91,6 +91,8 @@ Import създава pending vulnerability suggestions (същият Accept/Dis
 
 На Product Edit (Snyk / SARIF / VCS vulnerability suggestions) бутон **AI triage summary** генерира чернова (summary + suggested severity) за human review. **Не** Accept-ва suggestion и **не** създава `ProductVulnerability`. Accept остава ръчен клик след преглед.
 
+**Live LLM (Phase 2_E Must 3):** [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md) — `CRA_AI_PROVIDER=openai|anthropic`, `ops:ai-check`, smoke checklist (+ vulnerability register triage). CI остава на stub.
+
 ### Integrations health index (Could 17)
 
 `/integrations/health` — org-level DataTable (server-side) върху product integration links + VCS repositories: provider, product, target, connection status, last sync, health (`ok` / `soft_fail` / `failed` / `never`), last error, pending suggestions. Settings → Integrations има линк „View sync health“.
