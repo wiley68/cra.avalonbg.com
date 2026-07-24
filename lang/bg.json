@@ -3214,7 +3214,13 @@
                 "declaration_information": "Информация за декларацията",
                 "product_identification": "Идентификация на продукта",
                 "release_history": "История на изданията"
-            }
+            },
+            "delta_changed_badge": "Променена спрямо предишна",
+            "delta_changed_summary": ":count секция(и) се различават от предишния публикуван пакет.",
+            "delta_unchanged_summary": "Няма записани разлики спрямо предишния публикуван пакет.",
+            "diff_applicable_changed": "Приложимостта е променена спрямо предишната версия (:previous → :current).",
+            "stale_evidence_hint": ":stale от :total evidence записа за продукта изискват внимание (изтекли: :expired, за преглед: :review_due). Прегледайте ги преди да разчитате на този пакет документация.",
+            "stale_evidence_link": "Отвори регистъра на evidence"
         }
     },
     "audit_logs": {

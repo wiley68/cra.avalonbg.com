@@ -15,6 +15,8 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
+import TextDiffViewer from '@/components/TextDiffViewer.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -34,9 +36,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { index as evidenceIndex } from '@/routes/products/evidence';
 import { edit as editTask } from '@/routes/products/tasks';
 import {
     edit as packagesEdit,
@@ -56,6 +60,14 @@ type ReviewTask = {
     product_id: number;
     title: string;
     status: string;
+};
+
+type SupersedesSection = {
+    source: string;
+    body_markdown: string | null;
+    generated_payload: Record<string, unknown> | unknown[] | null;
+    is_applicable: boolean;
+    override_reason: string | null;
 };
 
 type SectionPayload = {
@@ -84,7 +96,18 @@ type PackageDetail = {
     product_version_number: string | null;
     supersedes_id: number | null;
     supersedes_title: string | null;
+    supersedes_sections?: Record<string, SupersedesSection>;
     sections: SectionPayload[];
+};
+
+type EvidenceFreshness = {
+    total: number;
+    current: number;
+    review_due: number;
+    expired: number;
+    invalid: number;
+    superseded: number;
+    stale: number;
 };
 
 const props = defineProps<{
@@ -100,6 +123,7 @@ const props = defineProps<{
     canManage: boolean;
     memberOptions: MemberOption[];
     reviewTask: ReviewTask | null;
+    evidenceFreshness: EvidenceFreshness;
 }>();
 
 const { t } = useTranslations();
@@ -186,6 +210,57 @@ const generatedAtLabel = (sectionKey: string): string | null => {
 
     return null;
 };
+
+const previousSection = (sectionKey: string): SupersedesSection | null => {
+    return props.package.supersedes_sections?.[sectionKey] ?? null;
+};
+
+const previousSectionBody = (sectionKey: string): string | null => {
+    const previous = previousSection(sectionKey);
+
+    return previous?.body_markdown ?? null;
+};
+
+const previousSectionApplicable = (sectionKey: string): boolean | null => {
+    const previous = previousSection(sectionKey);
+
+    return previous ? previous.is_applicable : null;
+};
+
+const previousGeneratedMarkdown = (sectionKey: string): string => {
+    const previous = previousSection(sectionKey);
+    const payload = previous?.generated_payload;
+
+    if (
+        payload !== null &&
+        payload !== undefined &&
+        !Array.isArray(payload) &&
+        typeof payload === 'object' &&
+        typeof payload.markdown === 'string'
+    ) {
+        return payload.markdown;
+    }
+
+    return '';
+};
+
+const sectionChangedSinceParent = (sectionKey: string): boolean => {
+    return (
+        props.package.sections.find(
+            (section) => section.section_key === sectionKey,
+        )?.changed_since_parent ?? false
+    );
+};
+
+const changedSections = computed(() =>
+    props.package.sections.filter((section) => section.changed_since_parent),
+);
+
+const hasSupersedes = computed(() => props.package.supersedes_id !== null);
+
+const evidenceHref = computed(() => evidenceIndex(props.product.id).url);
+
+const hasStaleEvidence = computed(() => props.evidenceFreshness.stale > 0);
 
 const readOnly = computed(() => !props.package.is_editable || !props.canManage);
 
@@ -530,13 +605,81 @@ const submit = () => {
                 </div>
 
                 <div
-                    v-if="props.package.supersedes_title"
-                    class="rounded-md border px-3 py-2 text-sm text-muted-foreground"
+                    v-if="hasSupersedes"
+                    class="space-y-2 rounded-md border px-3 py-3 text-sm"
                 >
-                    {{
-                        t('products.technical_documentation.fields.supersedes')
-                    }}:
-                    {{ props.package.supersedes_title }}
+                    <p class="text-muted-foreground">
+                        {{
+                            t(
+                                'products.technical_documentation.fields.supersedes',
+                            )
+                        }}:
+                        {{ props.package.supersedes_title }}
+                    </p>
+                    <p v-if="changedSections.length > 0" class="font-medium">
+                        {{
+                            t(
+                                'products.technical_documentation.delta_changed_summary',
+                                {
+                                    count: String(changedSections.length),
+                                },
+                            )
+                        }}
+                    </p>
+                    <ul
+                        v-if="changedSections.length > 0"
+                        class="flex flex-wrap gap-2"
+                    >
+                        <li
+                            v-for="section in changedSections"
+                            :key="section.section_key"
+                        >
+                            <a
+                                :href="`#section-${section.section_key}`"
+                                class="text-xs underline underline-offset-2"
+                            >
+                                {{ sectionLabel(section.section_key) }}
+                            </a>
+                        </li>
+                    </ul>
+                    <p v-else class="text-muted-foreground">
+                        {{
+                            t(
+                                'products.technical_documentation.delta_unchanged_summary',
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div
+                    v-if="hasStaleEvidence"
+                    class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-3 text-sm text-destructive"
+                >
+                    <p>
+                        {{
+                            t(
+                                'products.technical_documentation.stale_evidence_hint',
+                                {
+                                    stale: String(evidenceFreshness.stale),
+                                    total: String(evidenceFreshness.total),
+                                    expired: String(evidenceFreshness.expired),
+                                    review_due: String(
+                                        evidenceFreshness.review_due,
+                                    ),
+                                },
+                            )
+                        }}
+                    </p>
+                    <Link
+                        :href="evidenceHref"
+                        class="mt-1 inline-flex text-xs font-medium underline underline-offset-2"
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.stale_evidence_link',
+                            )
+                        }}
+                    </Link>
                 </div>
 
                 <div class="grid gap-2">
@@ -575,14 +718,32 @@ const submit = () => {
 
                 <div
                     v-for="(section, index) in form.sections"
+                    :id="`section-${section.section_key}`"
                     :key="section.section_key"
-                    class="space-y-4 border-t border-border pt-6"
+                    class="scroll-mt-6 space-y-4 border-t border-border pt-6"
                 >
                     <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="font-medium">
-                                {{ sectionLabel(section.section_key) }}
-                            </h3>
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="font-medium">
+                                    {{ sectionLabel(section.section_key) }}
+                                </h3>
+                                <Badge
+                                    v-if="
+                                        hasSupersedes &&
+                                        sectionChangedSinceParent(
+                                            section.section_key,
+                                        )
+                                    "
+                                    variant="secondary"
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.delta_changed_badge',
+                                        )
+                                    }}
+                                </Badge>
+                            </div>
                             <p class="text-xs text-muted-foreground">
                                 {{ section.section_key }}
                                 ·
@@ -607,6 +768,33 @@ const submit = () => {
                             />
                         </div>
                     </div>
+
+                    <p
+                        v-if="
+                            hasSupersedes &&
+                            previousSectionApplicable(section.section_key) !==
+                                null &&
+                            previousSectionApplicable(section.section_key) !==
+                                section.is_applicable
+                        "
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{
+                            t(
+                                'products.technical_documentation.diff_applicable_changed',
+                                {
+                                    previous: previousSectionApplicable(
+                                        section.section_key,
+                                    )
+                                        ? t('common.yes')
+                                        : t('common.no'),
+                                    current: section.is_applicable
+                                        ? t('common.yes')
+                                        : t('common.no'),
+                                },
+                            )
+                        }}
+                    </p>
 
                     <div v-if="!section.is_applicable" class="grid gap-2">
                         <FieldLabel
@@ -648,6 +836,11 @@ const submit = () => {
                             "
                             :disabled="readOnly"
                             :error="sectionError(index, 'body_markdown')"
+                            :previous-body="
+                                previousSectionBody(section.section_key)
+                            "
+                            :previous-label="props.package.supersedes_title"
+                            :current-label="form.version_label"
                         />
 
                         <div
@@ -684,18 +877,74 @@ const submit = () => {
                                 }}
                             </p>
 
-                            <MarkdownPreview
+                            <Tabs
                                 v-if="
                                     section.source === 'generated' &&
-                                    generatedMarkdown(section.section_key)
+                                    (generatedMarkdown(section.section_key) ||
+                                        previousGeneratedMarkdown(
+                                            section.section_key,
+                                        ))
                                 "
-                                :source="generatedMarkdown(section.section_key)"
-                                :empty-label="
-                                    t(
-                                        'products.technical_documentation.generated_empty',
-                                    )
-                                "
-                            />
+                                default-value="preview"
+                                class="w-full"
+                            >
+                                <TabsList>
+                                    <TabsTrigger value="preview">
+                                        {{ t('common.markdown.preview') }}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        v-if="
+                                            previousGeneratedMarkdown(
+                                                section.section_key,
+                                            )
+                                        "
+                                        value="diff"
+                                    >
+                                        {{ t('common.markdown.diff') }}
+                                    </TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="preview" class="mt-3">
+                                    <MarkdownPreview
+                                        :source="
+                                            generatedMarkdown(
+                                                section.section_key,
+                                            )
+                                        "
+                                        :empty-label="
+                                            t(
+                                                'products.technical_documentation.generated_empty',
+                                            )
+                                        "
+                                    />
+                                </TabsContent>
+                                <TabsContent
+                                    v-if="
+                                        previousGeneratedMarkdown(
+                                            section.section_key,
+                                        )
+                                    "
+                                    value="diff"
+                                    class="mt-3"
+                                >
+                                    <TextDiffViewer
+                                        :previous="
+                                            previousGeneratedMarkdown(
+                                                section.section_key,
+                                            )
+                                        "
+                                        :current="
+                                            generatedMarkdown(
+                                                section.section_key,
+                                            )
+                                        "
+                                        :previous-label="
+                                            props.package.supersedes_title ??
+                                            undefined
+                                        "
+                                        :current-label="form.version_label"
+                                    />
+                                </TabsContent>
+                            </Tabs>
 
                             <pre
                                 v-else-if="
@@ -725,6 +974,11 @@ const submit = () => {
                                 "
                                 :disabled="readOnly"
                                 :error="sectionError(index, 'body_markdown')"
+                                :previous-body="
+                                    previousSectionBody(section.section_key)
+                                "
+                                :previous-label="props.package.supersedes_title"
+                                :current-label="form.version_label"
                             />
                         </div>
                     </template>

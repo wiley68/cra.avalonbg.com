@@ -99,6 +99,7 @@ class TechnicalDocumentationController extends Controller
             'canManage' => request()->user()->canManageProducts($organization),
             'memberOptions' => $this->memberOptions($organization),
             'reviewTask' => $this->packages->openReviewTaskPayload($package),
+            'evidenceFreshness' => $this->packages->evidenceFreshnessSummary($product),
         ]);
     }
 

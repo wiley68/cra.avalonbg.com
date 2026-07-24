@@ -3214,7 +3214,13 @@
                 "declaration_information": "Declaration information",
                 "product_identification": "Product identification",
                 "release_history": "Release history"
-            }
+            },
+            "delta_changed_badge": "Changed since previous",
+            "delta_changed_summary": ":count section(s) differ from the previous published package.",
+            "delta_unchanged_summary": "No saved section differences vs the previous published package yet.",
+            "diff_applicable_changed": "Applicable changed vs previous version (:previous → :current).",
+            "stale_evidence_hint": ":stale of :total product evidence records need attention (expired: :expired, review due: :review_due). Review them before relying on this documentation package.",
+            "stale_evidence_link": "Open evidence register"
         }
     },
     "audit_logs": {

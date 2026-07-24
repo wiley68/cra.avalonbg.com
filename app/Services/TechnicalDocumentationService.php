@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Enums\TechnicalDocumentationSectionKey;
 use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\TechnicalDocumentationStatus;
+use App\Enums\EvidenceFreshnessStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\Task;
@@ -686,6 +688,59 @@ class TechnicalDocumentationService
         }
 
         return $query->exists();
+    }
+
+    /**
+     * Product-level evidence freshness for delta / stale hints (no section M2M yet).
+     *
+     * @return array{
+     *     total: int,
+     *     current: int,
+     *     review_due: int,
+     *     expired: int,
+     *     invalid: int,
+     *     superseded: int,
+     *     stale: int
+     * }
+     */
+    public function evidenceFreshnessSummary(Product $product): array
+    {
+        $items = Evidence::query()
+            ->where('product_id', $product->id)
+            ->get(['freshness_status', 'valid_until', 'review_due_at']);
+
+        $counts = [
+            'total' => $items->count(),
+            'current' => 0,
+            'review_due' => 0,
+            'expired' => 0,
+            'invalid' => 0,
+            'superseded' => 0,
+            'stale' => 0,
+        ];
+
+        foreach ($items as $item) {
+            $freshness = EvidenceService::deriveFreshness(
+                $item->freshness_status,
+                $item->valid_until,
+                $item->review_due_at,
+            );
+
+            match ($freshness) {
+                EvidenceFreshnessStatus::Current => $counts['current']++,
+                EvidenceFreshnessStatus::ReviewDue => $counts['review_due']++,
+                EvidenceFreshnessStatus::Expired => $counts['expired']++,
+                EvidenceFreshnessStatus::Invalid => $counts['invalid']++,
+                EvidenceFreshnessStatus::Superseded => $counts['superseded']++,
+            };
+        }
+
+        $counts['stale'] = $counts['review_due']
+            + $counts['expired']
+            + $counts['invalid']
+            + $counts['superseded'];
+
+        return $counts;
     }
 
     private function findPublishedSibling(

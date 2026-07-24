@@ -12,6 +12,8 @@ use App\Enums\RiskLikelihood;
 use App\Enums\RiskTreatment;
 use App\Enums\SbomFormat;
 use App\Enums\ScopeStatus;
+use App\Enums\SupportPeriodStartBasis;
+use App\Enums\SupportPeriodType;
 use App\Enums\SupportStatus;
 use App\Enums\TechnicalDocumentationSectionKey;
 use App\Enums\TechnicalDocumentationSectionSource;
@@ -20,6 +22,7 @@ use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductRisk;
+use App\Models\ProductSupportPeriod;
 use App\Models\ProductVersion;
 use App\Models\Role;
 use App\Models\Sbom;
@@ -636,4 +639,40 @@ test('viewer cannot refresh generated technical documentation', function () {
     $this->actingAs($viewer)
         ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
         ->assertForbidden();
+});
+
+test('refresh tolerates unresolved support period active status', function () {
+    ['owner' => $owner, 'product' => $product] = makeTechDocOrgWithOwner();
+
+    ProductSupportPeriod::query()->create([
+        'product_id' => $product->id,
+        'type' => SupportPeriodType::Commercial,
+        'start_basis' => SupportPeriodStartBasis::PurchaseDate,
+        'duration_months' => 12,
+        'is_extended' => false,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.store', $product), [
+            'title' => 'Support refresh package',
+            'version_label' => '1.0',
+            'locale' => 'en',
+        ])
+        ->assertRedirect();
+
+    $package = TechnicalDocumentationPackage::query()
+        ->where('product_id', $product->id)
+        ->firstOrFail();
+
+    $this->actingAs($owner)
+        ->post(route('products.technical-documentation.refresh-generated', [$product, $package]))
+        ->assertRedirect(route('products.technical-documentation.edit', [$product, $package]));
+
+    $support = techDocSectionByKey(
+        $package->fresh()->load('sections'),
+        TechnicalDocumentationSectionKey::SupportPeriod,
+    );
+
+    expect($support?->generated_payload['facts']['count'] ?? 0)->toBe(1)
+        ->and($support?->generated_payload['markdown'] ?? '')->toContain('—');
 });

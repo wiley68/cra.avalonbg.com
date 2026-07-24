@@ -692,8 +692,12 @@ class TechnicalDocumentationGeneratorService
         return '- **' . $this->g($labelKey, $locale) . ':** ' . $value;
     }
 
-    private function yesNo(bool $value, string $locale): string
+    private function yesNo(?bool $value, string $locale): string
     {
+        if ($value === null) {
+            return '—';
+        }
+
         return $this->g($value ? 'yes' : 'no', $locale);
     }
 
