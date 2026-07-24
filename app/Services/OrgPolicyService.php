@@ -166,6 +166,12 @@ class OrgPolicyService
             ]);
         }
 
+        if ($this->hasOpenReviewTasks($policy)) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('policies.cannot_delete_open_tasks')],
+            ]);
+        }
+
         AuditLogger::logOrgPolicyDeleted($policy, $actor);
         $policy->delete();
     }
@@ -283,7 +289,7 @@ class OrgPolicyService
     private function completeOpenReviewTasks(OrgPolicy $policy): void
     {
         Task::query()
-            ->where('subject_type', OrgPolicy::class)
+            ->whereIn('subject_type', [OrgPolicy::class, 'org_policy'])
             ->where('subject_id', $policy->id)
             ->whereIn('status', [
                 TaskStatus::Open->value,
@@ -300,14 +306,7 @@ class OrgPolicyService
      */
     public function openReviewTaskPayload(OrgPolicy $policy): ?array
     {
-        $task = Task::query()
-            ->where('subject_type', OrgPolicy::class)
-            ->where('subject_id', $policy->id)
-            ->whereIn('status', [
-                TaskStatus::Open->value,
-                TaskStatus::InProgress->value,
-                TaskStatus::PendingApproval->value,
-            ])
+        $task = $this->openReviewTasksQuery($policy)
             ->latest('id')
             ->first(['id', 'product_id', 'title', 'status']);
 
@@ -321,6 +320,26 @@ class OrgPolicyService
             'title' => $task->title,
             'status' => $task->status->value,
         ];
+    }
+
+    private function hasOpenReviewTasks(OrgPolicy $policy): bool
+    {
+        return $this->openReviewTasksQuery($policy)->exists();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<Task>
+     */
+    private function openReviewTasksQuery(OrgPolicy $policy)
+    {
+        return Task::query()
+            ->where('subject_id', $policy->id)
+            ->whereIn('subject_type', [OrgPolicy::class, 'org_policy'])
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ]);
     }
 
     public function publishEvidence(OrgPolicy $policy, Product $product, User $actor): OrgPolicy

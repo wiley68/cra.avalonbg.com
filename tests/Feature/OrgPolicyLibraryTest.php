@@ -233,6 +233,76 @@ test('cannot delete approved policy', function () {
     expect(OrgPolicy::query()->whereKey($policy->id)->exists())->toBeTrue();
 });
 
+test('owner can delete draft policy', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::VulnerabilityDisclosure,
+        'title' => 'Draft VDP',
+        'status' => PolicyStatus::Draft,
+        'version_label' => '0.1',
+        'body' => 'Draft body',
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('policies.destroy', $policy))
+        ->assertRedirect(route('policies.index'));
+
+    $this->assertDatabaseMissing('organization_policies', ['id' => $policy->id]);
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::OrgPolicyDeleted->value)
+        ->where('organization_id', $organization->id)
+        ->exists())->toBeTrue();
+});
+
+test('cannot delete policy while open review task exists', function () {
+    ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Open Task Product',
+        'slug' => 'open-task-product',
+        'manufacturer' => 'Acme',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+    ]);
+
+    $policy = OrgPolicy::query()->create([
+        'organization_id' => $organization->id,
+        'policy_type' => PolicyType::Update,
+        'title' => 'Under review',
+        'status' => PolicyStatus::UnderReview,
+        'version_label' => '1.0',
+        'body' => 'Body',
+    ]);
+
+    Task::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Review policy',
+        'status' => TaskStatus::Open,
+        'priority' => \App\Enums\TaskPriority::Medium,
+        'created_by' => $owner->id,
+        'subject_type' => OrgPolicy::class,
+        'subject_id' => $policy->id,
+        'approval_status' => \App\Enums\TaskApprovalStatus::NotRequired,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('policies.edit', $policy))
+        ->delete(route('policies.destroy', $policy))
+        ->assertRedirect(route('policies.edit', $policy))
+        ->assertSessionHasErrors('status');
+
+    expect(OrgPolicy::query()->whereKey($policy->id)->exists())->toBeTrue();
+});
+
 test('internal api lists org policies', function () {
     ['organization' => $organization, 'owner' => $owner] = makePoliciesOrgWithOwner();
 

@@ -9,6 +9,7 @@ import {
     Pencil,
     Save,
     Send,
+    Trash2,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -37,6 +38,7 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     approve as approvePolicy,
+    destroy as destroyPolicy,
     edit as policiesEdit,
     exportMethod as exportPolicy,
     index as policiesIndex,
@@ -110,6 +112,7 @@ const form = useForm({
 });
 
 const showRetireDialog = ref(false);
+const showDeleteDialog = ref(false);
 const showPublishDialog = ref(false);
 const showSubmitDialog = ref(false);
 
@@ -148,6 +151,9 @@ const canApprove = computed(
 );
 const canRetire = computed(
     () => props.canManage && props.policy.status === 'approved',
+);
+const canDelete = computed(
+    () => props.canManage && props.policy.status !== 'approved',
 );
 const canPublish = computed(
     () =>
@@ -217,6 +223,11 @@ const doRetire = () => {
         {},
         { preserveScroll: true },
     );
+};
+
+const doDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(destroyPolicy(props.policy.id).url);
 };
 
 const openPublishDialog = () => {
@@ -317,6 +328,15 @@ const doPublishEvidence = () => {
             >
                 <Archive class="h-4 w-4" />
                 {{ t('policies.retire') }}
+            </Button>
+            <Button
+                v-if="canDelete"
+                type="button"
+                variant="destructive"
+                @click="showDeleteDialog = true"
+            >
+                <Trash2 class="h-4 w-4" />
+                {{ t('common.delete') }}
             </Button>
         </div>
 
@@ -419,6 +439,14 @@ const doPublishEvidence = () => {
             :description="t('policies.confirm_retire')"
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('policies.confirm_delete')"
+            @confirm="doDelete"
+            @cancel="showDeleteDialog = false"
         />
 
         <Dialog
