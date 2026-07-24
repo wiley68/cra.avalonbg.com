@@ -14,10 +14,17 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 class TechnicalDocumentationExportService
 {
-    public const FORMATS = ['markdown', 'pdf'];
+    public const FORMATS = ['markdown', 'pdf', 'release'];
+
+    public function __construct(
+        private readonly UserSecurityInstructionExportService $usiExports,
+    ) {
+    }
 
     public function export(
         TechnicalDocumentationPackage $package,
@@ -25,7 +32,7 @@ class TechnicalDocumentationExportService
         Organization $organization,
         string $format,
         User $actor,
-    ): Response {
+    ): Response|BinaryFileResponse {
         $format = strtolower($format);
 
         if (!in_array($format, self::FORMATS, true)) {
@@ -47,7 +54,67 @@ class TechnicalDocumentationExportService
                 'Content-Type' => 'text/markdown; charset=UTF-8',
                 'Content-Disposition' => 'attachment; filename="' . $filenameBase . '.md"',
             ]),
+            'release' => $this->downloadReleaseZip(
+                $filenameBase,
+                $this->toMarkdown($viewPayload),
+                Pdf::loadView('pdf.technical-documentation', $viewPayload)
+                    ->setPaper('a4')
+                    ->output(),
+                $this->linkedUsiReadme($package, $product, $organization),
+            ),
         };
+    }
+
+    private function downloadReleaseZip(
+        string $filenameBase,
+        string $markdown,
+        string $pdfBinary,
+        ?string $usiReadme,
+    ): BinaryFileResponse {
+        $zipPath = tempnam(sys_get_temp_dir(), 'tech-doc-release-');
+        if ($zipPath === false) {
+            abort(500, 'Could not create temporary export file.');
+        }
+
+        $zipPathWithExt = $zipPath . '.zip';
+        rename($zipPath, $zipPathWithExt);
+        $zipPath = $zipPathWithExt;
+
+        $zip = new ZipArchive;
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            @unlink($zipPath);
+            abort(500, 'Could not create ZIP archive.');
+        }
+
+        $zip->addFromString('technical-documentation.md', $markdown);
+        $zip->addFromString('technical-documentation.pdf', $pdfBinary);
+
+        if ($usiReadme !== null) {
+            $zip->addFromString('usi/README.md', $usiReadme);
+        }
+
+        $zip->close();
+
+        return response()
+            ->download($zipPath, $filenameBase . '-release.zip', [
+                'Content-Type' => 'application/zip',
+            ])
+            ->deleteFileAfterSend(true);
+    }
+
+    private function linkedUsiReadme(
+        TechnicalDocumentationPackage $package,
+        Product $product,
+        Organization $organization,
+    ): ?string {
+        $package->loadMissing(['userSecurityInstruction.sections', 'userSecurityInstruction.publisher:id,name']);
+
+        $usi = $package->userSecurityInstruction;
+        if ($usi === null || $usi->product_id !== $product->id) {
+            return null;
+        }
+
+        return $this->usiExports->toMarkdown($usi, $product, $organization);
     }
 
     /**

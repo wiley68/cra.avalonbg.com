@@ -272,7 +272,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/technical-documentation/{package}/export/{format}',
             [TechnicalDocumentationController::class, 'export'],
         )->name('products.technical-documentation.export')->scopeBindings()
-            ->whereIn('format', ['markdown', 'pdf']);
+            ->whereIn('format', ['markdown', 'pdf', 'release']);
         Route::get(
             'products/{product}/security-instructions-template',
             [UserSecurityInstructionController::class, 'template'],

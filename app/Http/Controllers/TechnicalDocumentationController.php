@@ -21,6 +21,7 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TechnicalDocumentationController extends Controller
 {
@@ -309,7 +310,7 @@ class TechnicalDocumentationController extends Controller
         Product $product,
         TechnicalDocumentationPackage $package,
         string $format,
-    ): Response {
+    ): Response|BinaryFileResponse {
         $organization = $this->currentOrganization();
         $this->assertProductInOrganization($product, $organization);
         $this->assertPackageBelongsToProduct($package, $product);

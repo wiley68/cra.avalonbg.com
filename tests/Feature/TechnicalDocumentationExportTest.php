@@ -8,6 +8,8 @@ use App\Enums\ScopeStatus;
 use App\Enums\TechnicalDocumentationSectionKey;
 use App\Enums\TechnicalDocumentationSectionSource;
 use App\Enums\TechnicalDocumentationStatus;
+use App\Enums\UserSecurityInstructionSectionKey;
+use App\Enums\UserSecurityInstructionStatus;
 use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\Product;
@@ -15,6 +17,8 @@ use App\Models\Role;
 use App\Models\TechnicalDocumentationPackage;
 use App\Models\TechnicalDocumentationSection;
 use App\Models\User;
+use App\Models\UserSecurityInstruction;
+use App\Models\UserSecurityInstructionSection;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -195,4 +199,92 @@ test('invalid technical documentation export format is not found', function () {
     $this->actingAs($owner)
         ->get('/products/' . $product->id . '/technical-documentation/' . $package->id . '/export/html')
         ->assertNotFound();
+});
+
+test('owner can export release zip with linked USI readme', function () {
+    [
+        'organization' => $organization,
+        'owner' => $owner,
+        'product' => $product,
+        'package' => $package,
+    ] = makeTechDocExportFixture();
+
+    $usi = UserSecurityInstruction::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'title' => 'Linked USI for release ZIP',
+        'status' => UserSecurityInstructionStatus::Published,
+        'version_label' => '3.0',
+        'locale' => 'en',
+        'published_at' => now(),
+        'published_by' => $owner->id,
+    ]);
+
+    UserSecurityInstructionSection::query()->create([
+        'instruction_id' => $usi->id,
+        'section_key' => UserSecurityInstructionSectionKey::SecureInstallation,
+        'body' => 'Install with signed packages only.',
+        'sort_order' => 1,
+        'is_applicable' => true,
+    ]);
+
+    $package->update(['user_security_instruction_id' => $usi->id]);
+
+    $release = $this->actingAs($owner)
+        ->get(route('products.technical-documentation.export', [
+            'product' => $product,
+            'package' => $package,
+            'format' => 'release',
+        ]))
+        ->assertOk();
+
+    expect($release->headers->get('content-type'))->toContain('application/zip')
+        ->and($release->headers->get('content-disposition'))->toContain('.zip')
+        ->and($release->headers->get('content-disposition'))->toContain('-release.zip');
+
+    $zipPath = $release->baseResponse->getFile()->getPathname();
+    $zip = new \ZipArchive;
+    expect($zip->open($zipPath))->toBeTrue();
+    expect($zip->locateName('technical-documentation.md'))->not->toBeFalse();
+    expect($zip->locateName('technical-documentation.pdf'))->not->toBeFalse();
+    expect($zip->locateName('usi/README.md'))->not->toBeFalse();
+
+    $md = $zip->getFromName('technical-documentation.md');
+    expect($md)->toContain('Exportable tech doc package')
+        ->and($md)->toContain('Architecture overview');
+
+    expect($zip->getFromName('technical-documentation.pdf'))->toStartWith('%PDF');
+
+    $usiReadme = $zip->getFromName('usi/README.md');
+    expect($usiReadme)->toContain('# Linked USI for release ZIP')
+        ->and($usiReadme)->toContain('Install with signed packages only');
+
+    $zip->close();
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::TechnicalDocumentationExported->value)
+        ->where('product_id', $product->id)
+        ->exists())->toBeTrue();
+});
+
+test('release zip omits USI readme when no linked instruction', function () {
+    ['owner' => $owner, 'product' => $product, 'package' => $package] = makeTechDocExportFixture();
+
+    expect($package->user_security_instruction_id)->toBeNull();
+
+    $release = $this->actingAs($owner)
+        ->get(route('products.technical-documentation.export', [
+            'product' => $product,
+            'package' => $package,
+            'format' => 'release',
+        ]))
+        ->assertOk();
+
+    $zipPath = $release->baseResponse->getFile()->getPathname();
+    $zip = new \ZipArchive;
+    expect($zip->open($zipPath))->toBeTrue();
+    expect($zip->locateName('technical-documentation.md'))->not->toBeFalse();
+    expect($zip->locateName('technical-documentation.pdf'))->not->toBeFalse();
+    expect($zip->locateName('usi/README.md'))->toBeFalse();
+    $zip->close();
 });

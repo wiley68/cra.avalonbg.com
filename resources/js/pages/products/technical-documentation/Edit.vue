@@ -506,6 +506,14 @@ const exportPdfUrl = computed(
         }).url,
 );
 
+const exportReleaseUrl = computed(
+    () =>
+        exportPackage({
+            ...exportRouteArgs.value,
+            format: 'release',
+        }).url,
+);
+
 const localeLabel = (value: string): string => {
     const key = `products.technical_documentation.locales.${value}`;
     const translated = t(key);
@@ -701,6 +709,14 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     <a :href="exportPdfUrl" target="_blank" rel="noopener">
                         <FileDown class="h-4 w-4" />
                         {{ t('products.technical_documentation.export_pdf') }}
+                    </a>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportReleaseUrl" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{
+                            t('products.technical_documentation.export_release')
+                        }}
                     </a>
                 </Button>
                 <Button as-child variant="outline">

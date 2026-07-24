@@ -3270,6 +3270,7 @@
             "stale_evidence_link": "Open evidence register",
             "export_markdown": "Export Markdown",
             "export_pdf": "Export PDF",
+            "export_release": "Export release package",
             "export": {
                 "title": "Technical documentation",
                 "disclaimer": "This document is an internal technical documentation package for conformity preparation. It is not a legal compliance certificate or authority submission package.",
@@ -3281,7 +3282,7 @@
                 "section_contents": "Sections",
                 "source": "Source",
                 "empty": "Not provided.",
-                "invalid_format": "Export format must be markdown or pdf."
+                "invalid_format": "Export format must be markdown, pdf, or release."
             }
         }
     },
