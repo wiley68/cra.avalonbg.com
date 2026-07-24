@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Copy, GitBranch, RefreshCw, Save, Trash2 } from '@lucide/vue';
+import { Copy, GitBranch, RefreshCw, Save, Shield, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import IntegrationController from '@/actions/App/Http/Controllers/Settings/IntegrationController';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -96,6 +96,12 @@ const jiraForm = useForm({
     label: 'Jira Cloud',
 });
 
+const snykForm = useForm({
+    api_token: '',
+    base_url: '',
+    label: 'Snyk',
+});
+
 const scheduleForm = useForm({
     sync_schedule: 'off',
 });
@@ -130,9 +136,22 @@ const jiraIntegration = computed(() =>
     props.integrations.find((integration) => integration.provider === 'jira'),
 );
 
-const defaultTab = (): 'github' | 'gitlab' | 'jira' => {
+const snykIntegration = computed(() =>
+    props.integrations.find((integration) => integration.provider === 'snyk'),
+);
+
+const defaultTab = (): 'github' | 'gitlab' | 'jira' | 'snyk' => {
     if (props.revealed_webhook_secret) {
         return 'github';
+    }
+
+    if (
+        !githubConnection.value &&
+        !gitlabConnection.value &&
+        !jiraIntegration.value &&
+        snykIntegration.value
+    ) {
+        return 'snyk';
     }
 
     if (
@@ -150,7 +169,7 @@ const defaultTab = (): 'github' | 'gitlab' | 'jira' => {
     return 'github';
 };
 
-const activeTab = ref<'github' | 'gitlab' | 'jira'>(defaultTab());
+const activeTab = ref<'github' | 'gitlab' | 'jira' | 'snyk'>(defaultTab());
 
 watch(
     () => props.revealed_webhook_secret,
@@ -202,6 +221,19 @@ watch(
     { immediate: true },
 );
 
+watch(
+    snykIntegration,
+    (integration) => {
+        if (!integration) {
+            return;
+        }
+
+        snykForm.base_url = integration.base_url ?? '';
+        snykForm.label = integration.label ?? 'Snyk';
+    },
+    { immediate: true },
+);
+
 const connectGithub = () => {
     githubForm.post(IntegrationController.storeGithub.url(), {
         preserveScroll: true,
@@ -227,6 +259,13 @@ const connectJira = () => {
     jiraForm.post(IntegrationController.storeJira.url(), {
         preserveScroll: true,
         onSuccess: () => jiraForm.reset('api_token'),
+    });
+};
+
+const connectSnyk = () => {
+    snykForm.post(IntegrationController.storeSnyk.url(), {
+        preserveScroll: true,
+        onSuccess: () => snykForm.reset('api_token'),
     });
 };
 
@@ -347,7 +386,8 @@ const confirmDisconnect = () => {
                 canManage ||
                 githubConnection ||
                 gitlabConnection ||
-                jiraIntegration
+                jiraIntegration ||
+                snykIntegration
             "
             v-model="activeTab"
             class="gap-6"
@@ -361,6 +401,9 @@ const confirmDisconnect = () => {
                 </TabsTrigger>
                 <TabsTrigger value="jira" class="flex-1 sm:flex-none">
                     {{ t('settings.integrations.jira') }}
+                </TabsTrigger>
+                <TabsTrigger value="snyk" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.snyk') }}
                 </TabsTrigger>
             </TabsList>
 
@@ -1280,6 +1323,167 @@ const confirmDisconnect = () => {
 
                 <p
                     v-else-if="!jiraIntegration"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+
+            <TabsContent value="snyk" class="space-y-6">
+                <div
+                    v-if="snykIntegration"
+                    class="space-y-4 rounded-lg border p-4"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 font-medium">
+                                <Shield class="h-4 w-4" />
+                                {{
+                                    snykIntegration.label ||
+                                    t('settings.integrations.snyk')
+                                }}
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.status') }}:
+                                {{
+                                    t(
+                                        `settings.integrations.statuses.${snykIntegration.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="snykIntegration.base_url"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.snyk_base_url') }}:
+                                {{ snykIntegration.base_url }}
+                            </p>
+                            <p
+                                v-if="snykIntegration.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        snykIntegration.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            data-test="disconnect-snyk-button"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'integration',
+                                    id: snykIntegration.id,
+                                }
+                            "
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div v-if="canManage" class="space-y-4 rounded-lg border p-4">
+                    <div>
+                        <h3 class="font-medium">
+                            {{
+                                snykIntegration
+                                    ? t(
+                                          'settings.integrations.update_snyk_title',
+                                      )
+                                    : t(
+                                          'settings.integrations.connect_snyk_title',
+                                      )
+                            }}
+                        </h3>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'settings.integrations.connect_snyk_description',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <form class="space-y-4" @submit.prevent="connectSnyk">
+                        <div class="grid gap-2">
+                            <Label for="snyk_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="snyk_label"
+                                v-model="snykForm.label"
+                                :placeholder="t('settings.integrations.snyk')"
+                            />
+                            <InputError :message="snykForm.errors.label" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="snyk_base_url">{{
+                                t('settings.integrations.snyk_base_url')
+                            }}</Label>
+                            <Input
+                                id="snyk_base_url"
+                                v-model="snykForm.base_url"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.snyk_base_url_placeholder',
+                                    )
+                                "
+                                data-test="snyk-base-url-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.snyk_base_url_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError :message="snykForm.errors.base_url" />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="snyk_api_token">{{
+                                t('settings.integrations.snyk_api_token')
+                            }}</Label>
+                            <PasswordInput
+                                id="snyk_api_token"
+                                v-model="snykForm.api_token"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.snyk_api_token_placeholder',
+                                    )
+                                "
+                                data-test="snyk-api-token-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.snyk_api_token_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError :message="snykForm.errors.api_token" />
+                        </div>
+                        <Button
+                            type="submit"
+                            :disabled="snykForm.processing"
+                            data-test="connect-snyk-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                snykIntegration
+                                    ? t('settings.integrations.update_token')
+                                    : t('settings.integrations.connect_snyk')
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!snykIntegration"
                     class="text-sm text-muted-foreground"
                 >
                     {{ t('settings.integrations.provider_not_connected') }}

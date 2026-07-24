@@ -2,9 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Enums\IntegrationCategory;
+use App\Enums\IntegrationProvider;
 use App\Models\ProductIntegrationLink;
 use App\Models\User;
 use App\Services\AlmSyncService;
+use App\Services\ScannerSyncService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -26,7 +29,7 @@ class SyncProductIntegrationJob implements ShouldBeUnique, ShouldQueue
         return (string) $this->linkId;
     }
 
-    public function handle(AlmSyncService $sync): void
+    public function handle(AlmSyncService $almSync, ScannerSyncService $scannerSync): void
     {
         $link = ProductIntegrationLink::query()
             ->with(['integration', 'product'])
@@ -36,6 +39,15 @@ class SyncProductIntegrationJob implements ShouldBeUnique, ShouldQueue
             ? User::query()->find($this->triggeredByUserId)
             : null;
 
-        $sync->sync($link, $actor);
+        if (
+            $link->integration->provider === IntegrationProvider::Snyk
+            || $link->integration->category === IntegrationCategory::Scanner
+        ) {
+            $scannerSync->sync($link, $actor);
+
+            return;
+        }
+
+        $almSync->sync($link, $actor);
     }
 }

@@ -145,6 +145,10 @@ class ProductController extends Controller
             'jira_link' => $this->integrationLinks->jiraPayload(
                 $this->integrationLinks->jiraLinkForProduct($product),
             ),
+            'snyk_integration' => $this->integrationLinks->snykIntegrationOption($organization),
+            'snyk_link' => $this->integrationLinks->snykPayload(
+                $this->integrationLinks->snykLinkForProduct($product),
+            ),
             'import_suggestions' => $this->importSuggestions->pendingPayloadForProduct($product->id),
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),

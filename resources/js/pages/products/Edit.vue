@@ -10,6 +10,7 @@ import {
     Tags,
     Ticket,
     Trash2,
+    Shield,
     X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -191,9 +192,30 @@ type JiraLinkPayload = {
     } | null;
 };
 
+type SnykIntegrationOption = {
+    connected: boolean;
+    label: string | null;
+    status: string | null;
+};
+
+type SnykLinkPayload = {
+    id: number;
+    provider: string;
+    external_project_key: string | null;
+    external_target_id: string | null;
+    external_label: string | null;
+    last_synced_at: string | null;
+    last_sync_summary: {
+        findings_count?: number;
+        pending_vulnerability_suggestions?: number;
+        vulnerability_suggestions_upserted?: number;
+        error?: string;
+    } | null;
+};
+
 type ImportSuggestionPayload = {
     id: number;
-    kind: 'task' | string;
+    kind: 'task' | 'vulnerability' | string;
     external_id: string;
     title: string;
     summary: string | null;
@@ -202,6 +224,9 @@ type ImportSuggestionPayload = {
     issue_type: string | null;
     priority: string | null;
     status: string | null;
+    severity: string | null;
+    cve_id: string | null;
+    package_name: string | null;
 };
 
 const props = defineProps<{
@@ -219,6 +244,8 @@ const props = defineProps<{
     vcs_suggestions?: VcsImportSuggestionPayload[];
     jira_integration?: JiraIntegrationOption | null;
     jira_link?: JiraLinkPayload | null;
+    snyk_integration?: SnykIntegrationOption | null;
+    snyk_link?: SnykLinkPayload | null;
     import_suggestions?: ImportSuggestionPayload[];
 }>();
 
@@ -235,13 +262,25 @@ const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 const showUnlinkRepositoryDialog = ref(false);
 const showUnlinkJiraDialog = ref(false);
+const showUnlinkSnykDialog = ref(false);
 const syncingRepository = ref(false);
 const syncingJira = ref(false);
+const syncingSnyk = ref(false);
 const suggestionActionId = ref<number | null>(null);
 const importSuggestionActionId = ref<number | null>(null);
 
 const pendingSuggestions = computed(() => props.vcs_suggestions ?? []);
 const pendingImportSuggestions = computed(() => props.import_suggestions ?? []);
+const pendingJiraSuggestions = computed(() =>
+    pendingImportSuggestions.value.filter(
+        (suggestion) => suggestion.kind === 'task',
+    ),
+);
+const pendingSnykSuggestions = computed(() =>
+    pendingImportSuggestions.value.filter(
+        (suggestion) => suggestion.kind === 'vulnerability',
+    ),
+);
 
 const repositoryForm = useForm({
     connection_id:
@@ -253,6 +292,11 @@ const jiraForm = useForm({
     project_key: props.jira_link?.external_project_key ?? '',
 });
 
+const snykForm = useForm({
+    org_id: props.snyk_link?.external_project_key ?? '',
+    project_id: props.snyk_link?.external_target_id ?? '',
+});
+
 const activeVcsConnections = computed(() =>
     (props.vcs_connections ?? []).filter(
         (connection) => connection.status === 'active',
@@ -261,6 +305,10 @@ const activeVcsConnections = computed(() =>
 
 const jiraConnected = computed(
     () => props.jira_integration?.connected === true,
+);
+
+const snykConnected = computed(
+    () => props.snyk_integration?.connected === true,
 );
 
 const linkRepository = () => {
@@ -372,6 +420,52 @@ const confirmUnlinkJira = () => {
     );
 };
 
+const linkSnykProject = () => {
+    snykForm.put(
+        updateIntegration.url({
+            product: props.product.id,
+            provider: 'snyk',
+        }),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const syncSnykNow = () => {
+    syncingSnyk.value = true;
+    router.post(
+        syncIntegration.url({
+            product: props.product.id,
+            provider: 'snyk',
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                syncingSnyk.value = false;
+            },
+        },
+    );
+};
+
+const confirmUnlinkSnyk = () => {
+    router.delete(
+        destroyIntegration.url({
+            product: props.product.id,
+            provider: 'snyk',
+        }),
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                showUnlinkSnykDialog.value = false;
+                snykForm.org_id = '';
+                snykForm.project_id = '';
+            },
+        },
+    );
+};
+
 const acceptImportSuggestionAction = (suggestionId: number) => {
     importSuggestionActionId.value = suggestionId;
     router.post(
@@ -409,6 +503,10 @@ const dismissImportSuggestionAction = (suggestionId: number) => {
 const importSuggestionKindLabel = (kind: string): string => {
     if (kind === 'task') {
         return t('products.integrations.suggestions.kind_task');
+    }
+
+    if (kind === 'vulnerability') {
+        return t('products.integrations.suggestions.kind_vulnerability');
     }
 
     return kind;
@@ -1541,19 +1639,19 @@ const textareaClass =
                 </div>
 
                 <div
-                    v-if="pendingImportSuggestions.length > 0"
+                    v-if="pendingJiraSuggestions.length > 0"
                     class="space-y-3 border-t pt-3"
                     data-test="import-suggestions"
                 >
                     <h3 class="text-sm font-medium">
                         {{ t('products.integrations.suggestions.title') }}
                         <span class="text-muted-foreground">
-                            ({{ pendingImportSuggestions.length }})
+                            ({{ pendingJiraSuggestions.length }})
                         </span>
                     </h3>
                     <ul class="space-y-2">
                         <li
-                            v-for="suggestion in pendingImportSuggestions"
+                            v-for="suggestion in pendingJiraSuggestions"
                             :key="suggestion.id"
                             class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
                         >
@@ -1704,6 +1802,306 @@ const textareaClass =
             </form>
         </section>
 
+        <section class="space-y-4 rounded-lg border p-6">
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('products.sections.snyk') }}
+            </h2>
+
+            <div v-if="snyk_link" class="space-y-3 rounded-lg border p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 font-medium">
+                            <Shield class="h-4 w-4" />
+                            <span>
+                                {{
+                                    snyk_link.external_label ||
+                                    snyk_link.external_target_id
+                                }}
+                            </span>
+                        </div>
+                        <p
+                            v-if="snyk_link.external_project_key"
+                            class="font-mono text-xs text-muted-foreground"
+                        >
+                            org: {{ snyk_link.external_project_key }}
+                        </p>
+                        <p
+                            v-if="snyk_link.external_target_id"
+                            class="font-mono text-xs text-muted-foreground"
+                        >
+                            project: {{ snyk_link.external_target_id }}
+                        </p>
+                        <p
+                            v-if="snyk_link.last_synced_at"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.integrations.snyk.last_synced') }}:
+                            {{
+                                new Date(
+                                    snyk_link.last_synced_at,
+                                ).toLocaleString()
+                            }}
+                        </p>
+                        <div
+                            v-if="snyk_link.last_sync_summary"
+                            class="space-y-1 text-sm text-muted-foreground"
+                        >
+                            <p v-if="snyk_link.last_sync_summary.error">
+                                {{
+                                    t('products.integrations.snyk.sync_error')
+                                }}:
+                                {{ snyk_link.last_sync_summary.error }}
+                            </p>
+                            <template v-else>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.snyk.findings',
+                                        )
+                                    }}:
+                                    {{
+                                        snyk_link.last_sync_summary
+                                            .findings_count ?? 0
+                                    }}
+                                </p>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.snyk.pending_vulnerabilities',
+                                        )
+                                    }}:
+                                    {{
+                                        snyk_link.last_sync_summary
+                                            .pending_vulnerability_suggestions ??
+                                        0
+                                    }}
+                                </p>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="syncingSnyk"
+                            data-test="sync-snyk-button"
+                            @click="syncSnykNow"
+                        >
+                            <RefreshCw
+                                class="h-4 w-4"
+                                :class="{
+                                    'animate-spin': syncingSnyk,
+                                }"
+                            />
+                            {{ t('products.integrations.snyk.sync_now') }}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            @click="showUnlinkSnykDialog = true"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('products.integrations.snyk.unlink') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div
+                    v-if="pendingSnykSuggestions.length > 0"
+                    class="space-y-3 border-t pt-3"
+                    data-test="snyk-import-suggestions"
+                >
+                    <h3 class="text-sm font-medium">
+                        {{ t('products.integrations.suggestions.title') }}
+                        <span class="text-muted-foreground">
+                            ({{ pendingSnykSuggestions.length }})
+                        </span>
+                    </h3>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="suggestion in pendingSnykSuggestions"
+                            :key="suggestion.id"
+                            class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="rounded bg-muted px-1.5 py-0.5 text-xs font-medium"
+                                    >
+                                        {{
+                                            importSuggestionKindLabel(
+                                                suggestion.kind,
+                                            )
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.severity"
+                                        class="text-xs text-muted-foreground uppercase"
+                                    >
+                                        {{ suggestion.severity }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.cve_id"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.cve_id }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.issue_key"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.issue_key }}
+                                    </span>
+                                </div>
+                                <p class="font-medium">
+                                    <a
+                                        v-if="suggestion.html_url"
+                                        :href="suggestion.html_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline-offset-4 hover:underline"
+                                    >
+                                        {{ suggestion.title }}
+                                    </a>
+                                    <span v-else>{{ suggestion.title }}</span>
+                                </p>
+                                <p
+                                    v-if="suggestion.summary"
+                                    class="line-clamp-2 text-sm text-muted-foreground"
+                                >
+                                    {{ suggestion.summary }}
+                                </p>
+                                <p
+                                    v-if="suggestion.package_name"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ suggestion.package_name }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="accept-import-suggestion"
+                                    @click="
+                                        acceptImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <Check class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.accept',
+                                        )
+                                    }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="dismiss-import-suggestion"
+                                    @click="
+                                        dismissImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <X class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.dismiss',
+                                        )
+                                    }}
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                v-if="!snykConnected"
+                class="space-y-2 text-sm text-muted-foreground"
+            >
+                <p>{{ t('products.integrations.snyk.no_connection') }}</p>
+                <Button type="button" variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{ t('products.integrations.snyk.open_integrations') }}
+                    </Link>
+                </Button>
+            </div>
+
+            <form v-else class="space-y-4" @submit.prevent="linkSnykProject">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="snyk_org_id"
+                            :help="t('products.integrations.snyk.org_id_help')"
+                        >
+                            {{ t('products.integrations.snyk.org_id') }}
+                        </FieldLabel>
+                        <Input
+                            id="snyk_org_id"
+                            v-model="snykForm.org_id"
+                            :placeholder="
+                                t(
+                                    'products.integrations.snyk.org_id_placeholder',
+                                )
+                            "
+                            required
+                            data-test="snyk-org-id-input"
+                        />
+                        <InputError :message="snykForm.errors.org_id" />
+                    </div>
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="snyk_project_id"
+                            :help="
+                                t('products.integrations.snyk.project_id_help')
+                            "
+                        >
+                            {{ t('products.integrations.snyk.project_id') }}
+                        </FieldLabel>
+                        <Input
+                            id="snyk_project_id"
+                            v-model="snykForm.project_id"
+                            :placeholder="
+                                t(
+                                    'products.integrations.snyk.project_id_placeholder',
+                                )
+                            "
+                            required
+                            data-test="snyk-project-id-input"
+                        />
+                        <InputError :message="snykForm.errors.project_id" />
+                    </div>
+                </div>
+                <Button
+                    type="submit"
+                    :disabled="snykForm.processing"
+                    data-test="link-snyk-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{
+                        snyk_link
+                            ? t('products.integrations.snyk.update')
+                            : t('products.integrations.snyk.link')
+                    }}
+                </Button>
+            </form>
+        </section>
+
         <AppAlertDialog
             v-model:open="showDeleteDialog"
             :title="t('common.delete_confirm_title')"
@@ -1725,6 +2123,14 @@ const textareaClass =
             :description="t('products.integrations.jira.unlink_confirm')"
             :confirm-label="t('products.integrations.jira.unlink')"
             @confirm="confirmUnlinkJira"
+        />
+
+        <AppAlertDialog
+            v-model:open="showUnlinkSnykDialog"
+            :title="t('products.integrations.snyk.unlink_confirm_title')"
+            :description="t('products.integrations.snyk.unlink_confirm')"
+            :confirm-label="t('products.integrations.snyk.unlink')"
+            @confirm="confirmUnlinkSnyk"
         />
 
         <ScopeWizard

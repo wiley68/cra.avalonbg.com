@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.5  
+**Версия:** 0.6  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–3 Done; Must 4–6 open  
+**Статус:** Active — Must 1–4 Done; Must 5–6 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -234,7 +234,7 @@ POST   /api/webhooks/snyk/{integration}
 1. ~~Migrations + models + enums (`organization_integrations`, links, sync runs, `import_suggestions`)~~ **Done** (2026-07-24)
 2. ~~Settings UI: connect / verify / disconnect **Jira Cloud** (API token) + audit~~ **Done** (2026-07-24)
 3. ~~Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task~~ **Done** (2026-07-24)
-4. Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability
+4. ~~Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability~~ **Done** (2026-07-24)
 5. Evidence immutable ref / optional snapshot on successful sync; AuditLogger coverage
 6. i18n EN/BG + feature tests (`Http::fake()`; viewer cannot manage connectors / accept)
 

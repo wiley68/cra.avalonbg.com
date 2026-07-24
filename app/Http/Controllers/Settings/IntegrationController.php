@@ -8,6 +8,7 @@ use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreJiraIntegrationRequest;
+use App\Http\Requests\Settings\StoreSnykIntegrationRequest;
 use App\Http\Requests\Settings\UpdateVcsConnectionSyncScheduleRequest;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
@@ -185,6 +186,32 @@ class IntegrationController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('settings.integrations.jira_connected'),
+        ]);
+
+        return back();
+    }
+
+    public function storeSnyk(StoreSnykIntegrationRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->integrations->storeSnyk(
+            organization: $organization,
+            actor: $request->user(),
+            credentials: [
+                'api_token' => $request->string('api_token')->toString(),
+                'base_url' => $request->input('base_url'),
+            ],
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.snyk_connected'),
         ]);
 
         return back();

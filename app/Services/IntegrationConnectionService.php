@@ -44,6 +44,32 @@ class IntegrationConnectionService
         );
     }
 
+    /**
+     * @param  array{api_token: string, base_url?: string|null}  $credentials
+     */
+    public function storeSnyk(
+        Organization $organization,
+        User $actor,
+        array $credentials,
+        ?string $label = null,
+    ): OrganizationIntegration {
+        $baseUrl = $this->normalizeSnykBaseUrl($credentials['base_url'] ?? null);
+        $apiToken = $credentials['api_token'];
+
+        $this->verifySnykApiToken($baseUrl, $apiToken);
+
+        return $this->upsert(
+            organization: $organization,
+            actor: $actor,
+            provider: IntegrationProvider::Snyk,
+            credentials: [
+                'base_url' => $baseUrl,
+                'api_token' => $apiToken,
+            ],
+            label: $label ?: 'Snyk',
+        );
+    }
+
     public function delete(OrganizationIntegration $integration, User $actor): void
     {
         AuditLogger::logIntegrationDisconnected($integration, $actor);
@@ -120,6 +146,41 @@ class IntegrationConnectionService
 
         throw ValidationException::withMessages([
             'api_token' => [Translations::get('settings.integrations.jira_credentials_invalid')],
+        ]);
+    }
+
+    private function normalizeSnykBaseUrl(?string $baseUrl): string
+    {
+        $normalized = rtrim(trim((string) $baseUrl), '/');
+
+        if ($normalized === '') {
+            return 'https://api.snyk.io';
+        }
+
+        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://' . $normalized;
+        }
+
+        return $normalized;
+    }
+
+    private function verifySnykApiToken(string $baseUrl, string $apiToken): void
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'token ' . $apiToken,
+            'Content-Type' => 'application/vnd.api+json',
+            'Accept' => 'application/vnd.api+json',
+            'User-Agent' => 'CRA-Compliance-Workspace',
+        ])->get($baseUrl . '/rest/self', [
+                    'version' => '2024-10-15',
+                ]);
+
+        if ($response->successful()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'api_token' => [Translations::get('settings.integrations.snyk_credentials_invalid')],
         ]);
     }
 }

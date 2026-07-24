@@ -42,6 +42,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.gitlab.store');
     Route::post('settings/integrations/jira', [IntegrationController::class, 'storeJira'])
         ->name('settings.integrations.jira.store');
+    Route::post('settings/integrations/snyk', [IntegrationController::class, 'storeSnyk'])
+        ->name('settings.integrations.snyk.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
     Route::post('settings/integrations/{connection}/webhook-secret', [IntegrationController::class, 'rotateWebhookSecret'])
