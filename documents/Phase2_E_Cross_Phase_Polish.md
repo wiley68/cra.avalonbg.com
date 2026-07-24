@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.13  
+**Версия:** 0.14  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12–13 Done)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -34,20 +34,20 @@
 
 ## 2. Scope freeze (решения)
 
-| Решение                 | Избор за Phase 2_E (frozen)                                            | Алтернатива (Should/Could / по-късно)       |
-| ----------------------- | ---------------------------------------------------------------------- | ------------------------------------------- |
-| Фокус                   | **Polish / ops / deferred 2.1** — не нова §14 domain вълна             | Candidate F / Phase 2.9                     |
-| Queue                   | Document + verify `queue:work` + scheduler path (`ops:baseline-check`) | Supervisor/systemd unit templates (Could)   |
-| LLM                     | Enable/harden **existing** providers (`openai`/`anthropic`)            | New providers / fine-tuning (out)           |
-| Live LLM surfaces       | **Imported-finding triage + vulnerability triage** (Must)              | USI/incident/tech-doc drafts (as-is config) |
-| Merged-PR summary       | **GitHub + GitLab**; panel на **Product Version** show                 | AI summary (Could)                          |
-| Release window          | `released_at` ± **14 дни**; ако няма `released_at` → last **30** дни   | Manual date range (out of Must)             |
-| Cache                   | **On-demand** + short HTTP/response cache (~15 min)                    | Nightly DB snapshot (out of Must)           |
-| Auto-create entities    | **Не** — summary е informational / optional evidence ref (Should)      | Auto Task/Evidence create (out)             |
-| UX debt pack (Could 16) | **Празен** при freeze — само P0 открити по време на 2_E                | Отделен backlog след internal test          |
-| SSO / billing           | **Out** → Candidate F (след internal test plan)                        | —                                           |
-| New scanners            | **Out** → optional 2.9                                                 | —                                           |
-| Post-2_E                | **Internal testing plan** → F → final tests → deploy                   | —                                           |
+| Решение                 | Избор за Phase 2_E (frozen)                                            | Алтернатива (Should/Could / по-късно)                 |
+| ----------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------- |
+| Фокус                   | **Polish / ops / deferred 2.1** — не нова §14 domain вълна             | Candidate F / Phase 2.9                               |
+| Queue                   | Document + verify `queue:work` + scheduler path (`ops:baseline-check`) | ~~Supervisor/systemd unit templates~~ (Could 13 Done) |
+| LLM                     | Enable/harden **existing** providers (`openai`/`anthropic`)            | New providers / fine-tuning (out)                     |
+| Live LLM surfaces       | **Imported-finding triage + vulnerability triage** (Must)              | USI/incident/tech-doc drafts (as-is config)           |
+| Merged-PR summary       | **GitHub + GitLab**; panel на **Product Version** show                 | AI summary (Could)                                    |
+| Release window          | `released_at` ± **14 дни**; ако няма `released_at` → last **30** дни   | Manual date range (out of Must)                       |
+| Cache                   | **On-demand** + short HTTP/response cache (~15 min)                    | Nightly DB snapshot (out of Must)                     |
+| Auto-create entities    | **Не** — summary е informational / optional evidence ref (Should)      | Auto Task/Evidence create (out)                       |
+| UX debt pack (Could 16) | **Празен** при freeze — само P0 открити по време на 2_E                | Отделен backlog след internal test                    |
+| SSO / billing           | **Out** → Candidate F (след internal test plan)                        | —                                                     |
+| New scanners            | **Out** → optional 2.9                                                 | —                                                     |
+| Post-2_E                | **Internal testing plan** → F → final tests → deploy                   | —                                                     |
 
 ---
 
@@ -156,7 +156,7 @@ flowchart LR
 ### Could
 
 12. ~~AI-assisted merged-PR narrative (human review; stub-safe)~~ **Done** (2026-07-24) — sync JSON draft на Version Show; `MergedPrAiNarrative`; stub providers; no auto evidence
-13. **Open** — Supervisor/systemd (или Docker Compose) sample unit за `queue:work` + `schedule:run`
+13. ~~Supervisor/systemd (или Docker Compose) sample unit за `queue:work` + `schedule:run`~~ **Done** (2026-07-24) — [`ops/samples/`](../ops/samples/); Ops baseline §3–4
 14. **Open** — Horizon / failed-jobs UI (само ако вече пасва на стека; иначе skip)
 15. **Open** — Embedding / RAG reindex schedule polish (`ai:index-embeddings` ops note)
 16. **Open / empty** — UX debt pack: само P0 открити по време на 2_E (иначе skip)
@@ -169,7 +169,7 @@ flowchart LR
 
 **Should** — GitLab parity, save-as-evidence, ops health hint, live connector checklist, AI error UX.
 
-**Could** — ~~AI PR narrative~~, process manager samples, Horizon, RAG schedule, optional P0 UX fixes.
+**Could** — ~~AI PR narrative~~, ~~process manager samples~~, Horizon, RAG schedule, optional P0 UX fixes.
 
 ---
 
@@ -235,6 +235,7 @@ Candidate F: SSO / billing / onboarding
 | Live connector smoke (10)  | Manual checklist — [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md); not CI |
 | AI error UX (Should 11)    | `AiUserFacingError`; timeout vs failed; queued `error_message` translated; no silent empty      |
 | AI PR narrative (Could 12) | Stub/sync draft on Version Show; human review; no auto Evidence/Task; audit event               |
+| Process samples (Could 13) | `ops/samples/` — Supervisor, systemd worker+timer, Compose workers                              |
 
 ---
 
@@ -254,6 +255,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 0.14   | 2026-07-24 | Could 13 Done — Supervisor/systemd/Compose samples under ops/samples   |
 | 0.13   | 2026-07-24 | Could 12 Done — AI merged-PR narrative draft (human review; stub-safe) |
 | 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                   |
 | 0.11   | 2026-07-24 | Should 10 Done — live connector smoke checklist (Jira / Snyk / ADO)    |

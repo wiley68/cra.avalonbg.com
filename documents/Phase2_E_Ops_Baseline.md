@@ -1,9 +1,9 @@
 # Phase 2_E — Ops baseline (scheduler + queue)
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2; Should 9 UI hint)  
-**Свързано:** [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) §4
+**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2; Should 9 UI hint; Could 13 samples)  
+**Свързано:** [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) §4 · [`ops/samples/`](../ops/samples/)
 
 > Цел: production/staging path за **scheduled** VCS + integration sync. Manual **Sync now** не зависи от този baseline.
 
@@ -62,7 +62,7 @@ php artisan schedule:list
 * * * * * cd /var/www/cra.avalonbg.com && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Алтернатива: systemd timer, който пуска `schedule:run` всяка минута (Could 13 sample units — по-късно).
+Алтернатива: systemd timer, който пуска `schedule:run` всяка минута — sample: [`ops/samples/systemd/`](../ops/samples/systemd/).
 
 ---
 
@@ -77,7 +77,9 @@ php artisan queue:work --sleep=1 --tries=3 --timeout=90
 
 Job-level defaults (Must 2): `$tries = 3`, `$backoff = [15, 60, 120]`, `$timeout = 90` на `SyncProductIntegrationJob` / `SyncProductRepositoryJob`. Soft-fail HTTP (401/403/429) **не** хвърля — job успява с `last_error`. Hard exception → retries → `failed_jobs` + `last_sync_summary.queue_failed` (видимо в `/integrations/health`).
 
-Production: supervisor/systemd с `queue:work` (или `queue:listen`) + `queue:restart` след deploy. Sample unit → Could 13.
+Production: supervisor/systemd с `queue:work` (или `queue:listen`) + `queue:restart` след deploy.
+
+**Sample units (Could 13):** [`ops/samples/`](../ops/samples/) — Supervisor, systemd (worker + scheduler timer), Docker Compose workers. README с install steps.
 
 Полезни команди:
 
@@ -152,6 +154,7 @@ php artisan queue:monitor default --max=100
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.3    | 2026-07-24 | Could 13 — Supervisor/systemd/Compose sample units under ops/samples |
 | 1.2    | 2026-07-24 | Should 9 — UI ops hint on Health + Settings; checklist item 12       |
 | 1.1    | 2026-07-24 | Must 2 — retries, failed visibility, retry_after, Sync now checklist |
 | 1.0    | 2026-07-24 | Must 1 — ops baseline doc + `ops:baseline-check`                     |

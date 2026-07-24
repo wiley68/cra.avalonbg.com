@@ -1,0 +1,38 @@
+# CRA worker sidecars — Docker Compose sample (Could 13)
+#
+# Illustrative only. Point `image` (or build) at the same app image that
+# serves HTTP. Requires QUEUE_CONNECTION=database|redis (not sync) and a
+# reachable DB/Redis from these containers.
+#
+#   docker compose -f ops/samples/docker-compose.workers.yml up -d
+#
+# Prefer `schedule:work` in containers (long-running) instead of cron +
+# schedule:run. Pair with HTTP / php-fpm from your main compose stack.
+#
+# After deploy of a new image: recreate these services (or signal
+# `php artisan queue:restart` inside the queue container).
+
+services:
+  cra-queue:
+    image: ${CRA_APP_IMAGE:-cra-app:latest}
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600
+    env_file:
+      - ${CRA_ENV_FILE:-.env}
+    volumes:
+      # Optional: share storage with the web container
+      - ${CRA_STORAGE_VOLUME:-cra_storage}:/var/www/html/storage
+    # depends_on:
+    #   - mysql
+    #   - redis
+
+  cra-scheduler:
+    image: ${CRA_APP_IMAGE:-cra-app:latest}
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan schedule:work
+    env_file:
+      - ${CRA_ENV_FILE:-.env}
+    volumes:
+      - ${CRA_STORAGE_VOLUME:-cra_storage}:/var/www/html/storage

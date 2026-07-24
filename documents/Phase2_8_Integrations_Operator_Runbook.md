@@ -135,8 +135,8 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 
 **Кратък ops списък:**
 
-1. Laravel scheduler трябва да върви (`* * * * * php artisan schedule:run`).
-2. Queue worker трябва да консумира jobs (`php artisan queue:work` или еквивалент) — schedule ползва `dispatch()`, не `dispatchSync`.
+1. Laravel scheduler трябва да върви (`* * * * * php artisan schedule:run` или systemd timer samples в `ops/samples/`).
+2. Queue worker трябва да консумира jobs (`php artisan queue:work` / Supervisor / systemd — `ops/samples/`) — schedule ползва `dispatch()`, не `dispatchSync`.
 3. `QUEUE_CONNECTION` ≠ `sync` (препоръка: `database` или `redis`).
 4. Org трябва да е `is_active`; connector status `active`; schedule ≠ `off`.
 5. Schedule се задава per connector в Settings → Integrations (`off` / `hourly` / `daily`).

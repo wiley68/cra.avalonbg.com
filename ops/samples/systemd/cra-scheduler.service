@@ -1,0 +1,25 @@
+# CRA scheduler oneshot — systemd sample (Could 13)
+#
+# Pair with cra-scheduler.timer (every minute). Replaces host crontab
+# `* * * * * php artisan schedule:run`.
+#
+# Install with the timer:
+#   sudo cp ops/samples/systemd/cra-scheduler.service /etc/systemd/system/
+#   sudo cp ops/samples/systemd/cra-scheduler.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cra-scheduler.timer
+
+[Unit]
+Description=CRA Compliance Workspace schedule:run (oneshot)
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/cra.avalonbg.com
+ExecStart=/usr/bin/php /var/www/cra.avalonbg.com/artisan schedule:run
+Nice=10
+
+NoNewPrivileges=true
+PrivateTmp=true

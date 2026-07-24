@@ -1,0 +1,16 @@
+# CRA scheduler timer — runs schedule:run every minute (Could 13)
+#
+#   sudo systemctl enable --now cra-scheduler.timer
+#   systemctl list-timers | grep cra-scheduler
+
+[Unit]
+Description=CRA Compliance Workspace scheduler timer
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=true
+Unit=cra-scheduler.service
+
+[Install]
+WantedBy=timers.target
