@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Enums\IntegrationSyncSchedule;
 use App\Enums\VcsSyncSchedule;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\StoreAzureDevOpsIntegrationRequest;
 use App\Http\Requests\Settings\StoreGithubAppVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGithubVcsConnectionRequest;
 use App\Http\Requests\Settings\StoreGitlabVcsConnectionRequest;
@@ -27,8 +28,7 @@ class IntegrationController extends Controller
     public function __construct(
         private readonly VcsConnectionService $connections,
         private readonly IntegrationConnectionService $integrations,
-    ) {
-    }
+    ) {}
 
     public function edit(Request $request): Response
     {
@@ -39,7 +39,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (!$user->canManageProducts($organization) && !$user->canViewProducts($organization)) {
+        if (! $user->canManageProducts($organization) && ! $user->canViewProducts($organization)) {
             abort(403);
         }
 
@@ -47,7 +47,7 @@ class IntegrationController extends Controller
             ->where('organization_id', $organization->id)
             ->orderBy('provider')
             ->get()
-            ->map(fn(OrganizationVcsConnection $connection): array => [
+            ->map(fn (OrganizationVcsConnection $connection): array => [
                 'id' => $connection->id,
                 'provider' => $connection->provider->value,
                 'auth_type' => $connection->auth_type->value,
@@ -67,7 +67,7 @@ class IntegrationController extends Controller
             ->where('organization_id', $organization->id)
             ->orderBy('provider')
             ->get()
-            ->map(fn(OrganizationIntegration $integration): array => [
+            ->map(fn (OrganizationIntegration $integration): array => [
                 'id' => $integration->id,
                 'provider' => $integration->provider->value,
                 'category' => $integration->category->value,
@@ -80,6 +80,9 @@ class IntegrationController extends Controller
                     : null,
                 'email' => is_array($integration->credentials)
                     ? ($integration->credentials['email'] ?? null)
+                    : null,
+                'organization' => is_array($integration->credentials)
+                    ? ($integration->credentials['organization'] ?? null)
                     : null,
                 'last_verified_at' => $integration->last_verified_at?->toIso8601String(),
                 'created_at' => $integration->created_at?->toIso8601String(),
@@ -219,6 +222,33 @@ class IntegrationController extends Controller
         return back();
     }
 
+    public function storeAzureDevOps(StoreAzureDevOpsIntegrationRequest $request): RedirectResponse
+    {
+        $organization = $request->user()->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        $this->integrations->storeAzureDevOps(
+            organization: $organization,
+            actor: $request->user(),
+            credentials: [
+                'organization' => $request->string('organization')->toString(),
+                'pat' => $request->string('pat')->toString(),
+                'base_url' => $request->input('base_url'),
+            ],
+            label: $request->input('label'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('settings.integrations.azure_devops_connected'),
+        ]);
+
+        return back();
+    }
+
     public function updateSyncSchedule(
         UpdateVcsConnectionSyncScheduleRequest $request,
         OrganizationVcsConnection $connection,
@@ -266,7 +296,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (!$user->canManageProducts($organization)) {
+        if (! $user->canManageProducts($organization)) {
             abort(403);
         }
 
@@ -291,7 +321,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (!$user->canManageProducts($organization)) {
+        if (! $user->canManageProducts($organization)) {
             abort(403);
         }
 
@@ -316,7 +346,7 @@ class IntegrationController extends Controller
             abort(404);
         }
 
-        if (!$user->canManageProducts($organization)) {
+        if (! $user->canManageProducts($organization)) {
             abort(403);
         }
 

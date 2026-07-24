@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.12  
+**Версия:** 0.13  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should 7–10 Done; Should 11–12 / Could open  
+**Статус:** Active — Must Done; Should 7–11 Done; Should 12 / Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -244,7 +244,7 @@ POST   /api/webhooks/snyk/{integration}
 8. ~~Manual sync hardening (unique job, soft-fail on missing scopes, last_error in summary)~~ **Done** (2026-07-24)
 9. ~~Map Snyk findings → existing SBOM / `product_components` where purl/name matches~~ **Done** (2026-07-24)
 10. ~~Readiness gaps + dashboard counts for pending suggestions / failed syncs~~ **Done** (2026-07-24)
-11. Second ALM: **Azure DevOps** work items (reuse `AlmProvider` + same suggestion UX)
+11. ~~Second ALM: **Azure DevOps** work items (reuse `AlmProvider` + same suggestion UX)~~ **Done** (2026-07-24)
 12. Operator docs: secrets, scopes, rate limits, threat model (short `documents/` or runbook section)
 
 ### Could
@@ -328,7 +328,7 @@ Reuse:
 | Sync hardening    | `IntegrationSyncHardeningTest` — unique job + soft-fail + last_error **Done**     |
 | SBOM mapping      | `SnykComponentMatchTest` — purl/name match → vulnerability components **Done**    |
 | Readiness         | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done** |
-| Azure DevOps      | Provider adapter test (Should 11)                                                 |
+| Azure DevOps      | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**      |
 
 ---
 
@@ -336,6 +336,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.13   | 2026-07-24 | Should 11 Done — Azure DevOps ALM (PAT) work items → task suggestions          |
 | 0.12   | 2026-07-24 | Should 10 Done — readiness gaps + dashboard pending/failed integration counts  |
 | 0.11   | 2026-07-24 | Should 9 Done — Snyk findings → SBOM/product_components match on sync/accept   |
 | 0.10   | 2026-07-24 | Should 8 Done — unique sync job + soft-fail scopes + last_error in summary     |

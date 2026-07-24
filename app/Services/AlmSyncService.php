@@ -8,6 +8,7 @@ use App\Exceptions\IntegrationSoftFailException;
 use App\Models\IntegrationSyncRun;
 use App\Models\ProductIntegrationLink;
 use App\Models\User;
+use App\Services\Integrations\AzureDevOpsProvider;
 use App\Services\Integrations\JiraCloudProvider;
 use App\Support\AuditLogger;
 use App\Support\Translations;
@@ -32,20 +33,30 @@ class AlmSyncService
         ]);
 
         try {
-            if ($link->integration->provider !== IntegrationProvider::Jira) {
+            $providerEnum = $link->integration->provider;
+
+            if (! in_array($providerEnum, [IntegrationProvider::Jira, IntegrationProvider::AzureDevops], true)) {
                 throw new \RuntimeException(
-                    Translations::get('products.integrations.jira_sync_not_implemented'),
+                    Translations::get('products.integrations.alm_sync_not_implemented'),
                 );
             }
 
             $projectKey = trim((string) ($link->external_project_key ?? ''));
             if ($projectKey === '') {
                 throw new \RuntimeException(
-                    Translations::get('products.integrations.jira_project_key_missing'),
+                    Translations::get(
+                        $providerEnum === IntegrationProvider::AzureDevops
+                        ? 'products.integrations.azure_devops_project_missing'
+                        : 'products.integrations.jira_project_key_missing',
+                    ),
                 );
             }
 
-            $provider = JiraCloudProvider::fromIntegration($link->integration);
+            $provider = match ($providerEnum) {
+                IntegrationProvider::AzureDevops => AzureDevOpsProvider::fromIntegration($link->integration),
+                default => JiraCloudProvider::fromIntegration($link->integration),
+            };
+
             $lastError = null;
             $issues = [];
 
@@ -56,9 +67,10 @@ class AlmSyncService
             }
 
             $suggestionStats = $this->suggestions->upsertTaskSuggestionsFromAlm($link, $issues);
+            $providerValue = $providerEnum->value;
 
             $summary = [
-                'provider' => IntegrationProvider::Jira->value,
+                'provider' => $providerValue,
                 'project_key' => $projectKey,
                 'external_target_id' => $link->external_target_id,
                 'issues_count' => count($issues),
@@ -76,11 +88,11 @@ class AlmSyncService
             $snapshot = $this->evidence->createIntegrationSnapshot(
                 product: $link->product,
                 snapshot: $summary,
-                title: 'Jira sync — '.$projectKey.' — '.now()->format('Y-m-d H:i'),
-                source: 'jira:'.$projectKey,
+                title: ucfirst(str_replace('_', ' ', $providerValue)).' sync — '.$projectKey.' — '.now()->format('Y-m-d H:i'),
+                source: $providerValue.':'.$projectKey,
                 uploader: $actor,
                 notes: 'Auto-created from integration sync run #'.$run->id,
-                filenamePrefix: 'jira-sync',
+                filenamePrefix: $providerValue.'-sync',
             );
 
             $summary['evidence_id'] = $snapshot->id;

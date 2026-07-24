@@ -9,6 +9,7 @@ use App\Models\OrganizationIntegration;
 use App\Models\Product;
 use App\Models\ProductIntegrationLink;
 use App\Models\User;
+use App\Services\Integrations\AzureDevOpsProvider;
 use App\Services\Integrations\JiraCloudProvider;
 use App\Services\Integrations\SnykApiProvider;
 use App\Support\AuditLogger;
@@ -67,6 +68,34 @@ class ProductIntegrationLinkService
         );
     }
 
+    public function linkAzureDevOpsProject(
+        Product $product,
+        string $project,
+        User $actor,
+    ): ProductIntegrationLink {
+        $integration = $this->activeIntegration(
+            $product->organization_id,
+            IntegrationProvider::AzureDevops,
+            'project',
+        );
+        $provider = AzureDevOpsProvider::fromIntegration($integration);
+        $resolved = $provider->getProject($project);
+
+        return $this->upsertLink(
+            product: $product,
+            integration: $integration,
+            actor: $actor,
+            attributes: [
+                'external_project_key' => $resolved['key'],
+                'external_target_id' => $resolved['id'],
+                'external_label' => $resolved['name'],
+                'config' => [
+                    'project' => $resolved['key'],
+                ],
+            ],
+        );
+    }
+
     public function unlink(ProductIntegrationLink $link, User $actor): void
     {
         $link->loadMissing(['product', 'integration']);
@@ -82,6 +111,11 @@ class ProductIntegrationLinkService
     public function snykLinkForProduct(Product $product): ?ProductIntegrationLink
     {
         return $this->linkForProduct($product, IntegrationProvider::Snyk);
+    }
+
+    public function azureDevOpsLinkForProduct(Product $product): ?ProductIntegrationLink
+    {
+        return $this->linkForProduct($product, IntegrationProvider::AzureDevops);
     }
 
     public function linkForProvider(Product $product, IntegrationProvider $provider): ?ProductIntegrationLink
@@ -122,6 +156,22 @@ class ProductIntegrationLinkService
     }
 
     /**
+     * @return array{
+     *     id: int,
+     *     provider: string,
+     *     external_project_key: string|null,
+     *     external_target_id: string|null,
+     *     external_label: string|null,
+     *     last_synced_at: string|null,
+     *     last_sync_summary: array<string, mixed>|null
+     * }|null
+     */
+    public function azureDevOpsPayload(?ProductIntegrationLink $link): ?array
+    {
+        return $this->linkPayload($link);
+    }
+
+    /**
      * @return array{connected: bool, label: string|null, status: string|null}|null
      */
     public function jiraIntegrationOption(Organization $organization): ?array
@@ -135,6 +185,14 @@ class ProductIntegrationLinkService
     public function snykIntegrationOption(Organization $organization): ?array
     {
         return $this->integrationOption($organization, IntegrationProvider::Snyk);
+    }
+
+    /**
+     * @return array{connected: bool, label: string|null, status: string|null}|null
+     */
+    public function azureDevOpsIntegrationOption(Organization $organization): ?array
+    {
+        return $this->integrationOption($organization, IntegrationProvider::AzureDevops);
     }
 
     /**
@@ -249,9 +307,11 @@ class ProductIntegrationLinkService
             ->first();
 
         if ($integration === null) {
-            $messageKey = $provider === IntegrationProvider::Snyk
-                ? 'products.integrations.snyk_not_connected'
-                : 'products.integrations.jira_not_connected';
+            $messageKey = match ($provider) {
+                IntegrationProvider::Snyk => 'products.integrations.snyk_not_connected',
+                IntegrationProvider::AzureDevops => 'products.integrations.azure_devops_not_connected',
+                default => 'products.integrations.jira_not_connected',
+            };
 
             throw ValidationException::withMessages([
                 $errorField => [Translations::get($messageKey)],

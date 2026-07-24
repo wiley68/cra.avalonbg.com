@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\IntegrationProvider;
 use App\Enums\IntegrationSyncRunStatus;
+use App\Http\Requests\StoreProductAzureDevOpsLinkRequest;
 use App\Http\Requests\StoreProductJiraLinkRequest;
 use App\Http\Requests\StoreProductSnykLinkRequest;
 use App\Jobs\SyncProductIntegrationJob;
@@ -30,6 +31,7 @@ class ProductIntegrationController extends Controller
         return match ($provider) {
             IntegrationProvider::Jira->value => $this->updateJira($request, $product),
             IntegrationProvider::Snyk->value => $this->updateSnyk($request, $product),
+            IntegrationProvider::AzureDevops->value => $this->updateAzureDevOps($request, $product),
             default => abort(404),
         };
     }
@@ -51,11 +53,7 @@ class ProductIntegrationController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get(
-                $integrationProvider === IntegrationProvider::Snyk
-                ? 'products.integrations.snyk.unlinked'
-                : 'products.integrations.jira.unlinked',
-            ),
+            'message' => Translations::get($this->messagePrefix($integrationProvider).'.unlinked'),
         ]);
 
         return back();
@@ -81,9 +79,7 @@ class ProductIntegrationController extends Controller
             ->latest('id')
             ->first();
 
-        $prefix = $integrationProvider === IntegrationProvider::Snyk
-            ? 'products.integrations.snyk'
-            : 'products.integrations.jira';
+        $prefix = $this->messagePrefix($integrationProvider);
 
         if ($run?->status === IntegrationSyncRunStatus::Failed) {
             Inertia::flash('toast', [
@@ -154,12 +150,41 @@ class ProductIntegrationController extends Controller
         return back();
     }
 
+    private function updateAzureDevOps(Request $request, Product $product): RedirectResponse
+    {
+        /** @var StoreProductAzureDevOpsLinkRequest $form */
+        $form = app(StoreProductAzureDevOpsLinkRequest::class);
+
+        $this->links->linkAzureDevOpsProject(
+            product: $product,
+            project: $form->string('project')->toString(),
+            actor: $request->user(),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.integrations.azure_devops.linked'),
+        ]);
+
+        return back();
+    }
+
     private function resolveProvider(string $provider): IntegrationProvider
     {
         return match ($provider) {
             IntegrationProvider::Jira->value => IntegrationProvider::Jira,
             IntegrationProvider::Snyk->value => IntegrationProvider::Snyk,
+            IntegrationProvider::AzureDevops->value => IntegrationProvider::AzureDevops,
             default => abort(404),
+        };
+    }
+
+    private function messagePrefix(IntegrationProvider $provider): string
+    {
+        return match ($provider) {
+            IntegrationProvider::Snyk => 'products.integrations.snyk',
+            IntegrationProvider::AzureDevops => 'products.integrations.azure_devops',
+            default => 'products.integrations.jira',
         };
     }
 

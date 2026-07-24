@@ -70,6 +70,34 @@ class IntegrationConnectionService
         );
     }
 
+    /**
+     * @param  array{organization: string, pat: string, base_url?: string|null}  $credentials
+     */
+    public function storeAzureDevOps(
+        Organization $organization,
+        User $actor,
+        array $credentials,
+        ?string $label = null,
+    ): OrganizationIntegration {
+        $baseUrl = $this->normalizeAzureDevOpsBaseUrl($credentials['base_url'] ?? null);
+        $adoOrganization = trim($credentials['organization']);
+        $pat = $credentials['pat'];
+
+        $this->verifyAzureDevOpsPat($baseUrl, $adoOrganization, $pat);
+
+        return $this->upsert(
+            organization: $organization,
+            actor: $actor,
+            provider: IntegrationProvider::AzureDevops,
+            credentials: [
+                'base_url' => $baseUrl,
+                'organization' => $adoOrganization,
+                'pat' => $pat,
+            ],
+            label: $label ?: 'Azure DevOps',
+        );
+    }
+
     public function updateSyncSchedule(
         OrganizationIntegration $integration,
         IntegrationSyncSchedule $schedule,
@@ -139,8 +167,8 @@ class IntegrationConnectionService
     {
         $normalized = rtrim(trim($baseUrl), '/');
 
-        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
-            $normalized = 'https://' . $normalized;
+        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://'.$normalized;
         }
 
         return $normalized;
@@ -153,7 +181,7 @@ class IntegrationConnectionService
             ->withHeaders([
                 'User-Agent' => 'CRA-Compliance-Workspace',
             ])
-            ->get($baseUrl . '/rest/api/3/myself');
+            ->get($baseUrl.'/rest/api/3/myself');
 
         if ($response->successful()) {
             return;
@@ -172,8 +200,8 @@ class IntegrationConnectionService
             return 'https://api.snyk.io';
         }
 
-        if (!str_starts_with($normalized, 'https://') && !str_starts_with($normalized, 'http://')) {
-            $normalized = 'https://' . $normalized;
+        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://'.$normalized;
         }
 
         return $normalized;
@@ -182,13 +210,13 @@ class IntegrationConnectionService
     private function verifySnykApiToken(string $baseUrl, string $apiToken): void
     {
         $response = Http::withHeaders([
-            'Authorization' => 'token ' . $apiToken,
+            'Authorization' => 'token '.$apiToken,
             'Content-Type' => 'application/vnd.api+json',
             'Accept' => 'application/vnd.api+json',
             'User-Agent' => 'CRA-Compliance-Workspace',
-        ])->get($baseUrl . '/rest/self', [
-                    'version' => '2024-10-15',
-                ]);
+        ])->get($baseUrl.'/rest/self', [
+            'version' => '2024-10-15',
+        ]);
 
         if ($response->successful()) {
             return;
@@ -196,6 +224,42 @@ class IntegrationConnectionService
 
         throw ValidationException::withMessages([
             'api_token' => [Translations::get('settings.integrations.snyk_credentials_invalid')],
+        ]);
+    }
+
+    private function normalizeAzureDevOpsBaseUrl(?string $baseUrl): string
+    {
+        $normalized = rtrim(trim((string) $baseUrl), '/');
+
+        if ($normalized === '') {
+            return 'https://dev.azure.com';
+        }
+
+        if (! str_starts_with($normalized, 'https://') && ! str_starts_with($normalized, 'http://')) {
+            $normalized = 'https://'.$normalized;
+        }
+
+        return $normalized;
+    }
+
+    private function verifyAzureDevOpsPat(string $baseUrl, string $organization, string $pat): void
+    {
+        $response = Http::withBasicAuth('', $pat)
+            ->acceptJson()
+            ->withHeaders([
+                'User-Agent' => 'CRA-Compliance-Workspace',
+            ])
+            ->get($baseUrl.'/'.rawurlencode($organization).'/_apis/projects', [
+                'api-version' => '7.1',
+                '$top' => 1,
+            ]);
+
+        if ($response->successful()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'pat' => [Translations::get('settings.integrations.azure_devops_credentials_invalid')],
         ]);
     }
 }

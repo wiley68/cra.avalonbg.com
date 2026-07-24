@@ -196,6 +196,30 @@ type JiraLinkPayload = {
     } | null;
 };
 
+type AzureDevOpsIntegrationOption = {
+    connected: boolean;
+    label: string | null;
+    status: string | null;
+};
+
+type AzureDevOpsLinkPayload = {
+    id: number;
+    provider: string;
+    external_project_key: string | null;
+    external_label: string | null;
+    last_synced_at: string | null;
+    last_sync_summary: {
+        issues_count?: number;
+        pending_task_suggestions?: number;
+        task_suggestions_upserted?: number;
+        evidence_id?: number;
+        evidence_checksum_sha256?: string | null;
+        error?: string;
+        last_error?: string;
+        soft_fail?: boolean;
+    } | null;
+};
+
 type SnykIntegrationOption = {
     connected: boolean;
     label: string | null;
@@ -259,6 +283,8 @@ const props = defineProps<{
     vcs_suggestions?: VcsImportSuggestionPayload[];
     jira_integration?: JiraIntegrationOption | null;
     jira_link?: JiraLinkPayload | null;
+    azure_devops_integration?: AzureDevOpsIntegrationOption | null;
+    azure_devops_link?: AzureDevOpsLinkPayload | null;
     snyk_integration?: SnykIntegrationOption | null;
     snyk_link?: SnykLinkPayload | null;
     import_suggestions?: ImportSuggestionPayload[];
@@ -277,9 +303,11 @@ const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 const showUnlinkRepositoryDialog = ref(false);
 const showUnlinkJiraDialog = ref(false);
+const showUnlinkAzureDevOpsDialog = ref(false);
 const showUnlinkSnykDialog = ref(false);
 const syncingRepository = ref(false);
 const syncingJira = ref(false);
+const syncingAzureDevOps = ref(false);
 const syncingSnyk = ref(false);
 const suggestionActionId = ref<number | null>(null);
 const importSuggestionActionId = ref<number | null>(null);
@@ -287,6 +315,11 @@ const importSuggestionActionId = ref<number | null>(null);
 const pendingSuggestions = computed(() => props.vcs_suggestions ?? []);
 const pendingImportSuggestions = computed(() => props.import_suggestions ?? []);
 const pendingJiraSuggestions = computed(() =>
+    pendingImportSuggestions.value.filter(
+        (suggestion) => suggestion.kind === 'task',
+    ),
+);
+const pendingAzureDevOpsSuggestions = computed(() =>
     pendingImportSuggestions.value.filter(
         (suggestion) => suggestion.kind === 'task',
     ),
@@ -307,6 +340,10 @@ const jiraForm = useForm({
     project_key: props.jira_link?.external_project_key ?? '',
 });
 
+const azureDevOpsForm = useForm({
+    project: props.azure_devops_link?.external_project_key ?? '',
+});
+
 const snykForm = useForm({
     org_id: props.snyk_link?.external_project_key ?? '',
     project_id: props.snyk_link?.external_target_id ?? '',
@@ -320,6 +357,10 @@ const activeVcsConnections = computed(() =>
 
 const jiraConnected = computed(
     () => props.jira_integration?.connected === true,
+);
+
+const hasAzureDevOpsConnection = computed(
+    () => props.azure_devops_integration?.connected === true,
 );
 
 const snykConnected = computed(
@@ -430,6 +471,51 @@ const confirmUnlinkJira = () => {
             onFinish: () => {
                 showUnlinkJiraDialog.value = false;
                 jiraForm.project_key = '';
+            },
+        },
+    );
+};
+
+const saveAzureDevOpsLink = () => {
+    azureDevOpsForm.put(
+        updateIntegration.url({
+            product: props.product.id,
+            provider: 'azure_devops',
+        }),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const syncAzureDevOpsNow = () => {
+    syncingAzureDevOps.value = true;
+    router.post(
+        syncIntegration.url({
+            product: props.product.id,
+            provider: 'azure_devops',
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                syncingAzureDevOps.value = false;
+            },
+        },
+    );
+};
+
+const unlinkAzureDevOps = () => {
+    router.delete(
+        destroyIntegration.url({
+            product: props.product.id,
+            provider: 'azure_devops',
+        }),
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                showUnlinkAzureDevOpsDialog.value = false;
+                azureDevOpsForm.project = '';
             },
         },
     );
@@ -1862,6 +1948,340 @@ const textareaClass =
             <h2
                 class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
+                {{ t('products.sections.azure_devops') }}
+            </h2>
+
+            <div
+                v-if="azure_devops_link"
+                class="space-y-3 rounded-lg border p-4"
+            >
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 font-medium">
+                            <Ticket class="h-4 w-4" />
+                            <span>
+                                {{
+                                    azure_devops_link.external_label ||
+                                    azure_devops_link.external_project_key
+                                }}
+                            </span>
+                            <span
+                                v-if="azure_devops_link.external_project_key"
+                                class="font-mono text-xs text-muted-foreground"
+                            >
+                                ({{ azure_devops_link.external_project_key }})
+                            </span>
+                        </div>
+                        <p
+                            v-if="azure_devops_link.last_synced_at"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{
+                                t(
+                                    'products.integrations.azure_devops.last_synced',
+                                )
+                            }}:
+                            {{
+                                new Date(
+                                    azure_devops_link.last_synced_at,
+                                ).toLocaleString()
+                            }}
+                        </p>
+                        <div
+                            v-if="azure_devops_link.last_sync_summary"
+                            class="space-y-1 text-sm text-muted-foreground"
+                        >
+                            <p
+                                v-if="
+                                    azure_devops_link.last_sync_summary
+                                        .last_error ||
+                                    azure_devops_link.last_sync_summary.error
+                                "
+                            >
+                                {{
+                                    azure_devops_link.last_sync_summary
+                                        .soft_fail
+                                        ? t(
+                                              'products.integrations.azure_devops.sync_warning',
+                                          )
+                                        : t(
+                                              'products.integrations.azure_devops.sync_error',
+                                          )
+                                }}:
+                                {{
+                                    azure_devops_link.last_sync_summary
+                                        .last_error ||
+                                    azure_devops_link.last_sync_summary.error
+                                }}
+                            </p>
+                            <template
+                                v-if="
+                                    !azure_devops_link.last_sync_summary.error
+                                "
+                            >
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.azure_devops.issues',
+                                        )
+                                    }}:
+                                    {{
+                                        azure_devops_link.last_sync_summary
+                                            .issues_count ?? 0
+                                    }}
+                                </p>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.azure_devops.pending_tasks',
+                                        )
+                                    }}:
+                                    {{
+                                        azure_devops_link.last_sync_summary
+                                            .pending_task_suggestions ?? 0
+                                    }}
+                                </p>
+                                <p
+                                    v-if="
+                                        azure_devops_link.last_sync_summary
+                                            .evidence_id
+                                    "
+                                >
+                                    {{
+                                        t(
+                                            'products.integrations.azure_devops.evidence',
+                                        )
+                                    }}: #{{
+                                        azure_devops_link.last_sync_summary
+                                            .evidence_id
+                                    }}
+                                    <span
+                                        v-if="
+                                            azure_devops_link.last_sync_summary
+                                                .evidence_checksum_sha256
+                                        "
+                                        class="font-mono text-xs"
+                                    >
+                                        ({{
+                                            azure_devops_link.last_sync_summary.evidence_checksum_sha256.slice(
+                                                0,
+                                                12,
+                                            )
+                                        }}…)
+                                    </span>
+                                </p>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="syncingAzureDevOps"
+                            data-test="sync-azure-devops-button"
+                            @click="syncAzureDevOpsNow"
+                        >
+                            <RefreshCw
+                                class="h-4 w-4"
+                                :class="{
+                                    'animate-spin': syncingAzureDevOps,
+                                }"
+                            />
+                            {{
+                                t('products.integrations.azure_devops.sync_now')
+                            }}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            @click="showUnlinkAzureDevOpsDialog = true"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('products.integrations.azure_devops.unlink') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div
+                    v-if="pendingAzureDevOpsSuggestions.length > 0"
+                    class="space-y-3 border-t pt-3"
+                    data-test="azure-devops-import-suggestions"
+                >
+                    <h3 class="text-sm font-medium">
+                        {{ t('products.integrations.suggestions.title') }}
+                        <span class="text-muted-foreground">
+                            ({{ pendingAzureDevOpsSuggestions.length }})
+                        </span>
+                    </h3>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="suggestion in pendingAzureDevOpsSuggestions"
+                            :key="suggestion.id"
+                            class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="rounded bg-muted px-1.5 py-0.5 text-xs font-medium"
+                                    >
+                                        {{
+                                            importSuggestionKindLabel(
+                                                suggestion.kind,
+                                            )
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.issue_key"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.issue_key }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.issue_type"
+                                        class="text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.issue_type }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.priority"
+                                        class="text-xs text-muted-foreground uppercase"
+                                    >
+                                        {{ suggestion.priority }}
+                                    </span>
+                                </div>
+                                <p class="font-medium">
+                                    <a
+                                        v-if="suggestion.html_url"
+                                        :href="suggestion.html_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline-offset-4 hover:underline"
+                                    >
+                                        {{ suggestion.title }}
+                                    </a>
+                                    <span v-else>{{ suggestion.title }}</span>
+                                </p>
+                                <p
+                                    v-if="suggestion.summary"
+                                    class="line-clamp-2 text-sm text-muted-foreground"
+                                >
+                                    {{ suggestion.summary }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="accept-import-suggestion"
+                                    @click="
+                                        acceptImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <Check class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.accept',
+                                        )
+                                    }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="dismiss-import-suggestion"
+                                    @click="
+                                        dismissImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <X class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.dismiss',
+                                        )
+                                    }}
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                v-if="!hasAzureDevOpsConnection"
+                class="space-y-2 text-sm text-muted-foreground"
+            >
+                <p>
+                    {{ t('products.integrations.azure_devops.no_connection') }}
+                </p>
+                <Button type="button" variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{
+                            t(
+                                'products.integrations.azure_devops.open_integrations',
+                            )
+                        }}
+                    </Link>
+                </Button>
+            </div>
+
+            <form
+                v-else
+                class="space-y-4"
+                @submit.prevent="saveAzureDevOpsLink"
+            >
+                <div class="grid gap-2 sm:max-w-md">
+                    <FieldLabel
+                        html-for="azure_devops_project"
+                        :help="
+                            t('products.integrations.azure_devops.project_help')
+                        "
+                    >
+                        {{ t('products.integrations.azure_devops.project') }}
+                    </FieldLabel>
+                    <Input
+                        id="azure_devops_project"
+                        v-model="azureDevOpsForm.project"
+                        :placeholder="
+                            t(
+                                'products.integrations.azure_devops.project_placeholder',
+                            )
+                        "
+                        required
+                        data-test="azure-devops-project-input"
+                    />
+                    <InputError :message="azureDevOpsForm.errors.project" />
+                </div>
+                <Button
+                    type="submit"
+                    :disabled="azureDevOpsForm.processing"
+                    data-test="link-azure-devops-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{
+                        azure_devops_link
+                            ? t('products.integrations.azure_devops.update')
+                            : t('products.integrations.azure_devops.link')
+                    }}
+                </Button>
+            </form>
+        </section>
+
+        <section class="space-y-4 rounded-lg border p-6">
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
                 {{ t('products.sections.snyk') }}
             </h2>
 
@@ -2260,6 +2680,18 @@ const textareaClass =
             :description="t('products.integrations.jira.unlink_confirm')"
             :confirm-label="t('products.integrations.jira.unlink')"
             @confirm="confirmUnlinkJira"
+        />
+
+        <AppAlertDialog
+            v-model:open="showUnlinkAzureDevOpsDialog"
+            :title="
+                t('products.integrations.azure_devops.unlink_confirm_title')
+            "
+            :description="
+                t('products.integrations.azure_devops.unlink_confirm')
+            "
+            :confirm-label="t('products.integrations.azure_devops.unlink')"
+            @confirm="unlinkAzureDevOps"
         />
 
         <AppAlertDialog

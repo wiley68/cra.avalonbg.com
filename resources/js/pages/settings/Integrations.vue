@@ -48,6 +48,7 @@ type OrganizationIntegrationRow = {
     sync_schedule: 'off' | 'hourly' | 'daily' | string;
     base_url: string | null;
     email: string | null;
+    organization?: string | null;
     last_verified_at: string | null;
     created_at: string | null;
 };
@@ -102,6 +103,13 @@ const snykForm = useForm({
     label: 'Snyk',
 });
 
+const azureDevOpsForm = useForm({
+    organization: '',
+    pat: '',
+    base_url: '',
+    label: 'Azure DevOps',
+});
+
 const scheduleForm = useForm({
     sync_schedule: 'off',
 });
@@ -115,6 +123,10 @@ const jiraScheduleForm = useForm({
 });
 
 const snykScheduleForm = useForm({
+    sync_schedule: 'off',
+});
+
+const azureDevOpsScheduleForm = useForm({
     sync_schedule: 'off',
 });
 
@@ -148,7 +160,14 @@ const snykIntegration = computed(() =>
     props.integrations.find((integration) => integration.provider === 'snyk'),
 );
 
-const defaultTab = (): 'github' | 'gitlab' | 'jira' | 'snyk' => {
+const azureDevOpsIntegration = computed(() =>
+    props.integrations.find(
+        (integration) => integration.provider === 'azure_devops',
+    ),
+);
+
+const defaultTab = ():
+    'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk' => {
     if (props.revealed_webhook_secret) {
         return 'github';
     }
@@ -177,7 +196,9 @@ const defaultTab = (): 'github' | 'gitlab' | 'jira' | 'snyk' => {
     return 'github';
 };
 
-const activeTab = ref<'github' | 'gitlab' | 'jira' | 'snyk'>(defaultTab());
+const activeTab = ref<'github' | 'gitlab' | 'jira' | 'azure-devops' | 'snyk'>(
+    defaultTab(),
+);
 
 watch(
     () => props.revealed_webhook_secret,
@@ -244,6 +265,22 @@ watch(
     { immediate: true },
 );
 
+watch(
+    azureDevOpsIntegration,
+    (integration) => {
+        if (!integration) {
+            return;
+        }
+
+        azureDevOpsForm.organization = integration.organization ?? '';
+        azureDevOpsForm.base_url = integration.base_url ?? '';
+        azureDevOpsForm.label = integration.label ?? 'Azure DevOps';
+        azureDevOpsScheduleForm.sync_schedule =
+            integration.sync_schedule ?? 'off';
+    },
+    { immediate: true },
+);
+
 const connectGithub = () => {
     githubForm.post(IntegrationController.storeGithub.url(), {
         preserveScroll: true,
@@ -276,6 +313,13 @@ const connectSnyk = () => {
     snykForm.post(IntegrationController.storeSnyk.url(), {
         preserveScroll: true,
         onSuccess: () => snykForm.reset('api_token'),
+    });
+};
+
+const connectAzureDevOps = () => {
+    azureDevOpsForm.post(IntegrationController.storeAzureDevOps.url(), {
+        preserveScroll: true,
+        onSuccess: () => azureDevOpsForm.reset('pat'),
     });
 };
 
@@ -328,6 +372,21 @@ const saveSnykSyncSchedule = () => {
     snykScheduleForm.put(
         IntegrationController.updateIntegrationSyncSchedule.url(
             snykIntegration.value.id,
+        ),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const saveAzureDevOpsSyncSchedule = () => {
+    if (!azureDevOpsIntegration.value) {
+        return;
+    }
+
+    azureDevOpsScheduleForm.put(
+        IntegrationController.updateIntegrationSyncSchedule.url(
+            azureDevOpsIntegration.value.id,
         ),
         {
             preserveScroll: true,
@@ -427,6 +486,7 @@ const confirmDisconnect = () => {
                 githubConnection ||
                 gitlabConnection ||
                 jiraIntegration ||
+                azureDevOpsIntegration ||
                 snykIntegration
             "
             v-model="activeTab"
@@ -441,6 +501,9 @@ const confirmDisconnect = () => {
                 </TabsTrigger>
                 <TabsTrigger value="jira" class="flex-1 sm:flex-none">
                     {{ t('settings.integrations.jira') }}
+                </TabsTrigger>
+                <TabsTrigger value="azure-devops" class="flex-1 sm:flex-none">
+                    {{ t('settings.integrations.azure_devops') }}
                 </TabsTrigger>
                 <TabsTrigger value="snyk" class="flex-1 sm:flex-none">
                     {{ t('settings.integrations.snyk') }}
@@ -1453,6 +1516,311 @@ const confirmDisconnect = () => {
 
                 <p
                     v-else-if="!jiraIntegration"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('settings.integrations.provider_not_connected') }}
+                </p>
+            </TabsContent>
+
+            <TabsContent value="azure-devops" class="space-y-6">
+                <div
+                    v-if="azureDevOpsIntegration"
+                    class="space-y-4 rounded-lg border p-4"
+                >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 font-medium">
+                                <GitBranch class="h-4 w-4" />
+                                {{
+                                    azureDevOpsIntegration.label ||
+                                    t('settings.integrations.azure_devops')
+                                }}
+                            </div>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('settings.integrations.status') }}:
+                                {{
+                                    t(
+                                        `settings.integrations.statuses.${azureDevOpsIntegration.status}`,
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="azureDevOpsIntegration.organization"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'settings.integrations.azure_devops_organization',
+                                    )
+                                }}:
+                                {{ azureDevOpsIntegration.organization }}
+                            </p>
+                            <p
+                                v-if="azureDevOpsIntegration.base_url"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'settings.integrations.azure_devops_base_url',
+                                    )
+                                }}:
+                                {{ azureDevOpsIntegration.base_url }}
+                            </p>
+                            <p
+                                v-if="azureDevOpsIntegration.last_verified_at"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ t('settings.integrations.last_verified') }}:
+                                {{
+                                    new Date(
+                                        azureDevOpsIntegration.last_verified_at,
+                                    ).toLocaleString()
+                                }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="canManage"
+                            type="button"
+                            variant="destructive"
+                            data-test="disconnect-azure-devops-button"
+                            @click="
+                                disconnectTarget = {
+                                    type: 'integration',
+                                    id: azureDevOpsIntegration.id,
+                                }
+                            "
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('settings.integrations.disconnect') }}
+                        </Button>
+                    </div>
+
+                    <form
+                        v-if="canManage"
+                        class="space-y-3 border-t pt-4"
+                        @submit.prevent="saveAzureDevOpsSyncSchedule"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="azure_devops_sync_schedule">{{
+                                t('settings.integrations.sync_schedule')
+                            }}</Label>
+                            <Select
+                                :model-value="
+                                    azureDevOpsScheduleForm.sync_schedule
+                                "
+                                @update:model-value="
+                                    (value) => {
+                                        if (typeof value === 'string') {
+                                            azureDevOpsScheduleForm.sync_schedule =
+                                                value;
+                                        }
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="azure_devops_sync_schedule"
+                                    class="w-full max-w-xs"
+                                    data-test="azure-devops-sync-schedule-select"
+                                >
+                                    <SelectValue
+                                        :placeholder="
+                                            t(
+                                                'settings.integrations.sync_schedule_placeholder',
+                                            )
+                                        "
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="off">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.off',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="hourly">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.hourly',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem value="daily">
+                                        {{
+                                            t(
+                                                'settings.integrations.sync_schedules.daily',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.integration_sync_schedule_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="
+                                    azureDevOpsScheduleForm.errors.sync_schedule
+                                "
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            :disabled="azureDevOpsScheduleForm.processing"
+                            data-test="save-azure-devops-sync-schedule-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{ t('settings.integrations.save_sync_schedule') }}
+                        </Button>
+                    </form>
+                    <p
+                        v-else
+                        class="border-t pt-4 text-sm text-muted-foreground"
+                    >
+                        {{ t('settings.integrations.sync_schedule') }}:
+                        {{
+                            t(
+                                `settings.integrations.sync_schedules.${azureDevOpsIntegration.sync_schedule}`,
+                            )
+                        }}
+                    </p>
+                </div>
+
+                <div v-if="canManage" class="space-y-4 rounded-lg border p-4">
+                    <div class="space-y-1">
+                        <h2 class="font-medium">
+                            {{
+                                azureDevOpsIntegration
+                                    ? t(
+                                          'settings.integrations.update_azure_devops_title',
+                                      )
+                                    : t(
+                                          'settings.integrations.connect_azure_devops_title',
+                                      )
+                            }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'settings.integrations.connect_azure_devops_description',
+                                )
+                            }}
+                        </p>
+                    </div>
+
+                    <form
+                        class="space-y-4"
+                        @submit.prevent="connectAzureDevOps"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="azure_devops_label">{{
+                                t('settings.integrations.label')
+                            }}</Label>
+                            <Input
+                                id="azure_devops_label"
+                                v-model="azureDevOpsForm.label"
+                                :placeholder="
+                                    t('settings.integrations.azure_devops')
+                                "
+                            />
+                            <InputError
+                                :message="azureDevOpsForm.errors.label"
+                            />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="azure_devops_organization">{{
+                                t(
+                                    'settings.integrations.azure_devops_organization',
+                                )
+                            }}</Label>
+                            <Input
+                                id="azure_devops_organization"
+                                v-model="azureDevOpsForm.organization"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.azure_devops_organization_placeholder',
+                                    )
+                                "
+                                required
+                                data-test="azure-devops-organization-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.azure_devops_organization_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="azureDevOpsForm.errors.organization"
+                            />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="azure_devops_pat">{{
+                                t('settings.integrations.azure_devops_pat')
+                            }}</Label>
+                            <PasswordInput
+                                id="azure_devops_pat"
+                                v-model="azureDevOpsForm.pat"
+                                :placeholder="
+                                    t('settings.integrations.azure_devops_pat')
+                                "
+                                data-test="azure-devops-pat-input"
+                            />
+                            <InputError :message="azureDevOpsForm.errors.pat" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="azure_devops_base_url">{{
+                                t('settings.integrations.azure_devops_base_url')
+                            }}</Label>
+                            <Input
+                                id="azure_devops_base_url"
+                                v-model="azureDevOpsForm.base_url"
+                                :placeholder="
+                                    t(
+                                        'settings.integrations.azure_devops_base_url_placeholder',
+                                    )
+                                "
+                                data-test="azure-devops-base-url-input"
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                {{
+                                    t(
+                                        'settings.integrations.azure_devops_base_url_help',
+                                    )
+                                }}
+                            </p>
+                            <InputError
+                                :message="azureDevOpsForm.errors.base_url"
+                            />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            :disabled="azureDevOpsForm.processing"
+                            data-test="connect-azure-devops-button"
+                        >
+                            <Save class="h-4 w-4" />
+                            {{
+                                azureDevOpsIntegration
+                                    ? t('settings.integrations.update_token')
+                                    : t(
+                                          'settings.integrations.connect_azure_devops_title',
+                                      )
+                            }}
+                        </Button>
+                    </form>
+                </div>
+
+                <p
+                    v-else-if="!azureDevOpsIntegration"
                     class="text-sm text-muted-foreground"
                 >
                     {{ t('settings.integrations.provider_not_connected') }}

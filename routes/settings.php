@@ -44,6 +44,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.integrations.jira.store');
     Route::post('settings/integrations/snyk', [IntegrationController::class, 'storeSnyk'])
         ->name('settings.integrations.snyk.store');
+    Route::post('settings/integrations/azure-devops', [IntegrationController::class, 'storeAzureDevOps'])
+        ->name('settings.integrations.azure-devops.store');
     Route::put('settings/integrations/{connection}/sync-schedule', [IntegrationController::class, 'updateSyncSchedule'])
         ->name('settings.integrations.sync-schedule.update');
     Route::put(

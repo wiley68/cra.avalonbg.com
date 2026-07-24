@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ImportSuggestionKind;
 use App\Enums\ImportSuggestionStatus;
+use App\Enums\IntegrationProvider;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
@@ -359,6 +360,7 @@ class ImportSuggestionService
 
     private function acceptTask(ImportSuggestion $suggestion, User $actor): Task
     {
+        $suggestion->loadMissing(['link.integration']);
         $payload = is_array($suggestion->payload) ? $suggestion->payload : [];
         $issueKey = isset($payload['issue_key']) && is_string($payload['issue_key'])
             ? $payload['issue_key']
@@ -370,8 +372,13 @@ class ImportSuggestionService
             ? $payload['summary']
             : null;
 
+        $provider = $suggestion->link?->integration?->provider;
+        $sourceLabel = $provider === IntegrationProvider::AzureDevops
+            ? 'Azure DevOps work item'
+            : 'Jira issue';
+
         $descriptionLines = [
-            'Imported from Jira issue '.$issueKey.'.',
+            'Imported from '.$sourceLabel.' '.$issueKey.'.',
         ];
 
         if ($htmlUrl !== null) {
