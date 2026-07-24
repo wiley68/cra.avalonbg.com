@@ -16,6 +16,7 @@ use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
 use App\Models\IntegrationSyncRun;
+use App\Models\Organization;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
@@ -596,6 +597,26 @@ class AuditLogger
                 ['field' => 'sdl_run_id', 'value' => (string) $run->id],
                 ['field' => 'title', 'value' => $run->title],
                 ['field' => 'format', 'value' => $format],
+            ],
+        );
+    }
+
+    public static function logIntegrationHealthExported(
+        Organization $organization,
+        User $actor,
+        string $format,
+        int $rowCount,
+    ): void {
+        self::persist(
+            type: AuditEventType::IntegrationHealthExported,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organization->id,
+            productId: null,
+            details: [
+                ['field' => 'format', 'value' => $format],
+                ['field' => 'row_count', 'value' => (string) $rowCount],
             ],
         );
     }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { FileDown } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
@@ -9,7 +10,10 @@ import { useApiTable } from '@/composables/useApiTable';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as healthApiIndex } from '@/routes/internal/integrations/health';
-import { index as healthIndex } from '@/routes/integrations/health';
+import {
+    exportMethod as healthExport,
+    index as healthIndex,
+} from '@/routes/integrations/health';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 import {
     createIntegrationHealthColumnTitleMap,
@@ -99,11 +103,25 @@ onMounted(() => {
                 </p>
             </div>
 
-            <Button variant="outline" as-child>
-                <Link :href="editIntegrations()">
-                    {{ t('integrations.health.open_settings') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button variant="outline" as-child>
+                    <a :href="healthExport('markdown').url">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('integrations.health.export_markdown') }}
+                    </a>
+                </Button>
+                <Button variant="outline" as-child>
+                    <a :href="healthExport('pdf').url">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('integrations.health.export_pdf') }}
+                    </a>
+                </Button>
+                <Button variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{ t('integrations.health.open_settings') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <DataTable

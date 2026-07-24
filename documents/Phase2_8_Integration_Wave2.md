@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.19  
+**Версия:** 0.20  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should Done; Could 13–17 Done; Could 18 open
+**Статус:** Active — Must Done; Should Done; Could Done (13–18)
 
 **Родителски документи:**
 
@@ -255,7 +255,7 @@ POST   /api/webhooks/snyk/{integration}
 15. ~~Customer support system light link (external ticket URL on incident/vuln — ≠ deployments rewrite)~~ **Done** (2026-07-24)
 16. ~~AI triage summary for imported findings (human review; no auto-accept)~~ **Done** (2026-07-24)
 17. ~~Org-level integrations health index (DataTable: provider, status, last sync, errors)~~ **Done** (2026-07-24)
-18. Auditor export: sync health / last-error summary (Markdown/PDF)
+18. ~~Auditor export: sync health / last-error summary (Markdown/PDF)~~ **Done** (2026-07-24)
 
 ---
 
@@ -316,25 +316,26 @@ Reuse:
 
 ## 13. Тестове (план)
 
-| Област               | Предложение                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------- |
-| Models               | `IntegrationWave2ModelsTest` — **Done**                                                       |
-| Jira connect/sync    | `JiraIntegrationSettingsTest` — connect/disconnect **Done**                                   |
-| Product Jira link    | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done**                              |
-| Snyk connect/sync    | `SnykIntegrationTest` — connect/link/sync/accept **Done**                                     |
-| Evidence snapshot    | Jira/Snyk sync → `integration_snapshot` + checksum **Done**                                   |
-| Accept / dismiss     | Task + vulnerability creation **Done**                                                        |
-| RBAC                 | `IntegrationWave2RbacTest` + settings/product tests **Done**                                  |
-| Schedule             | `IntegrationScheduledSyncTest` — schedule update + artisan + hourly cron **Done**             |
-| Sync hardening       | `IntegrationSyncHardeningTest` — unique job + soft-fail + last_error **Done**                 |
-| SBOM mapping         | `SnykComponentMatchTest` — purl/name match → vulnerability components **Done**                |
-| Readiness            | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done**             |
-| Azure DevOps         | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**                  |
-| Dependabot+/Renovate | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done**       |
-| SARIF / Trivy        | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                        |
-| Support ticket link  | `ProductVulnerabilityRegisterTest` + `ProductIncidentCrudTest` — external_ticket_url **Done** |
-| AI finding triage    | `ImportSuggestionAiTriageTest` — stub draft + no auto-accept **Done**                         |
-| Integrations health  | `IntegrationHealthIndexTest` — shell + internal-api union rows **Done**                       |
+| Област                | Предложение                                                                                   |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| Models                | `IntegrationWave2ModelsTest` — **Done**                                                       |
+| Jira connect/sync     | `JiraIntegrationSettingsTest` — connect/disconnect **Done**                                   |
+| Product Jira link     | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done**                              |
+| Snyk connect/sync     | `SnykIntegrationTest` — connect/link/sync/accept **Done**                                     |
+| Evidence snapshot     | Jira/Snyk sync → `integration_snapshot` + checksum **Done**                                   |
+| Accept / dismiss      | Task + vulnerability creation **Done**                                                        |
+| RBAC                  | `IntegrationWave2RbacTest` + settings/product tests **Done**                                  |
+| Schedule              | `IntegrationScheduledSyncTest` — schedule update + artisan + hourly cron **Done**             |
+| Sync hardening        | `IntegrationSyncHardeningTest` — unique job + soft-fail + last_error **Done**                 |
+| SBOM mapping          | `SnykComponentMatchTest` — purl/name match → vulnerability components **Done**                |
+| Readiness             | `IntegrationReadinessDashboardTest` — pending suggestions + failed syncs **Done**             |
+| Azure DevOps          | `AzureDevOpsIntegrationTest` — connect/link/sync/accept + soft-fail **Done**                  |
+| Dependabot+/Renovate  | `ProductVcsImportSuggestionTest` — PR link + unmatched Renovate + campaign CTA **Done**       |
+| SARIF / Trivy         | `SarifIntegrationTest` — enable + upload + soft-fail + accept **Done**                        |
+| Support ticket link   | `ProductVulnerabilityRegisterTest` + `ProductIncidentCrudTest` — external_ticket_url **Done** |
+| AI finding triage     | `ImportSuggestionAiTriageTest` — stub draft + no auto-accept **Done**                         |
+| Integrations health   | `IntegrationHealthIndexTest` — shell + internal-api union rows **Done**                       |
+| Health auditor export | `IntegrationHealthExportTest` — Markdown/PDF + no secrets **Done**                            |
 
 ---
 
@@ -342,6 +343,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                              |
 | ------ | ---------- | ------------------------------------------------------------------------------------ |
+| 0.20   | 2026-07-24 | Could 18 Done — auditor Markdown/PDF export of integration sync health               |
 | 0.19   | 2026-07-24 | Could 17 Done — org integrations health DataTable (provider/status/last sync/errors) |
 | 0.18   | 2026-07-24 | Could 16 Done — AI triage summary for pending imported findings (no auto-accept)     |
 | 0.17   | 2026-07-24 | Could 15 Done — external_ticket_url on vulnerability + incident (support light link) |

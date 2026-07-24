@@ -93,6 +93,10 @@ Import създава pending vulnerability suggestions (същият Accept/Dis
 
 `/integrations/health` — org-level DataTable (server-side) върху product integration links + VCS repositories: provider, product, target, connection status, last sync, health (`ok` / `soft_fail` / `failed` / `never`), last error, pending suggestions. Settings → Integrations има линк „View sync health“.
 
+### Auditor sync health export (Could 18)
+
+От `/integrations/health`: **Export Markdown** / **Export PDF** — snapshot на същите health rows (без credentials/tokens). Audit event `integration_health_exported`. Viewer с products.view също може да експортира.
+
 ---
 
 ## 3. Rate limits & soft-fail

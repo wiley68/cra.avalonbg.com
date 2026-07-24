@@ -107,6 +107,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('integrations/health', [IntegrationHealthController::class, 'index'])
             ->name('integrations.health.index');
+        Route::get('integrations/health/export/{format}', [IntegrationHealthController::class, 'export'])
+            ->whereIn('format', ['markdown', 'pdf'])
+            ->name('integrations.health.export');
 
         Route::resource('users', UserController::class)->except(['show']);
         Route::post('users/{user}/reset-two-factor', [UserController::class, 'resetTwoFactor'])

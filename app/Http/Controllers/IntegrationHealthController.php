@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Services\IntegrationHealthExportService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response as InertiaResponse;
 
 class IntegrationHealthController extends Controller
 {
-    public function index(Request $request): Response
+    public function __construct(
+        private readonly IntegrationHealthExportService $exports,
+    ) {
+    }
+
+    public function index(Request $request): InertiaResponse
     {
         $user = $request->user();
         $organization = $user?->currentOrganization();
@@ -26,6 +33,22 @@ class IntegrationHealthController extends Controller
             'organization' => $this->organizationPayload($organization),
             'canManage' => $user->canManageProducts($organization),
         ]);
+    }
+
+    public function export(Request $request, string $format): Response
+    {
+        $user = $request->user();
+        $organization = $user?->currentOrganization();
+
+        if ($organization === null) {
+            abort(404);
+        }
+
+        if (!$user->canManageProducts($organization) && !$user->canViewProducts($organization)) {
+            abort(403);
+        }
+
+        return $this->exports->export($organization, $format, $user);
     }
 
     /**

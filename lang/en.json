@@ -388,6 +388,8 @@
             "search_placeholder": "Search by provider, product, target or error…",
             "open_settings": "Manage connectors",
             "open_product": "Open product",
+            "export_markdown": "Export Markdown",
+            "export_pdf": "Export PDF",
             "columns": {
                 "provider": "Provider",
                 "product": "Product",
@@ -403,6 +405,17 @@
                 "soft_fail": "Soft fail",
                 "failed": "Failed",
                 "never": "Never synced"
+            },
+            "export": {
+                "title": "Integration sync health summary",
+                "disclaimer": "Auditor snapshot of product integration and VCS sync health. Does not include credentials or tokens. Review last-error text before relying on it for compliance conclusions.",
+                "meta_organization": "Organization",
+                "generated_at": "Generated at",
+                "row_count": "Rows",
+                "section_summary": "Summary",
+                "section_rows": "Sync targets",
+                "empty": "No product integration links or repositories are linked yet.",
+                "invalid_format": "Unsupported export format."
             }
         }
     },
@@ -3695,6 +3708,7 @@
             "sdl_run_approved": "SDL run approved",
             "sdl_run_approval_revoked": "SDL run approval revoked",
             "sdl_run_exported": "SDL run exported",
+            "integration_health_exported": "Integration health exported",
             "sdl_exception_recorded": "SDL exception recorded",
             "sdl_exception_cleared": "SDL exception cleared",
             "technical_documentation_created": "Technical documentation created",

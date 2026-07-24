@@ -388,6 +388,8 @@
             "search_placeholder": "Търсене по provider, продукт, target или грешка…",
             "open_settings": "Управление на connectors",
             "open_product": "Отвори продукт",
+            "export_markdown": "Експорт Markdown",
+            "export_pdf": "Експорт PDF",
             "columns": {
                 "provider": "Provider",
                 "product": "Продукт",
@@ -403,6 +405,17 @@
                 "soft_fail": "Soft fail",
                 "failed": "Неуспешен",
                 "never": "Без sync"
+            },
+            "export": {
+                "title": "Резюме на sync health на интеграциите",
+                "disclaimer": "Одиторски snapshot на sync health за product integrations и VCS. Не включва credentials или tokens. Прегледайте last-error текста преди compliance заключения.",
+                "meta_organization": "Организация",
+                "generated_at": "Генерирано на",
+                "row_count": "Редове",
+                "section_summary": "Обобщение",
+                "section_rows": "Sync цели",
+                "empty": "Все още няма свързани product integration links или хранилища.",
+                "invalid_format": "Неподдържан формат за експорт."
             }
         }
     },
@@ -3693,6 +3706,7 @@
             "sdl_run_approved": "Одобрен SDL запис",
             "sdl_run_approval_revoked": "Отменено одобрение на SDL запис",
             "sdl_run_exported": "Експортиран SDL запис",
+            "integration_health_exported": "Експортирано здраве на интеграциите",
             "sdl_exception_recorded": "Записано SDL изключение",
             "sdl_exception_cleared": "Премахнато SDL изключение",
             "technical_documentation_created": "Техническа документация създадена",
