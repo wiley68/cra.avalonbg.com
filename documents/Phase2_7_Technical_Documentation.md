@@ -1,8 +1,8 @@
 # Phase 2.7 — Technical Documentation
 
-**Версия:** 1.9  
+**Версия:** 2.0  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Closed — Phase 2.7 complete (Must 1–6 + Should 7–12 + Could 13–18 done)  
+**Статус:** Closed — Phase 2.7 exited (2026-07-24) — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§5.12 Technical Documentation Workspace, §5.13 Evidence, §5.17 USI)
@@ -211,9 +211,9 @@ GET    /internal-api/products/{product}/technical-documentation
 ```text
 Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23
     ↓
-Phase 2.7 Technical Documentation (този документ)
+Phase 2.7 Technical Documentation (този документ) — Closed 2026-07-24
     ↓
-(по-късно) Integration wave 2 — TBD
+Phase 2.8 Integration wave 2 — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md)
 ```
 
 Reuse:
@@ -231,6 +231,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                                  |
 | ------ | ---------- | ---------------------------------------------------------------------------------------- |
+| 2.0    | 2026-07-24 | Formal exit — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md); → Phase 2.8  |
 | 1.9    | 2026-07-24 | Could 18 Done — conformity checklist + DoC field pack (manual); Phase 2.7 Closed         |
 | 1.8    | 2026-07-24 | Could 17 Done — dependency/SBOM compare (added/removed/changed) in Edit delta            |
 | 1.7    | 2026-07-24 | Could 16 Done — daily `evidence:refresh-freshness` auto-marks expired/review_due         |
