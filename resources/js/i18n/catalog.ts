@@ -1,4 +1,10 @@
-let catalog: Record<string, unknown> = {};
+import { shallowRef } from 'vue';
+
+/**
+ * Reactive catalog so Vue re-renders when translations finish loading
+ * after an Inertia locale change (otherwise UI stays one locale behind).
+ */
+const catalog = shallowRef<Record<string, unknown>>({});
 let loadedLocale: string | null = null;
 let loadedVersion: string | null = null;
 let loading: Promise<void> | null = null;
@@ -34,11 +40,11 @@ export function translate(
     key: string,
     replace: Record<string, string> = {},
 ): string {
-    return resolveKey(catalog, key, replace);
+    return resolveKey(catalog.value, key, replace);
 }
 
 export function translationsLoaded(): boolean {
-    return loadedLocale !== null && Object.keys(catalog).length > 0;
+    return loadedLocale !== null && Object.keys(catalog.value).length > 0;
 }
 
 export async function ensureTranslations(
@@ -55,14 +61,21 @@ export async function ensureTranslations(
 
     if (loading) {
         await loading;
-        if (loadedLocale === locale && loadedVersion === version) {
+        if (
+            loadedLocale === locale &&
+            loadedVersion === version &&
+            translationsLoaded()
+        ) {
             return;
         }
     }
 
+    const requestLocale = locale;
+    const requestVersion = version;
+
     loading = (async () => {
         const response = await fetch(
-            `/translations/${encodeURIComponent(locale)}.json?v=${encodeURIComponent(version)}`,
+            `/translations/${encodeURIComponent(requestLocale)}.json?v=${encodeURIComponent(requestVersion)}`,
             {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
@@ -70,15 +83,16 @@ export async function ensureTranslations(
         );
 
         if (!response.ok) {
-            catalog = {};
-            loadedLocale = locale;
-            loadedVersion = version;
+            catalog.value = {};
+            loadedLocale = requestLocale;
+            loadedVersion = requestVersion;
             return;
         }
 
-        catalog = (await response.json()) as Record<string, unknown>;
-        loadedLocale = locale;
-        loadedVersion = version;
+        catalog.value = (await response.json()) as Record<string, unknown>;
+        loadedLocale = requestLocale;
+        loadedVersion = requestVersion;
+        document.documentElement.lang = requestLocale;
     })();
 
     try {

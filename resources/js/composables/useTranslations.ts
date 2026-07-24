@@ -10,6 +10,10 @@ export function useTranslations() {
         () => page.props.locales as Array<{ code: string; label: string }>,
     );
 
+    /**
+     * translate() reads the reactive catalog shallowRef, so template calls to t()
+     * re-render when ensureTranslations() finishes after a locale switch.
+     */
     function t(key: string, replace: Record<string, string> = {}): string {
         return translate(key, replace);
     }
