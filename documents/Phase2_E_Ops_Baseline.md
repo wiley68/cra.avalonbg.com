@@ -1,8 +1,8 @@
 # Phase 2_E — Ops baseline (scheduler + queue)
 
-**Версия:** 1.3  
+**Версия:** 1.4  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2; Should 9 UI hint; Could 13 samples)  
+**Родител:** [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must 1–2; Should 9 UI hint; Could 13 samples; Could 14 Horizon skipped)  
 **Свързано:** [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md) §4 · [`ops/samples/`](../ops/samples/)
 
 > Цел: production/staging path за **scheduled** VCS + integration sync. Manual **Sync now** не зависи от този baseline.
@@ -100,6 +100,12 @@ php artisan queue:monitor default --max=100
 | `ops:baseline-check`                            | Печата `failed_jobs count` + retry_after vs timeout                            |
 | Manual Sync now                                 | `dispatchSync` — **не** минава през queue; при hard throw също вика `failed()` |
 
+### Horizon / dedicated failed-jobs UI (Could 14 — Skipped)
+
+**Решение:** skip. Laravel Horizon изисква Redis queue driver и отделен dashboard package. Стекът е на **`QUEUE_CONNECTION=database`** (default), без `laravel/horizon` в `composer.json`, а `ops/samples/` ползват `queue:work`.
+
+Failed-job visibility вече е покрита от Must 2 + Should 9 (таблицата по-горе + Health/Settings ops hints). Ако по-късно prod мине на Redis + Horizon — отделен ops change, не част от 2_E.
+
 ---
 
 ## 5. Staging verification checklist (Must 1–2)
@@ -154,6 +160,7 @@ php artisan queue:monitor default --max=100
 
 | Версия | Дата       | Промяна                                                              |
 | ------ | ---------- | -------------------------------------------------------------------- |
+| 1.4    | 2026-07-24 | Could 14 Skipped — Horizon not fitted (database queue; Must 2 OK)    |
 | 1.3    | 2026-07-24 | Could 13 — Supervisor/systemd/Compose sample units under ops/samples |
 | 1.2    | 2026-07-24 | Should 9 — UI ops hint on Health + Settings; checklist item 12       |
 | 1.1    | 2026-07-24 | Must 2 — retries, failed visibility, retry_after, Sync now checklist |

@@ -1,8 +1,8 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.14  
+**Версия:** 0.15  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12–13 Done)  
+**Статус:** Active — Must/Should/Could **frozen** (Must 1–6 Done; Should 7–11 Done; Could 12–13 Done; Could 14 Skipped)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
@@ -157,7 +157,7 @@ flowchart LR
 
 12. ~~AI-assisted merged-PR narrative (human review; stub-safe)~~ **Done** (2026-07-24) — sync JSON draft на Version Show; `MergedPrAiNarrative`; stub providers; no auto evidence
 13. ~~Supervisor/systemd (или Docker Compose) sample unit за `queue:work` + `schedule:run`~~ **Done** (2026-07-24) — [`ops/samples/`](../ops/samples/); Ops baseline §3–4
-14. **Open** — Horizon / failed-jobs UI (само ако вече пасва на стека; иначе skip)
+14. ~~Horizon / failed-jobs UI~~ **Skipped** (2026-07-24) — не пасва: default `QUEUE_CONNECTION=database`, без Redis/Horizon в composer; failed visibility вече от Must 2 + Should 9 ([Ops baseline §4b](Phase2_E_Ops_Baseline.md))
 15. **Open** — Embedding / RAG reindex schedule polish (`ai:index-embeddings` ops note)
 16. **Open / empty** — UX debt pack: само P0 открити по време на 2_E (иначе skip)
 
@@ -169,7 +169,7 @@ flowchart LR
 
 **Should** — GitLab parity, save-as-evidence, ops health hint, live connector checklist, AI error UX.
 
-**Could** — ~~AI PR narrative~~, ~~process manager samples~~, Horizon, RAG schedule, optional P0 UX fixes.
+**Could** — ~~AI PR narrative~~, ~~process manager samples~~, ~~Horizon (skipped)~~, RAG schedule, optional P0 UX fixes.
 
 ---
 
@@ -236,6 +236,7 @@ Candidate F: SSO / billing / onboarding
 | AI error UX (Should 11)    | `AiUserFacingError`; timeout vs failed; queued `error_message` translated; no silent empty      |
 | AI PR narrative (Could 12) | Stub/sync draft on Version Show; human review; no auto Evidence/Task; audit event               |
 | Process samples (Could 13) | `ops/samples/` — Supervisor, systemd worker+timer, Compose workers                              |
+| Horizon UI (Could 14)      | **Skipped** — database queue stack; use `queue:failed` + health `queue_failed` + ops hints      |
 
 ---
 
@@ -255,6 +256,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------- |
+| 0.15   | 2026-07-24 | Could 14 Skipped — Horizon/failed-jobs UI (database queue; Must 2 OK)  |
 | 0.14   | 2026-07-24 | Could 13 Done — Supervisor/systemd/Compose samples under ops/samples   |
 | 0.13   | 2026-07-24 | Could 12 Done — AI merged-PR narrative draft (human review; stub-safe) |
 | 0.12   | 2026-07-24 | Should 11 Done — consistent live AI timeout/error UX                   |

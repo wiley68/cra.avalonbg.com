@@ -29,3 +29,7 @@ php artisan ops:baseline-check
 ```
 
 Restart the worker process manager after code deploys so workers pick up new code (Laravel `queue:restart` alone is enough when workers already poll; still restart units after PHP/extension changes).
+
+## Horizon
+
+**Not used in 2_E.** Default queue is `database`; Horizon needs Redis. See [Phase2_E_Ops_Baseline.md](../../documents/Phase2_E_Ops_Baseline.md) §4b (Could 14 Skipped).
