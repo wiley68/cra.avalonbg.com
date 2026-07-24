@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\IntegrationProvider;
 use App\Enums\IntegrationSyncRunStatus;
+use App\Exceptions\IntegrationSoftFailException;
 use App\Models\IntegrationSyncRun;
 use App\Models\ProductIntegrationLink;
 use App\Models\User;
@@ -17,8 +18,7 @@ class AlmSyncService
     public function __construct(
         private readonly ImportSuggestionService $suggestions,
         private readonly EvidenceService $evidence,
-    ) {
-    }
+    ) {}
 
     public function sync(ProductIntegrationLink $link, ?User $actor = null): IntegrationSyncRun
     {
@@ -46,7 +46,15 @@ class AlmSyncService
             }
 
             $provider = JiraCloudProvider::fromIntegration($link->integration);
-            $issues = $provider->listIssues($projectKey, 50);
+            $lastError = null;
+            $issues = [];
+
+            try {
+                $issues = $provider->listIssues($projectKey, 50);
+            } catch (IntegrationSoftFailException $softFail) {
+                $lastError = $softFail->getMessage();
+            }
+
             $suggestionStats = $this->suggestions->upsertTaskSuggestionsFromAlm($link, $issues);
 
             $summary = [
@@ -60,13 +68,18 @@ class AlmSyncService
                 ...$suggestionStats,
             ];
 
+            if ($lastError !== null) {
+                $summary['last_error'] = $lastError;
+                $summary['soft_fail'] = true;
+            }
+
             $snapshot = $this->evidence->createIntegrationSnapshot(
                 product: $link->product,
                 snapshot: $summary,
-                title: 'Jira sync — ' . $projectKey . ' — ' . now()->format('Y-m-d H:i'),
-                source: 'jira:' . $projectKey,
+                title: 'Jira sync — '.$projectKey.' — '.now()->format('Y-m-d H:i'),
+                source: 'jira:'.$projectKey,
                 uploader: $actor,
-                notes: 'Auto-created from integration sync run #' . $run->id,
+                notes: 'Auto-created from integration sync run #'.$run->id,
                 filenamePrefix: 'jira-sync',
             );
 
@@ -92,8 +105,10 @@ class AlmSyncService
 
             return $run->fresh();
         } catch (Throwable $exception) {
+            $message = $exception->getMessage();
             $errorSummary = [
-                'error' => $exception->getMessage(),
+                'error' => $message,
+                'last_error' => $message,
             ];
 
             $link->update([
@@ -114,7 +129,7 @@ class AlmSyncService
                 $link->fresh(['product', 'integration']),
                 $run->fresh(),
                 $actor,
-                $exception->getMessage(),
+                $message,
             );
 
             return $run->fresh();

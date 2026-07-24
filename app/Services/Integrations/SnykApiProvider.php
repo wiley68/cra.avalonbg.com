@@ -4,6 +4,7 @@ namespace App\Services\Integrations;
 
 use App\Contracts\ScannerProvider;
 use App\Enums\IntegrationProvider;
+use App\Exceptions\IntegrationSoftFailException;
 use App\Models\OrganizationIntegration;
 use App\Support\Translations;
 use Illuminate\Http\Client\PendingRequest;
@@ -20,8 +21,7 @@ class SnykApiProvider implements ScannerProvider
     public function __construct(
         private readonly string $baseUrl,
         private readonly string $apiToken,
-    ) {
-    }
+    ) {}
 
     public static function fromIntegration(OrganizationIntegration $integration): self
     {
@@ -50,7 +50,7 @@ class SnykApiProvider implements ScannerProvider
         $project = trim($projectId);
 
         $response = $this->client()->get(
-            $this->baseUrl . '/rest/orgs/' . rawurlencode($org) . '/projects/' . rawurlencode($project),
+            $this->baseUrl.'/rest/orgs/'.rawurlencode($org).'/projects/'.rawurlencode($project),
             ['version' => self::API_VERSION],
         );
 
@@ -60,7 +60,7 @@ class SnykApiProvider implements ScannerProvider
             ]);
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw ValidationException::withMessages([
                 'project_id' => [Translations::get('products.integrations.snyk_project_fetch_failed')],
             ]);
@@ -84,7 +84,7 @@ class SnykApiProvider implements ScannerProvider
         $project = trim($projectId);
 
         $response = $this->client()->get(
-            $this->baseUrl . '/rest/orgs/' . rawurlencode($org) . '/issues',
+            $this->baseUrl.'/rest/orgs/'.rawurlencode($org).'/issues',
             [
                 'version' => self::API_VERSION,
                 'scan_item.id' => $project,
@@ -94,7 +94,14 @@ class SnykApiProvider implements ScannerProvider
             ],
         );
 
-        if (!$response->successful()) {
+        if (in_array($response->status(), [401, 403, 404, 429], true)) {
+            throw new IntegrationSoftFailException(
+                Translations::get('products.integrations.snyk_findings_scope_denied'),
+                $response->status(),
+            );
+        }
+
+        if (! $response->successful()) {
             throw new RuntimeException(
                 Translations::get('products.integrations.snyk_findings_fetch_failed'),
             );
@@ -106,7 +113,7 @@ class SnykApiProvider implements ScannerProvider
         $mapped = [];
 
         foreach ($items as $item) {
-            if (!is_array($item)) {
+            if (! is_array($item)) {
                 continue;
             }
 
@@ -130,10 +137,10 @@ class SnykApiProvider implements ScannerProvider
 
             $summaryParts = [];
             if ($package['name'] !== null) {
-                $summaryParts[] = 'Package: ' . $package['name'];
+                $summaryParts[] = 'Package: '.$package['name'];
             }
             if ($issueKey !== null) {
-                $summaryParts[] = 'Key: ' . $issueKey;
+                $summaryParts[] = 'Key: '.$issueKey;
             }
 
             $mapped[] = [
@@ -157,7 +164,7 @@ class SnykApiProvider implements ScannerProvider
     private function client(): PendingRequest
     {
         return Http::withHeaders([
-            'Authorization' => 'token ' . $this->apiToken,
+            'Authorization' => 'token '.$this->apiToken,
             'Content-Type' => 'application/vnd.api+json',
             'Accept' => 'application/vnd.api+json',
             'User-Agent' => 'CRA-Compliance-Workspace',
@@ -173,7 +180,7 @@ class SnykApiProvider implements ScannerProvider
             ?? $attributes['severity']
             ?? null;
 
-        if (!is_string($level) || $level === '') {
+        if (! is_string($level) || $level === '') {
             return null;
         }
 
@@ -186,12 +193,12 @@ class SnykApiProvider implements ScannerProvider
     private function cveFromAttributes(array $attributes): ?string
     {
         $problems = $attributes['problems'] ?? null;
-        if (!is_array($problems)) {
+        if (! is_array($problems)) {
             return null;
         }
 
         foreach ($problems as $problem) {
-            if (!is_array($problem)) {
+            if (! is_array($problem)) {
                 continue;
             }
 

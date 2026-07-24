@@ -4,6 +4,7 @@ namespace App\Services\Integrations;
 
 use App\Contracts\AlmProvider;
 use App\Enums\IntegrationProvider;
+use App\Exceptions\IntegrationSoftFailException;
 use App\Models\OrganizationIntegration;
 use App\Support\Translations;
 use Illuminate\Http\Client\PendingRequest;
@@ -17,8 +18,7 @@ class JiraCloudProvider implements AlmProvider
         private readonly string $baseUrl,
         private readonly string $email,
         private readonly string $apiToken,
-    ) {
-    }
+    ) {}
 
     public static function fromIntegration(OrganizationIntegration $integration): self
     {
@@ -46,7 +46,7 @@ class JiraCloudProvider implements AlmProvider
     {
         $key = strtoupper(trim($projectKey));
 
-        $response = $this->client()->get($this->baseUrl . '/rest/api/3/project/' . rawurlencode($key));
+        $response = $this->client()->get($this->baseUrl.'/rest/api/3/project/'.rawurlencode($key));
 
         if ($response->status() === 404) {
             throw ValidationException::withMessages([
@@ -54,7 +54,7 @@ class JiraCloudProvider implements AlmProvider
             ]);
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw ValidationException::withMessages([
                 'project_key' => [Translations::get('products.integrations.jira_project_fetch_failed')],
             ]);
@@ -77,7 +77,7 @@ class JiraCloudProvider implements AlmProvider
 
         // Legacy GET/POST /rest/api/3/search was removed on Jira Cloud (410 Gone).
         // Use the enhanced search endpoint instead.
-        $response = $this->client()->post($this->baseUrl . '/rest/api/3/search/jql', [
+        $response = $this->client()->post($this->baseUrl.'/rest/api/3/search/jql', [
             'jql' => $jql,
             'maxResults' => max(1, min($maxResults, 100)),
             'fields' => [
@@ -90,7 +90,14 @@ class JiraCloudProvider implements AlmProvider
             ],
         ]);
 
-        if (!$response->successful()) {
+        if (in_array($response->status(), [401, 403, 404, 429], true)) {
+            throw new IntegrationSoftFailException(
+                Translations::get('products.integrations.jira_issues_scope_denied'),
+                $response->status(),
+            );
+        }
+
+        if (! $response->successful()) {
             throw new RuntimeException(
                 Translations::get('products.integrations.jira_issues_fetch_failed'),
             );
@@ -102,7 +109,7 @@ class JiraCloudProvider implements AlmProvider
         $mapped = [];
 
         foreach ($issues as $issue) {
-            if (!is_array($issue)) {
+            if (! is_array($issue)) {
                 continue;
             }
 
@@ -132,7 +139,7 @@ class JiraCloudProvider implements AlmProvider
                 'status' => is_array($fields['status'] ?? null)
                     ? (string) ($fields['status']['name'] ?? '')
                     : null,
-                'html_url' => $this->baseUrl . '/browse/' . $issueKey,
+                'html_url' => $this->baseUrl.'/browse/'.$issueKey,
                 'updated_at' => isset($fields['updated']) && is_string($fields['updated'])
                     ? $fields['updated']
                     : null,
@@ -157,7 +164,7 @@ class JiraCloudProvider implements AlmProvider
             return mb_substr($description, 0, 2000);
         }
 
-        if (!is_array($description)) {
+        if (! is_array($description)) {
             return null;
         }
 
@@ -179,7 +186,7 @@ class JiraCloudProvider implements AlmProvider
         }
 
         $content = $node['content'] ?? null;
-        if (!is_array($content)) {
+        if (! is_array($content)) {
             return;
         }
 

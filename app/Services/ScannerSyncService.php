@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\IntegrationProvider;
 use App\Enums\IntegrationSyncRunStatus;
+use App\Exceptions\IntegrationSoftFailException;
 use App\Models\IntegrationSyncRun;
 use App\Models\ProductIntegrationLink;
 use App\Models\User;
@@ -17,8 +18,7 @@ class ScannerSyncService
     public function __construct(
         private readonly ImportSuggestionService $suggestions,
         private readonly EvidenceService $evidence,
-    ) {
-    }
+    ) {}
 
     public function sync(ProductIntegrationLink $link, ?User $actor = null): IntegrationSyncRun
     {
@@ -49,7 +49,15 @@ class ScannerSyncService
             }
 
             $provider = SnykApiProvider::fromIntegration($link->integration);
-            $findings = $provider->listFindings($orgId, $projectId, 50);
+            $lastError = null;
+            $findings = [];
+
+            try {
+                $findings = $provider->listFindings($orgId, $projectId, 50);
+            } catch (IntegrationSoftFailException $softFail) {
+                $lastError = $softFail->getMessage();
+            }
+
             $suggestionStats = $this->suggestions->upsertVulnerabilitySuggestionsFromScanner($link, $findings);
 
             $summary = [
@@ -63,13 +71,18 @@ class ScannerSyncService
                 ...$suggestionStats,
             ];
 
+            if ($lastError !== null) {
+                $summary['last_error'] = $lastError;
+                $summary['soft_fail'] = true;
+            }
+
             $snapshot = $this->evidence->createIntegrationSnapshot(
                 product: $link->product,
                 snapshot: $summary,
-                title: 'Snyk sync — ' . ($link->external_label ?: $projectId) . ' — ' . now()->format('Y-m-d H:i'),
-                source: 'snyk:' . $orgId . '/' . $projectId,
+                title: 'Snyk sync — '.($link->external_label ?: $projectId).' — '.now()->format('Y-m-d H:i'),
+                source: 'snyk:'.$orgId.'/'.$projectId,
                 uploader: $actor,
-                notes: 'Auto-created from integration sync run #' . $run->id,
+                notes: 'Auto-created from integration sync run #'.$run->id,
                 filenamePrefix: 'snyk-sync',
             );
 
@@ -95,8 +108,10 @@ class ScannerSyncService
 
             return $run->fresh();
         } catch (Throwable $exception) {
+            $message = $exception->getMessage();
             $errorSummary = [
-                'error' => $exception->getMessage(),
+                'error' => $message,
+                'last_error' => $message,
             ];
 
             $link->update([
@@ -117,7 +132,7 @@ class ScannerSyncService
                 $link->fresh(['product', 'integration']),
                 $run->fresh(),
                 $actor,
-                $exception->getMessage(),
+                $message,
             );
 
             return $run->fresh();

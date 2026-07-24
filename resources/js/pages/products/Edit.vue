@@ -191,6 +191,8 @@ type JiraLinkPayload = {
         evidence_id?: number;
         evidence_checksum_sha256?: string | null;
         error?: string;
+        last_error?: string;
+        soft_fail?: boolean;
     } | null;
 };
 
@@ -214,6 +216,8 @@ type SnykLinkPayload = {
         evidence_id?: number;
         evidence_checksum_sha256?: string | null;
         error?: string;
+        last_error?: string;
+        soft_fail?: boolean;
     } | null;
 };
 
@@ -1585,13 +1589,27 @@ const textareaClass =
                             v-if="jira_link.last_sync_summary"
                             class="space-y-1 text-sm text-muted-foreground"
                         >
-                            <p v-if="jira_link.last_sync_summary.error">
+                            <p
+                                v-if="
+                                    jira_link.last_sync_summary.last_error ||
+                                    jira_link.last_sync_summary.error
+                                "
+                            >
                                 {{
-                                    t('products.integrations.jira.sync_error')
+                                    jira_link.last_sync_summary.soft_fail
+                                        ? t(
+                                              'products.integrations.jira.sync_warning',
+                                          )
+                                        : t(
+                                              'products.integrations.jira.sync_error',
+                                          )
                                 }}:
-                                {{ jira_link.last_sync_summary.error }}
+                                {{
+                                    jira_link.last_sync_summary.last_error ||
+                                    jira_link.last_sync_summary.error
+                                }}
                             </p>
-                            <template v-else>
+                            <template v-if="!jira_link.last_sync_summary.error">
                                 <p>
                                     {{
                                         t('products.integrations.jira.issues')
@@ -1879,13 +1897,27 @@ const textareaClass =
                             v-if="snyk_link.last_sync_summary"
                             class="space-y-1 text-sm text-muted-foreground"
                         >
-                            <p v-if="snyk_link.last_sync_summary.error">
+                            <p
+                                v-if="
+                                    snyk_link.last_sync_summary.last_error ||
+                                    snyk_link.last_sync_summary.error
+                                "
+                            >
                                 {{
-                                    t('products.integrations.snyk.sync_error')
+                                    snyk_link.last_sync_summary.soft_fail
+                                        ? t(
+                                              'products.integrations.snyk.sync_warning',
+                                          )
+                                        : t(
+                                              'products.integrations.snyk.sync_error',
+                                          )
                                 }}:
-                                {{ snyk_link.last_sync_summary.error }}
+                                {{
+                                    snyk_link.last_sync_summary.last_error ||
+                                    snyk_link.last_sync_summary.error
+                                }}
                             </p>
-                            <template v-else>
+                            <template v-if="!snyk_link.last_sync_summary.error">
                                 <p>
                                     {{
                                         t(

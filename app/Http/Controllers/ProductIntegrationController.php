@@ -20,8 +20,7 @@ class ProductIntegrationController extends Controller
 {
     public function __construct(
         private readonly ProductIntegrationLinkService $links,
-    ) {
-    }
+    ) {}
 
     public function update(Request $request, Product $product, string $provider): RedirectResponse
     {
@@ -89,7 +88,20 @@ class ProductIntegrationController extends Controller
         if ($run?->status === IntegrationSyncRunStatus::Failed) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => Translations::get($prefix . '.sync_failed'),
+                'message' => Translations::get($prefix.'.sync_failed'),
+            ]);
+
+            return back();
+        }
+
+        $summary = is_array($run?->summary) ? $run->summary : [];
+        $softFail = ($summary['soft_fail'] ?? false) === true
+            || (isset($summary['last_error']) && is_string($summary['last_error']) && $summary['last_error'] !== '');
+
+        if ($softFail) {
+            Inertia::flash('toast', [
+                'type' => 'warning',
+                'message' => Translations::get($prefix.'.sync_partial'),
             ]);
 
             return back();
@@ -97,7 +109,7 @@ class ProductIntegrationController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get($prefix . '.sync_succeeded'),
+            'message' => Translations::get($prefix.'.sync_succeeded'),
         ]);
 
         return back();
