@@ -13,6 +13,7 @@ use App\Enums\UserSecurityInstructionStatus;
 use App\Models\Evidence;
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductComponent;
 use App\Models\SdlRun;
 use App\Models\Task;
 use App\Models\TechnicalDocumentationPackage;
@@ -22,6 +23,7 @@ use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -752,6 +754,7 @@ class TechnicalDocumentationService
             'publisher:id,name',
             'productVersion:id,version_number',
             'supersedes.sections',
+            'supersedes.productVersion:id,version_number',
             'userSecurityInstruction.productVersion:id,version_number',
             'sdlRun.version:id,version_number',
         ]);
@@ -809,6 +812,7 @@ class TechnicalDocumentationService
                     ])
                     ->all()
                 : [],
+            'dependency_delta' => $this->dependencyDelta($package),
             'sections' => $package->sections
                 ->sortBy('sort_order')
                 ->values()
@@ -825,6 +829,193 @@ class TechnicalDocumentationService
                 ])
                 ->all(),
         ];
+    }
+
+    /**
+     * Compare product_components between this package's product version and the
+     * superseded package's product version (added / removed / version-changed).
+     *
+     * @return array{
+     *     available: bool,
+     *     unavailable_reason: string|null,
+     *     parent_version_id: int|null,
+     *     current_version_id: int|null,
+     *     parent_version_number: string|null,
+     *     current_version_number: string|null,
+     *     added: list<array{name: string, version: string|null, purl: string|null, ecosystem: string}>,
+     *     removed: list<array{name: string, version: string|null, purl: string|null, ecosystem: string}>,
+     *     changed: list<array{name: string, purl: string|null, ecosystem: string, from_version: string|null, to_version: string|null}>,
+     *     counts: array{added: int, removed: int, changed: int, unchanged: int},
+     *     truncated: bool
+     * }|null
+     */
+    public function dependencyDelta(TechnicalDocumentationPackage $package): ?array
+    {
+        $package->loadMissing([
+            'productVersion:id,version_number',
+            'supersedes.productVersion:id,version_number',
+        ]);
+
+        $previous = $package->supersedes;
+        if ($previous === null) {
+            return null;
+        }
+
+        $parentVersionId = $previous->product_version_id;
+        $currentVersionId = $package->product_version_id;
+        $parentVersionNumber = $previous->productVersion?->version_number;
+        $currentVersionNumber = $package->productVersion?->version_number;
+
+        $empty = [
+            'available' => false,
+            'unavailable_reason' => null,
+            'parent_version_id' => $parentVersionId,
+            'current_version_id' => $currentVersionId,
+            'parent_version_number' => $parentVersionNumber,
+            'current_version_number' => $currentVersionNumber,
+            'added' => [],
+            'removed' => [],
+            'changed' => [],
+            'counts' => [
+                'added' => 0,
+                'removed' => 0,
+                'changed' => 0,
+                'unchanged' => 0,
+            ],
+            'truncated' => false,
+        ];
+
+        if ($parentVersionId === null || $currentVersionId === null) {
+            $empty['unavailable_reason'] = 'missing_product_versions';
+
+            return $empty;
+        }
+
+        if ($parentVersionId === $currentVersionId) {
+            $empty['unavailable_reason'] = 'same_product_version';
+
+            return $empty;
+        }
+
+        $limit = 500;
+        /** @var Collection<string, ProductComponent> $parentByKey */
+        $parentByKey = ProductComponent::query()
+            ->where('product_id', $package->product_id)
+            ->where('product_version_id', $parentVersionId)
+            ->get(['id', 'name', 'version', 'purl', 'package_ecosystem'])
+            ->keyBy(fn(ProductComponent $component) => $this->componentIdentityKey($component));
+
+        /** @var Collection<string, ProductComponent> $currentByKey */
+        $currentByKey = ProductComponent::query()
+            ->where('product_id', $package->product_id)
+            ->where('product_version_id', $currentVersionId)
+            ->get(['id', 'name', 'version', 'purl', 'package_ecosystem'])
+            ->keyBy(fn(ProductComponent $component) => $this->componentIdentityKey($component));
+
+        $added = [];
+        $removed = [];
+        $changed = [];
+        $addedCount = 0;
+        $removedCount = 0;
+        $changedCount = 0;
+        $unchanged = 0;
+        $truncated = false;
+
+        foreach ($currentByKey as $key => $component) {
+            if (!$parentByKey->has($key)) {
+                $addedCount++;
+                if (count($added) < $limit) {
+                    $added[] = $this->componentDeltaRow($component);
+                } else {
+                    $truncated = true;
+                }
+
+                continue;
+            }
+
+            $parentComponent = $parentByKey->get($key);
+            $fromVersion = $parentComponent?->version;
+            $toVersion = $component->version;
+
+            if ((string) $fromVersion !== (string) $toVersion) {
+                $changedCount++;
+                if (count($changed) < $limit) {
+                    $changed[] = [
+                        'name' => $component->name,
+                        'purl' => $component->purl,
+                        'ecosystem' => $component->package_ecosystem->value,
+                        'from_version' => $fromVersion,
+                        'to_version' => $toVersion,
+                    ];
+                } else {
+                    $truncated = true;
+                }
+            } else {
+                $unchanged++;
+            }
+        }
+
+        foreach ($parentByKey as $key => $component) {
+            if ($currentByKey->has($key)) {
+                continue;
+            }
+
+            $removedCount++;
+            if (count($removed) < $limit) {
+                $removed[] = $this->componentDeltaRow($component);
+            } else {
+                $truncated = true;
+            }
+        }
+
+        usort($added, fn(array $a, array $b) => strcasecmp($a['name'], $b['name']));
+        usort($removed, fn(array $a, array $b) => strcasecmp($a['name'], $b['name']));
+        usort($changed, fn(array $a, array $b) => strcasecmp($a['name'], $b['name']));
+
+        return [
+            'available' => true,
+            'unavailable_reason' => null,
+            'parent_version_id' => $parentVersionId,
+            'current_version_id' => $currentVersionId,
+            'parent_version_number' => $parentVersionNumber,
+            'current_version_number' => $currentVersionNumber,
+            'added' => $added,
+            'removed' => $removed,
+            'changed' => $changed,
+            'counts' => [
+                'added' => $addedCount,
+                'removed' => $removedCount,
+                'changed' => $changedCount,
+                'unchanged' => $unchanged,
+            ],
+            'truncated' => $truncated,
+        ];
+    }
+
+    /**
+     * @return array{name: string, version: string|null, purl: string|null, ecosystem: string}
+     */
+    private function componentDeltaRow(ProductComponent $component): array
+    {
+        return [
+            'name' => $component->name,
+            'version' => $component->version,
+            'purl' => $component->purl,
+            'ecosystem' => $component->package_ecosystem->value,
+        ];
+    }
+
+    private function componentIdentityKey(ProductComponent $component): string
+    {
+        $purl = trim((string) $component->purl);
+        if ($purl !== '') {
+            $withoutQuery = explode('?', $purl, 2)[0];
+            $withoutVersion = explode('@', $withoutQuery, 2)[0];
+
+            return strtolower($withoutVersion);
+        }
+
+        return strtolower($component->package_ecosystem->value . ':' . $component->name);
     }
 
     /**

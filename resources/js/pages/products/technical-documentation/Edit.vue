@@ -137,7 +137,42 @@ type PackageDetail = {
     supersedes_id: number | null;
     supersedes_title: string | null;
     supersedes_sections?: Record<string, SupersedesSection>;
+    dependency_delta: DependencyDelta | null;
     sections: SectionPayload[];
+};
+
+type DependencyDeltaRow = {
+    name: string;
+    version: string | null;
+    purl: string | null;
+    ecosystem: string;
+};
+
+type DependencyDeltaChanged = {
+    name: string;
+    purl: string | null;
+    ecosystem: string;
+    from_version: string | null;
+    to_version: string | null;
+};
+
+type DependencyDelta = {
+    available: boolean;
+    unavailable_reason: string | null;
+    parent_version_id: number | null;
+    current_version_id: number | null;
+    parent_version_number: string | null;
+    current_version_number: string | null;
+    added: DependencyDeltaRow[];
+    removed: DependencyDeltaRow[];
+    changed: DependencyDeltaChanged[];
+    counts: {
+        added: number;
+        removed: number;
+        changed: number;
+        unchanged: number;
+    };
+    truncated: boolean;
 };
 
 type EvidenceFreshness = {
@@ -452,6 +487,17 @@ const changedSections = computed(() =>
 );
 
 const hasSupersedes = computed(() => props.package.supersedes_id !== null);
+
+const dependencyDelta = computed(() => props.package.dependency_delta);
+
+const hasDependencyDeltaChanges = computed(() => {
+    const delta = dependencyDelta.value;
+    if (!delta?.available) {
+        return false;
+    }
+
+    return delta.counts.added + delta.counts.removed + delta.counts.changed > 0;
+});
 
 const evidenceHref = computed(() => evidenceIndex(props.product.id).url);
 
@@ -949,6 +995,168 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                             )
                         }}
                     </p>
+
+                    <div
+                        v-if="dependencyDelta"
+                        class="space-y-2 border-t border-border pt-3"
+                    >
+                        <p class="font-medium">
+                            {{
+                                t(
+                                    'products.technical_documentation.dependency_delta_title',
+                                )
+                            }}
+                        </p>
+                        <p
+                            v-if="!dependencyDelta.available"
+                            class="text-muted-foreground"
+                        >
+                            {{
+                                dependencyDelta.unavailable_reason ===
+                                'same_product_version'
+                                    ? t(
+                                          'products.technical_documentation.dependency_delta_same_version',
+                                      )
+                                    : t(
+                                          'products.technical_documentation.dependency_delta_needs_versions',
+                                      )
+                            }}
+                        </p>
+                        <template v-else>
+                            <p class="text-muted-foreground">
+                                {{
+                                    t(
+                                        'products.technical_documentation.dependency_delta_versions',
+                                        {
+                                            parent:
+                                                dependencyDelta.parent_version_number ??
+                                                '—',
+                                            current:
+                                                dependencyDelta.current_version_number ??
+                                                '—',
+                                        },
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="hasDependencyDeltaChanges"
+                                class="font-medium"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.dependency_delta_summary',
+                                        {
+                                            added: String(
+                                                dependencyDelta.counts.added,
+                                            ),
+                                            removed: String(
+                                                dependencyDelta.counts.removed,
+                                            ),
+                                            changed: String(
+                                                dependencyDelta.counts.changed,
+                                            ),
+                                        },
+                                    )
+                                }}
+                            </p>
+                            <p v-else class="text-muted-foreground">
+                                {{
+                                    t(
+                                        'products.technical_documentation.dependency_delta_unchanged',
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="dependencyDelta.truncated"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.dependency_delta_truncated',
+                                    )
+                                }}
+                            </p>
+
+                            <div
+                                v-if="dependencyDelta.added.length > 0"
+                                class="space-y-1"
+                            >
+                                <p
+                                    class="text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_added',
+                                        )
+                                    }}
+                                </p>
+                                <ul
+                                    class="space-y-0.5 text-xs text-muted-foreground"
+                                >
+                                    <li
+                                        v-for="row in dependencyDelta.added"
+                                        :key="`added-${row.purl ?? row.name}`"
+                                    >
+                                        + {{ row.name }}
+                                        <span v-if="row.version"
+                                            >@{{ row.version }}</span
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div
+                                v-if="dependencyDelta.removed.length > 0"
+                                class="space-y-1"
+                            >
+                                <p class="text-xs font-medium text-destructive">
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_removed',
+                                        )
+                                    }}
+                                </p>
+                                <ul
+                                    class="space-y-0.5 text-xs text-muted-foreground"
+                                >
+                                    <li
+                                        v-for="row in dependencyDelta.removed"
+                                        :key="`removed-${row.purl ?? row.name}`"
+                                    >
+                                        − {{ row.name }}
+                                        <span v-if="row.version"
+                                            >@{{ row.version }}</span
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div
+                                v-if="dependencyDelta.changed.length > 0"
+                                class="space-y-1"
+                            >
+                                <p class="text-xs font-medium">
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_changed',
+                                        )
+                                    }}
+                                </p>
+                                <ul
+                                    class="space-y-0.5 text-xs text-muted-foreground"
+                                >
+                                    <li
+                                        v-for="row in dependencyDelta.changed"
+                                        :key="`changed-${row.purl ?? row.name}`"
+                                    >
+                                        ~ {{ row.name }}:
+                                        {{ row.from_version ?? '—' }} →
+                                        {{ row.to_version ?? '—' }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 <div
