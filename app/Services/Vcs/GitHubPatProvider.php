@@ -202,6 +202,138 @@ class GitHubPatProvider implements VcsProvider
         return $mapped;
     }
 
+    public function listDependencyUpdatePulls(string $fullName): array
+    {
+        $response = $this->client()->get("https://api.github.com/repos/{$fullName}/pulls", [
+            'state' => 'open',
+            'per_page' => 30,
+            'sort' => 'updated',
+            'direction' => 'desc',
+        ]);
+
+        if (in_array($response->status(), [401, 403, 404], true)) {
+            return [];
+        }
+
+        if (!$response->successful()) {
+            throw new RuntimeException('Failed to list GitHub pull requests (HTTP ' . $response->status() . ').');
+        }
+
+        $items = $response->json() ?? [];
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $mapped = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $number = isset($item['number']) ? (int) $item['number'] : 0;
+            $htmlUrl = isset($item['html_url']) && is_string($item['html_url']) ? $item['html_url'] : null;
+            $title = isset($item['title']) && is_string($item['title']) ? $item['title'] : '';
+
+            if ($number < 1 || $htmlUrl === null || $htmlUrl === '') {
+                continue;
+            }
+
+            $user = is_array($item['user'] ?? null) ? $item['user'] : [];
+            $login = isset($user['login']) && is_string($user['login']) ? strtolower($user['login']) : '';
+            $head = is_array($item['head'] ?? null) ? $item['head'] : [];
+            $headRef = isset($head['ref']) && is_string($head['ref']) ? $head['ref'] : null;
+
+            $botSource = $this->dependencyBotSource($login, $headRef);
+
+            if ($botSource === null) {
+                continue;
+            }
+
+            $mapped[] = [
+                'number' => $number,
+                'title' => $title !== '' ? $title : ('PR #' . $number),
+                'html_url' => $htmlUrl,
+                'head_ref' => $headRef,
+                'body' => isset($item['body']) && is_string($item['body']) ? $item['body'] : null,
+                'bot_source' => $botSource,
+                'package_hint' => $this->packageHintFromRef($headRef, $botSource),
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * @return 'dependabot'|'renovate'|null
+     */
+    private function dependencyBotSource(string $login, ?string $headRef): ?string
+    {
+        if (in_array($login, ['dependabot[bot]', 'dependabot'], true)) {
+            return 'dependabot';
+        }
+
+        if (in_array($login, ['renovate[bot]', 'renovate'], true)) {
+            return 'renovate';
+        }
+
+        $ref = strtolower((string) $headRef);
+
+        if (str_starts_with($ref, 'dependabot/')) {
+            return 'dependabot';
+        }
+
+        if (str_starts_with($ref, 'renovate/')) {
+            return 'renovate';
+        }
+
+        return null;
+    }
+
+    private function packageHintFromRef(?string $headRef, string $botSource): ?string
+    {
+        if ($headRef === null || $headRef === '') {
+            return null;
+        }
+
+        $ref = strtolower($headRef);
+
+        if ($botSource === 'dependabot' && str_starts_with($ref, 'dependabot/')) {
+            $parts = explode('/', $ref);
+
+            if (count($parts) < 3) {
+                return null;
+            }
+
+            $last = $parts[count($parts) - 1];
+            $prev = $parts[count($parts) - 2];
+
+            if (preg_match('/^\d/', $last) === 1) {
+                return $prev !== '' ? $prev : null;
+            }
+
+            $stripped = preg_replace('/-\d[\w.\-]*$/', '', $last);
+
+            return is_string($stripped) && $stripped !== '' ? $stripped : $last;
+        }
+
+        if ($botSource === 'renovate' && str_starts_with($ref, 'renovate/')) {
+            $slug = substr($ref, strlen('renovate/'));
+            $slug = preg_replace(
+                '/^(npm|pip|composer|nuget|maven|go|docker|github-tags|github-releases)-/',
+                '',
+                $slug,
+            );
+            $slug = is_string($slug) ? $slug : '';
+            $stripped = preg_replace('/-\d.*$/', '', $slug);
+
+            return is_string($stripped) && $stripped !== '' ? $stripped : ($slug !== '' ? $slug : null);
+        }
+
+        return null;
+    }
+
     private function client(): PendingRequest
     {
         return Http::withToken($this->token)

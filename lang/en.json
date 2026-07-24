@@ -1077,7 +1077,10 @@
                 "accept": "Accept",
                 "dismiss": "Dismiss",
                 "accepted": "Suggestion accepted.",
-                "dismissed": "Suggestion dismissed."
+                "accepted_vulnerability": "Vulnerability imported. Review it and start a patch campaign if customers need an update.",
+                "dismissed": "Suggestion dismissed.",
+                "open_dependabot_pr": "Open Dependabot PR",
+                "open_renovate_pr": "Open Renovate PR"
             }
         },
         "fields": {
@@ -1893,6 +1896,7 @@
             "patch_campaigns_subtitle": "Customer rollout campaigns linked to this vulnerability",
             "patch_campaigns_empty": "No patch campaigns are linked yet.",
             "start_patch_campaign": "Start patch campaign",
+            "open_remediation_pr": "Open remediation pull request",
             "ai_triage": "AI triage suggestions",
             "ai_triage_dialog_title": "Generate triage suggestions",
             "ai_triage_dialog_description": "Creates AI suggestions for severity, versions, and remediation. Human review is required — nothing is applied or closed automatically.",
@@ -1913,6 +1917,7 @@
                 "summary": "Summary",
                 "cve_id": "CVE ID",
                 "advisory_url": "Advisory URL",
+                "remediation_pr_url": "Remediation PR URL",
                 "discovery_source": "Discovery source",
                 "discovered_at": "Discovered at",
                 "awareness_at": "Awareness timestamp",
@@ -1936,6 +1941,7 @@
                 "summary": "What is wrong and why it matters.",
                 "cve_id": "Optional CVE identifier when assigned.",
                 "advisory_url": "Link to vendor or public advisory.",
+                "remediation_pr_url": "Dependabot or Renovate pull request that remediates this dependency issue.",
                 "discovery_source": "How the vulnerability became known.",
                 "discovered_at": "When the issue was first discovered.",
                 "awareness_at": "When the organization became aware — used for 24h/72h deadlines.",

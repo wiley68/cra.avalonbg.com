@@ -56,6 +56,7 @@ type VulnerabilityDetail = {
     summary: string | null;
     cve_id: string | null;
     advisory_url: string | null;
+    remediation_pr_url: string | null;
     discovery_source: string;
     discovered_at: string | null;
     awareness_at: string | null;
@@ -139,6 +140,7 @@ const form = useForm({
     summary: props.vulnerability.summary ?? '',
     cve_id: props.vulnerability.cve_id ?? '',
     advisory_url: props.vulnerability.advisory_url ?? '',
+    remediation_pr_url: props.vulnerability.remediation_pr_url ?? '',
     discovery_source: props.vulnerability.discovery_source,
     discovered_at: props.vulnerability.discovered_at ?? '',
     awareness_at: props.vulnerability.awareness_at ?? '',
@@ -351,6 +353,45 @@ const toggleId = (
                         </FieldLabel>
                         <Input id="advisory_url" v-model="form.advisory_url" />
                         <InputError :message="form.errors.advisory_url" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="remediation_pr_url"
+                            :help="
+                                t(
+                                    'products.vulnerabilities.help.remediation_pr_url',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.vulnerabilities.fields.remediation_pr_url',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="remediation_pr_url"
+                            v-model="form.remediation_pr_url"
+                        />
+                        <p
+                            v-if="form.remediation_pr_url"
+                            class="text-xs text-muted-foreground"
+                        >
+                            <a
+                                :href="form.remediation_pr_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline-offset-4 hover:underline"
+                            >
+                                {{
+                                    t(
+                                        'products.vulnerabilities.open_remediation_pr',
+                                    )
+                                }}
+                            </a>
+                        </p>
+                        <InputError :message="form.errors.remediation_pr_url" />
                     </div>
 
                     <div class="grid gap-2">
@@ -861,6 +902,84 @@ const toggleId = (
                     </div>
                 </div>
             </fieldset>
+
+            <section
+                class="space-y-3 rounded-md border p-4"
+                data-test="patch-campaigns"
+            >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-sm font-medium">
+                            {{
+                                t(
+                                    'products.vulnerabilities.patch_campaigns_title',
+                                )
+                            }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'products.vulnerabilities.patch_campaigns_subtitle',
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <Button
+                        v-if="canManageCampaigns"
+                        as-child
+                        type="button"
+                        size="sm"
+                    >
+                        <Link :href="startCampaignUrl">
+                            <Plus class="h-4 w-4" />
+                            {{
+                                t(
+                                    'products.vulnerabilities.start_patch_campaign',
+                                )
+                            }}
+                        </Link>
+                    </Button>
+                </div>
+
+                <ul
+                    v-if="vulnerability.patch_campaigns.length > 0"
+                    class="space-y-2"
+                >
+                    <li
+                        v-for="campaign in vulnerability.patch_campaigns"
+                        :key="campaign.id"
+                        class="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+                    >
+                        <div class="min-w-0 space-y-0.5">
+                            <Link
+                                :href="
+                                    campaignsShow({
+                                        product: product.id,
+                                        campaign: campaign.id,
+                                    }).url
+                                "
+                                class="font-medium underline-offset-4 hover:underline"
+                            >
+                                {{ campaign.title }}
+                            </Link>
+                            <p class="text-xs text-muted-foreground">
+                                <span>{{
+                                    campaignStatusLabel(campaign.status)
+                                }}</span>
+                                <span v-if="campaign.target_version_number">
+                                    · {{ campaign.target_version_number }}
+                                </span>
+                            </p>
+                        </div>
+                        <Badge variant="secondary">
+                            {{ campaignStatusLabel(campaign.status) }}
+                        </Badge>
+                    </li>
+                </ul>
+                <p v-else class="text-sm text-muted-foreground">
+                    {{ t('products.vulnerabilities.patch_campaigns_empty') }}
+                </p>
+            </section>
 
             <div
                 v-if="canManage"

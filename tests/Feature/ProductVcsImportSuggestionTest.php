@@ -134,6 +134,7 @@ function suggestionSyncHttpFakes(array $overrides = []): array
                 ],
             ],
         ], 200),
+        'api.github.com/repos/acme/widget/pulls*' => Http::response([], 200),
     ], $overrides);
 }
 
@@ -291,25 +292,87 @@ test('accept vulnerability suggestion creates reported vulnerability', function 
             'package_name' => 'lodash',
             'package_ecosystem' => 'npm',
             'html_url' => 'https://github.com/acme/widget/security/dependabot/7',
+            'pr_url' => 'https://github.com/acme/widget/pull/42',
+            'bot_source' => 'dependabot',
             'created_at' => '2026-07-05T12:00:00Z',
         ],
         'status' => VcsImportSuggestionStatus::Pending,
     ]);
 
-    $this->actingAs($owner)
-        ->post(route('products.vcs-suggestions.accept', [$product, $suggestion]))
-        ->assertRedirect();
+    $response = $this->actingAs($owner)
+        ->post(route('products.vcs-suggestions.accept', [$product, $suggestion]));
 
     $vulnerability = ProductVulnerability::query()->first();
     $suggestion->refresh();
+
+    $response->assertRedirect(route('products.vulnerabilities.edit', [
+        'product' => $product,
+        'vulnerability' => $vulnerability,
+    ]));
 
     expect($vulnerability)->not->toBeNull()
         ->and($vulnerability->status)->toBe(VulnerabilityStatus::Reported)
         ->and($vulnerability->discovery_source)->toBe(VulnerabilityDiscoverySource::DependencyScanner)
         ->and($vulnerability->cve_id)->toBe('CVE-2026-9999')
+        ->and($vulnerability->remediation_pr_url)->toBe('https://github.com/acme/widget/pull/42')
         ->and($vulnerability->business_severity->value)->toBe('critical')
         ->and($suggestion->status)->toBe(VcsImportSuggestionStatus::Accepted)
         ->and($suggestion->accepted_entity_id)->toBe($vulnerability->id);
+
+    $this->actingAs($owner)
+        ->get(route('products.vulnerabilities.edit', [$product, $vulnerability]))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('vulnerability.remediation_pr_url', 'https://github.com/acme/widget/pull/42')
+            ->where('canManageCampaigns', true));
+});
+
+test('sync links Dependabot PR to matching alert and imports unmatched Renovate PR', function () {
+    Storage::fake('local');
+
+    ['owner' => $owner, 'product' => $product] = makeSuggestionFixture();
+
+    Http::fake(suggestionSyncHttpFakes([
+        'api.github.com/repos/acme/widget/pulls*' => Http::response([
+            [
+                'number' => 42,
+                'title' => 'Bump lodash from 4.17.20 to 4.17.21',
+                'html_url' => 'https://github.com/acme/widget/pull/42',
+                'body' => 'Dependabot security update',
+                'user' => ['login' => 'dependabot[bot]'],
+                'head' => ['ref' => 'dependabot/npm_and_yarn/lodash-4.17.21'],
+            ],
+            [
+                'number' => 55,
+                'title' => 'Update express to v4.19.2',
+                'html_url' => 'https://github.com/acme/widget/pull/55',
+                'body' => null,
+                'user' => ['login' => 'renovate[bot]'],
+                'head' => ['ref' => 'renovate/express-4.x'],
+            ],
+        ], 200),
+    ]));
+
+    $this->actingAs($owner)
+        ->post(route('products.repository.sync', $product))
+        ->assertRedirect();
+
+    $dependabot = VcsImportSuggestion::query()
+        ->where('external_id', 'dependabot:7')
+        ->first();
+    $renovate = VcsImportSuggestion::query()
+        ->where('external_id', 'renovate-pr:55')
+        ->first();
+
+    expect($dependabot)->not->toBeNull()
+        ->and($dependabot->payload['pr_url'] ?? null)->toBe('https://github.com/acme/widget/pull/42')
+        ->and($dependabot->payload['bot_source'] ?? null)->toBe('dependabot')
+        ->and($renovate)->not->toBeNull()
+        ->and($renovate->payload['pr_url'] ?? null)->toBe('https://github.com/acme/widget/pull/55')
+        ->and($renovate->payload['bot_source'] ?? null)->toBe('renovate')
+        ->and($renovate->payload['package_name'] ?? null)->toBe('express')
+        ->and($product->fresh()->repository->last_sync_summary['dependency_update_pulls_count'] ?? null)->toBe(2)
+        ->and($product->fresh()->repository->last_sync_summary['dependency_update_prs_linked'] ?? null)->toBe(1);
 });
 
 test('dismissed suggestion is not recreated on re-sync', function () {

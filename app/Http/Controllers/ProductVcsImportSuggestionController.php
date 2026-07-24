@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Organization;
 use App\Models\Product;
+use App\Models\ProductVulnerability;
 use App\Models\VcsImportSuggestion;
 use App\Services\VcsImportSuggestionService;
 use App\Support\Translations;
@@ -24,12 +25,21 @@ class ProductVcsImportSuggestionController extends Controller
         $this->assertSuggestionBelongsToProduct($product, $suggestion);
         $this->authorize('update', [$product, $organization]);
 
-        $this->suggestions->accept($suggestion, request()->user());
+        $entity = $this->suggestions->accept($suggestion, request()->user());
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => Translations::get('products.repository.suggestions.accepted'),
+            'message' => $entity instanceof ProductVulnerability
+                ? Translations::get('products.repository.suggestions.accepted_vulnerability')
+                : Translations::get('products.repository.suggestions.accepted'),
         ]);
+
+        if ($entity instanceof ProductVulnerability) {
+            return redirect()->route('products.vulnerabilities.edit', [
+                'product' => $product,
+                'vulnerability' => $entity,
+            ]);
+        }
 
         return back();
     }

@@ -65,6 +65,7 @@ const form = useForm({
     summary: '',
     cve_id: '',
     advisory_url: '',
+    remediation_pr_url: '',
     discovery_source:
         props.options.discovery_sources[0] ?? 'internal_discovery',
     discovered_at: '',
@@ -208,6 +209,28 @@ const toggleId = (
                     </FieldLabel>
                     <Input id="advisory_url" v-model="form.advisory_url" />
                     <InputError :message="form.errors.advisory_url" />
+                </div>
+
+                <div class="grid gap-2">
+                    <FieldLabel
+                        html-for="remediation_pr_url"
+                        :help="
+                            t(
+                                'products.vulnerabilities.help.remediation_pr_url',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.vulnerabilities.fields.remediation_pr_url',
+                            )
+                        }}
+                    </FieldLabel>
+                    <Input
+                        id="remediation_pr_url"
+                        v-model="form.remediation_pr_url"
+                    />
+                    <InputError :message="form.errors.remediation_pr_url" />
                 </div>
 
                 <div class="grid gap-2">

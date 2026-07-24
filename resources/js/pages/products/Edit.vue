@@ -166,6 +166,8 @@ type VcsImportSuggestionPayload = {
     title: string;
     summary: string | null;
     html_url: string | null;
+    pr_url: string | null;
+    bot_source: string | null;
     severity: string | null;
     tag_name: string | null;
     cve_id: string | null;
@@ -1523,6 +1525,24 @@ const textareaClass =
                                     class="text-xs text-muted-foreground"
                                 >
                                     {{ suggestion.package_name }}
+                                </p>
+                                <p v-if="suggestion.pr_url" class="text-xs">
+                                    <a
+                                        :href="suggestion.pr_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline-offset-4 hover:underline"
+                                    >
+                                        {{
+                                            suggestion.bot_source === 'renovate'
+                                                ? t(
+                                                      'products.repository.suggestions.open_renovate_pr',
+                                                  )
+                                                : t(
+                                                      'products.repository.suggestions.open_dependabot_pr',
+                                                  )
+                                        }}
+                                    </a>
                                 </p>
                             </div>
                             <div class="flex shrink-0 gap-2">

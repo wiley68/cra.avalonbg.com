@@ -226,6 +226,12 @@ class GitLabPatProvider implements VcsProvider
         return $mapped;
     }
 
+    public function listDependencyUpdatePulls(string $fullName): array
+    {
+        // GitLab dependency-update MR discovery is out of scope for Could 13 (GitHub Dependabot/Renovate first).
+        return [];
+    }
+
     private function projectUrl(string $fullName): string
     {
         return rtrim($this->baseUrl, '/') . '/projects/' . rawurlencode($fullName);

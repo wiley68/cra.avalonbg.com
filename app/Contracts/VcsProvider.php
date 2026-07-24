@@ -36,4 +36,20 @@ interface VcsProvider
      * }>
      */
     public function listDependencyAlerts(string $fullName): array;
+
+    /**
+     * Open Dependabot / Renovate dependency-update pull requests.
+     * May return [] when unavailable (403/404) or unsupported by the provider.
+     *
+     * @return list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }>
+     */
+    public function listDependencyUpdatePulls(string $fullName): array;
 }

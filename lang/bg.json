@@ -1077,7 +1077,10 @@
                 "accept": "Приеми",
                 "dismiss": "Отхвърли",
                 "accepted": "Предложението е прието.",
-                "dismissed": "Предложението е отхвърлено."
+                "accepted_vulnerability": "Уязвимостта е импортирана. Прегледай я и стартирай кампания за пачове, ако клиентите се нуждаят от обновяване.",
+                "dismissed": "Предложението е отхвърлено.",
+                "open_dependabot_pr": "Отвори Dependabot PR",
+                "open_renovate_pr": "Отвори Renovate PR"
             }
         },
         "fields": {
@@ -1893,6 +1896,7 @@
             "patch_campaigns_subtitle": "Клиентски rollout кампании, свързани с тази уязвимост",
             "patch_campaigns_empty": "Все още няма свързани кампании за пачове.",
             "start_patch_campaign": "Стартирай кампания за пачове",
+            "open_remediation_pr": "Отвори remediation pull request",
             "ai_triage": "AI triage предложения",
             "ai_triage_dialog_title": "Генериране на triage предложения",
             "ai_triage_dialog_description": "Създава AI предложения за severity, версии и remediation. Изисква се human review — нищо не се прилага и не се затваря автоматично.",
@@ -1913,6 +1917,7 @@
                 "summary": "Описание",
                 "cve_id": "CVE ID",
                 "advisory_url": "Advisory URL",
+                "remediation_pr_url": "URL на remediation PR",
                 "discovery_source": "Източник на откриване",
                 "discovered_at": "Открита на",
                 "awareness_at": "Момент на осведоменост",
@@ -1936,6 +1941,7 @@
                 "summary": "Какво е проблемът и защо е важен.",
                 "cve_id": "Опционален CVE идентификатор, когато е наличен.",
                 "advisory_url": "Връзка към vendor или публичен advisory.",
+                "remediation_pr_url": "Dependabot или Renovate pull request, който оправя този dependency проблем.",
                 "discovery_source": "Как организацията е научила за уязвимостта.",
                 "discovered_at": "Кога проблемът е открит за първи път.",
                 "awareness_at": "Кога организацията е станала осведомена — за сроковете 24ч/72ч.",

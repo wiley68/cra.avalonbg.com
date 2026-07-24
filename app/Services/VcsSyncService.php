@@ -46,7 +46,13 @@ class VcsSyncService
             $releases = $provider->listReleases($fullName);
             $ci = $provider->defaultBranchCiStatus($fullName, $branch);
             $alerts = $provider->listDependencyAlerts($fullName);
-            $suggestionStats = $this->suggestions->upsertFromSync($repository, $releases, $alerts);
+            $updatePulls = $provider->listDependencyUpdatePulls($fullName);
+            $suggestionStats = $this->suggestions->upsertFromSync(
+                $repository,
+                $releases,
+                $alerts,
+                $updatePulls,
+            );
 
             $summary = [
                 'full_name' => $fullName,
@@ -54,6 +60,7 @@ class VcsSyncService
                 'tags_count' => count($tags),
                 'releases_count' => count($releases),
                 'alerts_count' => count($alerts),
+                'dependency_update_pulls_count' => count($updatePulls),
                 'latest_tag' => $tags[0]['name'] ?? null,
                 'latest_release' => $releases[0]['tag_name'] ?? null,
                 'ci' => $ci,

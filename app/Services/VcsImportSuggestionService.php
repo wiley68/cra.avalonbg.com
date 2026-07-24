@@ -42,25 +42,46 @@ class VcsImportSuggestionService
      *     html_url: string|null,
      *     created_at: string|null
      * }>  $alerts
+     * @param  list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }>  $updatePulls
      * @return array{
      *     version_suggestions_upserted: int,
      *     vulnerability_suggestions_upserted: int,
      *     pending_version_suggestions: int,
-     *     pending_vulnerability_suggestions: int
+     *     pending_vulnerability_suggestions: int,
+     *     dependency_update_prs_linked: int
      * }
      */
-    public function upsertFromSync(ProductRepository $repository, array $releases, array $alerts): array
-    {
+    public function upsertFromSync(
+        ProductRepository $repository,
+        array $releases,
+        array $alerts,
+        array $updatePulls = [],
+    ): array {
         $repository->loadMissing('product');
 
         $versionUpserted = $this->upsertVersionSuggestions($repository, $releases);
-        $vulnerabilityUpserted = $this->upsertVulnerabilitySuggestions($repository, $alerts);
+        [$alertsWithPrs, $linkedPrNumbers] = $this->attachUpdatePullsToAlerts($alerts, $updatePulls);
+        $vulnerabilityUpserted = $this->upsertVulnerabilitySuggestions($repository, $alertsWithPrs);
+        $vulnerabilityUpserted += $this->upsertUnmatchedUpdatePullSuggestions(
+            $repository,
+            $updatePulls,
+            $linkedPrNumbers,
+        );
 
         return [
             'version_suggestions_upserted' => $versionUpserted,
             'vulnerability_suggestions_upserted' => $vulnerabilityUpserted,
             'pending_version_suggestions' => $this->pendingCount($repository, VcsImportSuggestionKind::Version),
             'pending_vulnerability_suggestions' => $this->pendingCount($repository, VcsImportSuggestionKind::Vulnerability),
+            'dependency_update_prs_linked' => count($linkedPrNumbers),
         ];
     }
 
@@ -72,6 +93,8 @@ class VcsImportSuggestionService
      *     title: string,
      *     summary: string|null,
      *     html_url: string|null,
+     *     pr_url: string|null,
+     *     bot_source: string|null,
      *     severity: string|null,
      *     tag_name: string|null,
      *     cve_id: string|null,
@@ -98,6 +121,12 @@ class VcsImportSuggestionService
                         : null,
                     'html_url' => isset($payload['html_url']) && is_string($payload['html_url'])
                         ? $payload['html_url']
+                        : null,
+                    'pr_url' => isset($payload['pr_url']) && is_string($payload['pr_url'])
+                        ? $payload['pr_url']
+                        : null,
+                    'bot_source' => isset($payload['bot_source']) && is_string($payload['bot_source'])
+                        ? $payload['bot_source']
                         : null,
                     'severity' => isset($payload['severity']) && is_string($payload['severity'])
                         ? $payload['severity']
@@ -241,7 +270,14 @@ class VcsImportSuggestionService
         if (isset($payload['package_ecosystem']) && is_string($payload['package_ecosystem'])) {
             $notes[] = 'Ecosystem: ' . $payload['package_ecosystem'];
         }
+        if (isset($payload['bot_source']) && is_string($payload['bot_source'])) {
+            $notes[] = 'Bot: ' . $payload['bot_source'];
+        }
         $notes[] = 'Imported from VCS suggestion #' . $suggestion->id;
+
+        $prUrl = isset($payload['pr_url']) && is_string($payload['pr_url']) && $payload['pr_url'] !== ''
+            ? $payload['pr_url']
+            : null;
 
         return $this->vulnerabilities->create(
             product: $suggestion->product,
@@ -250,6 +286,7 @@ class VcsImportSuggestionService
                 'summary' => $summary,
                 'cve_id' => $cveId,
                 'advisory_url' => $advisoryUrl,
+                'remediation_pr_url' => $prUrl,
                 'discovery_source' => VulnerabilityDiscoverySource::DependencyScanner,
                 'discovered_at' => $discoveredAt,
                 'awareness_at' => null,
@@ -429,8 +466,185 @@ class VcsImportSuggestionService
                 'package_name' => $packageName,
                 'package_ecosystem' => $alert['package_ecosystem'] ?? null,
                 'html_url' => $htmlUrl,
+                'pr_url' => isset($alert['pr_url']) && is_string($alert['pr_url']) ? $alert['pr_url'] : null,
+                'bot_source' => isset($alert['bot_source']) && is_string($alert['bot_source'])
+                    ? $alert['bot_source']
+                    : 'dependabot',
                 'created_at' => $alert['created_at'] ?? null,
                 'number' => $alert['number'] ?? null,
+            ];
+
+            if ($existing !== null) {
+                $existing->update(['payload' => $payload]);
+            } else {
+                VcsImportSuggestion::query()->create([
+                    'product_id' => $repository->product_id,
+                    'repository_id' => $repository->id,
+                    'kind' => VcsImportSuggestionKind::Vulnerability,
+                    'external_id' => $externalId,
+                    'payload' => $payload,
+                    'status' => VcsImportSuggestionStatus::Pending,
+                ]);
+            }
+
+            $upserted++;
+        }
+
+        return $upserted;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $alerts
+     * @param  list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }>  $updatePulls
+     * @return array{0: list<array<string, mixed>>, 1: list<int>}
+     */
+    private function attachUpdatePullsToAlerts(array $alerts, array $updatePulls): array
+    {
+        if ($updatePulls === []) {
+            return [$alerts, []];
+        }
+
+        $linkedPrNumbers = [];
+        $enriched = [];
+
+        foreach ($alerts as $alert) {
+            $packageName = isset($alert['package_name']) && is_string($alert['package_name'])
+                ? $alert['package_name']
+                : null;
+            $match = $this->findMatchingUpdatePull($updatePulls, $packageName, $linkedPrNumbers);
+
+            if ($match !== null) {
+                $alert['pr_url'] = $match['html_url'];
+                $alert['bot_source'] = $match['bot_source'];
+                $linkedPrNumbers[] = $match['number'];
+            }
+
+            $enriched[] = $alert;
+        }
+
+        return [$enriched, $linkedPrNumbers];
+    }
+
+    /**
+     * @param  list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }>  $updatePulls
+     * @param  list<int>  $excludeNumbers
+     * @return array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }|null
+     */
+    private function findMatchingUpdatePull(
+        array $updatePulls,
+        ?string $packageName,
+        array $excludeNumbers,
+    ): ?array {
+        if ($packageName === null || trim($packageName) === '') {
+            return null;
+        }
+
+        $needle = strtolower(trim($packageName));
+        $excluded = array_fill_keys($excludeNumbers, true);
+
+        foreach ($updatePulls as $pull) {
+            if (isset($excluded[$pull['number']])) {
+                continue;
+            }
+
+            $hint = isset($pull['package_hint']) && is_string($pull['package_hint'])
+                ? strtolower($pull['package_hint'])
+                : '';
+
+            if ($hint !== '' && ($hint === $needle || str_contains($hint, $needle) || str_contains($needle, $hint))) {
+                return $pull;
+            }
+
+            $haystack = strtolower(
+                ($pull['title'] ?? '') . ' ' . ($pull['head_ref'] ?? '') . ' ' . ($pull['body'] ?? ''),
+            );
+
+            if (str_contains($haystack, $needle)) {
+                return $pull;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  list<array{
+     *     number: int,
+     *     title: string,
+     *     html_url: string,
+     *     head_ref: string|null,
+     *     body: string|null,
+     *     bot_source: 'dependabot'|'renovate',
+     *     package_hint: string|null
+     * }>  $updatePulls
+     * @param  list<int>  $linkedPrNumbers
+     */
+    private function upsertUnmatchedUpdatePullSuggestions(
+        ProductRepository $repository,
+        array $updatePulls,
+        array $linkedPrNumbers,
+    ): int {
+        $linked = array_fill_keys($linkedPrNumbers, true);
+        $upserted = 0;
+
+        foreach ($updatePulls as $pull) {
+            if (isset($linked[$pull['number']])) {
+                continue;
+            }
+
+            $botSource = $pull['bot_source'];
+            $externalId = $botSource . '-pr:' . $pull['number'];
+            $existing = $this->findSuggestion($repository, VcsImportSuggestionKind::Vulnerability, $externalId);
+
+            if ($existing !== null && $existing->status !== VcsImportSuggestionStatus::Pending) {
+                continue;
+            }
+
+            $packageName = isset($pull['package_hint']) && is_string($pull['package_hint'])
+                ? $pull['package_hint']
+                : null;
+            $summary = $pull['title'];
+            $title = $packageName !== null
+                ? $packageName . ': ' . $summary
+                : $summary;
+
+            $payload = [
+                'title' => mb_substr($title, 0, 255),
+                'summary' => $summary,
+                'cve_id' => null,
+                'ghsa_id' => null,
+                'severity' => null,
+                'package_name' => $packageName,
+                'package_ecosystem' => null,
+                'html_url' => $pull['html_url'],
+                'pr_url' => $pull['html_url'],
+                'bot_source' => $botSource,
+                'created_at' => null,
+                'number' => $pull['number'],
             ];
 
             if ($existing !== null) {

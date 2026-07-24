@@ -69,6 +69,8 @@ Connectors са **read-only import** към CRA. Не създават/реда�
 
 GitHub PAT / GitHub App / GitLab PAT — виж Phase 2.1. Schedule: `vcs:sync-scheduled` (hourly cron). Webhooks: HMAC verify; URL + rotate secret в Settings.
 
+**Dependabot / Renovate depth (Could 13):** GitHub sync също чете open PRs от `dependabot[bot]` / `renovate[bot]`, линква ги към matching Dependabot alerts по package name и създава suggestions за unmatched Renovate PRs. Accept записва `remediation_pr_url` на vulnerability и redirect-ва към Edit с **Start patch campaign** CTA.
+
 ---
 
 ## 3. Rate limits & soft-fail
