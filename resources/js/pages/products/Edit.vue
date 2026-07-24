@@ -8,6 +8,7 @@ import {
     RefreshCw,
     Save,
     Tags,
+    Ticket,
     Trash2,
     X,
 } from '@lucide/vue';
@@ -45,6 +46,15 @@ import {
     accept as acceptVcsSuggestion,
     dismiss as dismissVcsSuggestion,
 } from '@/routes/products/vcs-suggestions';
+import {
+    destroy as destroyIntegration,
+    sync as syncIntegration,
+    update as updateIntegration,
+} from '@/routes/products/integrations';
+import {
+    accept as acceptImportSuggestion,
+    dismiss as dismissImportSuggestion,
+} from '@/routes/products/import-suggestions';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 
 type Member = {
@@ -161,6 +171,39 @@ type VcsImportSuggestionPayload = {
     package_name: string | null;
 };
 
+type JiraIntegrationOption = {
+    connected: boolean;
+    label: string | null;
+    status: string | null;
+};
+
+type JiraLinkPayload = {
+    id: number;
+    provider: string;
+    external_project_key: string | null;
+    external_label: string | null;
+    last_synced_at: string | null;
+    last_sync_summary: {
+        issues_count?: number;
+        pending_task_suggestions?: number;
+        task_suggestions_upserted?: number;
+        error?: string;
+    } | null;
+};
+
+type ImportSuggestionPayload = {
+    id: number;
+    kind: 'task' | string;
+    external_id: string;
+    title: string;
+    summary: string | null;
+    html_url: string | null;
+    issue_key: string | null;
+    issue_type: string | null;
+    priority: string | null;
+    status: string | null;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: EditableProduct;
@@ -174,6 +217,9 @@ const props = defineProps<{
     repository?: ProductRepositoryPayload | null;
     vcs_connections?: VcsConnectionOption[];
     vcs_suggestions?: VcsImportSuggestionPayload[];
+    jira_integration?: JiraIntegrationOption | null;
+    jira_link?: JiraLinkPayload | null;
+    import_suggestions?: ImportSuggestionPayload[];
 }>();
 
 const { t } = useTranslations();
@@ -188,10 +234,14 @@ const showDeleteDialog = ref(false);
 const showScopeWizard = ref(props.openScopeWizard ?? false);
 const showClassificationWizard = ref(props.openClassificationWizard ?? false);
 const showUnlinkRepositoryDialog = ref(false);
+const showUnlinkJiraDialog = ref(false);
 const syncingRepository = ref(false);
+const syncingJira = ref(false);
 const suggestionActionId = ref<number | null>(null);
+const importSuggestionActionId = ref<number | null>(null);
 
 const pendingSuggestions = computed(() => props.vcs_suggestions ?? []);
+const pendingImportSuggestions = computed(() => props.import_suggestions ?? []);
 
 const repositoryForm = useForm({
     connection_id:
@@ -199,10 +249,18 @@ const repositoryForm = useForm({
     repository: props.repository?.full_name ?? '',
 });
 
+const jiraForm = useForm({
+    project_key: props.jira_link?.external_project_key ?? '',
+});
+
 const activeVcsConnections = computed(() =>
     (props.vcs_connections ?? []).filter(
         (connection) => connection.status === 'active',
     ),
+);
+
+const jiraConnected = computed(
+    () => props.jira_integration?.connected === true,
 );
 
 const linkRepository = () => {
@@ -267,6 +325,93 @@ const dismissSuggestion = (suggestionId: number) => {
             },
         },
     );
+};
+
+const linkJiraProject = () => {
+    jiraForm.put(
+        updateIntegration.url({
+            product: props.product.id,
+            provider: 'jira',
+        }),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
+const syncJiraNow = () => {
+    syncingJira.value = true;
+    router.post(
+        syncIntegration.url({
+            product: props.product.id,
+            provider: 'jira',
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                syncingJira.value = false;
+            },
+        },
+    );
+};
+
+const confirmUnlinkJira = () => {
+    router.delete(
+        destroyIntegration.url({
+            product: props.product.id,
+            provider: 'jira',
+        }),
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                showUnlinkJiraDialog.value = false;
+                jiraForm.project_key = '';
+            },
+        },
+    );
+};
+
+const acceptImportSuggestionAction = (suggestionId: number) => {
+    importSuggestionActionId.value = suggestionId;
+    router.post(
+        acceptImportSuggestion.url({
+            product: props.product.id,
+            suggestion: suggestionId,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                importSuggestionActionId.value = null;
+            },
+        },
+    );
+};
+
+const dismissImportSuggestionAction = (suggestionId: number) => {
+    importSuggestionActionId.value = suggestionId;
+    router.post(
+        dismissImportSuggestion.url({
+            product: props.product.id,
+            suggestion: suggestionId,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                importSuggestionActionId.value = null;
+            },
+        },
+    );
+};
+
+const importSuggestionKindLabel = (kind: string): string => {
+    if (kind === 'task') {
+        return t('products.integrations.suggestions.kind_task');
+    }
+
+    return kind;
 };
 
 const suggestionKindLabel = (kind: string): string => {
@@ -1298,6 +1443,267 @@ const textareaClass =
             </form>
         </section>
 
+        <section class="space-y-4 rounded-lg border p-6">
+            <h2
+                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+                {{ t('products.sections.jira') }}
+            </h2>
+
+            <div v-if="jira_link" class="space-y-3 rounded-lg border p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 font-medium">
+                            <Ticket class="h-4 w-4" />
+                            <span>
+                                {{
+                                    jira_link.external_label ||
+                                    jira_link.external_project_key
+                                }}
+                            </span>
+                            <span
+                                v-if="jira_link.external_project_key"
+                                class="font-mono text-xs text-muted-foreground"
+                            >
+                                ({{ jira_link.external_project_key }})
+                            </span>
+                        </div>
+                        <p
+                            v-if="jira_link.last_synced_at"
+                            class="text-sm text-muted-foreground"
+                        >
+                            {{ t('products.integrations.jira.last_synced') }}:
+                            {{
+                                new Date(
+                                    jira_link.last_synced_at,
+                                ).toLocaleString()
+                            }}
+                        </p>
+                        <div
+                            v-if="jira_link.last_sync_summary"
+                            class="space-y-1 text-sm text-muted-foreground"
+                        >
+                            <p v-if="jira_link.last_sync_summary.error">
+                                {{
+                                    t('products.integrations.jira.sync_error')
+                                }}:
+                                {{ jira_link.last_sync_summary.error }}
+                            </p>
+                            <template v-else>
+                                <p>
+                                    {{
+                                        t('products.integrations.jira.issues')
+                                    }}:
+                                    {{
+                                        jira_link.last_sync_summary
+                                            .issues_count ?? 0
+                                    }}
+                                </p>
+                                <p>
+                                    {{
+                                        t(
+                                            'products.integrations.jira.pending_tasks',
+                                        )
+                                    }}:
+                                    {{
+                                        jira_link.last_sync_summary
+                                            .pending_task_suggestions ?? 0
+                                    }}
+                                </p>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="syncingJira"
+                            data-test="sync-jira-button"
+                            @click="syncJiraNow"
+                        >
+                            <RefreshCw
+                                class="h-4 w-4"
+                                :class="{
+                                    'animate-spin': syncingJira,
+                                }"
+                            />
+                            {{ t('products.integrations.jira.sync_now') }}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            @click="showUnlinkJiraDialog = true"
+                        >
+                            <Trash2 class="h-4 w-4" />
+                            {{ t('products.integrations.jira.unlink') }}
+                        </Button>
+                    </div>
+                </div>
+
+                <div
+                    v-if="pendingImportSuggestions.length > 0"
+                    class="space-y-3 border-t pt-3"
+                    data-test="import-suggestions"
+                >
+                    <h3 class="text-sm font-medium">
+                        {{ t('products.integrations.suggestions.title') }}
+                        <span class="text-muted-foreground">
+                            ({{ pendingImportSuggestions.length }})
+                        </span>
+                    </h3>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="suggestion in pendingImportSuggestions"
+                            :key="suggestion.id"
+                            class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0 space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="rounded bg-muted px-1.5 py-0.5 text-xs font-medium"
+                                    >
+                                        {{
+                                            importSuggestionKindLabel(
+                                                suggestion.kind,
+                                            )
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.issue_key"
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.issue_key }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.issue_type"
+                                        class="text-xs text-muted-foreground"
+                                    >
+                                        {{ suggestion.issue_type }}
+                                    </span>
+                                    <span
+                                        v-if="suggestion.priority"
+                                        class="text-xs text-muted-foreground uppercase"
+                                    >
+                                        {{ suggestion.priority }}
+                                    </span>
+                                </div>
+                                <p class="font-medium">
+                                    <a
+                                        v-if="suggestion.html_url"
+                                        :href="suggestion.html_url"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline-offset-4 hover:underline"
+                                    >
+                                        {{ suggestion.title }}
+                                    </a>
+                                    <span v-else>{{ suggestion.title }}</span>
+                                </p>
+                                <p
+                                    v-if="suggestion.summary"
+                                    class="line-clamp-2 text-sm text-muted-foreground"
+                                >
+                                    {{ suggestion.summary }}
+                                </p>
+                            </div>
+                            <div class="flex shrink-0 gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="accept-import-suggestion"
+                                    @click="
+                                        acceptImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <Check class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.accept',
+                                        )
+                                    }}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    :disabled="
+                                        importSuggestionActionId ===
+                                        suggestion.id
+                                    "
+                                    data-test="dismiss-import-suggestion"
+                                    @click="
+                                        dismissImportSuggestionAction(
+                                            suggestion.id,
+                                        )
+                                    "
+                                >
+                                    <X class="h-4 w-4" />
+                                    {{
+                                        t(
+                                            'products.integrations.suggestions.dismiss',
+                                        )
+                                    }}
+                                </Button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                v-if="!jiraConnected"
+                class="space-y-2 text-sm text-muted-foreground"
+            >
+                <p>{{ t('products.integrations.jira.no_connection') }}</p>
+                <Button type="button" variant="outline" as-child>
+                    <Link :href="editIntegrations()">
+                        {{ t('products.integrations.jira.open_integrations') }}
+                    </Link>
+                </Button>
+            </div>
+
+            <form v-else class="space-y-4" @submit.prevent="linkJiraProject">
+                <div class="grid gap-2 sm:max-w-md">
+                    <FieldLabel
+                        html-for="jira_project_key"
+                        :help="t('products.integrations.jira.project_key_help')"
+                    >
+                        {{ t('products.integrations.jira.project_key') }}
+                    </FieldLabel>
+                    <Input
+                        id="jira_project_key"
+                        v-model="jiraForm.project_key"
+                        :placeholder="
+                            t(
+                                'products.integrations.jira.project_key_placeholder',
+                            )
+                        "
+                        required
+                        data-test="jira-project-key-input"
+                    />
+                    <InputError :message="jiraForm.errors.project_key" />
+                </div>
+                <Button
+                    type="submit"
+                    :disabled="jiraForm.processing"
+                    data-test="link-jira-button"
+                >
+                    <Save class="h-4 w-4" />
+                    {{
+                        jira_link
+                            ? t('products.integrations.jira.update')
+                            : t('products.integrations.jira.link')
+                    }}
+                </Button>
+            </form>
+        </section>
+
         <AppAlertDialog
             v-model:open="showDeleteDialog"
             :title="t('common.delete_confirm_title')"
@@ -1311,6 +1717,14 @@ const textareaClass =
             :description="t('products.repository.unlink_confirm')"
             :confirm-label="t('products.repository.unlink')"
             @confirm="confirmUnlinkRepository"
+        />
+
+        <AppAlertDialog
+            v-model:open="showUnlinkJiraDialog"
+            :title="t('products.integrations.jira.unlink_confirm_title')"
+            :description="t('products.integrations.jira.unlink_confirm')"
+            :confirm-label="t('products.integrations.jira.unlink')"
+            @confirm="confirmUnlinkJira"
         />
 
         <ScopeWizard

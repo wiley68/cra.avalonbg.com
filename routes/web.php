@@ -56,6 +56,8 @@ use App\Http\Controllers\ProductDeploymentController;
 use App\Http\Controllers\PatchCampaignController;
 use App\Http\Controllers\ProductReadinessController;
 use App\Http\Controllers\ProductAssistantController;
+use App\Http\Controllers\ProductImportSuggestionController;
+use App\Http\Controllers\ProductIntegrationController;
 use App\Http\Controllers\ProductRepositoryController;
 use App\Http\Controllers\ProductRequirementController;
 use App\Http\Controllers\ProductRiskController;
@@ -195,6 +197,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'products/{product}/vcs-suggestions/{suggestion}/dismiss',
             [ProductVcsImportSuggestionController::class, 'dismiss'],
         )->name('products.vcs-suggestions.dismiss');
+        Route::put(
+            'products/{product}/integrations/{provider}',
+            [ProductIntegrationController::class, 'update'],
+        )->name('products.integrations.update');
+        Route::delete(
+            'products/{product}/integrations/{provider}',
+            [ProductIntegrationController::class, 'destroy'],
+        )->name('products.integrations.destroy');
+        Route::post(
+            'products/{product}/integrations/{provider}/sync',
+            [ProductIntegrationController::class, 'sync'],
+        )->name('products.integrations.sync');
+        Route::post(
+            'products/{product}/import-suggestions/{suggestion}/accept',
+            [ProductImportSuggestionController::class, 'accept'],
+        )->name('products.import-suggestions.accept');
+        Route::post(
+            'products/{product}/import-suggestions/{suggestion}/dismiss',
+            [ProductImportSuggestionController::class, 'dismiss'],
+        )->name('products.import-suggestions.dismiss');
         Route::post('products/scope-assessment/preview', [ProductScopeAssessmentController::class, 'preview'])
             ->name('products.scope-assessment.preview');
         Route::get('products/{product}/scope-assessments/latest', [ProductScopeAssessmentController::class, 'show'])

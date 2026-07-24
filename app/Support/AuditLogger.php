@@ -11,9 +11,11 @@ use App\Models\AuditorReviewPackage;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Evidence;
+use App\Models\ImportSuggestion;
 use App\Models\IncidentCustomerCommunication;
 use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
+use App\Models\IntegrationSyncRun;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
@@ -22,6 +24,7 @@ use App\Models\PatchCampaign;
 use App\Models\PatchCampaignTarget;
 use App\Models\ProductDeployment;
 use App\Models\ProductIncident;
+use App\Models\ProductIntegrationLink;
 use App\Models\ProductRepository;
 use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
@@ -2131,6 +2134,134 @@ class AuditLogger
                 ['field' => 'provider', 'value' => $integration->provider->value],
                 ['field' => 'auth_type', 'value' => $integration->auth_type->value],
                 ['field' => 'label', 'value' => $integration->label],
+            ],
+        );
+    }
+
+    public static function logIntegrationLinked(ProductIntegrationLink $link, User $actor): void
+    {
+        $link->loadMissing(['product', 'integration']);
+
+        self::persist(
+            type: AuditEventType::IntegrationLinked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $link->product->organization_id,
+            productId: $link->product_id,
+            details: [
+                ['field' => 'link_id', 'value' => (string) $link->id],
+                ['field' => 'integration_id', 'value' => (string) $link->integration_id],
+                ['field' => 'provider', 'value' => $link->integration->provider->value],
+                ['field' => 'external_project_key', 'value' => (string) ($link->external_project_key ?? '')],
+                ['field' => 'external_label', 'value' => (string) ($link->external_label ?? '')],
+            ],
+        );
+    }
+
+    public static function logIntegrationUnlinked(ProductIntegrationLink $link, User $actor): void
+    {
+        $link->loadMissing(['product', 'integration']);
+
+        self::persist(
+            type: AuditEventType::IntegrationUnlinked,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $link->product->organization_id,
+            productId: $link->product_id,
+            details: [
+                ['field' => 'link_id', 'value' => (string) $link->id],
+                ['field' => 'integration_id', 'value' => (string) $link->integration_id],
+                ['field' => 'provider', 'value' => $link->integration->provider->value],
+                ['field' => 'external_project_key', 'value' => (string) ($link->external_project_key ?? '')],
+            ],
+        );
+    }
+
+    public static function logIntegrationSyncSucceeded(
+        ProductIntegrationLink $link,
+        IntegrationSyncRun $run,
+        ?User $actor,
+    ): void {
+        $link->loadMissing(['product', 'integration']);
+
+        self::persist(
+            type: AuditEventType::IntegrationSyncSucceeded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $link->product->organization_id,
+            productId: $link->product_id,
+            details: [
+                ['field' => 'link_id', 'value' => (string) $link->id],
+                ['field' => 'sync_run_id', 'value' => (string) $run->id],
+                ['field' => 'provider', 'value' => $link->integration->provider->value],
+                ['field' => 'issues_count', 'value' => (string) ($run->summary['issues_count'] ?? 0)],
+            ],
+        );
+    }
+
+    public static function logIntegrationSyncFailed(
+        ProductIntegrationLink $link,
+        IntegrationSyncRun $run,
+        ?User $actor,
+        string $error,
+    ): void {
+        $link->loadMissing(['product', 'integration']);
+
+        self::persist(
+            type: AuditEventType::IntegrationSyncFailed,
+            success: false,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $link->product->organization_id,
+            productId: $link->product_id,
+            details: [
+                ['field' => 'link_id', 'value' => (string) $link->id],
+                ['field' => 'sync_run_id', 'value' => (string) $run->id],
+                ['field' => 'provider', 'value' => $link->integration->provider->value],
+                ['field' => 'error', 'value' => $error],
+            ],
+        );
+    }
+
+    public static function logImportSuggestionAccepted(ImportSuggestion $suggestion, User $actor): void
+    {
+        $suggestion->loadMissing('product');
+
+        self::persist(
+            type: AuditEventType::ImportSuggestionAccepted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $suggestion->product->organization_id,
+            productId: $suggestion->product_id,
+            details: [
+                ['field' => 'suggestion_id', 'value' => (string) $suggestion->id],
+                ['field' => 'kind', 'value' => $suggestion->kind->value],
+                ['field' => 'external_id', 'value' => $suggestion->external_id],
+                ['field' => 'accepted_entity_type', 'value' => (string) ($suggestion->accepted_entity_type ?? '')],
+                ['field' => 'accepted_entity_id', 'value' => (string) ($suggestion->accepted_entity_id ?? '')],
+            ],
+        );
+    }
+
+    public static function logImportSuggestionDismissed(ImportSuggestion $suggestion, User $actor): void
+    {
+        $suggestion->loadMissing('product');
+
+        self::persist(
+            type: AuditEventType::ImportSuggestionDismissed,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $suggestion->product->organization_id,
+            productId: $suggestion->product_id,
+            details: [
+                ['field' => 'suggestion_id', 'value' => (string) $suggestion->id],
+                ['field' => 'kind', 'value' => $suggestion->kind->value],
+                ['field' => 'external_id', 'value' => $suggestion->external_id],
             ],
         );
     }

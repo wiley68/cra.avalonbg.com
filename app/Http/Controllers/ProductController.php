@@ -11,6 +11,8 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Services\ClassificationAssessmentService;
+use App\Services\ImportSuggestionService;
+use App\Services\ProductIntegrationLinkService;
 use App\Services\ProductReadinessService;
 use App\Services\ProductRepositoryService;
 use App\Services\ScopeAssessmentService;
@@ -29,6 +31,8 @@ class ProductController extends Controller
         private readonly ProductReadinessService $readiness,
         private readonly ProductRepositoryService $repositories,
         private readonly VcsImportSuggestionService $vcsSuggestions,
+        private readonly ProductIntegrationLinkService $integrationLinks,
+        private readonly ImportSuggestionService $importSuggestions,
     ) {
     }
 
@@ -137,6 +141,11 @@ class ProductController extends Controller
             'repository' => $this->repositories->payload($product->repository),
             'vcs_connections' => ProductRepositoryController::connectionOptions($organization),
             'vcs_suggestions' => $this->vcsSuggestions->pendingPayloadForProduct($product->id),
+            'jira_integration' => $this->integrationLinks->jiraIntegrationOption($organization),
+            'jira_link' => $this->integrationLinks->jiraPayload(
+                $this->integrationLinks->jiraLinkForProduct($product),
+            ),
+            'import_suggestions' => $this->importSuggestions->pendingPayloadForProduct($product->id),
             'latestScopeAssessment' => $this->scopeAssessments->latestPayload(
                 $product->latestScopeAssessment(),
             ),

@@ -915,7 +915,45 @@
             "scope": "CRA scope assessment",
             "classification": "Classification",
             "contacts": "Contacts",
-            "repository": "Repository"
+            "repository": "Repository",
+            "jira": "Jira"
+        },
+        "integrations": {
+            "jira_not_connected": "Connect Jira Cloud in Settings → Integrations before linking a project.",
+            "jira_credentials_missing": "Jira credentials are missing. Update the connection in Settings → Integrations.",
+            "jira_project_not_found": "Jira project not found with the connected credentials.",
+            "jira_project_fetch_failed": "Could not fetch the Jira project. Check the project key and credentials.",
+            "jira_issues_fetch_failed": "Could not fetch Jira issues for this project.",
+            "jira": {
+                "project_key": "Jira project key",
+                "project_key_help": "Project key as shown in Jira (e.g. CRA).",
+                "project_key_placeholder": "CRA",
+                "link": "Link Jira project",
+                "update": "Update Jira link",
+                "unlink": "Unlink",
+                "unlink_confirm_title": "Unlink Jira project?",
+                "unlink_confirm": "The product will no longer be linked to this Jira project. Pending import suggestions for this link will remain until dismissed.",
+                "no_connection": "Connect Jira Cloud in Settings → Integrations before linking a project.",
+                "open_integrations": "Open integrations",
+                "linked": "Jira project linked.",
+                "unlinked": "Jira project unlinked.",
+                "sync_now": "Sync now",
+                "sync_succeeded": "Jira sync completed.",
+                "sync_failed": "Jira sync failed. Check the last sync details.",
+                "last_synced": "Last synced",
+                "issues": "Issues",
+                "pending_tasks": "Pending task suggestions",
+                "sync_error": "Sync error",
+                "project_label": "Project"
+            },
+            "suggestions": {
+                "title": "Import suggestions",
+                "kind_task": "Task",
+                "accept": "Accept",
+                "dismiss": "Dismiss",
+                "accepted": "Suggestion accepted.",
+                "dismissed": "Suggestion dismissed."
+            }
         },
         "repository": {
             "connection": "VCS connection",

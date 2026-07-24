@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.4  
+**Версия:** 0.5  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must 1–2 Done; Must 3–6 open  
+**Статус:** Active — Must 1–3 Done; Must 4–6 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§7 Интеграции — Втора вълна, §14)
@@ -233,7 +233,7 @@ POST   /api/webhooks/snyk/{integration}
 
 1. ~~Migrations + models + enums (`organization_integrations`, links, sync runs, `import_suggestions`)~~ **Done** (2026-07-24)
 2. ~~Settings UI: connect / verify / disconnect **Jira Cloud** (API token) + audit~~ **Done** (2026-07-24)
-3. Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task
+3. ~~Product ↔ Jira project link + Sync now (issues → pending `task` suggestions) + Accept/Dismiss → Task~~ **Done** (2026-07-24)
 4. Settings UI: connect / verify / disconnect **Snyk** + Product link + Sync now (findings → `vulnerability` suggestions) + Accept → ProductVulnerability
 5. Evidence immutable ref / optional snapshot on successful sync; AuditLogger coverage
 6. i18n EN/BG + feature tests (`Http::fake()`; viewer cannot manage connectors / accept)
@@ -315,16 +315,17 @@ Reuse:
 
 ## 13. Тестове (план)
 
-| Област            | Предложение                                                 |
-| ----------------- | ----------------------------------------------------------- |
-| Models            | `IntegrationWave2ModelsTest` — **Done**                     |
-| Jira connect/sync | `JiraIntegrationSettingsTest` — connect/disconnect **Done** |
-| Snyk connect/sync | `SnykIntegrationTest`                                       |
-| Accept / dismiss  | Task + vulnerability creation; dismissed no re-upsert       |
-| RBAC              | Viewer forbidden manage/accept                              |
-| Schedule          | `integrations:sync-scheduled` command test                  |
-| Azure DevOps      | Provider adapter test (Should 11)                           |
-| Readiness         | Pending suggestions gap (Should 10)                         |
+| Област            | Предложение                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| Models            | `IntegrationWave2ModelsTest` — **Done**                          |
+| Jira connect/sync | `JiraIntegrationSettingsTest` — connect/disconnect **Done**      |
+| Product Jira link | `ProductJiraIntegrationTest` — link/sync/accept/dismiss **Done** |
+| Snyk connect/sync | `SnykIntegrationTest`                                            |
+| Accept / dismiss  | Task creation **Done** (Jira); vulnerability creation (Must 4)   |
+| RBAC              | Viewer forbidden manage/accept                                   |
+| Schedule          | `integrations:sync-scheduled` command test                       |
+| Azure DevOps      | Provider adapter test (Should 11)                                |
+| Readiness         | Pending suggestions gap (Should 10)                              |
 
 ---
 
@@ -332,6 +333,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                        |
 | ------ | ---------- | ------------------------------------------------------------------------------ |
+| 0.5    | 2026-07-24 | Must 3 Done — Product↔Jira link, sync→task suggestions, Accept/Dismiss→Task    |
 | 0.4    | 2026-07-24 | Must 2 Done — Jira Cloud Settings connect/verify/disconnect + audit            |
 | 0.3    | 2026-07-24 | Must 1 Done — integration tables/models/enums + audit events + model tests     |
 | 0.2    | 2026-07-24 | Full Must/Should/Could; freeze Jira Cloud + Snyk API token; schema/UI/AC/risks |

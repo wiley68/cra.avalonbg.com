@@ -915,7 +915,45 @@
             "scope": "CRA scope оценка",
             "classification": "Класификация",
             "contacts": "Контакти",
-            "repository": "Хранилище"
+            "repository": "Хранилище",
+            "jira": "Jira"
+        },
+        "integrations": {
+            "jira_not_connected": "Свържете Jira Cloud в Настройки → Интеграции, преди да свържете проект.",
+            "jira_credentials_missing": "Липсват Jira credentials. Обновете връзката в Настройки → Интеграции.",
+            "jira_project_not_found": "Jira проектът не е намерен с текущите credentials.",
+            "jira_project_fetch_failed": "Неуспешно зареждане на Jira проекта. Проверете ключа и credentials.",
+            "jira_issues_fetch_failed": "Неуспешно зареждане на Jira issues за този проект.",
+            "jira": {
+                "project_key": "Ключ на Jira проект",
+                "project_key_help": "Project key, както се показва в Jira (напр. CRA).",
+                "project_key_placeholder": "CRA",
+                "link": "Свържи Jira проект",
+                "update": "Обнови Jira връзката",
+                "unlink": "Премахни връзката",
+                "unlink_confirm_title": "Премахване на Jira връзката?",
+                "unlink_confirm": "Продуктът вече няма да е свързан с този Jira проект. Чакащите предложения за импорт остават, докато не бъдат отхвърлени.",
+                "no_connection": "Свържете Jira Cloud в Настройки → Интеграции, преди да свържете проект.",
+                "open_integrations": "Отвори интеграции",
+                "linked": "Jira проектът е свързан.",
+                "unlinked": "Jira връзката е премахната.",
+                "sync_now": "Синхронизирай сега",
+                "sync_succeeded": "Jira синхронизацията завърши.",
+                "sync_failed": "Jira синхронизацията не успя. Проверете детайлите от последната синхронизация.",
+                "last_synced": "Последна синхронизация",
+                "issues": "Issues",
+                "pending_tasks": "Чакащи предложения за задачи",
+                "sync_error": "Грешка при синхронизация",
+                "project_label": "Проект"
+            },
+            "suggestions": {
+                "title": "Предложения за импорт",
+                "kind_task": "Задача",
+                "accept": "Приеми",
+                "dismiss": "Отхвърли",
+                "accepted": "Предложението е прието.",
+                "dismissed": "Предложението е отхвърлено."
+            }
         },
         "repository": {
             "connection": "VCS връзка",
