@@ -1,8 +1,9 @@
 # Phase 2.8 — Integrations operator runbook
 
-**Версия:** 1.0  
+**Версия:** 1.1  
 **Дата:** 24 юли 2026 г.  
-**Родител:** [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md)  
+**Родител:** [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) (Closed)  
+**Closeout:** [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)  
 **Свързано:** [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md) (VCS connectors)
 
 Кратък ops справочник за ALM/scanner connectors (Jira Cloud, Azure DevOps, Snyk) и как се пазят секрети, какви scopes са нужни, как се държат rate limits и какъв е threat model-ът.
@@ -175,3 +176,5 @@ Providers третират **401 / 403 / 404 / 429** при list/fetch на issu
 | Sync services                     | `AlmSyncService`, `ScannerSyncService`                                  |
 | Job                               | `SyncProductIntegrationJob`                                             |
 | Schedule command                  | `integrations:sync-scheduled`                                           |
+| Org health + auditor export       | `/integrations/health` (Markdown/PDF)                                   |
+| Phase exit                        | [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)            |

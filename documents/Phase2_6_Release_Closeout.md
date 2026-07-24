@@ -217,7 +217,7 @@ Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23
     ↓
 Phase 2.7 Technical Documentation — Closed 2026-07-24
     ↓
-Phase 2.8 Integration wave 2 — Active (plan)
+Phase 2.8 Integration wave 2 — Closed 2026-07-24
 ```
 
 ---
@@ -226,5 +226,6 @@ Phase 2.8 Integration wave 2 — Active (plan)
 
 | Версия | Дата       | Промяна                                                                           |
 | ------ | ---------- | --------------------------------------------------------------------------------- |
+| 1.2    | 2026-07-24 | Pointer sync — Phase 2.8 Closed                                                   |
 | 1.1    | 2026-07-24 | Pointer sync — Phase 2.7 Closed; Phase 2.8 Integration wave 2 Active              |
 | 1.0    | 2026-07-23 | Formal Phase 2.6 exit; Must+Should+Could Done; pointer → Phase 2.7 Technical Docs |

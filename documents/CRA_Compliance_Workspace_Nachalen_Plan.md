@@ -2,9 +2,9 @@
 
 ## Начален продуктов и технически план за разработка
 
-**Версия на документа:** 1.9  
+**Версия на документа:** 2.0  
 **Дата:** 24 юли 2026 г.  
-**Статус:** MVP 0.1 exited → Phase 2.1–2.7 Closed → Phase 2.8 Active (Must Done; Should Done; Could Done)  
+**Статус:** MVP 0.1 exited → Phase 2.1–2.8 Closed → next: Candidate E polish (или F platform / optional 2.9)  
 **Предназначение:** Работен план за проучване, проектиране и разработване на SaaS/self-hosted система за управление на продуктовата сигурност и подготовката за съответствие с Cyber Resilience Act (CRA).
 
 > **Важно:** Системата не трябва да обещава автоматично или юридически гарантирано съответствие. Тя трябва да организира, автоматизира и документира процесите, решенията и доказателствата, необходими за CRA readiness и conformity assessment.
@@ -1057,7 +1057,7 @@ AI предлага:
 - vulnerability feeds;
 - customer support systems.
 
-> **Статус (2026-07-24):** Active plan (Must/Should/Could frozen) — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) (след Phase 2.7 closeout). Не всички конектори от списъка влизат в Must.
+> **Статус (2026-07-24):** Closed — Must + Should + Could Done — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) + [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Не всички конектори от списъка влизат в Must (container registries / OWASP depth → optional 2.9).
 
 ## Принцип
 
@@ -1267,7 +1267,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ## Задължителни MVP модули
 
-> **Статус (2026-07-24):** MVP 0.1 **Done / exited**. Phase 2.1–2.7 **Closed**. Активен план: [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md).
+> **Статус (2026-07-24):** MVP 0.1 **Done / exited**. Phase 2.1–2.8 **Closed**. Следващо планиране: Candidate E polish (или F platform / optional 2.9) — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md) §8.
 
 1. Organizations и users.
 2. Product register.
@@ -1399,7 +1399,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ### Резултат
 
-MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.7 са **Closed**. Следва [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) (§7 втора вълна).
+MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.8 са **Closed**. Следващо планиране: Candidate E (cross-phase polish) — виж [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md) §8.
 
 > Closeout (Closed): [MVP_Release_Closeout.md](MVP_Release_Closeout.md).
 
@@ -1407,7 +1407,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 
 # 14. Втора фаза
 
-> MVP 0.1 е затворен. Phase 2.1–2.7 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md). Активен: [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md).
+> MVP 0.1 е затворен. Phase 2.1–2.8 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md), [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Следващо: Candidate E polish (или F / optional 2.9).
 
 ## GitHub/GitLab integration
 
@@ -1504,7 +1504,15 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 - scanner / dependency feeds (Snyk, Trivy, Renovate, …) as reviewable drafts;
 - reuse Phase 2.1 connector patterns; no full ALM clone / own scanner engine.
 
-> **Статус:** Active — Must Done; Should Done; Could Done (2026-07-24) — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md); ops: [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md).
+> **Статус:** Closed (2026-07-24) — Must + Should + Could Done — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md); ops: [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md).
+
+## Следващо планиране (след §14)
+
+| Кандидат           | Тема                                                                                         | Източник                  |
+| ------------------ | -------------------------------------------------------------------------------------------- | ------------------------- |
+| **E (препоръчан)** | Cross-phase polish: queue workers, live LLM, merged-PR summary (deferred от 2.1), ops harden | Closeout P1; deferred 2.1 |
+| F                  | Platform / go-to-market: SSO, billing tiers, onboarding услуга                               | §15–§16                   |
+| (опционално) 2.9   | Scanner/registry depth: container registries, OWASP Dependency-Check, SonarQube API          | 2.8 out-of-scope          |
 
 ---
 
@@ -1841,7 +1849,7 @@ https://eur-lex.europa.eu/eli/reg/2024/2847/oj
 - [Phase2_5_Security_Incident_Management.md](Phase2_5_Security_Incident_Management.md) — Closed: Security Incident Management ([Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md));
 - [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md) — Closed: Secure Development Lifecycle ([Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md));
 - [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) — Closed: Technical Documentation (§5.12) — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md);
-- [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Active: Integration wave 2 — Must Done; Should Done; Could 13–17 Done; Could 18 open ([Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md)).
+- [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Closed: Integration wave 2 — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md); ops: [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md).
 
 ---
 

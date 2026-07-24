@@ -192,11 +192,11 @@ Phase 2.7 се счита за готов, когато:
 
 С **§14 Втора фаза** (модулни workspace-и A–C) приключена, следващите кандидати от [Nachalen плана](CRA_Compliance_Workspace_Nachalen_Plan.md):
 
-| Приоритет (предложение) | Кандидат                | Източник в плана                                                                |
-| ----------------------- | ----------------------- | ------------------------------------------------------------------------------- |
-| D → **Active**          | **Integration wave 2**  | §7 втора вълна — [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) |
-| E                       | Cross-phase polish      | Queue workers, live LLM, GitHub merged-PR summary (deferred от 2.1)             |
-| F                       | Platform / go-to-market | SSO, billing tiers, onboarding услуга (§15–§16) — по-късно                      |
+| Приоритет (предложение) | Кандидат                | Източник в плана                                                    |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------- |
+| D → **Closed**          | **Integration wave 2**  | §7 — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)   |
+| E → **препоръчан next** | Cross-phase polish      | Queue workers, live LLM, GitHub merged-PR summary (deferred от 2.1) |
+| F                       | Platform / go-to-market | SSO, billing tiers, onboarding услуга (§15–§16) — по-късно          |
 
 ### Препоръка за Phase 2.8
 
@@ -224,7 +224,9 @@ Phase 2.6 Secure Development Lifecycle — Closed 2026-07-23
     ↓
 Phase 2.7 Technical Documentation — Closed 2026-07-24
     ↓
-Phase 2.8 Integration wave 2 — Active (plan)
+Phase 2.8 Integration wave 2 — Closed 2026-07-24
+    ↓
+Candidate E polish (препоръчан next)
 ```
 
 ---
@@ -233,4 +235,5 @@ Phase 2.8 Integration wave 2 — Active (plan)
 
 | Версия | Дата       | Промяна                                                                               |
 | ------ | ---------- | ------------------------------------------------------------------------------------- |
+| 1.1    | 2026-07-24 | Pointer sync — Phase 2.8 Closed; next → Candidate E polish                            |
 | 1.0    | 2026-07-24 | Formal Phase 2.7 exit; Must+Should+Could Done; pointer → Phase 2.8 Integration wave 2 |

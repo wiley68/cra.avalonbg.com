@@ -1,8 +1,8 @@
 # Phase 2.8 — Integration Wave 2
 
-**Версия:** 0.20  
+**Версия:** 1.0  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must Done; Should Done; Could Done (13–18)
+**Статус:** Closed — Phase 2.8 exited (2026-07-24) → [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md)
 
 **Родителски документи:**
 
@@ -343,6 +343,7 @@ Reuse:
 
 | Версия | Дата       | Промяна                                                                              |
 | ------ | ---------- | ------------------------------------------------------------------------------------ |
+| 1.0    | 2026-07-24 | Closed — Phase 2.8 exited; Must+Should+Could Done → Phase2_8_Release_Closeout.md     |
 | 0.20   | 2026-07-24 | Could 18 Done — auditor Markdown/PDF export of integration sync health               |
 | 0.19   | 2026-07-24 | Could 17 Done — org integrations health DataTable (provider/status/last sync/errors) |
 | 0.18   | 2026-07-24 | Could 16 Done — AI triage summary for pending imported findings (no auto-accept)     |
