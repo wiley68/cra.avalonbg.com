@@ -1,11 +1,12 @@
 # Phase 2_E — Cross-Phase Polish
 
-**Версия:** 0.17  
+**Версия:** 0.18  
 **Дата:** 24 юли 2026 г.  
-**Статус:** Active — Must/Should/Could **complete** (Must 1–6 Done; Should 7–11 Done; Could 12–13+15 Done; Could 14+16 Skipped)  
+**Статус:** Active — Must/Should/Could **complete**; следва [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14 следващо планиране — кандидат E; §15–§16 граница с F)
+- [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (Active — ръчни тестове pre–F)
 - [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md) (Closed — Phase 2.8 exited; §8 препоръка → E)
 - [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md) (Closed — merged-PR summary deferred)
 - [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md) (Must 1–2 — scheduler + queue)
@@ -17,7 +18,7 @@
 
 > **Ред на имплементация (фиксиран):** ops/queue baseline → queue hardening → live LLM → tests → merged-PR summary → audit/RBAC → Should/Could.
 
-> **Граница:** Phase 2.1–2.8 са **Closed**. След **Phase 2_E closeout** продуктът се приема за **готов за вътрешно тестване** (отделен test plan). **Candidate F** (SSO / billing / onboarding) започва **чак след** приключване на вътрешните тестове. След F — окончателни тестове, после deploy / клиенти. Optional **2.9** (scanner depth) остава извън тази вълна.
+> **Граница:** Phase 2.1–2.8 са **Closed**. Must/Should/Could на 2_E са **complete**. Следваща вълна: **вътрешно ръчно тестване** — [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). **Candidate F** (SSO / billing / onboarding) започва **чак след** exit на internal tests. След F — окончателни тестове, после deploy / клиенти. Optional **2.9** (scanner depth) остава извън тази вълна.
 
 ---
 
@@ -34,20 +35,20 @@
 
 ## 2. Scope freeze (решения)
 
-| Решение                 | Избор за Phase 2_E (frozen)                                                  | Алтернатива (Should/Could / по-късно)                 |
-| ----------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Фокус                   | **Polish / ops / deferred 2.1** — не нова §14 domain вълна                   | Candidate F / Phase 2.9                               |
-| Queue                   | Document + verify `queue:work` + scheduler path (`ops:baseline-check`)       | ~~Supervisor/systemd unit templates~~ (Could 13 Done) |
-| LLM                     | Enable/harden **existing** providers (`openai`/`anthropic`)                  | New providers / fine-tuning (out)                     |
-| Live LLM surfaces       | **Imported-finding triage + vulnerability triage** (Must)                    | USI/incident/tech-doc drafts (as-is config)           |
-| Merged-PR summary       | **GitHub + GitLab**; panel на **Product Version** show                       | AI summary (Could)                                    |
-| Release window          | `released_at` ± **14 дни**; ако няма `released_at` → last **30** дни         | Manual date range (out of Must)                       |
-| Cache                   | **On-demand** + short HTTP/response cache (~15 min)                          | Nightly DB snapshot (out of Must)                     |
-| Auto-create entities    | **Не** — summary е informational / optional evidence ref (Should)            | Auto Task/Evidence create (out)                       |
-| UX debt pack (Could 16) | **Празен** при freeze — само P0 открити по време на 2_E → **Skipped (none)** | Отделен backlog след internal test                    |
-| SSO / billing           | **Out** → Candidate F (след internal test plan)                              | —                                                     |
-| New scanners            | **Out** → optional 2.9                                                       | —                                                     |
-| Post-2_E                | **Internal testing plan** → F → final tests → deploy                         | —                                                     |
+| Решение                 | Избор за Phase 2_E (frozen)                                                                 | Алтернатива (Should/Could / по-късно)                 |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Фокус                   | **Polish / ops / deferred 2.1** — не нова §14 domain вълна                                  | Candidate F / Phase 2.9                               |
+| Queue                   | Document + verify `queue:work` + scheduler path (`ops:baseline-check`)                      | ~~Supervisor/systemd unit templates~~ (Could 13 Done) |
+| LLM                     | Enable/harden **existing** providers (`openai`/`anthropic`)                                 | New providers / fine-tuning (out)                     |
+| Live LLM surfaces       | **Imported-finding triage + vulnerability triage** (Must)                                   | USI/incident/tech-doc drafts (as-is config)           |
+| Merged-PR summary       | **GitHub + GitLab**; panel на **Product Version** show                                      | AI summary (Could)                                    |
+| Release window          | `released_at` ± **14 дни**; ако няма `released_at` → last **30** дни                        | Manual date range (out of Must)                       |
+| Cache                   | **On-demand** + short HTTP/response cache (~15 min)                                         | Nightly DB snapshot (out of Must)                     |
+| Auto-create entities    | **Не** — summary е informational / optional evidence ref (Should)                           | Auto Task/Evidence create (out)                       |
+| UX debt pack (Could 16) | **Празен** при freeze — само P0 открити по време на 2_E → **Skipped (none)**                | Отделен backlog след internal test                    |
+| SSO / billing           | **Out** → Candidate F (след internal test plan)                                             | —                                                     |
+| New scanners            | **Out** → optional 2.9                                                                      | —                                                     |
+| Post-2_E                | **[Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md)** → F → final tests → deploy | —                                                     |
 
 ---
 
@@ -207,15 +208,16 @@ Phase 2_E Must: queue/ops → live LLM → merged-PR summary → tests/audit
         ↓
 Should / Could
         ↓
-Phase 2_E Release closeout  →  продукт готов за вътрешно тестване
+Phase 2_E Must/Should/Could complete
         ↓
-Internal testing plan (множество тестове)
+[Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (ръчни тестове; Active)
         ↓
 Candidate F: SSO / billing / onboarding
         ↓
 Окончателни тестове → deploy / клиенти
 ```
 
+Формален Phase 2_E Release closeout документ може да се добави отделно; slices вече са complete.
 ---
 
 ## 12. Тестове (план)
@@ -258,6 +260,7 @@ Candidate F: SSO / billing / onboarding
 
 | Версия | Дата       | Промяна                                                                  |
 | ------ | ---------- | ------------------------------------------------------------------------ |
+| 0.18   | 2026-07-24 | Pointer → Internal_Manual_Test_Plan (Active pre–F); slices complete      |
 | 0.17   | 2026-07-24 | Could 16 Skipped/empty — no P0 UX debt during 2_E; Could slice complete  |
 | 0.16   | 2026-07-24 | Could 15 Done — scheduled RAG reindex (`ai:index-embeddings`) + ops note |
 | 0.15   | 2026-07-24 | Could 14 Skipped — Horizon/failed-jobs UI (database queue; Must 2 OK)    |

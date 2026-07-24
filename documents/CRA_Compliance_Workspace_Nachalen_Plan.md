@@ -1267,7 +1267,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ## Задължителни MVP модули
 
-> **Статус (2026-07-24):** MVP 0.1 **Done / exited**. Phase 2.1–2.8 **Closed**. Активен план: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md).
+> **Статус (2026-07-24):** MVP 0.1 **Done / exited**. Phase 2.1–2.8 **Closed**. Phase 2_E slices **complete**. **Активен:** [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md).
 
 1. Organizations и users.
 2. Product register.
@@ -1399,7 +1399,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ### Резултат
 
-MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.8 са **Closed**. Активен: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md).
+MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.8 са **Closed**. Phase 2_E Must/Should/Could **complete** — [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). **Активен следващ план:** [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (ръчни тестове → help + Show wizard вход). Candidate F — след exit на internal tests.
 
 > Closeout (Closed): [MVP_Release_Closeout.md](MVP_Release_Closeout.md).
 
@@ -1407,7 +1407,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 
 # 14. Втора фаза
 
-> MVP 0.1 е затворен. Phase 2.1–2.8 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md), [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Активен: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md).
+> MVP 0.1 е затворен. Phase 2.1–2.8 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md), [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Phase 2_E slices **complete**: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). **Активен:** [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). F — след internal test exit.
 
 ## GitHub/GitLab integration
 
@@ -1508,11 +1508,12 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 
 ## Следващо планиране (след §14)
 
-| Кандидат         | Тема                                                                                         | Източник                                                         |
-| ---------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **E → Active**   | Cross-phase polish: queue workers, live LLM, merged-PR summary (deferred от 2.1), ops harden | [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) |
-| F                | Platform / go-to-market: SSO, billing tiers, onboarding услуга                               | §15–§16                                                          |
-| (опционално) 2.9 | Scanner/registry depth: container registries, OWASP Dependency-Check, SonarQube API          | 2.8 out-of-scope                                                 |
+| Кандидат                    | Тема                                                                                         | Източник                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **E**                       | Cross-phase polish: queue workers, live LLM, merged-PR summary, ops harden                   | [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Must/Should/Could **complete** |
+| **Internal tests → Active** | Ръчни тестове с реални продукти; help path; вход за Product Show wizard                      | [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md)                                      |
+| F                           | Platform / go-to-market: SSO, billing tiers, onboarding услуга (**след** internal test exit) | §15–§16                                                                                           |
+| (опционално) 2.9            | Scanner/registry depth: container registries, OWASP Dependency-Check, SonarQube API          | 2.8 out-of-scope                                                                                  |
 
 ---
 
