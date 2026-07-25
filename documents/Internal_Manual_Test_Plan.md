@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 0.8  
+**Версия:** 0.9  
 **Дата:** 25 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -112,7 +112,7 @@ Wizard notes: W-…
 | **3**  | **Classification**                                                                                        | Product Edit → classification wizard               | Classification status + review                                                             | **Done** (2026-07-25) | След scope                                                             |
 | **4**  | **Versions**                                                                                              | Product → Versions                                 | ≥1 version; release_date когато е release                                                  | **Done** (2026-07-25) | Котва за support / SBOM / SDL                                          |
 | **5**  | **Support periods**                                                                                       | Support periods                                    | Период(и) вързани към версия/продукт                                                       | **Done** (2026-07-25) | Паралелно след versions OK                                             |
-| **6**  | **VCS / Integrations** (по желание рано)                                                                  | Settings Integrations → Product Edit links         | Active connector + product link; Sync now                                                  | Open                  | Може и по-късно; рано помага за SBOM/vuln drafts                       |
+| **6**  | **VCS / Integrations** (по желание рано)                                                                  | Settings Integrations → Product Edit links         | Active connector + product link; Sync now                                                  | **Done** (2026-07-25) | Покрито при A_1: GitHub, Jira, SARIF upload                            |
 | **7**  | **Components / SBOM**                                                                                     | Components → import                                | Inventory + import checksum/evidence                                                       | Open                  | Преди vulns по възможност                                              |
 | **8**  | **Risks**                                                                                                 | Risks                                              | Рискове + treatment                                                                        | Open                  | Храни controls / readiness                                             |
 | **9**  | **Requirements**                                                                                          | Requirements                                       | Релевантни CRA requirements                                                                | Open                  | Каталог → product matrix                                               |
@@ -171,9 +171,9 @@ Wizard notes: W-…
       ↓
 [4 Versions] ✅ → [5 Support] ✅
       ↓
-[6 VCS/Integrations] ──┐
-      ↓                │
-[7 SBOM/Components] ←──┘
+[6 VCS/Integrations] ✅ ──┐
+      ↓                   │
+[7 SBOM/Components] ←─────┘
       ↓
 [8 Risks] → [9 Requirements] → [10 Controls assign] → [11 Evidence] → [12 Tasks]
       ↓
@@ -424,6 +424,7 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-25** — Spine **A_6** (VCS / Integrations): **Done**. Покрито още при **A_1** (Product Create/Edit): GitHub, Jira, SARIF upload — connectors + product links + sync/upload. Следваща: стъпка **7** (Components / SBOM).
 - **2026-07-25** — Spine **A_5** (Support periods): **Done**. Тестове преминати; всичко работи добре. Следваща: стъпка **6** (VCS / Integrations).
 - **2026-07-25** — Spine **A_4** (Versions): **Done**. Тестове преминати; UX корекция на confirm за „Запиши като доказателство“ (Запиши / default). Следваща: стъпка **5** (Support periods).
 - **2026-07-25** — Spine **A_3** (Classification): **Done**. Classification wizard тестван; промените са отразени.
@@ -447,6 +448,7 @@ UI идея (карта / стъпка / timeline): …
 - Стъпка 3 (Classification) Done — следва Versions.
 - Стъпка 4 (Versions) Done — следва Support periods.
 - Стъпка 5 (Support periods) Done — следва VCS / Integrations.
+- Стъпка 6 (VCS / Integrations) Done — покрито при A_1 (GitHub, Jira, SARIF); следва Components / SBOM.
 - …
 
 ### P0/P1 triage queue
@@ -472,6 +474,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 0.9    | 2026-07-25 | Spine стъпка **6** (VCS / Integrations) → **Done** (покрито при A_1: GitHub, Jira, SARIF)                 |
 | 0.8    | 2026-07-25 | Spine стъпка **5** (Support periods) → **Done**                                                           |
 | 0.7    | 2026-07-25 | Spine стъпка **4** (Versions) → **Done**                                                                  |
 | 0.6    | 2026-07-25 | Spine стъпка **3** (Classification) → **Done**                                                            |
