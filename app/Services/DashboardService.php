@@ -36,6 +36,8 @@ class DashboardService
 
     private const RECENT_PRODUCTS_LIMIT = 3;
 
+    private const RECENT_RISKS_LIMIT = 3;
+
     public function __construct(
         private readonly ProductReadinessService $readiness,
     ) {
@@ -75,6 +77,7 @@ class DashboardService
             ],
             'recent_products' => [],
             'recent_open_tasks' => [],
+            'recent_risks' => [],
             'actions' => [
                 [
                     'key' => 'manage_organizations',
@@ -98,6 +101,7 @@ class DashboardService
             'counts' => [],
             'recent_products' => [],
             'recent_open_tasks' => [],
+            'recent_risks' => [],
             'actions' => [],
         ];
     }
@@ -236,6 +240,7 @@ class DashboardService
                 ],
                 $recentOpenTasks,
             ),
+            'recent_risks' => $this->recentRisks($productIds),
             'actions' => $actions,
         ];
     }
@@ -499,6 +504,33 @@ class DashboardService
                 ProductVersionState::ReleaseCandidate->value,
             ])
             ->count();
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @return list<array{id: int, title: string, href: string}>
+     */
+    private function recentRisks(Collection $productIds): array
+    {
+        if ($productIds->isEmpty()) {
+            return [];
+        }
+
+        return ProductRisk::query()
+            ->whereIn('product_id', $productIds)
+            ->orderByDesc('id')
+            ->limit(self::RECENT_RISKS_LIMIT)
+            ->get(['id', 'title', 'product_id'])
+            ->map(fn(ProductRisk $risk): array => [
+                'id' => $risk->id,
+                'title' => $risk->title,
+                'href' => route('products.risks.edit', [
+                    $risk->product_id,
+                    $risk->id,
+                ]),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

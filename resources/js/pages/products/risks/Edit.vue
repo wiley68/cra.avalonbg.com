@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useRiskEditBack } from '@/composables/useRiskEditBack';
 import { index as productRisksIndex, update } from '@/routes/products/risks';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { edit as productRisksEdit } from '@/routes/products/risks';
@@ -72,6 +73,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useRiskEditBack(props.product.id, props.risk.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -200,7 +202,7 @@ const textareaClass =
                 </h1>
             </div>
             <Button as-child variant="outline">
-                <Link :href="productRisksIndex(props.product.id)">
+                <Link :href="backHref">
                     <ArrowLeft class="h-4 w-4" />
                     {{ t('common.back') }}
                 </Link>

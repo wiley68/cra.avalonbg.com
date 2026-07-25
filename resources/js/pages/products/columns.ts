@@ -59,12 +59,12 @@ export type ProductModuleKey =
     | 'risks'
     | 'requirements'
     | 'controls'
+    | 'evidence'
     | 'deployments'
     | 'campaigns'
     | 'vulnerabilities'
     | 'incidents'
     | 'sdl'
-    | 'evidence'
     | 'tasks'
     | 'passport'
     | 'readiness'
@@ -146,6 +146,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_controls',
     },
     {
+        key: 'evidence',
+        labelKey: 'products.evidence_link',
+        descriptionKey: 'products.modules.evidence.description',
+        icon: FileCheck,
+        href: (productId) => productEvidenceIndex(productId).url,
+        canViewFlag: 'can_view_evidence',
+    },
+    {
         key: 'deployments',
         labelKey: 'products.deployments_link',
         descriptionKey: 'products.modules.deployments.description',
@@ -184,14 +192,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Workflow,
         href: (productId) => productSdlIndex(productId).url,
         canViewFlag: 'can_view_sdl',
-    },
-    {
-        key: 'evidence',
-        labelKey: 'products.evidence_link',
-        descriptionKey: 'products.modules.evidence.description',
-        icon: FileCheck,
-        href: (productId) => productEvidenceIndex(productId).url,
-        canViewFlag: 'can_view_evidence',
     },
     {
         key: 'tasks',

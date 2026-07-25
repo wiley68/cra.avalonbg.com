@@ -4,6 +4,7 @@ import {
     syncThemeFromPageProps,
 } from '@/composables/useAppearance';
 import { initializeProductEditReturnTracking } from '@/composables/useProductEditBack';
+import { initializeRiskEditReturnTracking } from '@/composables/useRiskEditBack';
 import { initializeTaskEditReturnTracking } from '@/composables/useTaskEditBack';
 import { ensureTranslations, localeFromHtml } from '@/i18n/catalog';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -57,6 +58,7 @@ async function boot(): Promise<void> {
     initializeFlashToast();
     initializeProductEditReturnTracking();
     initializeTaskEditReturnTracking();
+    initializeRiskEditReturnTracking();
 }
 
 void boot();

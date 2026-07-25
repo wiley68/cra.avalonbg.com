@@ -4,7 +4,12 @@ use App\Enums\ClassificationStatus;
 use App\Enums\IncidentSeverity;
 use App\Enums\IncidentStatus;
 use App\Enums\LicensingModel;
+use App\Enums\ProductRiskStatus;
 use App\Enums\ProductType;
+use App\Enums\RiskCategory;
+use App\Enums\RiskImpact;
+use App\Enums\RiskLikelihood;
+use App\Enums\RiskTreatment;
 use App\Enums\ScopeStatus;
 use App\Enums\TaskApprovalStatus;
 use App\Enums\TaskPriority;
@@ -12,6 +17,7 @@ use App\Enums\TaskStatus;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
+use App\Models\ProductRisk;
 use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
@@ -66,6 +72,7 @@ test('authenticated organization owner sees action dashboard', function () {
                 ->has('counts')
                 ->has('recent_products')
                 ->has('recent_open_tasks')
+                ->has('recent_risks')
                 ->etc()));
 });
 
@@ -262,6 +269,76 @@ test('open tasks action links to tasks index and previews up to three tasks', fu
 
                 return true;
             }));
+});
+
+test('organization dashboard includes latest three risks with edit links', function () {
+    test()->seed([RolePermissionSeeder::class]);
+
+    $organization = Organization::query()->create([
+        'name' => 'Acme Soft',
+        'slug' => 'acme-soft-risks',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'two_factor_confirmed_at' => now(),
+        'must_change_password' => false,
+    ]);
+
+    $ownerRole = Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($user->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Gateway',
+        'slug' => 'gateway-risks',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => true,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+        'scope_reviewed_at' => now(),
+        'scope_reviewed_by' => $user->id,
+        'classification_reviewed_at' => now(),
+        'classification_reviewed_by' => $user->id,
+    ]);
+
+    foreach (['Risk A', 'Risk B', 'Risk C', 'Risk D'] as $title) {
+        ProductRisk::query()->create([
+            'product_id' => $product->id,
+            'title' => $title,
+            'category' => RiskCategory::UnauthorisedAccess,
+            'likelihood' => RiskLikelihood::Medium,
+            'impact' => RiskImpact::Medium,
+            'treatment' => RiskTreatment::Mitigate,
+            'status' => ProductRiskStatus::Open,
+        ]);
+    }
+
+    $newestTitle = 'Risk D';
+    $newestId = ProductRisk::query()->where('title', $newestTitle)->value('id');
+    $expectedHref = route('products.risks.edit', [
+        $product->id,
+        $newestId,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('dashboard.counts.risks', 4)
+            ->has('dashboard.recent_risks', 3)
+            ->where('dashboard.recent_risks.0.id', $newestId)
+            ->where('dashboard.recent_risks.0.title', $newestTitle)
+            ->where('dashboard.recent_risks.0.href', $expectedHref));
 });
 
 test('dashboard counts open and unclassified security incidents', function () {
