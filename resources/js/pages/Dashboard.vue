@@ -34,11 +34,18 @@ type RecentProduct = {
     href: string;
 };
 
+type RecentOpenTask = {
+    id: number;
+    title: string;
+    href: string;
+};
+
 type DashboardPayload = {
     mode: 'platform' | 'organization' | 'empty';
     organization: { id: number; name: string; slug: string } | null;
     counts: Record<string, number>;
     recent_products?: RecentProduct[];
+    recent_open_tasks?: RecentOpenTask[];
     actions: DashboardAction[];
 };
 
@@ -160,9 +167,33 @@ const severityClass = (severity: string): string => {
                 <p class="text-sm text-muted-foreground">
                     {{ t('dashboard.counts.open_tasks') }}
                 </p>
-                <p class="text-2xl font-semibold">
-                    {{ dashboard.counts.open_tasks ?? 0 }}
-                </p>
+                <div class="mt-1 flex items-start gap-4">
+                    <p class="shrink-0 text-2xl font-semibold">
+                        {{ dashboard.counts.open_tasks ?? 0 }}
+                    </p>
+                    <ul
+                        v-if="(dashboard.recent_open_tasks ?? []).length > 0"
+                        class="min-w-0 flex-1 space-y-1 border-l pl-4"
+                    >
+                        <li
+                            v-for="task in dashboard.recent_open_tasks ?? []"
+                            :key="task.id"
+                            class="flex min-w-0 items-baseline gap-2 text-sm"
+                        >
+                            <span
+                                class="shrink-0 font-mono text-muted-foreground"
+                                >{{ task.id }}</span
+                            >
+                            <Link
+                                :href="task.href"
+                                class="truncate font-medium underline-offset-4 hover:underline"
+                                :title="task.title"
+                            >
+                                {{ task.title }}
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">

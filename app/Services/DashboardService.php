@@ -74,6 +74,7 @@ class DashboardService
                 'products' => Product::query()->count(),
             ],
             'recent_products' => [],
+            'recent_open_tasks' => [],
             'actions' => [
                 [
                     'key' => 'manage_organizations',
@@ -96,6 +97,7 @@ class DashboardService
             'organization' => null,
             'counts' => [],
             'recent_products' => [],
+            'recent_open_tasks' => [],
             'actions' => [],
         ];
     }
@@ -116,7 +118,8 @@ class DashboardService
         $risksCount = ProductRisk::query()->whereIn('product_id', $productIds)->count();
         $openIncidents = $this->openIncidentCount($productIds);
         $unclassifiedIncidents = $this->unclassifiedIncidentCount($productIds);
-        $openTasksAction = $this->openTasksAction($productIds);
+        $recentOpenTasks = $this->recentOpenTasks($productIds);
+        $openTasksAction = $this->openTasksAction($productIds, $recentOpenTasks);
         $supportBuckets = $this->supportEndingBuckets($productIds);
         $sdlPendingMonitoring = $this->sdlPendingMonitoringCount($organization);
         $sdlApproved = $this->sdlApprovedCount($organization);
@@ -225,6 +228,14 @@ class DashboardService
                 'failed_integration_syncs' => $failedIntegrationSyncs,
             ],
             'recent_products' => $this->recentProducts($organization),
+            'recent_open_tasks' => array_map(
+                static fn(array $task): array => [
+                    'id' => $task['id'],
+                    'title' => $task['title'],
+                    'href' => $task['href'],
+                ],
+                $recentOpenTasks,
+            ),
             'actions' => $actions,
         ];
     }
@@ -492,32 +503,60 @@ class DashboardService
 
     /**
      * @param  Collection<int, int|string>  $productIds
-     * @return array<string, mixed>|null
+     * @return list<array{id: int, title: string, href: string, product_id: int}>
      */
-    private function openTasksAction(Collection $productIds): ?array
+    private function recentOpenTasks(Collection $productIds): array
     {
-        $openTasksQuery = Task::query()
+        if ($productIds->isEmpty()) {
+            return [];
+        }
+
+        return Task::query()
             ->whereIn('product_id', $productIds)
             ->whereIn('status', [
                 TaskStatus::Open->value,
                 TaskStatus::InProgress->value,
                 TaskStatus::PendingApproval->value,
-            ]);
+            ])
+            ->orderByRaw('due_at is null')
+            ->orderBy('due_at')
+            ->orderBy('id')
+            ->limit(self::OPEN_TASKS_PREVIEW_LIMIT)
+            ->get(['id', 'title', 'product_id'])
+            ->map(fn(Task $task): array => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'href' => route('products.tasks.edit', [
+                    $task->product_id,
+                    $task->id,
+                ]),
+                'product_id' => $task->product_id,
+            ])
+            ->values()
+            ->all();
+    }
 
-        $openTasks = (clone $openTasksQuery)->count();
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @param  list<array{id: int, title: string, href: string, product_id: int}>  $previewTasks
+     * @return array<string, mixed>|null
+     */
+    private function openTasksAction(Collection $productIds, array $previewTasks): ?array
+    {
+        $openTasks = Task::query()
+            ->whereIn('product_id', $productIds)
+            ->whereIn('status', [
+                TaskStatus::Open->value,
+                TaskStatus::InProgress->value,
+                TaskStatus::PendingApproval->value,
+            ])
+            ->count();
 
         if ($openTasks <= 0) {
             return null;
         }
 
-        $previewTasks = (clone $openTasksQuery)
-            ->orderByRaw('due_at is null')
-            ->orderBy('due_at')
-            ->orderBy('id')
-            ->limit(self::OPEN_TASKS_PREVIEW_LIMIT)
-            ->get(['id', 'title', 'product_id']);
-
-        $primaryProductId = $previewTasks->first()?->product_id;
+        $primaryProductId = $previewTasks[0]['product_id'] ?? null;
 
         return [
             'key' => 'open_tasks',
@@ -527,17 +566,14 @@ class DashboardService
             'href' => $primaryProductId !== null
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
-            'items' => $previewTasks
-                ->map(fn(Task $task): array => [
-                    'id' => $task->id,
-                    'title' => $task->title,
-                    'href' => route('products.tasks.edit', [
-                        $task->product_id,
-                        $task->id,
-                    ]),
-                ])
-                ->values()
-                ->all(),
+            'items' => array_map(
+                static fn(array $task): array => [
+                    'id' => $task['id'],
+                    'title' => $task['title'],
+                    'href' => $task['href'],
+                ],
+                $previewTasks,
+            ),
         ];
     }
 

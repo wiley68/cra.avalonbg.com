@@ -65,6 +65,7 @@ test('authenticated organization owner sees action dashboard', function () {
                 ->has('actions')
                 ->has('counts')
                 ->has('recent_products')
+                ->has('recent_open_tasks')
                 ->etc()));
 });
 
@@ -231,7 +232,12 @@ test('open tasks action links to tasks index and previews up to three tasks', fu
         ]);
     }
 
-    $firstTaskId = Task::query()->where('title', 'Fix auth')->value('id');
+    $expectedTitle = 'Fix auth';
+    $firstTaskId = Task::query()->where('title', $expectedTitle)->value('id');
+    $expectedHref = route('products.tasks.edit', [
+        $product->id,
+        $firstTaskId,
+    ]);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
@@ -239,19 +245,20 @@ test('open tasks action links to tasks index and previews up to three tasks', fu
         ->assertInertia(fn(Assert $page) => $page
             ->component('Dashboard')
             ->where('dashboard.counts.open_tasks', 4)
+            ->has('dashboard.recent_open_tasks', 3)
+            ->where('dashboard.recent_open_tasks.0.id', $firstTaskId)
+            ->where('dashboard.recent_open_tasks.0.title', $expectedTitle)
+            ->where('dashboard.recent_open_tasks.0.href', $expectedHref)
             ->has('dashboard.actions')
-            ->where('dashboard.actions', function ($actions) use ($product, $firstTaskId): bool {
+            ->where('dashboard.actions', function ($actions) use ($product, $firstTaskId, $expectedTitle, $expectedHref): bool {
                 $openTasks = collect($actions)->firstWhere('key', 'open_tasks');
 
                 expect($openTasks)->not->toBeNull()
                     ->and($openTasks['count'])->toBe(4)
                     ->and($openTasks['href'])->toBe(route('products.tasks.index', $product))
                     ->and($openTasks['items'])->toHaveCount(3)
-                    ->and($openTasks['items'][0]['title'])->toBe('Fix auth')
-                    ->and($openTasks['items'][0]['href'])->toBe(route('products.tasks.edit', [
-                                $product->id,
-                                $firstTaskId,
-                            ]));
+                    ->and($openTasks['items'][0]['title'])->toBe($expectedTitle)
+                    ->and($openTasks['items'][0]['href'])->toBe($expectedHref);
 
                 return true;
             }));
