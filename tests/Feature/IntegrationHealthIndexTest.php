@@ -259,8 +259,28 @@ test('owner can open integration health shell without list props', function () {
             ->component('integrations/Health')
             ->where('organization.id', $organization->id)
             ->where('canManage', true)
+            ->where('backUrl', route('settings.integrations.edit', absolute: false))
             ->missing('rows')
             ->missing('data'));
+});
+
+test('integration health backUrl uses safe from query', function () {
+    ['owner' => $owner] = makeIntegrationHealthFixture();
+
+    $from = '/settings/profile';
+
+    $this->actingAs($owner)
+        ->get(route('integrations.health.index', ['from' => $from]))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->component('integrations/Health')
+            ->where('backUrl', $from));
+
+    $this->actingAs($owner)
+        ->get(route('integrations.health.index', ['from' => 'https://evil.example/phish']))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->where('backUrl', route('settings.integrations.edit', absolute: false)));
 });
 
 test('viewer can open integration health shell', function () {

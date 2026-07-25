@@ -533,7 +533,13 @@ const confirmDisconnect = () => {
                 :description="t('settings.integrations.description')"
             />
             <Button variant="outline" size="sm" as-child>
-                <Link :href="integrationHealthIndex()">
+                <Link
+                    :href="
+                        integrationHealthIndex({
+                            query: { from: edit().url },
+                        })
+                    "
+                >
                     <Activity class="h-4 w-4" />
                     {{ t('settings.integrations.health_link') }}
                 </Link>

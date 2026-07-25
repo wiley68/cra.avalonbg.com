@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { FileDown } from '@lucide/vue';
+import { ArrowLeft, FileDown } from '@lucide/vue';
 import type { SortingState } from '@tanstack/vue-table';
 import { computed, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
@@ -36,6 +36,7 @@ const props = defineProps<{
     organization: OrganizationSummary;
     canManage: boolean;
     opsQueueHint: OpsQueueHint | null;
+    backUrl: string;
 }>();
 
 const { t } = useTranslations();
@@ -110,7 +111,7 @@ onMounted(() => {
 
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
-            <div>
+            <div class="min-w-0">
                 <h1 class="text-xl font-semibold">
                     {{ t('integrations.health.title') }}
                 </h1>
@@ -136,6 +137,12 @@ onMounted(() => {
                 <Button variant="outline" as-child>
                     <Link :href="editIntegrations()">
                         {{ t('integrations.health.open_settings') }}
+                    </Link>
+                </Button>
+                <Button variant="outline" as-child>
+                    <Link :href="backUrl">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
                     </Link>
                 </Button>
             </div>

@@ -46,7 +46,9 @@ const sidebarNavItems = computed<NavItem[]>(() => {
             },
             {
                 title: t('settings.nav.integration_health'),
-                href: integrationHealthIndex(),
+                href: integrationHealthIndex({
+                    query: { from: page.url },
+                }),
             },
         );
     }

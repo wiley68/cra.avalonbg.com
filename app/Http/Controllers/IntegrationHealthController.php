@@ -35,6 +35,7 @@ class IntegrationHealthController extends Controller
             'organization' => $this->organizationPayload($organization),
             'canManage' => $user->canManageProducts($organization),
             'opsQueueHint' => $this->opsQueueHints->hintForOrganization($organization),
+            'backUrl' => $this->resolveBackUrl($request->string('from')->toString()),
         ]);
     }
 
@@ -64,5 +65,29 @@ class IntegrationHealthController extends Controller
             'name' => $organization->name,
             'slug' => $organization->slug,
         ];
+    }
+
+    /**
+     * Safe relative return path for the Back button (prevents open redirects).
+     */
+    private function resolveBackUrl(string $from): string
+    {
+        $default = route('settings.integrations.edit', absolute: false);
+
+        if ($from === '') {
+            return $default;
+        }
+
+        if (!str_starts_with($from, '/') || str_starts_with($from, '//') || str_contains($from, '\\')) {
+            return $default;
+        }
+
+        $path = parse_url($from, PHP_URL_PATH);
+
+        if (!is_string($path) || $path === '' || str_starts_with($path, '/integrations/health')) {
+            return $default;
+        }
+
+        return $from;
     }
 }

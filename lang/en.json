@@ -511,17 +511,25 @@
             "medium": "Medium",
             "high": "High"
         },
-        "import": "Import CSV",
         "import_title": "Import customers",
         "import_subtitle": "Bulk create or update customers from a CSV file",
-        "import_submit": "Import CSV",
-        "download_template": "Download CSV template",
-        "columns_hint": "Required column: name. Optional: external_ref, primary_contact, criticality (low|medium|high), notes, is_active (1/0). Existing rows match by external_ref or name.",
-        "completed": "Import finished: :created created, :updated updated, :skipped skipped, :errors row errors.",
-        "all_rows_failed": "No rows could be imported. Check the CSV format and values.",
-        "missing_name_column": "The CSV must include a name column.",
-        "missing_name": "Customer name is required.",
-        "invalid_criticality": "Criticality must be low, medium, or high."
+        "import": {
+            "button": "Import CSV",
+            "submit": "Import CSV",
+            "download_template": "Download CSV template",
+            "columns_hint": "Required column: name. Optional: external_ref, primary_contact, criticality (low|medium|high), notes, is_active (1/0). Existing rows match by external_ref or name.",
+            "fields": {
+                "file": "CSV file"
+            },
+            "help": {
+                "file": "UTF-8 CSV with comma separator. First row must be column headers."
+            },
+            "completed": "Import finished: :created created, :updated updated, :skipped skipped, :errors row errors.",
+            "all_rows_failed": "No rows could be imported. Check the CSV format and values.",
+            "missing_name_column": "The CSV must include a name column.",
+            "missing_name": "Customer name is required.",
+            "invalid_criticality": "Criticality must be low, medium, or high."
+        }
     },
     "auditor": {
         "index_title": "Auditor reviews",

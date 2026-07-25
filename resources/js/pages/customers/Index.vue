@@ -150,7 +150,7 @@ onMounted(() => {
                         class="inline-flex items-center gap-2"
                     >
                         <Upload class="h-4 w-4" />
-                        {{ t('customers.import') }}
+                        {{ t('customers.import.button') }}
                     </Link>
                 </Button>
                 <Button as-child>
