@@ -5,6 +5,7 @@ import {
     Check,
     ClipboardList,
     GitBranch,
+    Menu,
     RefreshCw,
     Save,
     Tags,
@@ -59,7 +60,6 @@ import {
     accept as acceptImportSuggestion,
     dismiss as dismissImportSuggestion,
 } from '@/routes/products/import-suggestions';
-import { edit as editIntegrations } from '@/routes/settings/integrations';
 
 type Member = {
     id: number;
@@ -820,8 +820,9 @@ const textareaClass =
             <div class="flex items-center gap-2">
                 <TableRowActionsMenu
                     :actions="moduleActions"
-                    :label="t('common.manage')"
-                    :trigger-text="t('common.manage')"
+                    :label="t('products.modules_menu')"
+                    :trigger-text="t('products.modules_menu')"
+                    :trigger-icon="Menu"
                     trigger-variant="outline"
                 />
                 <Button as-child variant="outline">
@@ -835,9 +836,7 @@ const textareaClass =
 
         <form class="space-y-8 rounded-lg border p-6" @submit.prevent="submit">
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.identity') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -967,9 +966,7 @@ const textareaClass =
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.technical') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -1017,9 +1014,7 @@ const textareaClass =
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.support') }}
                 </h2>
                 <div class="grid gap-4">
@@ -1064,9 +1059,7 @@ const textareaClass =
 
             <section class="space-y-4">
                 <div class="flex items-center justify-between gap-3">
-                    <h2
-                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                    >
+                    <h2 class="section-heading">
                         {{ t('products.sections.scope') }}
                     </h2>
                     <Button
@@ -1158,9 +1151,7 @@ const textareaClass =
 
             <section class="space-y-4">
                 <div class="flex items-center justify-between gap-3">
-                    <h2
-                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                    >
+                    <h2 class="section-heading">
                         {{ t('products.sections.classification') }}
                     </h2>
                     <Button
@@ -1287,9 +1278,7 @@ const textareaClass =
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.contacts') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -1364,7 +1353,10 @@ const textareaClass =
             </div>
         </form>
 
-        <section class="space-y-4 rounded-lg border p-6">
+        <section
+            v-if="activeVcsConnections.length > 0"
+            class="space-y-4 rounded-lg border p-6"
+        >
             <h2
                 class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
@@ -1511,7 +1503,8 @@ const textareaClass =
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="showUnlinkRepositoryDialog = true"
                         >
                             <Trash2 class="h-4 w-4" />
@@ -1610,6 +1603,7 @@ const textareaClass =
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button
+                                    variant="outline"
                                     type="button"
                                     size="sm"
                                     :disabled="
@@ -1657,19 +1651,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <div
-                v-if="activeVcsConnections.length === 0"
-                class="space-y-2 text-sm text-muted-foreground"
-            >
-                <p>{{ t('products.repository.no_connection') }}</p>
-                <Button type="button" variant="outline" as-child>
-                    <Link :href="editIntegrations()">
-                        {{ t('products.repository.open_integrations') }}
-                    </Link>
-                </Button>
-            </div>
-
-            <form v-else class="space-y-4" @submit.prevent="linkRepository">
+            <form class="space-y-4" @submit.prevent="linkRepository">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2">
                         <FieldLabel
@@ -1720,6 +1702,7 @@ const textareaClass =
                     </div>
                 </div>
                 <Button
+                    variant="outline"
                     type="submit"
                     :disabled="repositoryForm.processing"
                     data-test="link-repository-button"
@@ -1734,7 +1717,7 @@ const textareaClass =
             </form>
         </section>
 
-        <section class="space-y-4 rounded-lg border p-6">
+        <section v-if="jiraConnected" class="space-y-4 rounded-lg border p-6">
             <h2
                 class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
@@ -1863,7 +1846,8 @@ const textareaClass =
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="showUnlinkJiraDialog = true"
                         >
                             <Trash2 class="h-4 w-4" />
@@ -1940,6 +1924,7 @@ const textareaClass =
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button
+                                    variant="outline"
                                     type="button"
                                     size="sm"
                                     :disabled="
@@ -1988,19 +1973,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <div
-                v-if="!jiraConnected"
-                class="space-y-2 text-sm text-muted-foreground"
-            >
-                <p>{{ t('products.integrations.jira.no_connection') }}</p>
-                <Button type="button" variant="outline" as-child>
-                    <Link :href="editIntegrations()">
-                        {{ t('products.integrations.jira.open_integrations') }}
-                    </Link>
-                </Button>
-            </div>
-
-            <form v-else class="space-y-4" @submit.prevent="linkJiraProject">
+            <form class="space-y-4" @submit.prevent="linkJiraProject">
                 <div class="grid gap-2 sm:max-w-md">
                     <FieldLabel
                         html-for="jira_project_key"
@@ -2022,6 +1995,7 @@ const textareaClass =
                     <InputError :message="jiraForm.errors.project_key" />
                 </div>
                 <Button
+                    variant="outline"
                     type="submit"
                     :disabled="jiraForm.processing"
                     data-test="link-jira-button"
@@ -2036,7 +2010,10 @@ const textareaClass =
             </form>
         </section>
 
-        <section class="space-y-4 rounded-lg border p-6">
+        <section
+            v-if="hasAzureDevOpsConnection"
+            class="space-y-4 rounded-lg border p-6"
+        >
             <h2
                 class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
@@ -2185,7 +2162,8 @@ const textareaClass =
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="showUnlinkAzureDevOpsDialog = true"
                         >
                             <Trash2 class="h-4 w-4" />
@@ -2262,6 +2240,7 @@ const textareaClass =
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button
+                                    variant="outline"
                                     type="button"
                                     size="sm"
                                     :disabled="
@@ -2310,29 +2289,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <div
-                v-if="!hasAzureDevOpsConnection"
-                class="space-y-2 text-sm text-muted-foreground"
-            >
-                <p>
-                    {{ t('products.integrations.azure_devops.no_connection') }}
-                </p>
-                <Button type="button" variant="outline" as-child>
-                    <Link :href="editIntegrations()">
-                        {{
-                            t(
-                                'products.integrations.azure_devops.open_integrations',
-                            )
-                        }}
-                    </Link>
-                </Button>
-            </div>
-
-            <form
-                v-else
-                class="space-y-4"
-                @submit.prevent="saveAzureDevOpsLink"
-            >
+            <form class="space-y-4" @submit.prevent="saveAzureDevOpsLink">
                 <div class="grid gap-2 sm:max-w-md">
                     <FieldLabel
                         html-for="azure_devops_project"
@@ -2356,6 +2313,7 @@ const textareaClass =
                     <InputError :message="azureDevOpsForm.errors.project" />
                 </div>
                 <Button
+                    variant="outline"
                     type="submit"
                     :disabled="azureDevOpsForm.processing"
                     data-test="link-azure-devops-button"
@@ -2370,7 +2328,7 @@ const textareaClass =
             </form>
         </section>
 
-        <section class="space-y-4 rounded-lg border p-6">
+        <section v-if="snykConnected" class="space-y-4 rounded-lg border p-6">
             <h2
                 class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
             >
@@ -2525,7 +2483,8 @@ const textareaClass =
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="showUnlinkSnykDialog = true"
                         >
                             <Trash2 class="h-4 w-4" />
@@ -2631,6 +2590,7 @@ const textareaClass =
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button
+                                    variant="outline"
                                     type="button"
                                     size="sm"
                                     :disabled="
@@ -2685,19 +2645,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <div
-                v-if="!snykConnected"
-                class="space-y-2 text-sm text-muted-foreground"
-            >
-                <p>{{ t('products.integrations.snyk.no_connection') }}</p>
-                <Button type="button" variant="outline" as-child>
-                    <Link :href="editIntegrations()">
-                        {{ t('products.integrations.snyk.open_integrations') }}
-                    </Link>
-                </Button>
-            </div>
-
-            <form v-else class="space-y-4" @submit.prevent="linkSnykProject">
+            <form class="space-y-4" @submit.prevent="linkSnykProject">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2">
                         <FieldLabel
@@ -2743,6 +2691,7 @@ const textareaClass =
                     </div>
                 </div>
                 <Button
+                    variant="outline"
                     type="submit"
                     :disabled="snykForm.processing"
                     data-test="link-snyk-button"
@@ -2758,6 +2707,7 @@ const textareaClass =
         </section>
 
         <section
+            v-if="sarifConnected"
             class="space-y-4 rounded-lg border p-6"
             data-test="sarif-section"
         >
@@ -2855,7 +2805,8 @@ const textareaClass =
                     </div>
                     <Button
                         type="button"
-                        variant="destructive"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                         @click="showUnlinkSarifDialog = true"
                     >
                         <Trash2 class="h-4 w-4" />
@@ -2922,6 +2873,7 @@ const textareaClass =
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <Button
+                                    variant="outline"
                                     type="button"
                                     size="sm"
                                     :disabled="
@@ -2974,20 +2926,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <div
-                v-if="!sarifConnected"
-                class="space-y-2 text-sm text-muted-foreground"
-            >
-                <p>{{ t('products.integrations.sarif.no_connection') }}</p>
-                <Button type="button" variant="outline" as-child>
-                    <Link :href="editIntegrations()">
-                        {{ t('products.integrations.sarif.open_integrations') }}
-                    </Link>
-                </Button>
-            </div>
-
             <form
-                v-else
                 class="space-y-4"
                 data-test="sarif-upload-form"
                 @submit.prevent="uploadSarifFile"
@@ -3009,6 +2948,7 @@ const textareaClass =
                     <InputError :message="sarifForm.errors.file" />
                 </div>
                 <Button
+                    variant="outline"
                     type="submit"
                     :disabled="
                         sarifForm.processing ||

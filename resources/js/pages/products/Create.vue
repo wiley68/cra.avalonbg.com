@@ -176,9 +176,7 @@ const labelFor = (group: string, value: string): string => {
             @submit.prevent="submit"
         >
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.identity') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -308,9 +306,7 @@ const labelFor = (group: string, value: string): string => {
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.technical') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -358,9 +354,7 @@ const labelFor = (group: string, value: string): string => {
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.support') }}
                 </h2>
                 <div class="grid gap-4">
@@ -405,9 +399,7 @@ const labelFor = (group: string, value: string): string => {
 
             <section class="space-y-4">
                 <div class="flex items-center justify-between gap-3">
-                    <h2
-                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                    >
+                    <h2 class="section-heading">
                         {{ t('products.sections.scope') }}
                     </h2>
                     <Button
@@ -463,9 +455,7 @@ const labelFor = (group: string, value: string): string => {
 
             <section class="space-y-4">
                 <div class="flex items-center justify-between gap-3">
-                    <h2
-                        class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                    >
+                    <h2 class="section-heading">
                         {{ t('products.sections.classification') }}
                     </h2>
                     <Button
@@ -541,9 +531,7 @@ const labelFor = (group: string, value: string): string => {
             </section>
 
             <section class="space-y-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.sections.contacts') }}
                 </h2>
                 <div class="grid gap-4 sm:grid-cols-2">

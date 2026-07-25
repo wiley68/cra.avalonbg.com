@@ -27,6 +27,7 @@ const props = withDefaults(
         actions: TableRowAction[];
         label?: string;
         triggerText?: string;
+        triggerIcon?: Component;
         triggerVariant?:
             | 'default'
             | 'destructive'
@@ -38,6 +39,7 @@ const props = withDefaults(
     {
         label: undefined,
         triggerText: undefined,
+        triggerIcon: undefined,
         triggerVariant: 'ghost',
     },
 );
@@ -65,9 +67,14 @@ const showTextTrigger = computed(() => Boolean(props.triggerText));
                 type="button"
                 :aria-label="menuLabel"
             >
-                <template v-if="showTextTrigger">{{
-                    props.triggerText
-                }}</template>
+                <template v-if="showTextTrigger">
+                    <component
+                        :is="props.triggerIcon"
+                        v-if="props.triggerIcon"
+                        class="h-4 w-4"
+                    />
+                    {{ props.triggerText }}
+                </template>
                 <template v-else>...</template>
             </Button>
         </DropdownMenuTrigger>
