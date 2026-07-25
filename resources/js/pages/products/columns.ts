@@ -56,11 +56,11 @@ export type ProductModuleKey =
     | 'versions'
     | 'support_periods'
     | 'components'
+    | 'risks'
     | 'deployments'
     | 'campaigns'
     | 'requirements'
     | 'controls'
-    | 'risks'
     | 'vulnerabilities'
     | 'incidents'
     | 'sdl'
@@ -122,6 +122,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_components',
     },
     {
+        key: 'risks',
+        labelKey: 'products.risks_link',
+        descriptionKey: 'products.modules.risks.description',
+        icon: ShieldAlert,
+        href: (productId) => productRisksIndex(productId).url,
+        canViewFlag: 'can_view_risks',
+    },
+    {
         key: 'deployments',
         labelKey: 'products.deployments_link',
         descriptionKey: 'products.modules.deployments.description',
@@ -152,14 +160,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Shield,
         href: (productId) => productControlsIndex(productId).url,
         canViewFlag: 'can_view_controls',
-    },
-    {
-        key: 'risks',
-        labelKey: 'products.risks_link',
-        descriptionKey: 'products.modules.risks.description',
-        icon: ShieldAlert,
-        href: (productId) => productRisksIndex(productId).url,
-        canViewFlag: 'can_view_risks',
     },
     {
         key: 'vulnerabilities',
