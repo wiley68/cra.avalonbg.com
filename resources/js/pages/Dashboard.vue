@@ -87,7 +87,7 @@ const severityClass = (severity: string): string => {
 
         <div
             v-if="dashboard.mode === 'organization'"
-            class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-4 [&>*]:min-w-0"
+            class="grid grid-cols-1 gap-4 *:min-w-0 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-4"
         >
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">
