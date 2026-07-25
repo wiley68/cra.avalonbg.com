@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 0.4  
+**Версия:** 0.5  
 **Дата:** 25 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -108,7 +108,7 @@ Wizard notes: W-…
 | ------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------- | ---------------------------------------------------------------------- |
 | **0**  | **Org prep:** settings, users/roles, **controls library**, **policies** (draft), **customers** (optional) | Settings / Users / Controls / Policies / Customers | Owner + Viewer; i18n OK; controls прегледани; ≥1 policy draft (по тип); клиенти по желание | **Done** (2026-07-25) | Преди продукти — виж §4.1a; help/wizard: „подготовка на организацията“ |
 | **1**  | Създай / редактирай продукт                                                                               | Products → Create / Edit                           | Име, тип, licensing, connectivity полета                                                   | **Done** (2026-07-25) | Картотека; modules меню + цветове по готовност                         |
-| **2**  | CRA **scope** assessment                                                                                  | Product Edit → scope wizard                        | Scope status + review                                                                      | Open                  | Не е правно заключение                                                 |
+| **2**  | CRA **scope** assessment                                                                                  | Product Edit → scope wizard                        | Scope status + review                                                                      | **Done** (2026-07-25) | Не е правно заключение                                                 |
 | **3**  | **Classification**                                                                                        | Product Edit → classification wizard               | Classification status + review                                                             | Open                  | След scope                                                             |
 | **4**  | **Versions**                                                                                              | Product → Versions                                 | ≥1 version; release_date когато е release                                                  | Open                  | Котва за support / SBOM / SDL                                          |
 | **5**  | **Support periods**                                                                                       | Support periods                                    | Период(и) вързани към версия/продукт                                                       | Open                  | Паралелно след versions OK                                             |
@@ -167,7 +167,7 @@ Wizard notes: W-…
   · policies (чернови OK)
   · customers (опционално)
       ↓
-[1 Product] ✅ → [2 Scope] → [3 Classification]
+[1 Product] ✅ → [2 Scope] ✅ → [3 Classification]
       ↓
 [4 Versions] → [5 Support]
       ↓
@@ -424,7 +424,8 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
-- **2026-07-25** — Spine **A_1** (Product Create/Edit): **Done**. UI polish: section-heading стил; меню **Модули**; интеграции само при активна org-връзка; цветово кодиране на модули (critical/attention/complete/empty) в карти + меню + заглавие на продукта. Следваща: стъпка **2** (CRA scope).
+- **2026-07-25** — Spine **A_2** (CRA scope assessment): **Done**. Scope wizard тестван; работи коректно. Следваща: стъпка **3** (Classification).
+- **2026-07-25** — Spine **A_1** (Product Create/Edit): **Done**. UI polish: section-heading стил; меню **Модули**; интеграции само при активна org-връзка; цветово кодиране на модули (critical/attention/complete/empty) в карти + меню + заглавие на продукта.
 - **2026-07-25** — Spine **A_0** разширен и **Done**: users/roles/settings + **controls library** (преглед) + **policies** (чернови без продукти) + **customers** (опционално, реални клиенти). Help/wizard: етап 0 = org prep (§4.1a).
 
 ### Help draft bullets
@@ -433,11 +434,13 @@ UI идея (карта / стъпка / timeline): …
 - Политиките остават draft докато няма продукт за review/approve — това е очаквано.
 - Библиотеката контроли обикновено е готова от стартовия каталог; клиентът само преглежда.
 - Product cards / Модули: червено = блокира готовност; оранжево = препоръчително да се довърши; зелено = попълнено OK; неутрално = опционално празно. Заглавието на продукта следва най-тежкия модулен статус.
+- Scope assessment не е правно заключение — само operational suggestion + review.
 
 ### Wizard decisions
 
 - Org prep (стъпка 0) е отделен блок **преди** Product Show timeline; в диаграмата включва controls / policies / optional customers (§4.1a таблица).
 - Стъпка 1 (Product) Done — цветовата легенда на модулите е част от help за Products index.
+- Стъпка 2 (Scope) Done — следва Classification.
 - …
 
 ### P0/P1 triage queue
@@ -463,6 +466,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 0.5    | 2026-07-25 | Spine стъпка **2** (CRA scope assessment) → **Done**                                                      |
 | 0.4    | 2026-07-25 | Spine стъпка **1** (Product Create/Edit) → **Done**; module color coding + UI polish в сесия log          |
 | 0.3    | 2026-07-25 | Етап **0** разширен: Customers (optional), Policies (draft), Controls library (review) — §4.1a + диаграма |
 | 0.2    | 2026-07-25 | Spine стъпка **0** (Org/users/roles/settings) → **Done**; Status колона в §4.1; сесия log                 |
