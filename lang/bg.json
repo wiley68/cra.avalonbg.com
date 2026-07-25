@@ -2432,8 +2432,9 @@
                 "vulnerability": "Уязвимост",
                 "evidence": "Доказателство",
                 "org_policy": "Организационна политика",
-                "auditor_finding": "Одиторски finding",
+                "auditor_finding": "Одиторски находки",
                 "user_security_instruction": "Инструкции за сигурност на потребителя",
+                "technical_documentation_package": "Пакет техническа документация",
                 "incident": "Инцидент",
                 "sdl_exception": "SDL изключение"
             }

@@ -54,6 +54,7 @@ const props = defineProps<{
         org_policies: SubjectOption[];
         auditor_findings: SubjectOption[];
         user_security_instructions: SubjectOption[];
+        technical_documentation_packages: SubjectOption[];
         incidents: SubjectOption[];
         sdl_exceptions: SubjectOption[];
     };
@@ -140,6 +141,10 @@ const subjectOptions = computed((): SubjectOption[] => {
 
     if (form.subject_type === 'user_security_instruction') {
         return props.subjects.user_security_instructions;
+    }
+
+    if (form.subject_type === 'technical_documentation_package') {
+        return props.subjects.technical_documentation_packages;
     }
 
     if (form.subject_type === 'incident') {

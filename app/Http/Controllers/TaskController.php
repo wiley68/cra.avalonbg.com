@@ -18,6 +18,7 @@ use App\Models\ProductRisk;
 use App\Models\ProductVulnerability;
 use App\Models\SdlException;
 use App\Models\Task;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\UserSecurityInstruction;
 use App\Services\TaskService;
 use App\Support\Translations;
@@ -301,7 +302,9 @@ class TaskController extends Controller
      *     org_policies: list<array{id: int, label: string}>,
      *     auditor_findings: list<array{id: int, label: string}>,
      *     user_security_instructions: list<array{id: int, label: string}>,
-     *     incidents: list<array{id: int, label: string}>
+     *     technical_documentation_packages: list<array{id: int, label: string}>,
+     *     incidents: list<array{id: int, label: string}>,
+     *     sdl_exceptions: list<array{id: int, label: string}>
      * }
      */
     private function subjectOptions(Product $product): array
@@ -367,6 +370,16 @@ class TaskController extends Controller
                 ->map(fn(UserSecurityInstruction $instruction) => [
                     'id' => $instruction->id,
                     'label' => "{$instruction->title} ({$instruction->version_label} · {$instruction->locale})",
+                ])
+                ->all(),
+            'technical_documentation_packages' => TechnicalDocumentationPackage::query()
+                ->where('product_id', $product->id)
+                ->orderByDesc('id')
+                ->limit(100)
+                ->get(['id', 'title', 'version_label', 'locale'])
+                ->map(fn(TechnicalDocumentationPackage $package) => [
+                    'id' => $package->id,
+                    'label' => "{$package->title} ({$package->version_label} · {$package->locale})",
                 ])
                 ->all(),
             'incidents' => ProductIncident::query()
