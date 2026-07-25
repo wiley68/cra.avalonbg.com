@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Loader2, Plus } from '@lucide/vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import ProductCard from '@/components/products/ProductCard.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,25 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const moduleColorHelpItems = computed(() => [
+    {
+        label: t('products.module_colors.critical_label'),
+        value: t('products.module_colors.critical'),
+    },
+    {
+        label: t('products.module_colors.attention_label'),
+        value: t('products.module_colors.attention'),
+    },
+    {
+        label: t('products.module_colors.complete_label'),
+        value: t('products.module_colors.complete'),
+    },
+    {
+        label: t('products.module_colors.empty_label'),
+        value: t('products.module_colors.empty'),
+    },
+]);
 
 usePageBreadcrumbs(() => [{ titleKey: 'nav.products', href: productsIndex() }]);
 
@@ -86,14 +106,21 @@ onMounted(() => {
             class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
             <div>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.title') }}
-                    <span
-                        v-if="!loading"
-                        class="font-normal text-muted-foreground"
-                        >({{ total }})</span
-                    >
-                </h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">
+                        {{ t('products.title') }}
+                        <span
+                            v-if="!loading"
+                            class="font-normal text-muted-foreground"
+                            >({{ total }})</span
+                        >
+                    </h1>
+                    <OptionInfoTooltip
+                        :items="moduleColorHelpItems"
+                        side="bottom"
+                        content-class="max-w-md"
+                    />
+                </div>
                 <p class="text-sm text-muted-foreground">
                     {{ t('products.subtitle') }} —
                     {{ props.organization.name }}

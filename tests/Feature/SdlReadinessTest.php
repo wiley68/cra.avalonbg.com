@@ -196,7 +196,7 @@ test('in-scope product without release in progress does not raise sdl gap', func
         ))->toBeFalse();
 });
 
-test('product card readiness status is incomplete when sdl release approval gap exists', function () {
+test('product card readiness status is critical when sdl release approval gap exists', function () {
     $fixture = makeSdlReadinessFixture();
     $service = app(ProductReadinessService::class);
 
@@ -206,5 +206,5 @@ test('product card readiness status is incomplete when sdl release approval gap 
     expect(collect($report['gaps'])->contains(
         fn($gap) => $gap['message_key'] === 'products.readiness.gaps.sdl_release_approval_missing',
     ))->toBeTrue()
-        ->and($statuses['readiness'])->toBe('incomplete');
+        ->and($statuses['readiness'])->toBe('critical');
 });

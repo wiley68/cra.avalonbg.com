@@ -23,7 +23,7 @@ class ProductService
      *     classification_status: string,
      *     scope_status: string,
      *     product_line: string|null,
-     *     module_statuses: array<string, 'empty'|'complete'|'incomplete'>
+     *     module_statuses: array<string, 'empty'|'complete'|'attention'|'critical'>
      * }>
      */
     public function paginate(

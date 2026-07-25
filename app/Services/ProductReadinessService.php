@@ -45,33 +45,66 @@ class ProductReadinessService
     public function __construct(
         private readonly ProductDeploymentService $deployments,
         private readonly TechnicalDocumentationService $technicalDocumentation,
-    ) {}
+    ) {
+    }
 
     /**
-     * Compact per-module status for product index cards.
+     * Compact module colors for product cards and the Modules menu.
      *
-     * @return array<string, 'empty'|'complete'|'incomplete'>
+     * - critical: readiness fail / required gap (red)
+     * - attention: readiness warn / recommended empty (orange)
+     * - complete: healthy filled module (green)
+     * - empty: optional/NA with nothing to do (default)
+     *
+     * @return array<string, 'empty'|'complete'|'attention'|'critical'>
      */
     public function cardModuleStatuses(Product $product): array
     {
-        $sections = [
-            'versions' => $this->versionsSection($product),
-            'support_periods' => $this->supportSection($product),
-            'requirements' => $this->requirementsSection($product),
-            'controls' => $this->controlsSection($product),
-            'risks' => $this->risksSection($product),
-            'components' => $this->sbomSection($product),
-            'vulnerabilities' => $this->vulnerabilitiesSection($product),
-            'evidence' => $this->evidenceSection($product),
-            'tasks' => $this->tasksSection($product),
+        $definitions = [
+            'versions' => ['priority' => 'required', 'section' => fn() => $this->versionsSection($product)],
+            'support_periods' => ['priority' => 'required', 'section' => fn() => $this->supportSection($product)],
+            'requirements' => ['priority' => 'required', 'section' => fn() => $this->requirementsSection($product)],
+            'controls' => ['priority' => 'recommended', 'section' => fn() => $this->controlsSection($product)],
+            'risks' => ['priority' => 'required', 'section' => fn() => $this->risksSection($product)],
+            'components' => ['priority' => 'required', 'section' => fn() => $this->sbomSection($product)],
+            'vulnerabilities' => ['priority' => 'optional', 'section' => fn() => $this->vulnerabilitiesSection($product)],
+            'evidence' => ['priority' => 'required', 'section' => fn() => $this->evidenceSection($product)],
+            'tasks' => ['priority' => 'optional', 'section' => fn() => $this->tasksSection($product)],
+            'deployments' => ['priority' => 'optional', 'section' => fn() => $this->deploymentsSection($product)],
+            'sdl' => ['priority' => 'recommended', 'section' => fn() => $this->sdlSection($product)],
+            'security_instructions' => ['priority' => 'required', 'section' => fn() => $this->securityInstructionsSection($product)],
+            'technical_documentation' => ['priority' => 'required', 'section' => fn() => $this->technicalDocumentationSection($product)],
         ];
 
         $statuses = [];
-        foreach ($sections as $key => $section) {
-            $statuses[$key] = $this->mapSectionToCardStatus($section);
+        foreach ($definitions as $key => $definition) {
+            /** @var callable(): array{key?: string, status: string, summary: string, metrics?: array<string, mixed>} $sectionFn */
+            $sectionFn = $definition['section'];
+            $statuses[$key] = $this->mapSectionToCardStatus(
+                $sectionFn(),
+                $definition['priority'],
+            );
         }
 
-        $aggregate = $this->aggregateCardStatus($statuses);
+        $statuses['campaigns'] = $this->campaignsCardStatus($product, $statuses['deployments']);
+        $statuses['incidents'] = $this->countBasedOptionalStatus(
+            $product->incidents()->count(),
+        );
+        $statuses['assistant'] = 'empty';
+
+        $passportKeys = [
+            'versions',
+            'support_periods',
+            'requirements',
+            'controls',
+            'risks',
+            'components',
+            'vulnerabilities',
+            'evidence',
+            'tasks',
+        ];
+        $passportStatuses = array_intersect_key($statuses, array_flip($passportKeys));
+        $aggregate = $this->aggregateCardStatus($passportStatuses);
         $statuses['passport'] = $aggregate;
         $statuses['readiness'] = $this->readinessModuleCardStatus($product, $aggregate);
 
@@ -79,64 +112,87 @@ class ProductReadinessService
     }
 
     /**
-     * Readiness card color: incomplete when passport modules are incomplete, or when
-     * readiness-only sections (policies / security instructions / SDL / tech-doc) have gaps.
-     *
-     * @param  'empty'|'complete'|'incomplete'  $passportAggregate
-     * @return 'empty'|'complete'|'incomplete'
+     * @param  'empty'|'complete'|'attention'|'critical'  $passportAggregate
+     * @return 'empty'|'complete'|'attention'|'critical'
      */
     private function readinessModuleCardStatus(Product $product, string $passportAggregate): string
     {
-        foreach ([
-            $this->policiesSection($product),
-            $this->securityInstructionsSection($product),
-            $this->sdlSection($product),
-            $this->technicalDocumentationSection($product),
-        ] as $section) {
-            if (in_array($section['status'], ['fail', 'warn'], true)) {
-                return 'incomplete';
-            }
-        }
+        $extras = [
+            $this->mapSectionToCardStatus($this->policiesSection($product), 'required'),
+            $this->mapSectionToCardStatus($this->securityInstructionsSection($product), 'required'),
+            $this->mapSectionToCardStatus($this->sdlSection($product), 'recommended'),
+            $this->mapSectionToCardStatus($this->technicalDocumentationSection($product), 'required'),
+        ];
 
-        return $passportAggregate;
+        return $this->aggregateCardStatus([...$extras, $passportAggregate]);
     }
 
     /**
      * @param  array{key?: string, status: string, summary: string, metrics?: array<string, mixed>}  $section
-     * @return 'empty'|'complete'|'incomplete'
+     * @param  'required'|'recommended'|'optional'  $priority
+     * @return 'empty'|'complete'|'attention'|'critical'
      */
-    private function mapSectionToCardStatus(array $section): string
+    private function mapSectionToCardStatus(array $section, string $priority = 'optional'): string
     {
         $summary = $section['summary'] ?? '';
         $status = $section['status'] ?? '';
         $metrics = $section['metrics'] ?? [];
+        $key = $section['key'] ?? '';
 
-        if (in_array($summary, ['none', 'missing', 'not_available', 'no_active_reporting'], true)) {
-            return 'empty';
+        if ($status === 'fail') {
+            return 'critical';
         }
 
-        if (($section['key'] ?? '') === 'tasks' && (int) ($metrics['total_tasks'] ?? 0) === 0) {
-            return 'empty';
-        }
-
-        if (($section['key'] ?? '') === 'vulnerabilities' && (int) ($metrics['total'] ?? 0) === 0) {
-            return 'empty';
-        }
-
-        if ($status === 'pass') {
-            return 'complete';
+        if ($status === 'warn') {
+            return 'attention';
         }
 
         if ($status === 'na') {
             return 'empty';
         }
 
-        return 'incomplete';
+        $vacuousPass = in_array($summary, [
+            'none',
+            'missing',
+            'not_available',
+            'no_active_reporting',
+            'no_active_campaign',
+        ], true);
+
+        if ($key === 'tasks' && (int) ($metrics['total_tasks'] ?? 0) === 0) {
+            $vacuousPass = true;
+        }
+
+        if ($key === 'vulnerabilities' && (int) ($metrics['total'] ?? 0) === 0) {
+            $vacuousPass = true;
+        }
+
+        if ($status === 'pass') {
+            if ($vacuousPass) {
+                return match ($priority) {
+                    'required' => 'critical',
+                    'recommended' => 'attention',
+                    default => 'empty',
+                };
+            }
+
+            return 'complete';
+        }
+
+        if ($vacuousPass || in_array($summary, ['none', 'missing', 'not_available'], true)) {
+            return match ($priority) {
+                'required' => 'critical',
+                'recommended' => 'attention',
+                default => 'empty',
+            };
+        }
+
+        return 'attention';
     }
 
     /**
-     * @param  array<string, 'empty'|'complete'|'incomplete'>  $statuses
-     * @return 'empty'|'complete'|'incomplete'
+     * @param  array<int|string, 'empty'|'complete'|'attention'|'critical'>  $statuses
+     * @return 'empty'|'complete'|'attention'|'critical'
      */
     private function aggregateCardStatus(array $statuses): string
     {
@@ -146,15 +202,42 @@ class ProductReadinessService
 
         $values = array_values($statuses);
 
-        if (! in_array('complete', $values, true) && ! in_array('incomplete', $values, true)) {
-            return 'empty';
+        if (in_array('critical', $values, true)) {
+            return 'critical';
         }
 
-        if (in_array('incomplete', $values, true) || in_array('empty', $values, true)) {
-            return 'incomplete';
+        if (in_array('attention', $values, true)) {
+            return 'attention';
         }
 
-        return 'complete';
+        if (in_array('complete', $values, true)) {
+            return 'complete';
+        }
+
+        return 'empty';
+    }
+
+    /**
+     * @param  'empty'|'complete'|'attention'|'critical'  $deploymentsStatus
+     * @return 'empty'|'complete'|'attention'|'critical'
+     */
+    private function campaignsCardStatus(Product $product, string $deploymentsStatus): string
+    {
+        $campaignCount = $product->patchCampaigns()->count();
+
+        if (in_array($deploymentsStatus, ['critical', 'attention'], true)) {
+            return $deploymentsStatus;
+        }
+
+        return $this->countBasedOptionalStatus($campaignCount);
+    }
+
+    /**
+     * @return 'empty'|'complete'
+     */
+    private function countBasedOptionalStatus(int $count): string
+    {
+        return $count > 0 ? 'complete' : 'empty';
     }
 
     /**
@@ -199,7 +282,7 @@ class ProductReadinessService
                 $gaps[] = [
                     'section' => $section['key'],
                     'status' => $section['status'],
-                    'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.'.$section['key']),
+                    'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.' . $section['key']),
                     'link' => $section['link'] ?? null,
                 ];
             }
@@ -374,10 +457,10 @@ class ProductReadinessService
         }
 
         $nonDraft = $versions->contains(
-            fn ($version) => $version->state !== ProductVersionState::Draft,
+            fn($version) => $version->state !== ProductVersionState::Draft,
         );
 
-        if (! $nonDraft) {
+        if (!$nonDraft) {
             return [
                 'key' => 'versions',
                 'status' => 'warn',
@@ -406,37 +489,37 @@ class ProductReadinessService
             ->get();
         $hasStructuredPeriods = $periods->isNotEmpty();
         $hasResolvedSchedule = $periods->contains(
-            fn ($period) => $period->scheduleResolved(),
+            fn($period) => $period->scheduleResolved(),
         );
         $hasActivePeriod = $periods->contains(
-            fn ($period) => $period->isActive() === true,
+            fn($period) => $period->isActive() === true,
         );
         $hasNotes = filled($product->support_period_notes) || filled($product->end_of_support_policy);
         $versions = $product->versions()->get(['support_status', 'security_support_deadline']);
 
         $hasSupported = $versions->contains(
-            fn ($version) => in_array($version->support_status, [
+            fn($version) => in_array($version->support_status, [
                 SupportStatus::Supported,
                 SupportStatus::SecurityOnly,
             ], true),
         );
 
         $unsupportedWithoutDeadline = $versions->contains(
-            fn ($version) => $version->support_status === SupportStatus::Unsupported
+            fn($version) => $version->support_status === SupportStatus::Unsupported
             && $version->security_support_deadline === null,
         );
 
         $endingSoon = $periods->contains(
-            fn ($period) => $period->isActive() === true
+            fn($period) => $period->isActive() === true
             && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 90,
         );
         $endingCritical = $periods->contains(
-            fn ($period) => $period->scheduleResolved()
+            fn($period) => $period->scheduleResolved()
             && ($period->daysUntilEnd() ?? PHP_INT_MAX) <= 30,
         );
 
         if ($hasStructuredPeriods) {
-            $calendarProblem = $hasResolvedSchedule && (! $hasActivePeriod || $endingSoon);
+            $calendarProblem = $hasResolvedSchedule && (!$hasActivePeriod || $endingSoon);
 
             if ($endingCritical) {
                 return [
@@ -448,7 +531,7 @@ class ProductReadinessService
                     'metrics' => [
                         'periods_count' => $periods->count(),
                         'active_periods' => $periods->filter(
-                            fn ($period) => $period->isActive() === true,
+                            fn($period) => $period->isActive() === true,
                         )->count(),
                     ],
                 ];
@@ -464,7 +547,7 @@ class ProductReadinessService
                     'metrics' => [
                         'periods_count' => $periods->count(),
                         'active_periods' => $periods->filter(
-                            fn ($period) => $period->isActive() === true,
+                            fn($period) => $period->isActive() === true,
                         )->count(),
                     ],
                 ];
@@ -477,7 +560,7 @@ class ProductReadinessService
                 'metrics' => [
                     'periods_count' => $periods->count(),
                     'active_periods' => $periods->filter(
-                        fn ($period) => $period->isActive() === true,
+                        fn($period) => $period->isActive() === true,
                     )->count(),
                 ],
             ];
@@ -526,14 +609,14 @@ class ProductReadinessService
             ->where('organization_id', $product->organization_id)
             ->where('status', PolicyStatus::Approved)
             ->pluck('policy_type')
-            ->map(fn (PolicyType|string $type) => $type instanceof PolicyType ? $type->value : $type)
+            ->map(fn(PolicyType|string $type) => $type instanceof PolicyType ? $type->value : $type)
             ->unique()
             ->values()
             ->all();
 
         $missingCount = 0;
         foreach ($requiredTypes as $type) {
-            if (! in_array($type->value, $approvedTypeValues, true)) {
+            if (!in_array($type->value, $approvedTypeValues, true)) {
                 $missingCount++;
             }
         }
@@ -716,13 +799,13 @@ class ProductReadinessService
 
         $now = Carbon::now();
         $openWithoutReview = $risks->contains(
-            fn (ProductRisk $risk) => in_array($risk->status, [
+            fn(ProductRisk $risk) => in_array($risk->status, [
                 ProductRiskStatus::Open,
                 ProductRiskStatus::InTreatment,
             ], true) && $risk->reviewed_at === null,
         );
         $overdue = $risks->contains(
-            fn (ProductRisk $risk) => $risk->deadline !== null
+            fn(ProductRisk $risk) => $risk->deadline !== null
             && $risk->deadline->lt($now)
             && $risk->status !== ProductRiskStatus::Closed,
         );
@@ -827,7 +910,7 @@ class ProductReadinessService
         $unresolvedHigh = PatchCampaignTarget::query()
             ->whereHas(
                 'campaign',
-                fn ($query) => $query
+                fn($query) => $query
                     ->where('product_id', $product->id)
                     ->where('status', PatchCampaignStatus::Active),
             )
@@ -837,7 +920,7 @@ class ProductReadinessService
             ])
             ->whereHas(
                 'deployment.customer',
-                fn ($query) => $query->where('criticality', CustomerCriticality::High),
+                fn($query) => $query->where('criticality', CustomerCriticality::High),
             )
             ->count();
 
@@ -972,7 +1055,7 @@ class ProductReadinessService
 
         $sectionsTotal = $latestPublished?->sections->count() ?? 0;
         $sectionsApplicable = $latestPublished?->sections
-            ->filter(fn ($section) => $section->is_applicable)
+            ->filter(fn($section) => $section->is_applicable)
             ->count() ?? 0;
         $incompleteKeys = $latestPublished !== null
             ? $this->technicalDocumentation->incompleteSectionKeys($latestPublished)
@@ -1027,7 +1110,7 @@ class ProductReadinessService
             ];
         }
 
-        if (! $linkedUsi) {
+        if (!$linkedUsi) {
             return [
                 'key' => 'technical_documentation',
                 'status' => 'warn',
@@ -1224,11 +1307,11 @@ class ProductReadinessService
             ->get(['id', 'status', 'due_at']);
 
         $open = $tasks->filter(
-            fn (Task $task) => in_array($task->status, $openStatuses, true),
+            fn(Task $task) => in_array($task->status, $openStatuses, true),
         );
 
         $overdue = $open->contains(
-            fn (Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
+            fn(Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
         );
 
         $metrics = [
@@ -1380,12 +1463,12 @@ class ProductReadinessService
         }
 
         $hasProductWideApproval = $approvedRuns->contains(
-            fn (SdlRun $run) => $run->product_version_id === null,
+            fn(SdlRun $run) => $run->product_version_id === null,
         );
         $pinnedApprovedIds = $approvedRuns
             ->pluck('product_version_id')
             ->filter()
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
 
         $uncoveredCount = $awaitingVersions
@@ -1394,7 +1477,7 @@ class ProductReadinessService
                     return false;
                 }
 
-                return ! in_array((int) $version->id, $pinnedApprovedIds, true);
+                return !in_array((int) $version->id, $pinnedApprovedIds, true);
             })
             ->count();
 
@@ -1486,11 +1569,11 @@ class ProductReadinessService
         }
 
         $assessed = $rows->filter(
-            fn (ProductRequirement $row) => $row->status !== RequirementApplicabilityStatus::NotAssessed,
+            fn(ProductRequirement $row) => $row->status !== RequirementApplicabilityStatus::NotAssessed,
         )->count();
 
         $implemented = $rows->filter(
-            fn (ProductRequirement $row) => in_array($row->status, [
+            fn(ProductRequirement $row) => in_array($row->status, [
                 RequirementApplicabilityStatus::Implemented,
                 RequirementApplicabilityStatus::Verified,
                 RequirementApplicabilityStatus::ExceptionApproved,
@@ -1498,7 +1581,7 @@ class ProductReadinessService
         )->count();
 
         $verified = $rows->filter(
-            fn (ProductRequirement $row) => $row->status === RequirementApplicabilityStatus::Verified,
+            fn(ProductRequirement $row) => $row->status === RequirementApplicabilityStatus::Verified,
         )->count();
 
         return [
@@ -1528,11 +1611,11 @@ class ProductReadinessService
             ->get(['id', 'status', 'business_severity', 'awareness_at']);
 
         $open = $vulns->filter(
-            fn (ProductVulnerability $vuln) => ! in_array($vuln->status, $closed, true),
+            fn(ProductVulnerability $vuln) => !in_array($vuln->status, $closed, true),
         );
 
         $critical = $open->filter(
-            fn (ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
+            fn(ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
         )->count();
 
         $overdue = $open->filter(function (ProductVulnerability $vuln): bool {

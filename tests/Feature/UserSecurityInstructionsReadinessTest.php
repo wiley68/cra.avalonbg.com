@@ -154,7 +154,7 @@ test('out-of-scope product marks security instructions as not required', functio
         });
 });
 
-test('product card readiness status is incomplete when security instructions gap exists', function () {
+test('product card readiness status is critical when security instructions gap exists', function () {
     $fixture = makeSecurityInstructionsReadinessFixture();
     $service = app(\App\Services\ProductReadinessService::class);
 
@@ -164,5 +164,5 @@ test('product card readiness status is incomplete when security instructions gap
     expect(collect($report['gaps'])->contains(
         fn($gap) => $gap['message_key'] === 'products.readiness.gaps.security_instructions_missing',
     ))->toBeTrue()
-        ->and($statuses['readiness'])->toBe('incomplete');
+        ->and($statuses['readiness'])->toBe('critical');
 });

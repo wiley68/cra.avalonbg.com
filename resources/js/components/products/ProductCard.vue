@@ -14,6 +14,7 @@ import {
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    aggregateProductModuleStatus,
     canAccessProductModule,
     productEnumLabel,
     productModules,
@@ -50,6 +51,10 @@ const classificationLabel = computed(() =>
     productEnumLabel(t, 'classification', props.product.classification_status),
 );
 
+const titleStatus = computed(() =>
+    aggregateProductModuleStatus(props.product.module_statuses),
+);
+
 const moduleStatus = (key: string): ProductModuleStatus =>
     props.product.module_statuses?.[key] ?? 'empty';
 
@@ -66,7 +71,10 @@ const openEdit = (): void => {
 <template>
     <Card class="gap-0 overflow-hidden py-0">
         <CardHeader class="gap-2 border-b px-4 py-4 [.border-b]:pb-4">
-            <CardTitle class="text-base leading-snug">
+            <CardTitle
+                class="text-base leading-snug"
+                :class="productModuleStatusClass(titleStatus)"
+            >
                 {{ product.name }}
             </CardTitle>
             <CardDescription class="text-xs leading-relaxed">

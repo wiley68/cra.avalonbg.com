@@ -38,7 +38,8 @@ import { index as technicalDocumentationIndex } from '@/routes/products/technica
 import { index as versionsIndex } from '@/routes/products/versions';
 import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
 
-export type ProductModuleStatus = 'empty' | 'complete' | 'incomplete';
+export type ProductModuleStatus =
+    'empty' | 'complete' | 'attention' | 'critical';
 
 export type ProductListItem = {
     id: number;
@@ -273,9 +274,34 @@ export function productModuleStatusClass(
         return 'text-emerald-600 focus:text-emerald-600 dark:text-emerald-400 dark:focus:text-emerald-400';
     }
 
-    if (status === 'incomplete') {
+    if (status === 'attention') {
         return 'text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400';
     }
 
+    if (status === 'critical') {
+        return 'text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400';
+    }
+
     return 'text-foreground focus:text-foreground';
+}
+
+export function aggregateProductModuleStatus(
+    statuses: Record<string, ProductModuleStatus> | null | undefined,
+    keys: readonly string[] = productModules.map((module) => module.key),
+): ProductModuleStatus {
+    const values = keys.map((key) => statuses?.[key] ?? 'empty');
+
+    if (values.includes('critical')) {
+        return 'critical';
+    }
+
+    if (values.includes('attention')) {
+        return 'attention';
+    }
+
+    if (values.includes('complete')) {
+        return 'complete';
+    }
+
+    return 'empty';
 }

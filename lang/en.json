@@ -874,6 +874,17 @@
         "index_title": "Products",
         "title": "Products",
         "subtitle": "Manage products in your organization",
+        "module_colors": {
+            "legend_label": "Module colors",
+            "critical_label": "Red",
+            "critical": "Required readiness gap — the module blocks readiness (e.g. missing versions).",
+            "attention_label": "Orange",
+            "attention": "Recommended to finish — a warning or a recommended module is still empty.",
+            "complete_label": "Green",
+            "complete": "The module is filled and healthy for readiness/passport.",
+            "empty_label": "Neutral",
+            "empty": "Optional module with no data — does not block readiness. Filling it turns it green."
+        },
         "create": "Create product",
         "create_title": "Create product",
         "edit_title": "Edit product",

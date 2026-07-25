@@ -285,10 +285,10 @@ test('out-of-scope product does not require technical documentation', function (
         });
 });
 
-test('missing tech-doc marks readiness card incomplete', function () {
+test('missing tech-doc marks readiness card critical', function () {
     ['owner' => $owner, 'product' => $product] = makeTechDocReadinessFixture();
 
     $statuses = app(ProductReadinessService::class)->cardModuleStatuses($product);
 
-    expect($statuses['readiness'])->toBe('incomplete');
+    expect($statuses['readiness'])->toBe('critical');
 });

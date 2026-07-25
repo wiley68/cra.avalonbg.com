@@ -279,3 +279,22 @@ test('export route streams pdf and writes audit log', function () {
         ->where('product_id', $product->id)
         ->exists())->toBeTrue();
 });
+
+test('product card module colors follow readiness priority scheme', function () {
+    [$organization, $owner] = makeReadinessOrgWithOwner();
+    $product = makeProductForReadiness($organization, $owner);
+
+    $statuses = app(\App\Services\ProductReadinessService::class)->cardModuleStatuses($product);
+
+    expect($statuses['versions'])->toBe('critical')
+        ->and($statuses['controls'])->toBe('attention')
+        ->and($statuses['vulnerabilities'])->toBe('empty')
+        ->and($statuses['tasks'])->toBe('empty')
+        ->and($statuses['deployments'])->toBe('empty')
+        ->and($statuses['incidents'])->toBe('empty')
+        ->and($statuses['assistant'])->toBe('empty')
+        ->and($statuses['security_instructions'])->toBe('critical')
+        ->and($statuses['technical_documentation'])->toBe('critical')
+        ->and($statuses['passport'])->toBe('critical')
+        ->and($statuses['readiness'])->toBe('critical');
+});
