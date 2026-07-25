@@ -42,7 +42,7 @@ final class StarterControlCatalogue
             [
                 'code' => 'CTL-PEER-REVIEW',
                 'name' => 'Mandatory peer review',
-                'name_bg' => 'Задължителен peer review',
+                'name_bg' => 'Задължителен партньорска проверка',
                 'description' => 'Require peer review before merging security-relevant changes.',
                 'description_bg' => 'Изисквайте peer review преди merge на промени, свързани със сигурността.',
                 'implementation_guidance' => 'Enforce branch protection with at least one approving review on protected branches.',
@@ -114,7 +114,7 @@ final class StarterControlCatalogue
             [
                 'code' => 'CTL-SEC-REGRESSION',
                 'name' => 'Security regression testing',
-                'name_bg' => 'Security regression тестове',
+                'name_bg' => 'Тестове за регресия на сигурността',
                 'description' => 'Run security-focused regression tests before release.',
                 'description_bg' => 'Изпълнявайте security-фокусирани regression тестове преди release.',
                 'implementation_guidance' => 'Include auth, input validation and update-path tests in the release gate.',
@@ -126,7 +126,7 @@ final class StarterControlCatalogue
             [
                 'code' => 'CTL-BACKUP-RESTORE',
                 'name' => 'Backup and restore testing',
-                'name_bg' => 'Тестване на backup и restore',
+                'name_bg' => 'Тестване на архивиране и възстановяване',
                 'description' => 'Periodically test backup and restore for critical product data/services.',
                 'description_bg' => 'Периодично тествайте backup и restore за критични продуктови данни/услуги.',
                 'implementation_guidance' => 'Schedule restore drills; record RTO/RPO outcomes.',
@@ -138,7 +138,7 @@ final class StarterControlCatalogue
             [
                 'code' => 'CTL-NO-DEFAULT-CREDS',
                 'name' => 'Prohibition of default credentials',
-                'name_bg' => 'Забрана на credentials по подразбиране',
+                'name_bg' => 'Забрана на пълномощията по подразбиране',
                 'description' => 'Do not ship default or shared credentials.',
                 'description_bg' => 'Не доставяйте credentials по подразбиране или споделени credentials.',
                 'implementation_guidance' => 'Force unique credentials or first-login setup; include check in release checklist.',

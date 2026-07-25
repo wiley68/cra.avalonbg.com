@@ -57,9 +57,9 @@ export type ProductModuleKey =
     | 'support_periods'
     | 'components'
     | 'risks'
+    | 'requirements'
     | 'deployments'
     | 'campaigns'
-    | 'requirements'
     | 'controls'
     | 'vulnerabilities'
     | 'incidents'
@@ -130,6 +130,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_risks',
     },
     {
+        key: 'requirements',
+        labelKey: 'products.requirements_link',
+        descriptionKey: 'products.modules.requirements.description',
+        icon: ListChecks,
+        href: (productId) => requirementsIndex(productId).url,
+        canViewFlag: 'can_view_requirements',
+    },
+    {
         key: 'deployments',
         labelKey: 'products.deployments_link',
         descriptionKey: 'products.modules.deployments.description',
@@ -144,14 +152,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Megaphone,
         href: (productId) => campaignsIndex(productId).url,
         canViewFlag: 'can_view_products',
-    },
-    {
-        key: 'requirements',
-        labelKey: 'products.requirements_link',
-        descriptionKey: 'products.modules.requirements.description',
-        icon: ListChecks,
-        href: (productId) => requirementsIndex(productId).url,
-        canViewFlag: 'can_view_requirements',
     },
     {
         key: 'controls',

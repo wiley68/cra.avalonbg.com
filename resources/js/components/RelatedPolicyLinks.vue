@@ -28,9 +28,7 @@ const hrefForType = (type: string): string =>
         class="space-y-3 rounded-lg border p-6"
     >
         <div>
-            <h2
-                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading">
                 {{ t('policies.related_title') }}
             </h2>
             <p class="mt-1 text-sm text-muted-foreground">
