@@ -55,12 +55,12 @@ export type ProductListItem = {
 export type ProductModuleKey =
     | 'versions'
     | 'support_periods'
+    | 'components'
     | 'deployments'
     | 'campaigns'
     | 'requirements'
     | 'controls'
     | 'risks'
-    | 'components'
     | 'vulnerabilities'
     | 'incidents'
     | 'sdl'
@@ -114,6 +114,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_products',
     },
     {
+        key: 'components',
+        labelKey: 'products.components_link',
+        descriptionKey: 'products.modules.components.description',
+        icon: Boxes,
+        href: (productId) => productComponentsIndex(productId).url,
+        canViewFlag: 'can_view_components',
+    },
+    {
         key: 'deployments',
         labelKey: 'products.deployments_link',
         descriptionKey: 'products.modules.deployments.description',
@@ -152,14 +160,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: ShieldAlert,
         href: (productId) => productRisksIndex(productId).url,
         canViewFlag: 'can_view_risks',
-    },
-    {
-        key: 'components',
-        labelKey: 'products.components_link',
-        descriptionKey: 'products.modules.components.description',
-        icon: Boxes,
-        href: (productId) => productComponentsIndex(productId).url,
-        canViewFlag: 'can_view_components',
     },
     {
         key: 'vulnerabilities',
