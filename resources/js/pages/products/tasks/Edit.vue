@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTaskEditBack } from '@/composables/useTaskEditBack';
 import {
     approve as approveTask,
     index as productTasksIndex,
@@ -67,6 +68,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useTaskEditBack(props.product.id, props.task.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -237,7 +239,7 @@ const textareaClass =
                 </h1>
             </div>
             <Button as-child variant="outline">
-                <Link :href="productTasksIndex(props.product.id)">
+                <Link :href="backHref">
                     <ArrowLeft class="h-4 w-4" />
                     {{ t('common.back') }}
                 </Link>

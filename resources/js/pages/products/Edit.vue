@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useProductEditBack } from '@/composables/useProductEditBack';
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -303,6 +304,7 @@ const props = defineProps<{
 const { t } = useTranslations();
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
+const { backHref } = useProductEditBack(props.product.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -826,7 +828,7 @@ const textareaClass =
                     trigger-variant="outline"
                 />
                 <Button as-child variant="outline">
-                    <Link :href="productsIndex()">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
