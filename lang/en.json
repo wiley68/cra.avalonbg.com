@@ -751,6 +751,14 @@
             "incident_response": "Incident response",
             "third_party_components": "Third-party components"
         },
+        "type_descriptions": {
+            "vulnerability_disclosure": "How the organization receives, triages, and discloses vulnerability reports.",
+            "secure_development": "Minimum security practices across the product development lifecycle.",
+            "support": "Support periods, channels, and commitments for maintained products.",
+            "update": "How security and functional updates are planned, delivered, and communicated.",
+            "incident_response": "Roles and steps for detecting, containing, and recovering from security incidents.",
+            "third_party_components": "Selection, inventory, and risk handling of third-party and open-source components."
+        },
         "related_title": "Related policies",
         "related_help": "Open the policy library filtered to the policy types most relevant to this item.",
         "filter_type_active": "Showing policies of type: :type",
@@ -788,6 +796,12 @@
         "index_title": "Controls library",
         "title": "Controls library",
         "subtitle": "How your organization implements CRA requirements",
+        "library_help": {
+            "what_label": "What they are",
+            "what": "Reusable security and compliance measures — how the organization implements CRA requirements in practice (code, frequency, automation, owner).",
+            "usage_label": "How they are used",
+            "usage": "Assigned to products and linked to requirements, risks, and evidence; readiness tracks coverage. Refresh the starter catalogue anytime; custom controls stay unchanged."
+        },
         "create": "Create control",
         "create_title": "Create control",
         "edit_title": "Edit control",

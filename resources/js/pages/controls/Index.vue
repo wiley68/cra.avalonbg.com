@@ -6,6 +6,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
@@ -28,6 +29,17 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const libraryHelpItems = computed(() => [
+    {
+        label: t('controls.library_help.what_label'),
+        value: t('controls.library_help.what'),
+    },
+    {
+        label: t('controls.library_help.usage_label'),
+        value: t('controls.library_help.usage'),
+    },
+]);
 
 usePageBreadcrumbs(() => [{ titleKey: 'nav.controls', href: controlsIndex() }]);
 
@@ -142,7 +154,16 @@ onMounted(() => {
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold">{{ t('controls.title') }}</h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">
+                        {{ t('controls.title') }}
+                    </h1>
+                    <OptionInfoTooltip
+                        :items="libraryHelpItems"
+                        side="bottom"
+                        content-class="max-w-md"
+                    />
+                </div>
                 <p class="text-sm text-muted-foreground">
                     {{ t('controls.subtitle') }} —
                     {{ props.organization.name }}

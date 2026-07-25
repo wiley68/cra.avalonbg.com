@@ -6,6 +6,7 @@ import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
@@ -17,6 +18,15 @@ import {
     createPolicyColumns,
     type PolicyListItem,
 } from './columns';
+
+const policyTypeSlugs = [
+    'vulnerability_disclosure',
+    'secure_development',
+    'support',
+    'update',
+    'incident_response',
+    'third_party_components',
+] as const;
 
 type OrganizationSummary = {
     id: number;
@@ -33,6 +43,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const policyTypeHelpItems = computed(() =>
+    policyTypeSlugs.map((slug) => ({
+        label: t(`policies.types.${slug}`),
+        value: t(`policies.type_descriptions.${slug}`),
+    })),
+);
 
 usePageBreadcrumbs(() => [{ titleKey: 'nav.policies', href: policiesIndex() }]);
 
@@ -167,9 +184,16 @@ onMounted(() => {
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold">
-                    {{ t('policies.title') }}
-                </h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">
+                        {{ t('policies.title') }}
+                    </h1>
+                    <OptionInfoTooltip
+                        :items="policyTypeHelpItems"
+                        side="bottom"
+                        content-class="max-w-md max-h-80 overflow-y-auto"
+                    />
+                </div>
                 <p class="text-sm text-muted-foreground">
                     {{ t('policies.subtitle') }}
                 </p>
