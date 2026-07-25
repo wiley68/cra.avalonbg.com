@@ -399,12 +399,14 @@ const formatDateTime = (value: string | null): string => {
 
         <AppAlertDialog
             v-model:open="showSaveEvidenceDialog"
+            variant="default"
             :title="
                 t('products.versions.merged_prs.confirm_save_evidence_title')
             "
             :description="
                 t('products.versions.merged_prs.confirm_save_evidence')
             "
+            :confirm-label="t('products.versions.merged_prs.confirm_save')"
             @confirm="doSaveEvidence"
             @cancel="showSaveEvidenceDialog = false"
         />

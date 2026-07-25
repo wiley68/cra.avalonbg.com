@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 25 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -110,7 +110,7 @@ Wizard notes: W-…
 | **1**  | Създай / редактирай продукт                                                                               | Products → Create / Edit                           | Име, тип, licensing, connectivity полета                                                   | **Done** (2026-07-25) | Картотека; modules меню + цветове по готовност                         |
 | **2**  | CRA **scope** assessment                                                                                  | Product Edit → scope wizard                        | Scope status + review                                                                      | **Done** (2026-07-25) | Не е правно заключение                                                 |
 | **3**  | **Classification**                                                                                        | Product Edit → classification wizard               | Classification status + review                                                             | **Done** (2026-07-25) | След scope                                                             |
-| **4**  | **Versions**                                                                                              | Product → Versions                                 | ≥1 version; release_date когато е release                                                  | Open                  | Котва за support / SBOM / SDL                                          |
+| **4**  | **Versions**                                                                                              | Product → Versions                                 | ≥1 version; release_date когато е release                                                  | **Done** (2026-07-25) | Котва за support / SBOM / SDL                                          |
 | **5**  | **Support periods**                                                                                       | Support periods                                    | Период(и) вързани към версия/продукт                                                       | Open                  | Паралелно след versions OK                                             |
 | **6**  | **VCS / Integrations** (по желание рано)                                                                  | Settings Integrations → Product Edit links         | Active connector + product link; Sync now                                                  | Open                  | Може и по-късно; рано помага за SBOM/vuln drafts                       |
 | **7**  | **Components / SBOM**                                                                                     | Components → import                                | Inventory + import checksum/evidence                                                       | Open                  | Преди vulns по възможност                                              |
@@ -169,7 +169,7 @@ Wizard notes: W-…
       ↓
 [1 Product] ✅ → [2 Scope] ✅ → [3 Classification] ✅
       ↓
-[4 Versions] → [5 Support]
+[4 Versions] ✅ → [5 Support]
       ↓
 [6 VCS/Integrations] ──┐
       ↓                │
@@ -424,7 +424,8 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
-- **2026-07-25** — Spine **A_3** (Classification): **Done**. Classification wizard тестван; промените са отразени. Следваща: стъпка **4** (Versions).
+- **2026-07-25** — Spine **A_4** (Versions): **Done**. Тестове преминати; UX корекция на confirm за „Запиши като доказателство“ (Запиши / default). Следваща: стъпка **5** (Support periods).
+- **2026-07-25** — Spine **A_3** (Classification): **Done**. Classification wizard тестван; промените са отразени.
 - **2026-07-25** — Spine **A_2** (CRA scope assessment): **Done**. Scope wizard тестван; работи коректно.
 - **2026-07-25** — Spine **A_1** (Product Create/Edit): **Done**. UI polish: section-heading стил; меню **Модули**; интеграции само при активна org-връзка; цветово кодиране на модули (critical/attention/complete/empty) в карти + меню + заглавие на продукта.
 - **2026-07-25** — Spine **A_0** разширен и **Done**: users/roles/settings + **controls library** (преглед) + **policies** (чернови без продукти) + **customers** (опционално, реални клиенти). Help/wizard: етап 0 = org prep (§4.1a).
@@ -443,6 +444,7 @@ UI идея (карта / стъпка / timeline): …
 - Стъпка 1 (Product) Done — цветовата легенда на модулите е част от help за Products index.
 - Стъпка 2 (Scope) Done — следва Classification.
 - Стъпка 3 (Classification) Done — следва Versions.
+- Стъпка 4 (Versions) Done — следва Support periods.
 - …
 
 ### P0/P1 triage queue
@@ -468,6 +470,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 0.7    | 2026-07-25 | Spine стъпка **4** (Versions) → **Done**                                                                  |
 | 0.6    | 2026-07-25 | Spine стъпка **3** (Classification) → **Done**                                                            |
 | 0.5    | 2026-07-25 | Spine стъпка **2** (CRA scope assessment) → **Done**                                                      |
 | 0.4    | 2026-07-25 | Spine стъпка **1** (Product Create/Edit) → **Done**; module color coding + UI polish в сесия log          |

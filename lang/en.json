@@ -1305,6 +1305,7 @@
                 "view_evidence": "View saved evidence",
                 "confirm_save_evidence_title": "Save summary as evidence?",
                 "confirm_save_evidence": "Creates an immutable Markdown evidence record for this product version from the current merged PR summary. You can save again later for a new snapshot.",
+                "confirm_save": "Save",
                 "save_unavailable": "Load an available merged PR summary before saving it as evidence.",
                 "save_version_invalid": "The selected version does not belong to this product.",
                 "empty": "No merged pull requests in this window.",
