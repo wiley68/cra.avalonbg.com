@@ -12,6 +12,7 @@
         "php": "^8.4",
         "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^3.0",
+        "laravel-lang/common": "^6.8",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
@@ -79,12 +80,16 @@
             "@types:check",
             "@php artisan test"
         ],
+        "lang:sync": [
+            "@php scripts/lang-sync.php"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@lang:sync"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

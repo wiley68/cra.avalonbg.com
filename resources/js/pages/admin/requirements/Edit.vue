@@ -57,7 +57,10 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.requirements_catalogue', href: requirementsIndex() },
-    { title: props.requirement.code, href: requirementsEdit(props.requirement.id) },
+    {
+        title: props.requirement.code,
+        href: requirementsEdit(props.requirement.id),
+    },
 ]);
 
 const currentVersion = computed(
@@ -204,9 +207,7 @@ const textareaClass =
                 </FieldLabel>
             </div>
 
-            <h2
-                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading">
                 {{ t('admin.requirements.fields.content_en') }}
             </h2>
 
@@ -292,9 +293,7 @@ const textareaClass =
                 <InputError :message="form.errors.required_evidence_text" />
             </div>
 
-            <h2
-                class="pt-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading pt-2">
                 {{ t('admin.requirements.fields.content_bg') }}
             </h2>
 
@@ -395,9 +394,7 @@ const textareaClass =
         </form>
 
         <section class="space-y-3 rounded-lg border p-6">
-            <h2
-                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading">
                 {{ t('admin.requirements.versions_title') }}
             </h2>
             <ul class="space-y-2 text-sm">

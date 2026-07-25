@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
@@ -14,30 +14,45 @@ import { edit as editSecurity } from '@/routes/security';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 import type { NavItem } from '@/types';
 
+const page = usePage();
 const { t } = useTranslations();
 
-const sidebarNavItems = computed<NavItem[]>(() => [
-    {
-        title: t('settings.nav.profile'),
-        href: editProfile(),
-    },
-    {
-        title: t('settings.nav.security'),
-        href: editSecurity(),
-    },
-    {
-        title: t('settings.nav.appearance'),
-        href: editAppearance(),
-    },
-    {
-        title: t('settings.nav.integrations'),
-        href: editIntegrations(),
-    },
-    {
-        title: t('settings.nav.integration_health'),
-        href: integrationHealthIndex(),
-    },
-]);
+const sidebarNavItems = computed<NavItem[]>(() => {
+    const user = page.props.auth.user;
+    const items: NavItem[] = [
+        {
+            title: t('settings.nav.profile'),
+            href: editProfile(),
+        },
+        {
+            title: t('settings.nav.security'),
+            href: editSecurity(),
+        },
+        {
+            title: t('settings.nav.appearance'),
+            href: editAppearance(),
+        },
+    ];
+
+    const canAccessIntegrations =
+        Boolean(user?.can_view_products || user?.can_manage_products) &&
+        !user?.is_platform_admin;
+
+    if (canAccessIntegrations) {
+        items.push(
+            {
+                title: t('settings.nav.integrations'),
+                href: editIntegrations(),
+            },
+            {
+                title: t('settings.nav.integration_health'),
+                href: integrationHealthIndex(),
+            },
+        );
+    }
+
+    return items;
+});
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>

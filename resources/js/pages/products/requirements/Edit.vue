@@ -201,9 +201,7 @@ const textareaClass =
 
         <section class="space-y-3 rounded-lg border p-6">
             <div class="flex items-center justify-between gap-4">
-                <h2
-                    class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-                >
+                <h2 class="section-heading">
                     {{ t('products.requirements.linked_controls_title') }}
                 </h2>
                 <Button
@@ -345,9 +343,7 @@ const textareaClass =
         </form>
 
         <section class="space-y-3 rounded-lg border p-6">
-            <h2
-                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading">
                 {{ t('products.requirements.history_title') }}
             </h2>
             <p

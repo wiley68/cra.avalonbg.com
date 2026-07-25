@@ -3860,7 +3860,25 @@
             "no_organization": "No organization membership.",
             "confirm": "Delete organization"
         },
+        "delete_account": {
+            "title": "Delete account",
+            "description": "Delete your account and all of its resources",
+            "warning_title": "Warning",
+            "warning_body": "Please proceed with caution, this cannot be undone.",
+            "button": "Delete account",
+            "dialog_title": "Are you sure you want to delete your account?",
+            "dialog_description": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.",
+            "password_placeholder": "Password",
+            "confirm": "Delete account"
+        },
         "security_title": "Security settings",
+        "password": {
+            "heading": "Update password",
+            "description": "Ensure your account is using a long, random password to stay secure",
+            "current": "Current password",
+            "new": "New password",
+            "confirm": "Confirm password"
+        },
         "appearance_title": "Appearance settings",
         "nav": {
             "heading": "Settings",

@@ -8,8 +8,9 @@ import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useTranslations } from '@/composables/useTranslations';
+import { edit } from '@/routes/security';
 
 type Props = {
     passwordRules: string;
@@ -17,22 +18,23 @@ type Props = {
 
 const props = defineProps<Props>();
 
+const { t } = useTranslations();
+
 usePageBreadcrumbs(() => [
     { titleKey: 'settings.security_title', href: edit() },
 ]);
-
 </script>
 
 <template>
-    <Head title="Security settings" />
+    <Head :title="t('settings.security_title')" />
 
-    <h1 class="sr-only">Security settings</h1>
+    <h1 class="sr-only">{{ t('settings.security_title') }}</h1>
 
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Update password"
-            description="Ensure your account is using a long, random password to stay secure"
+            :title="t('settings.password.heading')"
+            :description="t('settings.password.description')"
         />
 
         <Form
@@ -50,38 +52,42 @@ usePageBreadcrumbs(() => [
             v-slot="{ errors, processing }"
         >
             <div class="grid gap-2">
-                <Label for="current_password">Current password</Label>
+                <Label for="current_password">{{
+                    t('settings.password.current')
+                }}</Label>
                 <PasswordInput
                     id="current_password"
                     name="current_password"
                     class="mt-1 block w-full"
                     autocomplete="current-password"
-                    placeholder="Current password"
+                    :placeholder="t('settings.password.current')"
                 />
                 <InputError :message="errors.current_password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">New password</Label>
+                <Label for="password">{{ t('settings.password.new') }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="New password"
+                    :placeholder="t('settings.password.new')"
                     :passwordrules="props.passwordRules"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm password</Label>
+                <Label for="password_confirmation">{{
+                    t('settings.password.confirm')
+                }}</Label>
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="Confirm password"
+                    :placeholder="t('settings.password.confirm')"
                     :passwordrules="props.passwordRules"
                 />
                 <InputError :message="errors.password_confirmation" />
@@ -92,7 +98,7 @@ usePageBreadcrumbs(() => [
                     :disabled="processing"
                     data-test="update-password-button"
                 >
-                    Save
+                    {{ t('common.save') }}
                 </Button>
             </div>
         </Form>

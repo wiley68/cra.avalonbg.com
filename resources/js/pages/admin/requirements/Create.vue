@@ -149,9 +149,7 @@ const textareaClass =
                 </div>
             </div>
 
-            <h2
-                class="text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading">
                 {{ t('admin.requirements.fields.content_en') }}
             </h2>
 
@@ -237,9 +235,7 @@ const textareaClass =
                 <InputError :message="form.errors.required_evidence_text" />
             </div>
 
-            <h2
-                class="pt-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase"
-            >
+            <h2 class="section-heading pt-2">
                 {{ t('admin.requirements.fields.content_bg') }}
             </h2>
 

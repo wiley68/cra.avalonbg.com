@@ -141,7 +141,7 @@
         },
         "two_factor_setup": {
             "title": "Активирайте двуфакторна автентикация",
-            "description": "Двуфакторната автентикация е задължителна, преди да използвате workspace-а.",
+            "description": "Двуфакторната автентикация е задължителна, преди да използвате системата.",
             "head_title": "Настройка на 2FA"
         },
         "two_factor_challenge": {
@@ -288,10 +288,10 @@
                 "plain_language_bg": "Обяснение на достъпен език (BG)",
                 "applicability_notes": "Бележки за приложимост",
                 "applicability_notes_bg": "Бележки за приложимост (BG)",
-                "suggested_controls_text": "Предложени controls",
-                "suggested_controls_text_bg": "Предложени controls (BG)",
-                "required_evidence_text": "Необходими evidence",
-                "required_evidence_text_bg": "Необходими evidence (BG)"
+                "suggested_controls_text": "Предложени контроли",
+                "suggested_controls_text_bg": "Предложени контроли (BG)",
+                "required_evidence_text": "Необходими доказателства",
+                "required_evidence_text_bg": "Необходими доказателства (BG)"
             },
             "help": {
                 "regulation": "Регулаторен източник на изискването.",
@@ -308,8 +308,8 @@
                 "applicability_notes_bg": "Бележки на български кога обикновено се прилага изискването.",
                 "suggested_controls_text": "Предложени контроли (английски).",
                 "suggested_controls_text_bg": "Предложени контроли на български.",
-                "required_evidence_text": "Очаквания за evidence (английски).",
-                "required_evidence_text_bg": "Очаквания за evidence на български."
+                "required_evidence_text": "Очаквания за доказателства (английски).",
+                "required_evidence_text_bg": "Очаквания за доказателства на български."
             }
         }
     },
@@ -2656,7 +2656,7 @@
                 "version": "Версия в каталога",
                 "requirement_text": "Текст на изискването",
                 "plain_language": "Обяснение на достъпен език",
-                "suggested_controls": "Предложени controls",
+                "suggested_controls": "Предложени контроли",
                 "required_evidence": "Необходими evidence"
             },
             "help": {
@@ -3858,7 +3858,25 @@
             "no_organization": "Няма членство в организация.",
             "confirm": "Изтрий организацията"
         },
+        "delete_account": {
+            "title": "Изтриване на акаунта",
+            "description": "Изтрийте акаунта си и всички свързани ресурси",
+            "warning_title": "Предупреждение",
+            "warning_body": "Продължете внимателно — действието е необратимо.",
+            "button": "Изтрий акаунта",
+            "dialog_title": "Сигурни ли сте, че искате да изтриете акаунта си?",
+            "dialog_description": "След изтриване на акаунта всички свързани ресурси и данни също ще бъдат окончателно изтрити. Въведете паролата си, за да потвърдите окончателното изтриване.",
+            "password_placeholder": "Парола",
+            "confirm": "Изтрий акаунта"
+        },
         "security_title": "Настройки за сигурност",
+        "password": {
+            "heading": "Обновяване на паролата",
+            "description": "Използвайте дълга и произволна парола, за да защитите акаунта си",
+            "current": "Текуща парола",
+            "new": "Нова парола",
+            "confirm": "Потвърдете паролата"
+        },
         "appearance_title": "Настройки за изглед",
         "nav": {
             "heading": "Настройки",
@@ -4012,13 +4030,13 @@
     },
     "roles": {
         "user": "Потребител",
-        "platform_admin": "Platform Admin",
+        "platform_admin": "Администратор на платформата",
         "administrator": "Администратор",
         "organization_owner": "Собственик на организация",
         "product_owner": "Продуктов собственик",
         "security_owner": "Отговорник по сигурността",
         "developer": "Разработчик",
-        "compliance_reviewer": "Compliance рецензент",
+        "compliance_reviewer": "Рецензент на съответствие",
         "release_approver": "Одобряващ издания",
         "auditor": "Одитор",
         "external_consultant": "Външен консултант",

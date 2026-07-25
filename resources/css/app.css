@@ -75,6 +75,8 @@
     --color-panel-error: var(--panel-error);
     --color-panel-error-foreground: var(--panel-error-foreground);
     --color-panel-error-border: var(--panel-error-border);
+
+    --color-section-heading: var(--section-heading);
 }
 
 /*
@@ -155,6 +157,9 @@
     --panel-error: hsl(0 86% 96%);
     --panel-error-foreground: hsl(0 70% 30%);
     --panel-error-border: hsl(0 80% 80%);
+
+    /* Form / edit page section titles (EN/BG blocks, etc.) */
+    --section-heading: hsl(217 80% 40%);
 }
 
 .dark {
@@ -207,6 +212,8 @@
     --panel-error: hsl(0 40% 14%);
     --panel-error-foreground: hsl(0 90% 85%);
     --panel-error-border: hsl(0 40% 28%);
+
+    --section-heading: hsl(213 94% 72%);
 }
 
 @layer base {
@@ -215,5 +222,11 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer components {
+    .section-heading {
+        @apply text-sm font-semibold tracking-wide text-section-heading uppercase;
     }
 }
