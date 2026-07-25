@@ -1409,14 +1409,14 @@
             "release_schedule_hint": "Календарният прозорец се изчислява от най-ранната release дата на свързаните версии.",
             "types": {
                 "commercial": "Търговска поддръжка",
-                "security": "Security поддръжка"
+                "security": "Поддръжка за сигурност"
             },
             "start_bases": {
-                "release_date": "Release date",
-                "purchase_date": "Purchase date",
-                "contract_start_date": "Contract start date",
-                "activation_date": "Activation date",
-                "custom": "Custom"
+                "release_date": "Дата на издаване",
+                "purchase_date": "Дата на закупуване",
+                "contract_start_date": "Дата на договорно начало",
+                "activation_date": "Дата на активиране",
+                "custom": "Собствено"
             },
             "columns": {
                 "id": "ID",
