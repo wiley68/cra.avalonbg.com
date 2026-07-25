@@ -1734,8 +1734,8 @@
             "final_status": "Финален статус",
             "override_hint": "Можете да промените предложението преди запис.",
             "rationale": "Обосновка",
-            "regulatory_content_version": "Версия на regulatory content",
-            "evidence_notes": "Бележки за supporting evidence",
+            "regulatory_content_version": "Версия на нормативно съдържание",
+            "evidence_notes": "Бележки за подкрепящи доказателства",
             "saved": "Класификационната оценка е записана.",
             "last_assessment": "Последна класификационна оценка",
             "reviewed_at": "Прегледана на",
@@ -1750,7 +1750,7 @@
             },
             "errors": {
                 "answer_required": "Този отговор е задължителен.",
-                "regulatory_required": "Версията на regulatory content е задължителна."
+                "regulatory_required": "Версията на нормативното съдържание е задължителна."
             },
             "questions": {
                 "identity_access_security": {
