@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 0.2  
+**Версия:** 0.3  
 **Дата:** 25 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -61,10 +61,10 @@
 | Продукти                | 2 реални                                                             |
 | Версии                  | ≥1 released + ≥1 draft/dev; `release_date` + git_ref където има      |
 | Support periods         | ≥1 активен период                                                    |
-| Customers               | ≥2 клиенти                                                           |
+| Customers               | ≥2 клиенти (може още в етап **0**; formal gate = стъпка **15**)      |
 | Deployments             | ≥2 инсталации (различни versions / support)                          |
 | Patch campaign          | ≥1 (draft → active → notify path)                                    |
-| Requirements + Controls | матрица + връзки                                                     |
+| Requirements + Controls | матрица + връзки; org controls library прегледана в етап **0**       |
 | Risks                   | ≥2 с treatment                                                       |
 | Components / SBOM       | Composer lock и/или CycloneDX                                        |
 | Vulnerabilities         | ≥1 с reporting pack (24h/72h/final path)                             |
@@ -74,7 +74,7 @@
 | Tasks                   | open + approval flow                                                 |
 | USI                     | draft → published (EN и/или BG pair ако ползвате)                    |
 | Tech doc                | draft → published + export                                           |
-| Policies                | ≥1 org policy                                                        |
+| Policies                | ≥1 org policy (чернови уместни в етап **0**; approve след продукт)   |
 | VCS                     | GitHub и/или GitLab link + sync + merged-PR summary на version show  |
 | Integrations            | Jira и/или ADO + Snyk (или SARIF upload) + Accept/Dismiss            |
 | Auditor                 | ≥1 package + guest link smoke                                        |
@@ -104,39 +104,68 @@ Wizard notes: W-…
 
 ### 4.1 Product spine (numbered)
 
-| Стъпка | Модул / действие                                   | UI вход (ориентир)                         | „Готово“ когато…                              | Статус                | Бележка за клиента                               |
-| ------ | -------------------------------------------------- | ------------------------------------------ | --------------------------------------------- | --------------------- | ------------------------------------------------ |
-| **0**  | Org + users + roles + settings                     | Settings / Users / Profile / Security      | Има Owner; Viewer за проверка; i18n OK        | **Done** (2026-07-25) | Преди продукти; вкл. лични настройки             |
-| **1**  | Създай / редактирай продукт                        | Products → Create / Edit                   | Име, тип, licensing, connectivity полета      | Open                  | Картотека                                        |
-| **2**  | CRA **scope** assessment                           | Product Edit → scope wizard                | Scope status + review                         | Open                  | Не е правно заключение                           |
-| **3**  | **Classification**                                 | Product Edit → classification wizard       | Classification status + review                | Open                  | След scope                                       |
-| **4**  | **Versions**                                       | Product → Versions                         | ≥1 version; release_date когато е release     | Open                  | Котва за support / SBOM / SDL                    |
-| **5**  | **Support periods**                                | Support periods                            | Период(и) вързани към версия/продукт          | Open                  | Паралелно след versions OK                       |
-| **6**  | **VCS / Integrations** (по желание рано)           | Settings Integrations → Product Edit links | Active connector + product link; Sync now     | Open                  | Може и по-късно; рано помага за SBOM/vuln drafts |
-| **7**  | **Components / SBOM**                              | Components → import                        | Inventory + import checksum/evidence          | Open                  | Преди vulns по възможност                        |
-| **8**  | **Risks**                                          | Risks                                      | Рискове + treatment                           | Open                  | Храни controls / readiness                       |
-| **9**  | **Requirements**                                   | Requirements                               | Релевантни CRA requirements                   | Open                  | Каталог → product matrix                         |
-| **10** | **Controls**                                       | Controls (+ org library)                   | Controls + link към requirements              | Open                  | Org library може преди това (§7)                 |
-| **11** | **Evidence**                                       | Evidence                                   | Доказателства към controls / risks / stages   | Open                  | Непрекъснато; първи batch тук                    |
-| **12** | **Tasks**                                          | Tasks                                      | Отворени / approval където трябва             | Open                  | От gaps / imports                                |
-| **13** | **Vulnerabilities**                                | Vulnerabilities (+ import Accept)          | ≥1 в регистъра; triage                        | Open                  | Import = human Accept                            |
-| **14** | **Vulnerability reporting**                        | Vuln → Reporting                           | Draft → approve → submitted (според реалност) | Open                  | 24h / 72h / final awareness                      |
-| **15** | **Customers**                                      | Customers (org)                            | Клиенти създадени                             | Open                  | Org-level; преди deployments                     |
-| **16** | **Deployments**                                    | Deployments                                | Инсталации към versions                       | Open                  | Affected customers                               |
-| **17** | **Patch campaigns**                                | Campaigns                                  | Кампания + notify/confirm path                | Open                  | След vuln/deployments                            |
-| **18** | **Incidents**                                      | Incidents (product + org index)            | Инцидент + timeline                           | Open                  | Може ad-hoc; тук за пълен продукт                |
-| **19** | **SDL**                                            | SDL                                        | Run през stages; release gate                 | Open                  | Вържи evidence / Git                             |
-| **20** | **USI**                                            | Security instructions                      | Published (или under_review)                  | Open                  | Паралелно след versions                          |
-| **21** | **Technical documentation**                        | Tech docs                                  | Package + key sections + export               | Open                  | Вкл. conformity/DoC **prep** (без auto-sign)     |
-| **22** | **Compliance passport**                            | Passport                                   | Преглед; gaps осмислени                       | Open                  | Обобщение                                        |
-| **23** | **Readiness**                                      | Readiness → export                         | Review + exported report                      | Open                  | **Финална operational оценка** за release        |
-| **24** | **Auditor package** (опционално за външен преглед) | Auditor                                    | Package shared / guest open                   | Open                  | Не е задължително за всеки release               |
-| **25** | **AI assistant / RAG** (опционално)                | Assistant                                  | Chat/analyse с human review                   | Open                  | След evidence; `ai:index-embeddings`             |
+| Стъпка | Модул / действие                                                                                          | UI вход (ориентир)                                 | „Готово“ когато…                                                                           | Статус                | Бележка за клиента                                                     |
+| ------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------- | ---------------------------------------------------------------------- |
+| **0**  | **Org prep:** settings, users/roles, **controls library**, **policies** (draft), **customers** (optional) | Settings / Users / Controls / Policies / Customers | Owner + Viewer; i18n OK; controls прегледани; ≥1 policy draft (по тип); клиенти по желание | **Done** (2026-07-25) | Преди продукти — виж §4.1a; help/wizard: „подготовка на организацията“ |
+| **1**  | Създай / редактирай продукт                                                                               | Products → Create / Edit                           | Име, тип, licensing, connectivity полета                                                   | Open                  | Картотека                                                              |
+| **2**  | CRA **scope** assessment                                                                                  | Product Edit → scope wizard                        | Scope status + review                                                                      | Open                  | Не е правно заключение                                                 |
+| **3**  | **Classification**                                                                                        | Product Edit → classification wizard               | Classification status + review                                                             | Open                  | След scope                                                             |
+| **4**  | **Versions**                                                                                              | Product → Versions                                 | ≥1 version; release_date когато е release                                                  | Open                  | Котва за support / SBOM / SDL                                          |
+| **5**  | **Support periods**                                                                                       | Support periods                                    | Период(и) вързани към версия/продукт                                                       | Open                  | Паралелно след versions OK                                             |
+| **6**  | **VCS / Integrations** (по желание рано)                                                                  | Settings Integrations → Product Edit links         | Active connector + product link; Sync now                                                  | Open                  | Може и по-късно; рано помага за SBOM/vuln drafts                       |
+| **7**  | **Components / SBOM**                                                                                     | Components → import                                | Inventory + import checksum/evidence                                                       | Open                  | Преди vulns по възможност                                              |
+| **8**  | **Risks**                                                                                                 | Risks                                              | Рискове + treatment                                                                        | Open                  | Храни controls / readiness                                             |
+| **9**  | **Requirements**                                                                                          | Requirements                                       | Релевантни CRA requirements                                                                | Open                  | Каталог → product matrix                                               |
+| **10** | **Controls**                                                                                              | Controls (+ org library)                           | Controls + link към requirements                                                           | Open                  | Org library вече в **0**; тук product assign                           |
+| **11** | **Evidence**                                                                                              | Evidence                                           | Доказателства към controls / risks / stages                                                | Open                  | Непрекъснато; първи batch тук                                          |
+| **12** | **Tasks**                                                                                                 | Tasks                                              | Отворени / approval където трябва                                                          | Open                  | От gaps / imports                                                      |
+| **13** | **Vulnerabilities**                                                                                       | Vulnerabilities (+ import Accept)                  | ≥1 в регистъра; triage                                                                     | Open                  | Import = human Accept                                                  |
+| **14** | **Vulnerability reporting**                                                                               | Vuln → Reporting                                   | Draft → approve → submitted (според реалност)                                              | Open                  | 24h / 72h / final awareness                                            |
+| **15** | **Customers**                                                                                             | Customers (org)                                    | Клиенти създадени                                                                          | Open                  | Може частично в **0**; тук gate преди deployments                      |
+| **16** | **Deployments**                                                                                           | Deployments                                        | Инсталации към versions                                                                    | Open                  | Affected customers                                                     |
+| **17** | **Patch campaigns**                                                                                       | Campaigns                                          | Кампания + notify/confirm path                                                             | Open                  | След vuln/deployments                                                  |
+| **18** | **Incidents**                                                                                             | Incidents (product + org index)                    | Инцидент + timeline                                                                        | Open                  | Може ad-hoc; тук за пълен продукт                                      |
+| **19** | **SDL**                                                                                                   | SDL                                                | Run през stages; release gate                                                              | Open                  | Вържи evidence / Git                                                   |
+| **20** | **USI**                                                                                                   | Security instructions                              | Published (или under_review)                                                               | Open                  | Паралелно след versions                                                |
+| **21** | **Technical documentation**                                                                               | Tech docs                                          | Package + key sections + export                                                            | Open                  | Вкл. conformity/DoC **prep** (без auto-sign)                           |
+| **22** | **Compliance passport**                                                                                   | Passport                                           | Преглед; gaps осмислени                                                                    | Open                  | Обобщение                                                              |
+| **23** | **Readiness**                                                                                             | Readiness → export                                 | Review + exported report                                                                   | Open                  | **Финална operational оценка** за release                              |
+| **24** | **Auditor package** (опционално за външен преглед)                                                        | Auditor                                            | Package shared / guest open                                                                | Open                  | Не е задължително за всеки release                                     |
+| **25** | **AI assistant / RAG** (опционално)                                                                       | Assistant                                          | Chat/analyse с human review                                                                | Open                  | След evidence; `ai:index-embeddings`                                   |
+
+### 4.1a Предварителен етап 0 — org prep (детайл)
+
+Канонично това е **първата** клиентска стъпка преди Product spine. Help docs и бъдещата диаграма/wizard трябва да я описват като „подготовка на организацията“, не само users/settings.
+
+**Задължително**
+
+- [ ] Settings / Profile / Security / Appearance (лични + org където има)
+- [ ] Users + roles — поне Owner; Viewer за RBAC smoke
+- [ ] **Библиотека контроли** — преглед на стартовия каталог; донастройка само при нужда (refresh starter / custom). Обикновено без промени е ОК.
+
+**Препоръчително (не блокира стъпка 1)**
+
+- [ ] **Клиенти** — въведи реални клиенти, с които работиш (CRUD / CSV). Не е задължително да чакаш стъпка **15**; удобно е още тук. Стъпка 15 остава formal gate преди deployments.
+- [ ] **Политики** — създай org политиките по 6-те типа (библиотека). Без продукти остават **чернови** (няма review task / approve към продукт) — това е ОК. Approve + publish-as-evidence → по-късно (§5 G), когато има продукт.
+
+**За help / wizard / диаграма**
+
+| Блок в етап 0    | Клиентски език (ориентир)                               | Задължителен? | Done сигнал                                 |
+| ---------------- | ------------------------------------------------------- | ------------- | ------------------------------------------- |
+| Users / roles    | Кой работи в организацията и с какви права              | Да            | Owner + поне една втора роля за проверка    |
+| Settings         | Профил, сигурност, език                                 | Да            | Входът и locale работят                     |
+| Controls library | Готови мерки за съответствие — прегледай преди продукти | Да (преглед)  | Каталогът е наличен; optional tweak записан |
+| Policies         | Организационни правила (disclosure, support, SDL, …)    | Да (чернови)  | Поне ключовите типове като draft            |
+| Customers        | Твоите клиенти в платформата                            | Не            | ≥1 клиент ако ще ползваш deployments скоро  |
 
 ### 4.2 Диаграма (опростена)
 
 ```text
-[0 Org/Users/Settings] ✅
+[0 Org prep] ✅
+  · users / roles / settings
+  · controls library (преглед)
+  · policies (чернови OK)
+  · customers (опционално)
       ↓
 [1 Product] → [2 Scope] → [3 Classification]
       ↓
@@ -146,27 +175,29 @@ Wizard notes: W-…
       ↓                │
 [7 SBOM/Components] ←──┘
       ↓
-[8 Risks] → [9 Requirements] → [10 Controls] → [11 Evidence] → [12 Tasks]
+[8 Risks] → [9 Requirements] → [10 Controls assign] → [11 Evidence] → [12 Tasks]
       ↓
 [13 Vulns] → [14 Reporting]
       ↓
-[15 Customers] → [16 Deployments] → [17 Campaigns]
+[15 Customers gate] → [16 Deployments] → [17 Campaigns]
       ↓
 [18 Incidents]   [19 SDL]   [20 USI]   [21 Tech docs]   (могат успоредно след 11–14)
       ↓
 [22 Passport] → [23 Readiness] → ([24 Auditor]) → ([25 AI])
 ```
 
+> **Бележка:** „Customers gate“ (15) = потвърди/допълни клиентите преди deployments. Ако вече си ги въвел в **0**, стъпка 15 е кратка проверка, не повторно въвеждане от нула. „Controls assign“ (10) = връзка към продукт/requirements; org library е в **0**.
+
 ### 4.3 Какво **не** е в spine (умишлено)
 
-| Елемент                                       | Защо извън номерацията                                               |
-| --------------------------------------------- | -------------------------------------------------------------------- |
-| Dashboard                                     | Обзор; ползвай когато трябва action                                  |
-| Audit log                                     | Непрекъснат контроль; преглеждай след ключови стъпки                 |
-| Policies                                      | Org library; подготви преди/успоредно на vulns/USI                   |
-| Org Controls / Requirements catalogue (admin) | Platform / org setup                                                 |
-| Integration health                            | Ops; при sync проблеми                                               |
-| Profile / Appearance / Security settings      | Лични; не част от product CRA path — **покрито със стъпка 0 (Done)** |
+| Елемент                                  | Защо извън номерацията                                |
+| ---------------------------------------- | ----------------------------------------------------- |
+| Dashboard                                | Обзор; ползвай когато трябва action                   |
+| Audit log                                | Непрекъснат контроль; преглеждай след ключови стъпки  |
+| Integration health                       | Ops; при sync проблеми                                |
+| Profile / Appearance / Security settings | Лични; покрити в стъпка **0** (§4.1a)                 |
+| Admin requirements catalogue (platform)  | Platform admin only                                   |
+| Policy **approve** / publish-as-evidence | След продукти; черновите са в **0**, lifecycle в §5 G |
 
 ---
 
@@ -176,9 +207,10 @@ Wizard notes: W-…
 
 ### Пътека A — Greenfield продукт (пълен happy path)
 
-**Цел Goal A:** еднократно преминаване 1→23 с реален продукт.  
+**Цел Goal A:** еднократно преминаване 1→23 с реален продукт (след завършен етап **0** / §4.1a).  
 **Цел Goal B/C:** записвай UI и wizard notes на **всяка** стъпка.
 
+- [ ] Стъпка **0** (§4.1a) потвърдена — вкл. controls преглед; policies чернови; customers по желание
 - [ ] Стъпки 1–23 по §4.1
 - [ ] Passport + Readiness export запазени като артефакт на теста
 - [ ] Viewer: read-only на същия продукт (без manage)
@@ -345,12 +377,13 @@ UI идея (карта / стъпка / timeline): …
 
 ### 9.3 Решение за опростяване (попълни след пътека A)
 
-| Въпрос                                       | Решение (след тестове)           |
-| -------------------------------------------- | -------------------------------- |
-| Edit остава ли за „данни“, Show за „пътека“? | _TBD_                            |
-| Кои блокове са optional в MVP wizard?        | _TBD (кандидат: 24–25)_          |
-| Един колоннен timeline vs граф?              | _TBD_                            |
-| Org-wide елементи в Show?                    | _TBD (вероятно само deep links)_ |
+| Въпрос                                       | Решение (след тестове)                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Edit остава ли за „данни“, Show за „пътека“? | _TBD_                                                                                                                    |
+| Кои блокове са optional в MVP wizard?        | _TBD (кандидат: 24–25)_                                                                                                  |
+| Един колоннен timeline vs граф?              | _TBD_                                                                                                                    |
+| Org-wide елементи в Show?                    | _TBD — етап **0** (org prep) е **преди** Product Show; Show сочи deep links към Customers / Policies / Controls library_ |
+| Етап 0 в onboarding диаграмата?              | **Да** — users/roles/settings + controls review + policy drafts + optional customers (§4.1a)                             |
 
 ---
 
@@ -358,11 +391,12 @@ UI идея (карта / стъпка / timeline): …
 
 След пътека A (+ ключови B–G) попълни:
 
-1. **Клиентска история в 1 страница** — стъпки 1–23 на човешки език (без route names).
-2. **Речник** — scope vs classification; passport vs readiness; suggestion vs accepted entity.
-3. **Чести грешки** — sync без worker; Accept без преглед; readiness твърде рано.
+1. **Клиентска история в 1 страница** — етап **0** (org prep) + стъпки 1–23 на човешки език (без route names).
+2. **Речник** — scope vs classification; passport vs readiness; suggestion vs accepted entity; org control vs product control; policy draft vs approved.
+3. **Чести грешки** — sync без worker; Accept без преглед; readiness твърде рано; очакване да approve-неш policy без продукт.
 4. **Роли** — какво прави Owner vs Viewer.
 5. **Какво системата не прави** — юридическа гаранция; DoC auto-sign; ALM two-way.
+6. **Етап 0 подсказки** — клиенти рано (optional); политики като чернови преди продукти; controls library = преглед, не задължителна преработка.
 
 Черновата може да живее в `documents/help/` по-късно; тук дръж bullet notes в §12.
 
@@ -390,14 +424,17 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
-- **2026-07-25** — Spine **A_0** (Org + users + roles + settings): **Done**. Преводи и UI корекции по профил/сигурност/настройки приложени; platform_admin без Integrations в settings nav. Следваща: стъпка **1** (Product).
+- **2026-07-25** — Spine **A_0** разширен и **Done**: users/roles/settings + **controls library** (преглед) + **policies** (чернови без продукти) + **customers** (опционално, реални клиенти). Help/wizard: етап 0 = org prep (§4.1a). Следваща: стъпка **1** (Product).
 
 ### Help draft bullets
 
-- …
+- Етап 0: подготовка на организацията преди продукт — роли, настройки, преглед на библиотека контроли, чернови на политики, по желание клиенти.
+- Политиките остават draft докато няма продукт за review/approve — това е очаквано.
+- Библиотеката контроли обикновено е готова от стартовия каталог; клиентът само преглежда.
 
 ### Wizard decisions
 
+- Org prep (стъпка 0) е отделен блок **преди** Product Show timeline; в диаграмата включва controls / policies / optional customers (§4.1a таблица).
 - …
 
 ### P0/P1 triage queue
@@ -421,7 +458,8 @@ UI идея (карта / стъпка / timeline): …
 
 ## 14. История
 
-| Версия | Дата       | Промяна                                                                                            |
-| ------ | ---------- | -------------------------------------------------------------------------------------------------- |
-| 0.2    | 2026-07-25 | Spine стъпка **0** (Org/users/roles/settings) → **Done**; Status колона в §4.1; сесия log          |
-| 0.1    | 2026-07-24 | Skeleton Active — цели A/B/C, numbered spine, пътеки A–H, findings + wizard capture, exit before F |
+| Версия | Дата       | Промяна                                                                                                   |
+| ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 0.3    | 2026-07-25 | Етап **0** разширен: Customers (optional), Policies (draft), Controls library (review) — §4.1a + диаграма |
+| 0.2    | 2026-07-25 | Spine стъпка **0** (Org/users/roles/settings) → **Done**; Status колона в §4.1; сесия log                 |
+| 0.1    | 2026-07-24 | Skeleton Active — цели A/B/C, numbered spine, пътеки A–H, findings + wizard capture, exit before F        |
