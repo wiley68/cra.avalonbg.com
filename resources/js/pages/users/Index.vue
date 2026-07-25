@@ -7,6 +7,7 @@ import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import EncryptedExportDialog from '@/components/exports/EncryptedExportDialog.vue';
+import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
 import { Button } from '@/components/ui/button';
 import { useApiTable } from '@/composables/useApiTable';
 import { useTranslations } from '@/composables/useTranslations';
@@ -17,6 +18,18 @@ import { create, destroy, exportMethod } from '@/routes/users';
 import { createUserColumnTitleMap, createUserColumns } from './columns';
 import type { UserListItem } from './columns';
 import { index as usersIndex } from '@/routes/users';
+
+const organizationRoleSlugs = [
+    'organization_owner',
+    'product_owner',
+    'security_owner',
+    'developer',
+    'compliance_reviewer',
+    'release_approver',
+    'auditor',
+    'external_consultant',
+    'read_only',
+] as const;
 
 type OrganizationSummary = {
     id: number;
@@ -29,6 +42,13 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const roleHelpItems = computed(() =>
+    organizationRoleSlugs.map((slug) => ({
+        label: t(`roles.${slug}`),
+        value: t(`roles.descriptions.${slug}`),
+    })),
+);
 
 usePageBreadcrumbs(() => [{ titleKey: 'nav.users', href: usersIndex() }]);
 
@@ -167,7 +187,16 @@ onMounted(() => {
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold">{{ t('users.title') }}</h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">
+                        {{ t('users.title') }}
+                    </h1>
+                    <OptionInfoTooltip
+                        :items="roleHelpItems"
+                        side="bottom"
+                        content-class="max-w-md max-h-80 overflow-y-auto"
+                    />
+                </div>
                 <p class="text-sm text-muted-foreground">
                     {{ t('users.subtitle') }} — {{ props.organization.name }}
                 </p>
@@ -175,7 +204,7 @@ onMounted(() => {
 
             <div class="flex items-center gap-2">
                 <Button
-                    variant="secondary"
+                    variant="outline"
                     :disabled="isExporting"
                     @click="showExportDialog = true"
                 >

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CircleHelp } from '@lucide/vue';
+import type { HTMLAttributes } from 'vue';
 import {
     Tooltip,
     TooltipContent,
@@ -7,15 +8,23 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTranslations } from '@/composables/useTranslations';
+import { cn } from '@/lib/utils';
 
 export type OptionInfoItem = {
     label: string;
     value: string | null | undefined;
 };
 
-defineProps<{
-    items: OptionInfoItem[];
-}>();
+withDefaults(
+    defineProps<{
+        items: OptionInfoItem[];
+        side?: 'top' | 'right' | 'bottom' | 'left';
+        contentClass?: HTMLAttributes['class'];
+    }>(),
+    {
+        side: 'top',
+    },
+);
 
 const { t } = useTranslations();
 
@@ -37,8 +46,13 @@ const display = (value: string | null | undefined): string =>
                 </button>
             </TooltipTrigger>
             <TooltipContent
-                side="top"
-                class="max-w-sm space-y-2 text-left leading-relaxed"
+                :side="side"
+                :class="
+                    cn(
+                        'max-w-sm space-y-2 text-left leading-relaxed',
+                        contentClass,
+                    )
+                "
             >
                 <div v-for="(item, index) in items" :key="index">
                     <p

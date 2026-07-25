@@ -4051,7 +4051,18 @@
         "release_approver": "Release Approver",
         "auditor": "Auditor",
         "external_consultant": "External Consultant",
-        "read_only": "Read-only User"
+        "read_only": "Read-only User",
+        "descriptions": {
+            "organization_owner": "Full organization ownership: manage users, settings, and all compliance modules.",
+            "product_owner": "Owns product lifecycle and roadmap; manages products, requirements, controls, and evidence.",
+            "security_owner": "Drives security controls, vulnerability handling, and incident response.",
+            "developer": "Builds and maintains components and releases; view access to related compliance records.",
+            "compliance_reviewer": "Reviews controls and evidence completeness; can manage tasks and approve work.",
+            "release_approver": "Approves release readiness decisions before products ship.",
+            "auditor": "Read-only visibility into records, evidence, and the audit trail.",
+            "external_consultant": "Limited read access for guided consulting on products and controls.",
+            "read_only": "View-only access across products and compliance data, without changes."
+        }
     },
     "breadcrumbs": {
         "reporting": "Reporting",
