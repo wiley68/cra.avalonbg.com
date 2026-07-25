@@ -64,7 +64,98 @@ test('authenticated organization owner sees action dashboard', function () {
                     ->etc())
                 ->has('actions')
                 ->has('counts')
+                ->has('recent_products')
                 ->etc()));
+});
+
+test('organization dashboard includes latest three products with status', function () {
+    test()->seed([RolePermissionSeeder::class]);
+
+    $organization = Organization::query()->create([
+        'name' => 'Acme Soft',
+        'slug' => 'acme-soft-recent',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'two_factor_confirmed_at' => now(),
+        'must_change_password' => false,
+    ]);
+
+    $ownerRole = Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($user->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $oldest = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Oldest Product',
+        'slug' => 'oldest-product',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => ScopeStatus::InsufficientInformation,
+        'classification_status' => ClassificationStatus::Unclassified,
+    ]);
+    $oldest->forceFill(['created_at' => now()->subDays(3)])->save();
+
+    $middle = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Middle Product',
+        'slug' => 'middle-product',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => ScopeStatus::InsufficientInformation,
+        'classification_status' => ClassificationStatus::Unclassified,
+    ]);
+    $middle->forceFill(['created_at' => now()->subDays(2)])->save();
+
+    $newest = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Newest Product',
+        'slug' => 'newest-product',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => ScopeStatus::InsufficientInformation,
+        'classification_status' => ClassificationStatus::Unclassified,
+    ]);
+    $newest->forceFill(['created_at' => now()->subDay()])->save();
+
+    $hidden = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Fourth Should Hide',
+        'slug' => 'fourth-product',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => false,
+        'has_network_connectivity' => false,
+        'scope_status' => ScopeStatus::InsufficientInformation,
+        'classification_status' => ClassificationStatus::Unclassified,
+    ]);
+    $hidden->forceFill(['created_at' => now()->subDays(4)])->save();
+
+    $expectedStatus = 'critical';
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->has('dashboard.recent_products', 3)
+            ->where('dashboard.recent_products.0.id', $newest->id)
+            ->where('dashboard.recent_products.0.name', $newest->name)
+            ->where('dashboard.recent_products.0.status', $expectedStatus)
+            ->where('dashboard.recent_products.1.id', $middle->id)
+            ->where('dashboard.recent_products.2.id', $oldest->id));
 });
 
 test('platform admin without org sees platform dashboard', function () {

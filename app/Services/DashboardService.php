@@ -34,6 +34,13 @@ class DashboardService
 {
     private const OPEN_TASKS_PREVIEW_LIMIT = 3;
 
+    private const RECENT_PRODUCTS_LIMIT = 3;
+
+    public function __construct(
+        private readonly ProductReadinessService $readiness,
+    ) {
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -66,6 +73,7 @@ class DashboardService
                 'organizations' => $organizationCount,
                 'products' => Product::query()->count(),
             ],
+            'recent_products' => [],
             'actions' => [
                 [
                     'key' => 'manage_organizations',
@@ -87,6 +95,7 @@ class DashboardService
             'mode' => 'empty',
             'organization' => null,
             'counts' => [],
+            'recent_products' => [],
             'actions' => [],
         ];
     }
@@ -215,8 +224,83 @@ class DashboardService
                 'pending_import_suggestions' => $pendingImportSuggestions,
                 'failed_integration_syncs' => $failedIntegrationSyncs,
             ],
+            'recent_products' => $this->recentProducts($organization),
             'actions' => $actions,
         ];
+    }
+
+    /**
+     * @return list<array{id: int, name: string, status: 'empty'|'complete'|'attention'|'critical', href: string}>
+     */
+    private function recentProducts(Organization $organization): array
+    {
+        $products = Product::query()
+            ->where('organization_id', $organization->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(self::RECENT_PRODUCTS_LIMIT)
+            ->get();
+
+        return $products
+            ->map(function (Product $product): array {
+                $statuses = $this->readiness->cardModuleStatuses($product);
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'status' => $this->aggregateRecentProductStatus($statuses),
+                    'href' => route('products.edit', $product),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, 'empty'|'complete'|'attention'|'critical'>  $statuses
+     * @return 'empty'|'complete'|'attention'|'critical'
+     */
+    private function aggregateRecentProductStatus(array $statuses): string
+    {
+        $moduleKeys = [
+            'versions',
+            'support_periods',
+            'deployments',
+            'campaigns',
+            'requirements',
+            'controls',
+            'risks',
+            'components',
+            'vulnerabilities',
+            'incidents',
+            'sdl',
+            'evidence',
+            'tasks',
+            'passport',
+            'readiness',
+            'assistant',
+            'security_instructions',
+            'technical_documentation',
+        ];
+
+        $values = [];
+        foreach ($moduleKeys as $key) {
+            $values[] = $statuses[$key] ?? 'empty';
+        }
+
+        if (in_array('critical', $values, true)) {
+            return 'critical';
+        }
+
+        if (in_array('attention', $values, true)) {
+            return 'attention';
+        }
+
+        if (in_array('complete', $values, true)) {
+            return 'complete';
+        }
+
+        return 'empty';
     }
 
     /**
@@ -235,7 +319,7 @@ class DashboardService
         return [
             'key' => $key,
             'severity' => $severity,
-            'title_key' => 'dashboard.actions.'.$key,
+            'title_key' => 'dashboard.actions.' . $key,
             'count' => $count,
             'href' => $href ?? route('products.index'),
         ];
@@ -335,7 +419,7 @@ class DashboardService
     private function activeIncidentStatusValues(): array
     {
         return array_map(
-            fn (IncidentStatus $status): string => $status->value,
+            fn(IncidentStatus $status): string => $status->value,
             IncidentStatus::active(),
         );
     }
@@ -358,7 +442,7 @@ class DashboardService
             ->where('start_basis', SupportPeriodStartBasis::ReleaseDate->value)
             ->with(['versions:id,release_date'])
             ->get()
-            ->filter(fn (ProductSupportPeriod $period): bool => $period->scheduleResolved());
+            ->filter(fn(ProductSupportPeriod $period): bool => $period->scheduleResolved());
 
         foreach ($periods as $period) {
             $days = $period->daysUntilEnd();
@@ -444,7 +528,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $previewTasks
-                ->map(fn (Task $task): array => [
+                ->map(fn(Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
@@ -496,7 +580,7 @@ class DashboardService
                 ? route('products.tasks.index', $primaryProductId)
                 : route('products.index'),
             'items' => $preview
-                ->map(fn (Task $task): array => [
+                ->map(fn(Task $task): array => [
                     'id' => $task->id,
                     'title' => $task->title,
                     'href' => route('products.tasks.edit', [
@@ -591,7 +675,7 @@ class DashboardService
 
                 return is_string($error) && $error !== '';
             })
-            ?->product_id;
+                ?->product_id;
 
         return [
             'key' => 'failed_integration_syncs',

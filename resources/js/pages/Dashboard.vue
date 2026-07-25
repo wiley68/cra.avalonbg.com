@@ -4,6 +4,10 @@ import { AlertTriangle, CheckCircle2, Info, Package } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    productModuleStatusClass,
+    type ProductModuleStatus,
+} from '@/pages/products/columns';
 import { dashboard as dashboardRoute } from '@/routes';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as productsIndex } from '@/routes/products';
@@ -23,10 +27,18 @@ type DashboardAction = {
     items?: DashboardActionItem[];
 };
 
+type RecentProduct = {
+    id: number;
+    name: string;
+    status: ProductModuleStatus;
+    href: string;
+};
+
 type DashboardPayload = {
     mode: 'platform' | 'organization' | 'empty';
     organization: { id: number; name: string; slug: string } | null;
     counts: Record<string, number>;
+    recent_products?: RecentProduct[];
     actions: DashboardAction[];
 };
 
@@ -75,15 +87,42 @@ const severityClass = (severity: string): string => {
 
         <div
             v-if="dashboard.mode === 'organization'"
-            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:auto-rows-fr lg:grid-cols-4 [&>*]:min-w-0"
         >
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">
                     {{ t('dashboard.counts.products') }}
                 </p>
-                <p class="text-2xl font-semibold">
-                    {{ dashboard.counts.products ?? 0 }}
-                </p>
+                <div class="mt-1 flex items-start gap-4">
+                    <p class="shrink-0 text-2xl font-semibold">
+                        {{ dashboard.counts.products ?? 0 }}
+                    </p>
+                    <ul
+                        v-if="(dashboard.recent_products ?? []).length > 0"
+                        class="min-w-0 flex-1 space-y-1 border-l pl-4"
+                    >
+                        <li
+                            v-for="product in dashboard.recent_products ?? []"
+                            :key="product.id"
+                            class="flex min-w-0 items-baseline gap-2 text-sm"
+                        >
+                            <span
+                                class="shrink-0 font-mono text-muted-foreground"
+                                >{{ product.id }}</span
+                            >
+                            <Link
+                                :href="product.href"
+                                class="truncate font-medium underline-offset-4 hover:underline"
+                                :class="
+                                    productModuleStatusClass(product.status)
+                                "
+                                :title="product.name"
+                            >
+                                {{ product.name }}
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">
