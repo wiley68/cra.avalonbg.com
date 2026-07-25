@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.2  
+**Версия:** 1.3  
 **Дата:** 25 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -116,7 +116,7 @@ Wizard notes: W-…
 | **7**  | **Components / SBOM**                                                                                     | Components → import                                | Inventory + import checksum/evidence                                                       | **Done** (2026-07-25) | Преди vulns по възможност                                              |
 | **8**  | **Risks**                                                                                                 | Risks                                              | Рискове + treatment                                                                        | **Done** (2026-07-25) | Храни controls / readiness                                             |
 | **9**  | **Requirements**                                                                                          | Requirements                                       | Релевантни CRA requirements                                                                | **Done** (2026-07-25) | Каталог → product matrix                                               |
-| **10** | **Controls**                                                                                              | Controls (+ org library)                           | Controls + link към requirements                                                           | Open                  | Org library вече в **0**; тук product assign                           |
+| **10** | **Controls**                                                                                              | Controls (+ org library)                           | Controls + link към requirements                                                           | **Done** (2026-07-25) | Org library вече в **0**; тук product assign                           |
 | **11** | **Evidence**                                                                                              | Evidence                                           | Доказателства към controls / risks / stages                                                | Open                  | Непрекъснато; първи batch тук                                          |
 | **12** | **Tasks**                                                                                                 | Tasks                                              | Отворени / approval където трябва                                                          | Open                  | От gaps / imports                                                      |
 | **13** | **Vulnerabilities**                                                                                       | Vulnerabilities (+ import Accept)                  | ≥1 в регистъра; triage                                                                     | Open                  | Import = human Accept                                                  |
@@ -175,7 +175,7 @@ Wizard notes: W-…
       ↓                   │
 [7 SBOM/Components] ✅ ←──┘
       ↓
-[8 Risks] ✅ → [9 Requirements] ✅ → [10 Controls assign] → [11 Evidence] → [12 Tasks]
+[8 Risks] ✅ → [9 Requirements] ✅ → [10 Controls assign] ✅ → [11 Evidence] → [12 Tasks]
       ↓
 [13 Vulns] → [14 Reporting]
       ↓
@@ -424,6 +424,7 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-25** — Spine **A_10** (Controls): **Done**. Тествано и работоспособно. Следваща: стъпка **11** (Evidence).
 - **2026-07-25** — Spine **A_9** (Requirements): **Done**. Тествано и коригирано (вкл. UI polish на свързани политики). Следваща: стъпка **10** (Controls).
 - **2026-07-25** — Spine **A_8** (Risks): **Done**. Тестове преминати; работи коректно. Следваща: стъпка **9** (Requirements).
 - **2026-07-25** — Spine **A_7** (Components / SBOM): **Done**. Тестове преминати успешно. Следваща: стъпка **8** (Risks).
@@ -455,6 +456,7 @@ UI идея (карта / стъпка / timeline): …
 - Стъпка 7 (Components / SBOM) Done — следва Risks.
 - Стъпка 8 (Risks) Done — следва Requirements.
 - Стъпка 9 (Requirements) Done — следва Controls.
+- Стъпка 10 (Controls) Done — следва Evidence.
 - …
 
 ### P0/P1 triage queue
@@ -480,6 +482,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.3    | 2026-07-25 | Spine стъпка **10** (Controls) → **Done**                                                                 |
 | 1.2    | 2026-07-25 | Spine стъпка **9** (Requirements) → **Done**                                                              |
 | 1.1    | 2026-07-25 | Spine стъпка **8** (Risks) → **Done**                                                                     |
 | 1.0    | 2026-07-25 | Spine стъпка **7** (Components / SBOM) → **Done**                                                         |
