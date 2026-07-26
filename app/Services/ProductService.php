@@ -67,16 +67,30 @@ class ProductService
 
         return $query
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn(Product $product) => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'slug' => $product->slug,
-                'product_type' => $product->product_type->value,
-                'classification_status' => $product->classification_status->value,
-                'scope_status' => $product->scope_status->value,
-                'product_line' => $product->product_line,
-                'module_statuses' => $this->readiness->cardModuleStatuses($product),
-            ]);
+            ->through(function (Product $product): array {
+                $moduleDetails = $this->readiness->cardModuleStatusDetails($product);
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'product_type' => $product->product_type->value,
+                    'classification_status' => $product->classification_status->value,
+                    'scope_status' => $product->scope_status->value,
+                    'product_line' => $product->product_line,
+                    'module_statuses' => array_map(
+                        static fn(array $detail): string => $detail['status'],
+                        $moduleDetails,
+                    ),
+                    'module_status_reasons' => array_map(
+                        static fn(array $detail): array => [
+                            'section' => $detail['section'],
+                            'summary' => $detail['summary'],
+                        ],
+                        $moduleDetails,
+                    ),
+                ];
+            });
     }
 
     /**

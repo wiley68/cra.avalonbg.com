@@ -284,7 +284,9 @@ test('product card module colors follow readiness priority scheme', function () 
     [$organization, $owner] = makeReadinessOrgWithOwner();
     $product = makeProductForReadiness($organization, $owner);
 
-    $statuses = app(\App\Services\ProductReadinessService::class)->cardModuleStatuses($product);
+    $service = app(\App\Services\ProductReadinessService::class);
+    $statuses = $service->cardModuleStatuses($product);
+    $details = $service->cardModuleStatusDetails($product);
 
     expect($statuses['versions'])->toBe('critical')
         ->and($statuses['controls'])->toBe('attention')
@@ -297,4 +299,11 @@ test('product card module colors follow readiness priority scheme', function () 
         ->and($statuses['technical_documentation'])->toBe('critical')
         ->and($statuses['passport'])->toBe('critical')
         ->and($statuses['readiness'])->toBe('critical');
+
+    expect($details['versions']['summary'])->toBe('none')
+        ->and($details['versions']['section'])->toBe('versions')
+        ->and($details['components']['section'])->toBe('sbom')
+        ->and($details['assistant']['summary'])->toBe('idle')
+        ->and($details['passport']['summary'])->toBe('critical')
+        ->and($details['readiness']['summary'])->toBe('critical');
 });

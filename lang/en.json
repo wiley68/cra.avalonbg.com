@@ -2616,6 +2616,29 @@
                     "submissions_recorded": "At least one reporting submission is recorded.",
                     "in_progress": "Vulnerabilities with awareness timestamps await reporting steps.",
                     "no_active_reporting": "No active vulnerability reporting deadlines."
+                },
+                "campaigns": {
+                    "none": "No patch campaigns — optional module with no data yet.",
+                    "present": "Patch campaigns are recorded."
+                },
+                "incidents": {
+                    "none": "No incidents recorded — optional module with no data yet.",
+                    "present": "Incidents are recorded."
+                },
+                "assistant": {
+                    "idle": "Assistant is available; it has no readiness status of its own."
+                },
+                "passport": {
+                    "critical": "Passport is red because at least one core module has a critical gap.",
+                    "attention": "Passport is orange because at least one core module needs attention.",
+                    "complete": "Core passport modules are filled and healthy.",
+                    "empty": "Core passport modules have no data yet."
+                },
+                "readiness": {
+                    "critical": "Readiness is red due to critical gaps in passport or related modules.",
+                    "attention": "Readiness is orange due to warnings or missing recommended modules.",
+                    "complete": "Readiness is green — related modules look healthy.",
+                    "empty": "Readiness is neutral — not enough data yet."
                 }
             },
             "gaps": {

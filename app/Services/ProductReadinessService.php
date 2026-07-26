@@ -60,6 +60,19 @@ class ProductReadinessService
      */
     public function cardModuleStatuses(Product $product): array
     {
+        return array_map(
+            static fn(array $detail): string => $detail['status'],
+            $this->cardModuleStatusDetails($product),
+        );
+    }
+
+    /**
+     * Status plus the readiness summary that drove the color (for tooltips).
+     *
+     * @return array<string, array{status: 'empty'|'complete'|'attention'|'critical', section: string, summary: string}>
+     */
+    public function cardModuleStatusDetails(Product $product): array
+    {
         $definitions = [
             'versions' => ['priority' => 'required', 'section' => fn() => $this->versionsSection($product)],
             'support_periods' => ['priority' => 'required', 'section' => fn() => $this->supportSection($product)],
@@ -76,21 +89,46 @@ class ProductReadinessService
             'technical_documentation' => ['priority' => 'required', 'section' => fn() => $this->technicalDocumentationSection($product)],
         ];
 
-        $statuses = [];
+        $details = [];
         foreach ($definitions as $key => $definition) {
             /** @var callable(): array{key?: string, status: string, summary: string, metrics?: array<string, mixed>} $sectionFn */
             $sectionFn = $definition['section'];
-            $statuses[$key] = $this->mapSectionToCardStatus(
-                $sectionFn(),
-                $definition['priority'],
-            );
+            $section = $sectionFn();
+            $details[$key] = [
+                'status' => $this->mapSectionToCardStatus($section, $definition['priority']),
+                'section' => (string) ($section['key'] ?? $key),
+                'summary' => (string) ($section['summary'] ?? 'unknown'),
+            ];
         }
 
-        $statuses['campaigns'] = $this->campaignsCardStatus($product, $statuses['deployments']);
-        $statuses['incidents'] = $this->countBasedOptionalStatus(
-            $product->incidents()->count(),
-        );
-        $statuses['assistant'] = 'empty';
+        $campaignCount = $product->patchCampaigns()->count();
+        $deploymentsStatus = $details['deployments']['status'];
+        if (in_array($deploymentsStatus, ['critical', 'attention'], true)) {
+            $details['campaigns'] = [
+                'status' => $deploymentsStatus,
+                'section' => $details['deployments']['section'],
+                'summary' => $details['deployments']['summary'],
+            ];
+        } else {
+            $details['campaigns'] = [
+                'status' => $this->countBasedOptionalStatus($campaignCount),
+                'section' => 'campaigns',
+                'summary' => $campaignCount > 0 ? 'present' : 'none',
+            ];
+        }
+
+        $incidentCount = $product->incidents()->count();
+        $details['incidents'] = [
+            'status' => $this->countBasedOptionalStatus($incidentCount),
+            'section' => 'incidents',
+            'summary' => $incidentCount > 0 ? 'present' : 'none',
+        ];
+
+        $details['assistant'] = [
+            'status' => 'empty',
+            'section' => 'assistant',
+            'summary' => 'idle',
+        ];
 
         $passportKeys = [
             'versions',
@@ -103,12 +141,25 @@ class ProductReadinessService
             'evidence',
             'tasks',
         ];
-        $passportStatuses = array_intersect_key($statuses, array_flip($passportKeys));
-        $aggregate = $this->aggregateCardStatus($passportStatuses);
-        $statuses['passport'] = $aggregate;
-        $statuses['readiness'] = $this->readinessModuleCardStatus($product, $aggregate);
+        $passportStatuses = [];
+        foreach ($passportKeys as $passportKey) {
+            $passportStatuses[$passportKey] = $details[$passportKey]['status'];
+        }
+        $passportAggregate = $this->aggregateCardStatus($passportStatuses);
+        $details['passport'] = [
+            'status' => $passportAggregate,
+            'section' => 'passport',
+            'summary' => $passportAggregate,
+        ];
 
-        return $statuses;
+        $readinessStatus = $this->readinessModuleCardStatus($product, $passportAggregate);
+        $details['readiness'] = [
+            'status' => $readinessStatus,
+            'section' => 'readiness',
+            'summary' => $readinessStatus,
+        ];
+
+        return $details;
     }
 
     /**
@@ -215,21 +266,6 @@ class ProductReadinessService
         }
 
         return 'empty';
-    }
-
-    /**
-     * @param  'empty'|'complete'|'attention'|'critical'  $deploymentsStatus
-     * @return 'empty'|'complete'|'attention'|'critical'
-     */
-    private function campaignsCardStatus(Product $product, string $deploymentsStatus): string
-    {
-        $campaignCount = $product->patchCampaigns()->count();
-
-        if (in_array($deploymentsStatus, ['critical', 'attention'], true)) {
-            return $deploymentsStatus;
-        }
-
-        return $this->countBasedOptionalStatus($campaignCount);
     }
 
     /**

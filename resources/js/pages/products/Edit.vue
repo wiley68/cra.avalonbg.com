@@ -34,8 +34,12 @@ import {
     canAccessProductModule,
     productModules,
     productModuleStatusClass,
+    productModuleStatusReasonLabel,
 } from '@/pages/products/columns';
-import type { ProductModuleStatus } from '@/pages/products/columns';
+import type {
+    ProductModuleStatus,
+    ProductModuleStatusReason,
+} from '@/pages/products/columns';
 import {
     destroy,
     edit as editProduct,
@@ -282,6 +286,7 @@ const props = defineProps<{
     members: Member[];
     options: Options;
     module_statuses?: Record<string, ProductModuleStatus>;
+    module_status_reasons?: Record<string, ProductModuleStatusReason>;
     latestScopeAssessment?: LatestScopeAssessment;
     latestClassification?: LatestClassification;
     openScopeWizard?: boolean;
@@ -721,6 +726,11 @@ const moduleActions = computed(() => {
                 ? productModuleStatusClass(status)
                 : `${productModuleStatusClass(status)} opacity-50`,
             disabled: !accessible,
+            title: productModuleStatusReasonLabel(
+                t,
+                props.module_status_reasons?.[module.key],
+                status,
+            ),
             onSelect: () => {
                 if (!accessible) {
                     return;

@@ -41,6 +41,11 @@ import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerab
 export type ProductModuleStatus =
     'empty' | 'complete' | 'attention' | 'critical';
 
+export type ProductModuleStatusReason = {
+    section: string;
+    summary: string;
+};
+
 export type ProductListItem = {
     id: number;
     name: string;
@@ -50,6 +55,7 @@ export type ProductListItem = {
     scope_status: string;
     product_line: string | null;
     module_statuses: Record<string, ProductModuleStatus>;
+    module_status_reasons?: Record<string, ProductModuleStatusReason>;
 };
 
 export type ProductModuleKey =
@@ -283,6 +289,35 @@ export function productModuleStatusClass(
     }
 
     return 'text-foreground focus:text-foreground';
+}
+
+export function productModuleStatusReasonLabel(
+    t: (key: string) => string,
+    reason: ProductModuleStatusReason | null | undefined,
+    status: ProductModuleStatus | undefined,
+): string {
+    if (reason?.section && reason?.summary) {
+        const key = `products.readiness.summaries.${reason.section}.${reason.summary}`;
+        const translated = t(key);
+
+        if (translated !== key) {
+            return translated;
+        }
+    }
+
+    if (status === 'complete') {
+        return t('products.module_colors.complete');
+    }
+
+    if (status === 'attention') {
+        return t('products.module_colors.attention');
+    }
+
+    if (status === 'critical') {
+        return t('products.module_colors.critical');
+    }
+
+    return t('products.module_colors.empty');
 }
 
 export function aggregateProductModuleStatus(

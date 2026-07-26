@@ -1,7 +1,7 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.5  
-**Дата:** 25 юли 2026 г.  
+**Версия:** 1.7  
+**Дата:** 26 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
 
@@ -119,8 +119,8 @@ Wizard notes: W-…
 | **10** | **Controls**                                                                                              | Controls (+ org library)                           | Controls + link към requirements                                                           | **Done** (2026-07-25) | Org library вече в **0**; тук product assign                           |
 | **11** | **Evidence**                                                                                              | Evidence                                           | Доказателства към controls / risks / stages                                                | **Done** (2026-07-25) | Непрекъснато; първи batch тук                                          |
 | **12** | **Tasks**                                                                                                 | Tasks                                              | Отворени / approval където трябва                                                          | **Done** (2026-07-25) | От gaps / imports                                                      |
-| **13** | **Vulnerabilities**                                                                                       | Vulnerabilities (+ import Accept)                  | ≥1 в регистъра; triage                                                                     | Open                  | Import = human Accept                                                  |
-| **14** | **Vulnerability reporting**                                                                               | Vuln → Reporting                                   | Draft → approve → submitted (според реалност)                                              | Open                  | 24h / 72h / final awareness                                            |
+| **13** | **Vulnerabilities**                                                                                       | Vulnerabilities (+ import Accept)                  | ≥1 в регистъра; triage                                                                     | **Done** (2026-07-26) | Import = human Accept                                                  |
+| **14** | **Vulnerability reporting**                                                                               | Vuln → Reporting                                   | Draft → approve → submitted (според реалност)                                              | **Done** (2026-07-26) | 24h / 72h / final awareness                                            |
 | **15** | **Customers**                                                                                             | Customers (org)                                    | Клиенти създадени                                                                          | Open                  | Може частично в **0**; тук gate преди deployments                      |
 | **16** | **Deployments**                                                                                           | Deployments                                        | Инсталации към versions                                                                    | Open                  | Affected customers                                                     |
 | **17** | **Patch campaigns**                                                                                       | Campaigns                                          | Кампания + notify/confirm path                                                             | Open                  | След vuln/deployments                                                  |
@@ -177,7 +177,7 @@ Wizard notes: W-…
       ↓
 [8 Risks] ✅ → [9 Requirements] ✅ → [10 Controls assign] ✅ → [11 Evidence] ✅ → [12 Tasks] ✅
       ↓
-[13 Vulns] → [14 Reporting]
+[13 Vulns] ✅ → [14 Reporting] ✅
       ↓
 [15 Customers gate] → [16 Deployments] → [17 Campaigns]
       ↓
@@ -424,6 +424,8 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-26** — Spine **A_14** (Vulnerability reporting): **Done**. Тестове преминати успешно. Следваща: стъпка **15** (Customers).
+- **2026-07-26** — Spine **A_13** (Vulnerabilities): **Done**. Тестове преминати успешно. Следваща: стъпка **14** (Vulnerability reporting).
 - **2026-07-25** — Spine **A_12** (Tasks): **Done**. Тествано; корекция i18n за subject type `technical_documentation_package`. Следваща: стъпка **13** (Vulnerabilities).
 - **2026-07-25** — Spine **A_11** (Evidence): **Done**. Тествано успешно. Следваща: стъпка **12** (Tasks).
 - **2026-07-25** — Spine **A_10** (Controls): **Done**. Тествано и работоспособно. Следваща: стъпка **11** (Evidence).
@@ -461,6 +463,8 @@ UI идея (карта / стъпка / timeline): …
 - Стъпка 10 (Controls) Done — следва Evidence.
 - Стъпка 11 (Evidence) Done — следва Tasks.
 - Стъпка 12 (Tasks) Done — следва Vulnerabilities.
+- Стъпка 13 (Vulnerabilities) Done — следва Vulnerability reporting.
+- Стъпка 14 (Vulnerability reporting) Done — следва Customers.
 - …
 
 ### P0/P1 triage queue
@@ -486,6 +490,8 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.7    | 2026-07-26 | Spine стъпка **14** (Vulnerability reporting) → **Done**                                                  |
+| 1.6    | 2026-07-26 | Spine стъпка **13** (Vulnerabilities) → **Done**                                                          |
 | 1.5    | 2026-07-25 | Spine стъпка **12** (Tasks) → **Done**                                                                    |
 | 1.4    | 2026-07-25 | Spine стъпка **11** (Evidence) → **Done**                                                                 |
 | 1.3    | 2026-07-25 | Spine стъпка **10** (Controls) → **Done**                                                                 |

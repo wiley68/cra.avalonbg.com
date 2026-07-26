@@ -20,6 +20,7 @@ export type TableRowAction = {
     separatorAfter?: boolean;
     class?: string;
     disabled?: boolean;
+    title?: string;
 };
 
 const props = withDefaults(
@@ -86,6 +87,7 @@ const showTextTrigger = computed(() => Boolean(props.triggerText));
                     :variant="action.variant"
                     :class="action.class"
                     :disabled="action.disabled"
+                    :title="action.title"
                     @click="action.disabled ? undefined : action.onSelect()"
                 >
                     <component

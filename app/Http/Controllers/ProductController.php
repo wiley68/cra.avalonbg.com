@@ -135,12 +135,24 @@ class ProductController extends Controller
         $this->assertProductInOrganization($product, $organization);
         $this->authorize('update', [$product, $organization]);
 
+        $moduleDetails = $this->readiness->cardModuleStatusDetails($product);
+
         return Inertia::render('products/Edit', [
             'organization' => $this->organizationPayload($organization),
             'product' => $this->productPayload($product),
             'members' => $this->memberOptions($organization),
             'options' => $this->enumOptions(),
-            'module_statuses' => $this->readiness->cardModuleStatuses($product),
+            'module_statuses' => array_map(
+                static fn(array $detail): string => $detail['status'],
+                $moduleDetails,
+            ),
+            'module_status_reasons' => array_map(
+                static fn(array $detail): array => [
+                    'section' => $detail['section'],
+                    'summary' => $detail['summary'],
+                ],
+                $moduleDetails,
+            ),
             'canManage' => true,
             'repository' => $this->repositories->payload($product->repository),
             'vcs_connections' => ProductRepositoryController::connectionOptions($organization),

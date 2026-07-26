@@ -11,6 +11,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { setProductModuleOrigin } from '@/composables/useProductModuleBack';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -19,6 +25,7 @@ import {
     productEnumLabel,
     productModules,
     productModuleStatusClass,
+    productModuleStatusReasonLabel,
 } from '@/pages/products/columns';
 import type {
     ProductListItem,
@@ -58,6 +65,13 @@ const titleStatus = computed(() =>
 const moduleStatus = (key: string): ProductModuleStatus =>
     props.product.module_statuses?.[key] ?? 'empty';
 
+const moduleReasonLabel = (key: string): string =>
+    productModuleStatusReasonLabel(
+        t,
+        props.product.module_status_reasons?.[key],
+        moduleStatus(key),
+    );
+
 const openModule = (href: string): void => {
     setProductModuleOrigin(props.product.id, 'index');
     router.visit(href);
@@ -96,52 +110,70 @@ const openEdit = (): void => {
         </CardHeader>
 
         <CardContent class="space-y-2 px-4 py-3">
-            <div
-                v-for="module in productModules"
-                :key="module.key"
-                class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
-                :class="
-                    canAccessProductModule(module, authUser) ? '' : 'opacity-50'
-                "
-            >
-                <component
-                    :is="module.icon"
-                    class="size-4 shrink-0"
-                    :class="productModuleStatusClass(moduleStatus(module.key))"
-                />
-                <div class="min-w-0">
-                    <p
-                        class="truncate text-sm leading-tight font-medium"
+            <TooltipProvider :delay-duration="300">
+                <div
+                    v-for="module in productModules"
+                    :key="module.key"
+                    class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
+                    :class="
+                        canAccessProductModule(module, authUser)
+                            ? ''
+                            : 'opacity-50'
+                    "
+                >
+                    <component
+                        :is="module.icon"
+                        class="size-4 shrink-0"
                         :class="
                             productModuleStatusClass(moduleStatus(module.key))
                         "
+                    />
+                    <div class="min-w-0">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <p
+                                    class="truncate text-sm leading-tight font-medium"
+                                    :class="
+                                        productModuleStatusClass(
+                                            moduleStatus(module.key),
+                                        )
+                                    "
+                                >
+                                    {{ t(module.labelKey) }}
+                                </p>
+                            </TooltipTrigger>
+                            <TooltipContent
+                                side="top"
+                                class="max-w-xs text-left leading-relaxed"
+                            >
+                                {{ moduleReasonLabel(module.key) }}
+                            </TooltipContent>
+                        </Tooltip>
+                        <p
+                            class="truncate text-xs leading-tight text-muted-foreground"
+                        >
+                            {{ t(module.descriptionKey) }}
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="h-7 px-2 text-xs"
+                        :disabled="!canAccessProductModule(module, authUser)"
+                        :title="
+                            canAccessProductModule(module, authUser)
+                                ? undefined
+                                : t('common.no_access')
+                        "
+                        @click="
+                            canAccessProductModule(module, authUser) &&
+                            openModule(module.href(product.id))
+                        "
                     >
-                        {{ t(module.labelKey) }}
-                    </p>
-                    <p
-                        class="truncate text-xs leading-tight text-muted-foreground"
-                    >
-                        {{ t(module.descriptionKey) }}
-                    </p>
+                        {{ t('dashboard.open') }}
+                    </Button>
                 </div>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    class="h-7 px-2 text-xs"
-                    :disabled="!canAccessProductModule(module, authUser)"
-                    :title="
-                        canAccessProductModule(module, authUser)
-                            ? undefined
-                            : t('common.no_access')
-                    "
-                    @click="
-                        canAccessProductModule(module, authUser) &&
-                        openModule(module.href(product.id))
-                    "
-                >
-                    {{ t('dashboard.open') }}
-                </Button>
-            </div>
+            </TooltipProvider>
         </CardContent>
 
         <CardFooter
