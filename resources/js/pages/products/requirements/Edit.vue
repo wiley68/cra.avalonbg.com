@@ -2,7 +2,9 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import RelatedPolicyLinks from '@/components/RelatedPolicyLinks.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
@@ -134,23 +136,24 @@ const textareaClass =
     <Head :title="t('products.requirements.edit_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }} ·
-                    {{ props.productRequirement.code }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.requirements.edit_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="requirementsIndex(props.product.id)">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }} ·
+                {{ props.productRequirement.code }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.requirements.edit_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="requirementsIndex(props.product.id)"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <section class="space-y-3 rounded-lg border p-6 text-sm">
             <p>

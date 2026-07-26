@@ -14,7 +14,9 @@ import {
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -251,31 +253,33 @@ const doPublishEvidence = () => {
     <Head :title="t('policies.edit_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-semibold">
-                    {{ t('policies.edit_title') }}
-                </h1>
-                <p class="text-sm text-muted-foreground">
-                    {{ typeLabel }} · {{ statusLabel }} ·
-                    {{ policy.version_label }}
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="policiesIndex()">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportUrl" target="_blank" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{ t('policies.export') }}
-                    </a>
-                </Button>
-            </div>
-        </div>
+        <PageFormHeader>
+            <h1 class="text-xl font-semibold">
+                {{ t('policies.edit_title') }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+                {{ typeLabel }} · {{ statusLabel }} ·
+                {{ policy.version_label }}
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="policiesIndex()"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('policies.export')"
+                    :href="exportUrl"
+                    :inertia="false"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <div
             v-if="canManage"

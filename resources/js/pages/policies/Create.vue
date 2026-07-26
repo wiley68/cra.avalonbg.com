@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import { computed, watch } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -130,17 +132,20 @@ const submit = () => {
     <Head :title="t('policies.create_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between">
+        <PageFormHeader>
             <h1 class="text-xl font-semibold">
                 {{ t('policies.create_title') }}
             </h1>
-            <Button as-child variant="outline">
-                <Link :href="policiesIndex()">
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="policiesIndex()"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

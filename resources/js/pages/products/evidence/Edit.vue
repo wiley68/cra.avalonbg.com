@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Download, Save, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import OptionInfoTooltip from '@/components/OptionInfoTooltip.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
@@ -211,43 +213,42 @@ const toggleId = (
     <Head :title="t('products.evidence.edit_title')" />
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.evidence.edit_title') }}
-                </h1>
-                <p
-                    v-if="evidence.checksum_sha256"
-                    class="font-mono text-xs text-muted-foreground"
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.evidence.edit_title') }}
+            </h1>
+            <p
+                v-if="evidence.checksum_sha256"
+                class="font-mono text-xs text-muted-foreground"
+            >
+                SHA-256: {{ evidence.checksum_sha256 }}
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="evidenceIndex(props.product.id)"
                 >
-                    SHA-256: {{ evidence.checksum_sha256 }}
-                </p>
-            </div>
-            <div class="flex items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="evidenceIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button v-if="evidence.has_file" as-child variant="outline">
-                    <a
-                        :href="
-                            downloadEvidence({
-                                product: product.id,
-                                evidence: evidence.id,
-                            }).url
-                        "
-                    >
-                        <Download class="h-4 w-4" />
-                        {{ t('products.evidence.download') }}
-                    </a>
-                </Button>
-            </div>
-        </div>
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="evidence.has_file"
+                    :label="t('products.evidence.download')"
+                    :href="
+                        downloadEvidence({
+                            product: product.id,
+                            evidence: evidence.id,
+                        }).url
+                    "
+                    :inertia="false"
+                >
+                    <Download class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-6" @submit.prevent="submit">
             <fieldset :disabled="!canManage" class="space-y-6">

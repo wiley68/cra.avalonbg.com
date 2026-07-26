@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, ClipboardList, Plus, Tags } from '@lucide/vue';
 import { ref } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
 import type { ClassificationAssessmentResult } from '@/components/products/ClassificationWizard.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
@@ -154,22 +156,23 @@ const labelFor = (group: string, value: string): string => {
     <Head :title="t('products.create_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.organization.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.create_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="productsIndex()">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.organization.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.create_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="productsIndex()"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form
             class="space-y-8 overflow-hidden rounded-lg border p-6"

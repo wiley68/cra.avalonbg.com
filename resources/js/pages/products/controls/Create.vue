@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
@@ -36,8 +38,14 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.controls.index_title', href: productControlsIndex(props.product.id) },
-    { titleKey: 'products.controls.assign_title', href: productControlsCreate(props.product.id) },
+    {
+        titleKey: 'products.controls.index_title',
+        href: productControlsIndex(props.product.id),
+    },
+    {
+        titleKey: 'products.controls.assign_title',
+        href: productControlsCreate(props.product.id),
+    },
 ]);
 
 const form = useForm({
@@ -65,22 +73,23 @@ const textareaClass =
     <Head :title="t('products.controls.assign_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.controls.assign_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="productControlsIndex(props.product.id)">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.controls.assign_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="productControlsIndex(props.product.id)"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <p
             v-if="availableControls.length === 0"

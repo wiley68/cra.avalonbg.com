@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Copy,
@@ -15,7 +15,9 @@ import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,35 +218,34 @@ const copyGuestUrl = async () => {
     <Head :title="t('auditor.edit_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-2">
-                <h1 class="text-xl font-semibold">
-                    {{ t('auditor.edit_title') }}
-                </h1>
-                <div class="flex flex-wrap items-center gap-2 text-sm">
-                    <Badge :variant="statusVariant">
-                        {{ statusLabel }}
-                    </Badge>
-                    <span class="text-muted-foreground">
-                        {{ package.product_name }}
-                    </span>
-                </div>
+        <PageFormHeader>
+            <h1 class="text-xl font-semibold">
+                {{ t('auditor.edit_title') }}
+            </h1>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <Badge :variant="statusVariant">
+                    {{ statusLabel }}
+                </Badge>
+                <span class="text-muted-foreground">
+                    {{ package.product_name }}
+                </span>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="auditorIndex()">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="packagesShow(package.id)">
-                        <Eye class="h-4 w-4" />
-                        {{ t('auditor.open_review') }}
-                    </Link>
-                </Button>
-            </div>
-        </div>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="auditorIndex()"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('auditor.open_review')"
+                    :href="packagesShow(package.id)"
+                >
+                    <Eye class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <div
             v-if="canManage"

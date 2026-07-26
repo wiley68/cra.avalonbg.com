@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import RelatedPolicyLinks from '@/components/RelatedPolicyLinks.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,22 +105,23 @@ const textareaClass =
     <Head :title="t('controls.edit_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.control.code }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('controls.edit_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="controlsIndex()">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.control.code }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('controls.edit_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="controlsIndex()"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <RelatedPolicyLinks :types="relatedPolicyTypes ?? []" />
 

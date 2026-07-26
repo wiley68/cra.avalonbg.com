@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Check,
@@ -18,7 +18,9 @@ import {
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import ClassificationWizard from '@/components/products/ClassificationWizard.vue';
 import ImportedFindingAiTriage from '@/components/products/ImportedFindingAiTriage.vue';
 import ScopeWizard from '@/components/products/ScopeWizard.vue';
@@ -820,22 +822,21 @@ const textareaClass =
     <Head :title="t('products.edit_title')" />
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <p class="text-sm text-muted-foreground">
-                    {{ props.organization.name }}
-                </p>
-                <h1 class="text-xl font-semibold whitespace-nowrap">
-                    {{ t('products.edit_title') }}
-                </h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="backHref">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.organization.name }}
+            </p>
+            <h1 class="text-xl font-semibold whitespace-nowrap">
+                {{ t('products.edit_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="backHref"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
                 <TableRowActionsMenu
                     :actions="moduleActions"
                     :label="t('products.modules_menu')"
@@ -843,8 +844,8 @@ const textareaClass =
                     :trigger-icon="Menu"
                     trigger-variant="outline"
                 />
-            </div>
-        </div>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-8 rounded-lg border p-6" @submit.prevent="submit">
             <section class="space-y-4">

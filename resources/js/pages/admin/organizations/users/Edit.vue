@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, ShieldOff, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -130,22 +132,23 @@ const roleLabel = (slug: string): string => {
     <Head :title="t('admin.users.edit_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.organization.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('admin.users.edit_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="usersIndex(props.organization.id)">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.organization.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('admin.users.edit_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="usersIndex(props.organization.id)"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

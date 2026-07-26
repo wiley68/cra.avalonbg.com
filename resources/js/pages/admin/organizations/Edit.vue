@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, Trash2, Users } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,31 +76,26 @@ const confirmDelete = () => {
     <Head :title="t('admin.organizations.edit_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
-        <div class="flex items-center justify-between gap-3">
+        <PageFormHeader>
             <h1 class="text-xl font-semibold">
                 {{ t('admin.organizations.edit_title') }}
             </h1>
-            <div class="flex gap-2">
-                <Button as-child variant="outline">
-                    <Link
-                        :href="organizationsIndex()"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link
-                        :href="organizationUsersIndex(props.organization.id)"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <Users class="h-4 w-4" />
-                        {{ t('nav.users') }}
-                    </Link>
-                </Button>
-            </div>
-        </div>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="organizationsIndex()"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('nav.users')"
+                    :href="organizationUsersIndex(props.organization.id)"
+                >
+                    <Users class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

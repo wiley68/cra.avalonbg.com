@@ -3,13 +3,16 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     Archive,
     ArrowLeft,
+    BookText,
     Building2,
     CheckCircle2,
     ChevronDown,
     Eye,
-    FileDown,
+    FileCode2,
+    FileText,
     FileUp,
     Languages,
+    Package,
     Pencil,
     Save,
     Send,
@@ -19,8 +22,10 @@ import {
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -615,142 +620,139 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
     <Head :title="instruction.title" />
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ instruction.title }}
-                </h1>
-                <p class="text-sm text-muted-foreground">
-                    {{ statusLabel(instruction.status) }}
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ instruction.title }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+                {{ statusLabel(instruction.status) }}
+                ·
+                {{ instruction.version_label }}
+                ·
+                {{ localeLabel(instruction.locale) }}
+            </p>
+            <p
+                v-if="instruction.published_at"
+                class="text-sm text-muted-foreground"
+            >
+                {{
+                    t(
+                        'products.user_security_instructions.fields.published_at',
+                    )
+                }}:
+                {{ new Date(instruction.published_at).toLocaleString() }}
+                <span v-if="instruction.published_by_name">
+                    ({{ instruction.published_by_name }})
+                </span>
+            </p>
+            <p
+                v-if="instruction.supersedes_title"
+                class="text-sm text-muted-foreground"
+            >
+                {{
+                    t('products.user_security_instructions.fields.supersedes')
+                }}:
+                {{ instruction.supersedes_title }}
+            </p>
+            <p
+                v-if="pairedHref && instruction.paired_locale"
+                class="text-sm text-muted-foreground"
+            >
+                {{
+                    t(
+                        'products.user_security_instructions.fields.paired_translation',
+                    )
+                }}:
+                <Link :href="pairedHref" class="underline underline-offset-2">
+                    {{ localeLabel(instruction.paired_locale) }}
+                    —
+                    {{ instruction.paired_title }}
+                    ({{ statusLabel(instruction.paired_status ?? '') }}
                     ·
-                    {{ instruction.version_label }}
-                    ·
-                    {{ localeLabel(instruction.locale) }}
-                </p>
-                <p
-                    v-if="instruction.published_at"
-                    class="text-sm text-muted-foreground"
+                    {{ instruction.paired_version_label }})
+                </Link>
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="instructionsIndex(props.product.id)"
                 >
-                    {{
-                        t(
-                            'products.user_security_instructions.fields.published_at',
-                        )
-                    }}:
-                    {{ new Date(instruction.published_at).toLocaleString() }}
-                    <span v-if="instruction.published_by_name">
-                        ({{ instruction.published_by_name }})
-                    </span>
-                </p>
-                <p
-                    v-if="instruction.supersedes_title"
-                    class="text-sm text-muted-foreground"
-                >
-                    {{
-                        t(
-                            'products.user_security_instructions.fields.supersedes',
-                        )
-                    }}:
-                    {{ instruction.supersedes_title }}
-                </p>
-                <p
-                    v-if="pairedHref && instruction.paired_locale"
-                    class="text-sm text-muted-foreground"
-                >
-                    {{
-                        t(
-                            'products.user_security_instructions.fields.paired_translation',
-                        )
-                    }}:
-                    <Link
-                        :href="pairedHref"
-                        class="underline underline-offset-2"
-                    >
-                        {{ localeLabel(instruction.paired_locale) }}
-                        —
-                        {{ instruction.paired_title }}
-                        ({{ statusLabel(instruction.paired_status ?? '') }}
-                        ·
-                        {{ instruction.paired_version_label }})
-                    </Link>
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="instructionsIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
                     v-if="canCreatePair"
-                    type="button"
-                    variant="outline"
-                    @click="doCreatePair"
-                >
-                    <Languages class="h-4 w-4" />
-                    {{
+                    :label="
                         t(
                             'products.user_security_instructions.create_translation',
                             {
                                 locale: localeLabel(oppositeLocale ?? ''),
                             },
                         )
-                    }}
-                </Button>
-                <Button v-if="canExport" as-child variant="outline">
-                    <a :href="exportHtmlUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t('products.user_security_instructions.export_html')
-                        }}
-                    </a>
-                </Button>
-                <Button v-if="canExport" as-child variant="outline">
-                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t('products.user_security_instructions.export_pdf')
-                        }}
-                    </a>
-                </Button>
-                <Button v-if="canExport" as-child variant="outline">
-                    <a :href="exportReadmeUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t(
-                                'products.user_security_instructions.export_readme',
-                            )
-                        }}
-                    </a>
-                </Button>
-                <Button v-if="canExport" as-child variant="outline">
-                    <a :href="exportReleaseUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t(
-                                'products.user_security_instructions.export_release',
-                            )
-                        }}
-                    </a>
-                </Button>
-                <Button
-                    v-if="canExport && customers.length > 0"
-                    type="button"
-                    variant="outline"
-                    @click="openCustomerGuideDialog"
+                    "
+                    @click="doCreatePair"
                 >
-                    <Building2 class="h-4 w-4" />
-                    {{
+                    <Languages class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="canExport"
+                    :label="
+                        t('products.user_security_instructions.export_html')
+                    "
+                    :href="exportHtmlUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <FileCode2 class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="canExport"
+                    :label="t('products.user_security_instructions.export_pdf')"
+                    :href="exportPdfUrl"
+                    :inertia="false"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <FileText class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="canExport"
+                    :label="
+                        t('products.user_security_instructions.export_readme')
+                    "
+                    :href="exportReadmeUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <BookText class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="canExport"
+                    :label="
+                        t('products.user_security_instructions.export_release')
+                    "
+                    :href="exportReleaseUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <Package class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    v-if="canExport && customers.length > 0"
+                    :label="
                         t(
                             'products.user_security_instructions.export_customer_guide',
                         )
-                    }}
-                </Button>
-            </div>
-        </div>
+                    "
+                    @click="openCustomerGuideDialog"
+                >
+                    <Building2 class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <div
             v-if="canManage"
@@ -1049,14 +1051,9 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                     class="space-y-4 border-t border-border pt-6"
                 >
                     <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h3 class="font-medium">
-                                {{ sectionLabel(section.section_key) }}
-                            </h3>
-                            <p class="text-xs text-muted-foreground">
-                                {{ section.section_key }}
-                            </p>
-                        </div>
+                        <h3 class="section-heading">
+                            {{ sectionLabel(section.section_key) }}
+                        </h3>
                         <div
                             class="flex flex-wrap items-center justify-end gap-3"
                         >

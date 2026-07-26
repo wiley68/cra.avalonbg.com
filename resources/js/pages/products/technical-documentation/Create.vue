@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -127,25 +129,26 @@ const submit = () => {
     <Head :title="t('products.technical_documentation.create_title')" />
 
     <div class="mx-auto max-w-2xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.technical_documentation.create_title') }}
-                </h1>
-                <p class="text-sm text-muted-foreground">
-                    {{ t('products.technical_documentation.create_help') }}
-                </p>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="packagesIndex(props.product.id)">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.technical_documentation.create_title') }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+                {{ t('products.technical_documentation.create_help') }}
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="packagesIndex(props.product.id)"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-4" @submit.prevent="submit">
             <div

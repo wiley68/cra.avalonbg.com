@@ -18,8 +18,10 @@ import {
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -861,46 +863,50 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
     <Head :title="t('products.sdl.edit_title')" />
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.sdl.edit_title') }}
-                </h1>
-                <p
-                    v-if="props.run.version_number"
-                    class="text-sm text-muted-foreground"
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.sdl.edit_title') }}
+            </h1>
+            <p
+                v-if="props.run.version_number"
+                class="text-sm text-muted-foreground"
+            >
+                {{ t('products.sdl.fields.product_version') }}:
+                {{ props.run.version_number }}
+            </p>
+            <p v-else class="text-sm text-muted-foreground">
+                {{ t('products.sdl.version_none') }}
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="backHref"
                 >
-                    {{ t('products.sdl.fields.product_version') }}:
-                    {{ props.run.version_number }}
-                </p>
-                <p v-else class="text-sm text-muted-foreground">
-                    {{ t('products.sdl.version_none') }}
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center justify-end gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="backHref">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportMarkdownUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{ t('products.sdl.export_markdown') }}
-                    </a>
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{ t('products.sdl.export_pdf') }}
-                    </a>
-                </Button>
-            </div>
-        </div>
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('products.sdl.export_markdown')"
+                    :href="exportMarkdownUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('products.sdl.export_pdf')"
+                    :href="exportPdfUrl"
+                    :inertia="false"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-4" @submit.prevent="submit">
             <fieldset class="space-y-4" :disabled="!canEdit">

@@ -4,7 +4,9 @@ import { ArrowLeft, Plus, Save, Sparkles, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -275,33 +277,31 @@ const toggleId = (
     <Head :title="t('products.vulnerabilities.edit_title')" />
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.vulnerabilities.edit_title') }}
-                </h1>
-            </div>
-            <div class="flex flex-wrap items-center justify-end gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="backHref">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.vulnerabilities.edit_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="backHref"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
                     v-if="canManage"
-                    type="button"
-                    variant="outline"
+                    :label="t('products.vulnerabilities.ai_triage')"
                     @click="openTriageDialog"
+                    type="button"
                 >
                     <Sparkles class="h-4 w-4" />
-                    {{ t('products.vulnerabilities.ai_triage') }}
-                </Button>
-            </div>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-6" @submit.prevent="submit">
             <fieldset :disabled="!canManage" class="space-y-6">

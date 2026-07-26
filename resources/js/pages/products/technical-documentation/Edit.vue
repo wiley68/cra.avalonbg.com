@@ -16,8 +16,10 @@ import { computed, reactive, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import PolicyBodyField from '@/components/PolicyBodyField.vue';
 import TextDiffViewer from '@/components/TextDiffViewer.vue';
 import { Badge } from '@/components/ui/badge';
@@ -754,63 +756,66 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
     <Head :title="t('products.technical_documentation.edit_title')" />
 
     <div class="mx-auto max-w-3xl space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.product.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('products.technical_documentation.edit_title') }}
-                </h1>
-                <p class="text-sm text-muted-foreground">
-                    {{ statusLabel(props.package.status) }}
-                    · {{ props.package.version_label }}
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <Button as-child variant="outline">
-                    <Link :href="packagesIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
-                <Button
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('products.technical_documentation.edit_title') }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+                {{ statusLabel(props.package.status) }}
+                · {{ props.package.version_label }}
+            </p>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="packagesIndex(props.product.id)"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
                     v-if="!readOnly"
-                    type="button"
-                    variant="outline"
+                    :label="
+                        t('products.technical_documentation.refresh_generated')
+                    "
                     @click="doRefreshGenerated"
+                    type="button"
                 >
                     <RefreshCcw class="h-4 w-4" />
-                    {{
-                        t('products.technical_documentation.refresh_generated')
-                    }}
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportMarkdownUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t(
-                                'products.technical_documentation.export_markdown',
-                            )
-                        }}
-                    </a>
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportPdfUrl" target="_blank" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{ t('products.technical_documentation.export_pdf') }}
-                    </a>
-                </Button>
-                <Button as-child variant="outline">
-                    <a :href="exportReleaseUrl" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{
-                            t('products.technical_documentation.export_release')
-                        }}
-                    </a>
-                </Button>
-            </div>
-        </div>
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="
+                        t('products.technical_documentation.export_markdown')
+                    "
+                    :href="exportMarkdownUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('products.technical_documentation.export_pdf')"
+                    :href="exportPdfUrl"
+                    :inertia="false"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="
+                        t('products.technical_documentation.export_release')
+                    "
+                    :href="exportReleaseUrl"
+                    :inertia="false"
+                    rel="noopener"
+                >
+                    <FileDown class="h-4 w-4" />
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <div
             v-if="canManage"

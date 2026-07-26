@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Plus } from '@lucide/vue';
+import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
+import PageFormHeader from '@/components/PageFormHeader.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +12,10 @@ import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { index as usersIndex, store } from '@/routes/admin/organizations/users';
-import { edit as editOrganization, index as organizationsIndex } from '@/routes/admin/organizations';
+import {
+    edit as editOrganization,
+    index as organizationsIndex,
+} from '@/routes/admin/organizations';
 import { create as organizationUsersCreate } from '@/routes/admin/organizations/users';
 
 type Role = {
@@ -34,9 +39,18 @@ const { t } = useTranslations();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.organizations', href: organizationsIndex() },
-    { title: props.organization.name, href: editOrganization(props.organization.id) },
-    { titleKey: 'admin.users.index_title', href: usersIndex(props.organization.id) },
-    { titleKey: 'admin.users.create_title', href: organizationUsersCreate(props.organization.id) },
+    {
+        title: props.organization.name,
+        href: editOrganization(props.organization.id),
+    },
+    {
+        titleKey: 'admin.users.index_title',
+        href: usersIndex(props.organization.id),
+    },
+    {
+        titleKey: 'admin.users.create_title',
+        href: organizationUsersCreate(props.organization.id),
+    },
 ]);
 
 const form = useForm({
@@ -64,22 +78,23 @@ const roleLabel = (slug: string): string => {
     <Head :title="t('admin.users.create_title')" />
 
     <div class="mx-auto w-full max-w-2xl space-y-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-muted-foreground">
-                    {{ props.organization.name }}
-                </p>
-                <h1 class="text-xl font-semibold">
-                    {{ t('admin.users.create_title') }}
-                </h1>
-            </div>
-            <Button as-child variant="outline">
-                <Link :href="usersIndex(props.organization.id)">
+        <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.organization.name }}
+            </p>
+            <h1 class="text-xl font-semibold">
+                {{ t('admin.users.create_title') }}
+            </h1>
+            <template #actions>
+                <HeaderActionButton
+                    is-back
+                    :label="t('common.back')"
+                    :href="usersIndex(props.organization.id)"
+                >
                     <ArrowLeft class="h-4 w-4" />
-                    {{ t('common.back') }}
-                </Link>
-            </Button>
-        </div>
+                </HeaderActionButton>
+            </template>
+        </PageFormHeader>
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">

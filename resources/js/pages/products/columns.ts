@@ -208,6 +208,15 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_sdl',
     },
     {
+        key: 'security_instructions',
+        labelKey: 'products.user_security_instructions_link',
+        descriptionKey:
+            'products.modules.user_security_instructions.description',
+        icon: BookOpen,
+        href: (productId) => securityInstructionsIndex(productId).url,
+        canViewFlag: 'can_view_products',
+    },
+    {
         key: 'passport',
         labelKey: 'products.passport_link',
         descriptionKey: 'products.modules.passport.description',
@@ -229,15 +238,6 @@ export const productModules: ProductModuleDefinition[] = [
         descriptionKey: 'products.modules.assistant.description',
         icon: Bot,
         href: (productId) => productAssistantShow(productId).url,
-        canViewFlag: 'can_view_products',
-    },
-    {
-        key: 'security_instructions',
-        labelKey: 'products.user_security_instructions_link',
-        descriptionKey:
-            'products.modules.user_security_instructions.description',
-        icon: BookOpen,
-        href: (productId) => securityInstructionsIndex(productId).url,
         canViewFlag: 'can_view_products',
     },
     {
