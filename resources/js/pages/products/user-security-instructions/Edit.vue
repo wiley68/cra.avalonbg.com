@@ -508,6 +508,30 @@ const sectionLabel = (key: string): string => {
     return translated === translationKey ? key : translated;
 };
 
+/** Drop a leading ATX heading that duplicates the section title (templates / AI). */
+const stripLeadingHeadingMatchingTitle = (
+    body: string,
+    title: string,
+): string => {
+    const normalizedTitle = title.trim().toLowerCase();
+
+    if (normalizedTitle === '') {
+        return body;
+    }
+
+    const match = body.match(/^\s{0,3}#{1,6}\s+(.+?)(?:\s+#*)?\s*(?:\r?\n|$)/u);
+
+    if (!match) {
+        return body;
+    }
+
+    if ((match[1] ?? '').trim().toLowerCase() !== normalizedTitle) {
+        return body;
+    }
+
+    return body.slice(match[0].length).replace(/^\s+/, '');
+};
+
 const documentPreviewMarkdown = computed((): string => {
     const lines: string[] = [];
     const title = form.title.trim() || props.instruction.title;
@@ -529,7 +553,14 @@ const documentPreviewMarkdown = computed((): string => {
                 `*${t('products.user_security_instructions.export.empty_section')}*`,
             );
         } else {
-            lines.push(section.body.trim());
+            const body = stripLeadingHeadingMatchingTitle(
+                section.body.trim(),
+                heading,
+            );
+
+            if (body !== '') {
+                lines.push(body);
+            }
         }
 
         lines.push('');

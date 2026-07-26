@@ -225,11 +225,49 @@ class UserSecurityInstructionExportService
                 continue;
             }
 
-            $lines[] = rtrim((string) $section->body);
-            $lines[] = '';
+            $body = $this->stripLeadingHeadingMatchingTitle(
+                rtrim((string) $section->body),
+                $this->sectionTitle($section),
+            );
+
+            if ($body !== '') {
+                $lines[] = $body;
+                $lines[] = '';
+            }
         }
 
         return implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * Template / AI drafts often start with "## Section title"; the exporter
+     * already emits that heading, so strip a matching leading ATX heading.
+     */
+    private function stripLeadingHeadingMatchingTitle(string $body, string $title): string
+    {
+        $normalizedTitle = mb_strtolower(trim($title));
+
+        if ($normalizedTitle === '') {
+            return $body;
+        }
+
+        if (
+            preg_match(
+                '/^\s{0,3}#{1,6}\s+(.+?)(?:\s+#*)?\s*(?:\r?\n|$)/u',
+                $body,
+                $matches,
+            ) !== 1
+        ) {
+            return $body;
+        }
+
+        $headingText = mb_strtolower(trim($matches[1]));
+
+        if ($headingText !== $normalizedTitle) {
+            return $body;
+        }
+
+        return ltrim(substr($body, strlen($matches[0])));
     }
 
     private function sectionTitle(UserSecurityInstructionSection $section): string
@@ -297,10 +335,17 @@ class UserSecurityInstructionExportService
             ->map(function (UserSecurityInstructionSection $section) {
                 $bodyHtml = '';
                 if ($section->is_applicable && filled($section->body)) {
-                    $bodyHtml = Str::markdown($section->body, [
-                        'html_input' => 'strip',
-                        'allow_unsafe_links' => false,
-                    ]);
+                    $body = $this->stripLeadingHeadingMatchingTitle(
+                        rtrim((string) $section->body),
+                        $this->sectionTitle($section),
+                    );
+
+                    if ($body !== '') {
+                        $bodyHtml = Str::markdown($body, [
+                            'html_input' => 'strip',
+                            'allow_unsafe_links' => false,
+                        ]);
+                    }
                 }
 
                 return [

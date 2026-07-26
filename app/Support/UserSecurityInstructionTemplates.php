@@ -63,8 +63,6 @@ class UserSecurityInstructionTemplates
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Сигурна инсталация
-
 Опишете стъпките за сигурна инсталация на продукта.
 
 - Източник на дистрибуция (официален канал / checksum / подпис)
@@ -77,8 +75,6 @@ MD;
         }
 
         return <<<'MD'
-## Secure installation
-
 Describe how to install the product securely.
 
 - Distribution source (official channel / checksum / signature)
@@ -94,8 +90,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Минимална среда
-
 - Поддържани ОС / runtime версии
 - Минимален хардуер / ресурси
 - Мрежови изисквания
@@ -104,8 +98,6 @@ MD;
         }
 
         return <<<'MD'
-## Minimum environment
-
 - Supported OS / runtime versions
 - Minimum hardware / resources
 - Network requirements
@@ -117,8 +109,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Изисквани права
-
 Избройте нужните привилегии (OS, контейнер, cloud IAM) и защо са необходими.
 
 - Privilege за инсталация
@@ -128,8 +118,6 @@ MD;
         }
 
         return <<<'MD'
-## Required permissions
-
 List required privileges (OS, container, cloud IAM) and why they are needed.
 
 - Install-time privileges
@@ -142,8 +130,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Сигурна конфигурация
-
 - Задължителни настройки за сигурност
 - Препоръчителни hardening стъпки
 - Конфигурационни файлове / ключове / secrets management
@@ -151,8 +137,6 @@ MD;
         }
 
         return <<<'MD'
-## Secure configuration
-
 - Mandatory security settings
 - Recommended hardening steps
 - Configuration files / keys / secrets management
@@ -163,8 +147,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Настройки по подразбиране
-
 Документирайте factory defaults и кои трябва да бъдат променени преди production.
 
 | Настройка | Default | Препоръка за production |
@@ -174,8 +156,6 @@ MD;
         }
 
         return <<<'MD'
-## Default settings
-
 Document factory defaults and which ones must change before production.
 
 | Setting | Default | Production recommendation |
@@ -188,8 +168,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Изисквания за криптиране
-
 - TLS версии / cipher suites
 - Криптиране на данни в покой
 - Управление на ключове
@@ -197,8 +175,6 @@ MD;
         }
 
         return <<<'MD'
-## Encryption requirements
-
 - TLS versions / cipher suites
 - Encryption at rest
 - Key management
@@ -209,8 +185,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Резервни копия
-
 - Какво трябва да се архивира
 - Честота и задържане
 - Процедура за възстановяване
@@ -218,8 +192,6 @@ MD;
         }
 
         return <<<'MD'
-## Backup
-
 - What must be backed up
 - Frequency and retention
 - Restore procedure
@@ -230,8 +202,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Журналиране
-
 - Какви събития се логват
 - Къде се съхраняват логовете
 - Retention и защита на логове
@@ -239,8 +209,6 @@ MD;
         }
 
         return <<<'MD'
-## Logging
-
 - Which events are logged
 - Where logs are stored
 - Retention and log protection
@@ -251,8 +219,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Процедура за обновяване
-
 1. Проверка за налични обновявания
 2. Предварителен backup / staging
 3. Прилагане на patch / release
@@ -261,8 +227,6 @@ MD;
         }
 
         return <<<'MD'
-## Update procedure
-
 1. Check for available updates
 2. Pre-update backup / staging
 3. Apply patch / release
@@ -274,8 +238,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Контакт за сигурност
-
 - Email: security@example.com
 - Работно време / SLA за отговор
 - PGP ключ (ако е приложимо)
@@ -283,8 +245,6 @@ MD;
         }
 
         return <<<'MD'
-## Security contact
-
 - Email: security@example.com
 - Response hours / SLA
 - PGP key (if applicable)
@@ -295,8 +255,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Докладване на уязвимости
-
 Опишете как клиенти и изследователи докладват уязвимости.
 
 - Канал за докладване
@@ -306,8 +264,6 @@ MD;
         }
 
         return <<<'MD'
-## Vulnerability reporting
-
 Describe how customers and researchers should report vulnerabilities.
 
 - Reporting channel
@@ -320,8 +276,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Период на поддръжка
-
 - Продължителност на security support
 - Къде се публикува support timeline
 - Как се уведомяват клиентите при промяна
@@ -329,8 +283,6 @@ MD;
         }
 
         return <<<'MD'
-## Support period
-
 - Duration of security support
 - Where the support timeline is published
 - How customers are notified of changes
@@ -341,8 +293,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Поведение след край на поддръжката
-
 - Какво спира (patching, updates, cloud features)
 - Препоръки за миграция
 - Рискове при продължаване на употреба
@@ -350,8 +300,6 @@ MD;
         }
 
         return <<<'MD'
-## End-of-support behaviour
-
 - What stops (patching, updates, cloud features)
 - Migration recommendations
 - Risks of continued use
@@ -362,8 +310,6 @@ MD;
     {
         if ($locale === 'bg') {
             return <<<'MD'
-## Известни ограничения
-
 Документирайте известни security limitations и компенсиращи контроли.
 
 - Ограничение 1 — mitigation
@@ -372,8 +318,6 @@ MD;
         }
 
         return <<<'MD'
-## Known limitations
-
 Document known security limitations and compensating controls.
 
 - Limitation 1 — mitigation

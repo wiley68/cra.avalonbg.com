@@ -219,7 +219,8 @@ test('owner can export readme markdown and release zip package', function () {
     expect($readme->headers->get('content-disposition'))->toContain('.md');
     expect($readme->getContent())->toContain('# ' . $instruction->title);
     expect($readme->getContent())->toContain('## Secure installation');
-    expect($readme->getContent())->toContain('Secure installation');
+    expect(substr_count($readme->getContent(), '## Secure installation'))->toBe(1);
+    expect($readme->getContent())->toContain('least privilege');
 
     $release = $this->actingAs($owner)
         ->get(route('products.security-instructions.export', [
