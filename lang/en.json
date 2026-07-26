@@ -1487,6 +1487,14 @@
             "help": {
                 "customer": "Organization that runs this installation.",
                 "environment": "One installation line per customer and environment (production, staging, other). Distinct from the product delivery model field.",
+                "version": "Product version confirmed at the customer. Leave empty if not known yet.",
+                "installation_date": "When this installation was installed or went live at the customer.",
+                "last_confirmed_at": "Last date when installation details (version, environment, etc.) were confirmed as current.",
+                "update_channel": "How the customer receives updates (e.g. stable, beta, managed, offline). Free text for your process.",
+                "internet_exposure": "The installation is reachable from the internet or has significant external network exposure — affects patch priority and risk.",
+                "custom_modifications": "The customer applied custom changes that may complicate updates and support.",
+                "end_of_support_exception": "Documented exception: the installation may stay on a version without active support (e.g. accepted risk). Excluded from the unsupported installations list.",
+                "notes": "Internal notes for this installation — contacts, constraints, agreements.",
                 "file": "UTF-8 CSV with comma separator. Customers must already exist unless imported separately."
             },
             "import": "Import CSV",

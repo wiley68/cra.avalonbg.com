@@ -5,7 +5,6 @@ import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -218,9 +217,12 @@ const textareaClass =
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="product_version_id">{{
-                        t('products.deployments.fields.version')
-                    }}</Label>
+                    <FieldLabel
+                        html-for="product_version_id"
+                        :help="t('products.deployments.help.version')"
+                    >
+                        {{ t('products.deployments.fields.version') }}
+                    </FieldLabel>
                     <Select
                         :model-value="
                             form.product_version_id === ''
@@ -262,9 +264,18 @@ const textareaClass =
 
                 <div class="grid gap-2 sm:grid-cols-2">
                     <div class="grid gap-2">
-                        <Label for="installation_date">{{
-                            t('products.deployments.fields.installation_date')
-                        }}</Label>
+                        <FieldLabel
+                            html-for="installation_date"
+                            :help="
+                                t('products.deployments.help.installation_date')
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.deployments.fields.installation_date',
+                                )
+                            }}
+                        </FieldLabel>
                         <Input
                             id="installation_date"
                             v-model="form.installation_date"
@@ -273,9 +284,18 @@ const textareaClass =
                         <InputError :message="form.errors.installation_date" />
                     </div>
                     <div class="grid gap-2">
-                        <Label for="last_confirmed_at">{{
-                            t('products.deployments.fields.last_confirmed_at')
-                        }}</Label>
+                        <FieldLabel
+                            html-for="last_confirmed_at"
+                            :help="
+                                t('products.deployments.help.last_confirmed_at')
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.deployments.fields.last_confirmed_at',
+                                )
+                            }}
+                        </FieldLabel>
                         <Input
                             id="last_confirmed_at"
                             v-model="form.last_confirmed_at"
@@ -286,9 +306,12 @@ const textareaClass =
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="update_channel">{{
-                        t('products.deployments.fields.update_channel')
-                    }}</Label>
+                    <FieldLabel
+                        html-for="update_channel"
+                        :help="t('products.deployments.help.update_channel')"
+                    >
+                        {{ t('products.deployments.fields.update_channel') }}
+                    </FieldLabel>
                     <Input id="update_channel" v-model="form.update_channel" />
                     <InputError :message="form.errors.update_channel" />
                 </div>
@@ -296,9 +319,12 @@ const textareaClass =
                 <div
                     class="flex items-center justify-between gap-4 rounded-lg border p-4"
                 >
-                    <Label for="internet_exposure">{{
-                        t('products.deployments.fields.internet_exposure')
-                    }}</Label>
+                    <FieldLabel
+                        html-for="internet_exposure"
+                        :help="t('products.deployments.help.internet_exposure')"
+                    >
+                        {{ t('products.deployments.fields.internet_exposure') }}
+                    </FieldLabel>
                     <Switch
                         id="internet_exposure"
                         v-model="form.internet_exposure"
@@ -308,9 +334,18 @@ const textareaClass =
                 <div
                     class="flex items-center justify-between gap-4 rounded-lg border p-4"
                 >
-                    <Label for="custom_modifications">{{
-                        t('products.deployments.fields.custom_modifications')
-                    }}</Label>
+                    <FieldLabel
+                        html-for="custom_modifications"
+                        :help="
+                            t('products.deployments.help.custom_modifications')
+                        "
+                    >
+                        {{
+                            t(
+                                'products.deployments.fields.custom_modifications',
+                            )
+                        }}
+                    </FieldLabel>
                     <Switch
                         id="custom_modifications"
                         v-model="form.custom_modifications"
@@ -320,11 +355,20 @@ const textareaClass =
                 <div
                     class="flex items-center justify-between gap-4 rounded-lg border p-4"
                 >
-                    <Label for="end_of_support_exception">{{
-                        t(
-                            'products.deployments.fields.end_of_support_exception',
-                        )
-                    }}</Label>
+                    <FieldLabel
+                        html-for="end_of_support_exception"
+                        :help="
+                            t(
+                                'products.deployments.help.end_of_support_exception',
+                            )
+                        "
+                    >
+                        {{
+                            t(
+                                'products.deployments.fields.end_of_support_exception',
+                            )
+                        }}
+                    </FieldLabel>
                     <Switch
                         id="end_of_support_exception"
                         v-model="form.end_of_support_exception"
@@ -332,9 +376,12 @@ const textareaClass =
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="notes">{{
-                        t('products.deployments.fields.notes')
-                    }}</Label>
+                    <FieldLabel
+                        html-for="notes"
+                        :help="t('products.deployments.help.notes')"
+                    >
+                        {{ t('products.deployments.fields.notes') }}
+                    </FieldLabel>
                     <textarea
                         id="notes"
                         v-model="form.notes"
