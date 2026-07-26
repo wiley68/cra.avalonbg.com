@@ -18,6 +18,7 @@ import {
     create,
     destroy,
     index as campaignsIndex,
+    reopen as reopenCampaign,
 } from '@/routes/products/campaigns';
 import {
     createCampaignColumnTitleMap,
@@ -59,6 +60,8 @@ const showDeleteDialog = ref(false);
 const campaignToDelete = ref<number | null>(null);
 const showActivateDialog = ref(false);
 const campaignToActivate = ref<number | null>(null);
+const showReopenDialog = ref(false);
+const campaignToReopen = ref<number | null>(null);
 
 const { rows, pagination, loading, search, fetch } =
     useApiTable<PatchCampaignListItem>({
@@ -96,12 +99,18 @@ const requestActivateCampaign = (campaignId: number): void => {
     showActivateDialog.value = true;
 };
 
+const requestReopenCampaign = (campaignId: number): void => {
+    campaignToReopen.value = campaignId;
+    showReopenDialog.value = true;
+};
+
 const columns = computed(() =>
     createCampaignColumns({
         t,
         productId: props.product.id,
         canManage: props.canManage,
         onActivate: requestActivateCampaign,
+        onReopen: requestReopenCampaign,
         onDelete: requestDeleteCampaign,
     }),
 );
@@ -151,6 +160,35 @@ const confirmActivate = (): void => {
 
     router.post(
         activateCampaign({
+            product: props.product.id,
+            campaign: campaignId,
+        }).url,
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: async () => {
+                await fetch();
+            },
+        },
+    );
+};
+
+const cancelReopen = (): void => {
+    campaignToReopen.value = null;
+    showReopenDialog.value = false;
+};
+
+const confirmReopen = (): void => {
+    if (campaignToReopen.value === null) {
+        return;
+    }
+
+    const campaignId = campaignToReopen.value;
+    campaignToReopen.value = null;
+    showReopenDialog.value = false;
+
+    router.post(
+        reopenCampaign({
             product: props.product.id,
             campaign: campaignId,
         }).url,
@@ -242,7 +280,7 @@ onMounted(() => {
 
         <AppAlertDialog
             v-model:open="showDeleteDialog"
-            :title="t('common.delete_confirm_title')"
+            :title="t('products.campaigns.confirm_delete_title')"
             :description="t('products.campaigns.confirm_delete')"
             @confirm="confirmDelete"
             @cancel="cancelDelete"
@@ -256,6 +294,16 @@ onMounted(() => {
             :confirm-label="t('products.campaigns.activate')"
             @confirm="confirmActivate"
             @cancel="cancelActivate"
+        />
+
+        <AppAlertDialog
+            v-model:open="showReopenDialog"
+            :title="t('products.campaigns.confirm_reopen_title')"
+            :description="t('products.campaigns.confirm_reopen')"
+            variant="default"
+            :confirm-label="t('products.campaigns.reopen')"
+            @confirm="confirmReopen"
+            @cancel="cancelReopen"
         />
     </div>
 </template>

@@ -296,3 +296,81 @@ test('activate with no matching installations completes immediately', function (
         ->and($campaign->completed_at)->not->toBeNull()
         ->and(AuditLog::query()->where('event_type', AuditEventType::PatchCampaignCompleted)->count())->toBe(1);
 });
+
+test('owner can reopen completed campaign and update targets again', function () {
+    $fixture = makeCampaignCompletionFixture();
+    $seeded = seedActiveCampaignWithTwoTargets(
+        $fixture['organization'],
+        $fixture['owner'],
+        $fixture['product'],
+        $fixture['versionOld'],
+        $fixture['versionTarget'],
+    );
+
+    $this->actingAs($fixture['owner'])
+        ->put(route('products.campaigns.targets.update', [
+            $fixture['product'],
+            $seeded['campaign'],
+            $seeded['first'],
+        ]), [
+            'status' => PatchCampaignTargetStatus::Updated->value,
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($fixture['owner'])
+        ->put(route('products.campaigns.targets.update', [
+            $fixture['product'],
+            $seeded['campaign'],
+            $seeded['second'],
+        ]), [
+            'status' => PatchCampaignTargetStatus::Excepted->value,
+            'notification_note' => 'Deferred',
+        ])
+        ->assertRedirect();
+
+    $campaign = $seeded['campaign']->fresh();
+    expect($campaign->status)->toBe(PatchCampaignStatus::Completed)
+        ->and($campaign->completed_at)->not->toBeNull();
+
+    $this->actingAs($fixture['owner'])
+        ->post(route('products.campaigns.reopen', [$fixture['product'], $campaign]))
+        ->assertRedirect(route('products.campaigns.show', [$fixture['product'], $campaign]));
+
+    $campaign->refresh();
+
+    expect($campaign->status)->toBe(PatchCampaignStatus::Active)
+        ->and($campaign->completed_at)->toBeNull()
+        ->and(AuditLog::query()->where('event_type', AuditEventType::PatchCampaignReopened)->count())->toBe(1);
+
+    $this->actingAs($fixture['owner'])
+        ->put(route('products.campaigns.targets.update', [
+            $fixture['product'],
+            $campaign,
+            $seeded['second'],
+        ]), [
+            'status' => PatchCampaignTargetStatus::Notified->value,
+        ])
+        ->assertRedirect();
+
+    expect($seeded['second']->fresh()->status)->toBe(PatchCampaignTargetStatus::Notified)
+        ->and($campaign->fresh()->status)->toBe(PatchCampaignStatus::Active);
+});
+
+test('reopen rejects active campaigns', function () {
+    $fixture = makeCampaignCompletionFixture();
+    $seeded = seedActiveCampaignWithTwoTargets(
+        $fixture['organization'],
+        $fixture['owner'],
+        $fixture['product'],
+        $fixture['versionOld'],
+        $fixture['versionTarget'],
+    );
+
+    $this->actingAs($fixture['owner'])
+        ->from(route('products.campaigns.show', [$fixture['product'], $seeded['campaign']]))
+        ->post(route('products.campaigns.reopen', [$fixture['product'], $seeded['campaign']]))
+        ->assertRedirect(route('products.campaigns.show', [$fixture['product'], $seeded['campaign']]))
+        ->assertSessionHasErrors('status');
+
+    expect($seeded['campaign']->fresh()->status)->toBe(PatchCampaignStatus::Active);
+});

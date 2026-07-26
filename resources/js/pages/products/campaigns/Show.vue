@@ -7,6 +7,7 @@ import {
     Mail,
     Pencil,
     Play,
+    RotateCcw,
     Save,
     Sparkles,
     Trash2,
@@ -43,6 +44,7 @@ import {
     exportMethod as exportCampaign,
     index as campaignsIndex,
     notify as notifyCampaign,
+    reopen as reopenCampaign,
     show as campaignsShow,
 } from '@/routes/products/campaigns';
 import { update as updateTarget } from '@/routes/products/campaigns/targets';
@@ -135,6 +137,7 @@ usePageBreadcrumbs(() => [
 
 const showDeleteDialog = ref(false);
 const showActivateDialog = ref(false);
+const showReopenDialog = ref(false);
 const showNotifyDialog = ref(false);
 const showDraftDialog = ref(false);
 const showStatusDialog = ref(false);
@@ -143,6 +146,13 @@ const selectedTarget = ref<CampaignTarget | null>(null);
 
 const isDraft = computed(() => props.campaign.status === 'draft');
 const isActive = computed(() => props.campaign.status === 'active');
+const canReopen = computed(
+    () =>
+        props.canManage &&
+        (props.campaign.status === 'completed' ||
+            props.campaign.status === 'cancelled'),
+);
+const canDelete = computed(() => props.canManage);
 const canUpdateTargets = computed(() => props.canManage && isActive.value);
 
 const exportUrl = computed(
@@ -301,6 +311,16 @@ const confirmActivate = (): void => {
     );
 };
 
+const confirmReopen = (): void => {
+    showReopenDialog.value = false;
+    router.post(
+        reopenCampaign({
+            product: props.product.id,
+            campaign: props.campaign.id,
+        }).url,
+    );
+};
+
 const confirmNotify = (): void => {
     showNotifyDialog.value = false;
     router.post(
@@ -408,15 +428,24 @@ const textareaClass =
                         <Play class="h-4 w-4" />
                         {{ t('products.campaigns.activate') }}
                     </Button>
-                    <Button
-                        variant="outline"
-                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        @click="showDeleteDialog = true"
-                    >
-                        <Trash2 class="h-4 w-4" />
-                        {{ t('common.delete') }}
-                    </Button>
                 </template>
+                <Button
+                    v-if="canReopen"
+                    variant="outline"
+                    @click="showReopenDialog = true"
+                >
+                    <RotateCcw class="h-4 w-4" />
+                    {{ t('products.campaigns.reopen') }}
+                </Button>
+                <Button
+                    v-if="canDelete"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
+                </Button>
             </div>
         </div>
 
@@ -793,7 +822,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showDeleteDialog"
-            :title="t('common.delete_confirm_title')"
+            :title="t('products.campaigns.confirm_delete_title')"
             :description="t('products.campaigns.confirm_delete')"
             @confirm="confirmDelete"
             @cancel="showDeleteDialog = false"
@@ -807,6 +836,16 @@ const textareaClass =
             :confirm-label="t('products.campaigns.activate')"
             @confirm="confirmActivate"
             @cancel="showActivateDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showReopenDialog"
+            :title="t('products.campaigns.confirm_reopen_title')"
+            :description="t('products.campaigns.confirm_reopen')"
+            variant="default"
+            :confirm-label="t('products.campaigns.reopen')"
+            @confirm="confirmReopen"
+            @cancel="showReopenDialog = false"
         />
 
         <AppAlertDialog

@@ -185,6 +185,23 @@ class PatchCampaignController extends Controller
         return redirect()->route('products.campaigns.show', [$product, $campaign]);
     }
 
+    public function reopen(Product $product, PatchCampaign $campaign): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertCampaignBelongsToProduct($product, $campaign);
+        $this->authorize('update', [$product, $organization]);
+
+        $this->campaigns->reopen($campaign, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.campaigns.reopened'),
+        ]);
+
+        return redirect()->route('products.campaigns.show', [$product, $campaign]);
+    }
+
     public function notify(Product $product, PatchCampaign $campaign): RedirectResponse
     {
         $organization = $this->currentOrganization();

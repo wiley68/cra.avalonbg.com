@@ -213,10 +213,32 @@ class PatchCampaignService
         });
     }
 
+    public function reopen(PatchCampaign $campaign, User $actor): PatchCampaign
+    {
+        if (
+            !in_array($campaign->status, [
+                PatchCampaignStatus::Completed,
+                PatchCampaignStatus::Cancelled,
+            ], true)
+        ) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.campaigns.only_reopenable')],
+            ]);
+        }
+
+        $campaign->update([
+            'status' => PatchCampaignStatus::Active,
+            'completed_at' => null,
+        ]);
+
+        $fresh = $campaign->fresh(['targetVersion', 'product', 'targets']);
+        AuditLogger::logPatchCampaignReopened($fresh, $actor);
+
+        return $fresh;
+    }
+
     public function delete(PatchCampaign $campaign, User $actor): void
     {
-        $this->assertDraft($campaign);
-
         $campaign->loadMissing(['targetVersion', 'product']);
         AuditLogger::logPatchCampaignDeleted($campaign, $actor);
         $campaign->delete();

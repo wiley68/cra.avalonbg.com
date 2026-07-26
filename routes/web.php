@@ -517,6 +517,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('products/{product}/campaigns/{campaign}/activate', [PatchCampaignController::class, 'activate'])
             ->name('products.campaigns.activate')
             ->scopeBindings();
+        Route::post('products/{product}/campaigns/{campaign}/reopen', [PatchCampaignController::class, 'reopen'])
+            ->name('products.campaigns.reopen')
+            ->scopeBindings();
         Route::post('products/{product}/campaigns/{campaign}/notify', [PatchCampaignController::class, 'notify'])
             ->name('products.campaigns.notify')
             ->scopeBindings();

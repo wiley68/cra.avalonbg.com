@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Eye, Pencil, Play, Trash2 } from '@lucide/vue';
+import { ArrowUpDown, Eye, Pencil, Play, RotateCcw, Trash2 } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
@@ -68,12 +68,14 @@ export const createCampaignColumns = ({
     productId,
     canManage,
     onActivate,
+    onReopen,
     onDelete,
 }: {
     t: TranslateFn;
     productId: number;
     canManage: boolean;
     onActivate: (campaignId: number) => void;
+    onReopen: (campaignId: number) => void;
     onDelete: (campaignId: number) => void;
 }): ColumnDef<PatchCampaignListItem>[] => [
     {
@@ -134,7 +136,9 @@ export const createCampaignColumns = ({
         enableSorting: false,
         header: () => t('common.actions'),
         cell: ({ row }) => {
-            const isDraft = row.original.status === 'draft';
+            const status = row.original.status;
+            const isDraft = status === 'draft';
+            const canReopen = status === 'completed' || status === 'cancelled';
 
             const actions: {
                 label: string;
@@ -175,13 +179,24 @@ export const createCampaignColumns = ({
                         icon: Play,
                         onSelect: () => onActivate(row.original.id),
                     },
-                    {
-                        label: t('common.delete'),
-                        icon: Trash2,
-                        variant: 'destructive',
-                        onSelect: () => onDelete(row.original.id),
-                    },
                 );
+            }
+
+            if (canManage && canReopen) {
+                actions.push({
+                    label: t('products.campaigns.reopen'),
+                    icon: RotateCcw,
+                    onSelect: () => onReopen(row.original.id),
+                });
+            }
+
+            if (canManage) {
+                actions.push({
+                    label: t('common.delete'),
+                    icon: Trash2,
+                    variant: 'destructive',
+                    onSelect: () => onDelete(row.original.id),
+                });
             }
 
             return h(TableRowActionsMenu, {

@@ -15,6 +15,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Organization;
 use App\Models\PatchCampaign;
+use App\Models\PatchCampaignTarget;
 use App\Models\Product;
 use App\Models\ProductDeployment;
 use App\Models\ProductVersion;
@@ -228,7 +229,7 @@ test('create with activate flag seeds immediately', function () {
         ->and(AuditLog::query()->where('event_type', AuditEventType::PatchCampaignActivated)->count())->toBe(1);
 });
 
-test('owner can update and delete draft only', function () {
+test('owner can update draft and delete any status; update rejects non-draft', function () {
     [
         'owner' => $owner,
         'organization' => $organization,
@@ -275,11 +276,65 @@ test('owner can update and delete draft only', function () {
 
     $this->actingAs($owner)
         ->from(route('products.campaigns.show', [$product, $active]))
-        ->delete(route('products.campaigns.destroy', [$product, $active]))
+        ->put(route('products.campaigns.update', [$product, $active]), [
+            'title' => 'Should fail',
+            'target_version_id' => $versionTarget->id,
+        ])
         ->assertRedirect(route('products.campaigns.show', [$product, $active]))
         ->assertSessionHasErrors('status');
 
-    expect(PatchCampaign::query()->whereKey($active->id)->exists())->toBeTrue();
+    expect($active->fresh()->title)->toBe('Active campaign');
+
+    $this->actingAs($owner)
+        ->delete(route('products.campaigns.destroy', [$product, $active]))
+        ->assertRedirect(route('products.campaigns.index', $product));
+
+    expect(PatchCampaign::query()->whereKey($active->id)->exists())->toBeFalse()
+        ->and(AuditLog::query()->where('event_type', AuditEventType::PatchCampaignDeleted)->count())->toBe(2);
+});
+
+test('owner can delete completed campaign without reverting deployment versions', function () {
+    [
+        'owner' => $owner,
+        'organization' => $organization,
+        'product' => $product,
+        'customer' => $customer,
+        'versionOld' => $versionOld,
+        'versionTarget' => $versionTarget,
+    ] = makeCampaignFixture();
+
+    $deployment = ProductDeployment::query()->create([
+        'organization_id' => $organization->id,
+        'customer_id' => $customer->id,
+        'product_id' => $product->id,
+        'product_version_id' => $versionTarget->id,
+        'environment' => DeploymentEnvironment::Production,
+    ]);
+
+    $campaign = PatchCampaign::query()->create([
+        'organization_id' => $organization->id,
+        'product_id' => $product->id,
+        'target_version_id' => $versionTarget->id,
+        'title' => 'Completed campaign',
+        'status' => PatchCampaignStatus::Completed,
+        'started_at' => now()->subDay(),
+        'completed_at' => now(),
+        'created_by' => $owner->id,
+    ]);
+
+    PatchCampaignTarget::query()->create([
+        'campaign_id' => $campaign->id,
+        'deployment_id' => $deployment->id,
+        'status' => PatchCampaignTargetStatus::Updated,
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('products.campaigns.destroy', [$product, $campaign]))
+        ->assertRedirect(route('products.campaigns.index', $product));
+
+    expect(PatchCampaign::query()->whereKey($campaign->id)->exists())->toBeFalse()
+        ->and($deployment->fresh()->product_version_id)->toBe($versionTarget->id)
+        ->and(AuditLog::query()->where('event_type', AuditEventType::PatchCampaignDeleted)->count())->toBe(1);
 });
 
 test('viewer can list and show campaigns but cannot create or activate', function () {
