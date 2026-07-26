@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.10  
+**Версия:** 1.11  
 **Дата:** 26 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -124,7 +124,7 @@ Wizard notes: W-…
 | **15** | **Customers**                                                                                             | Customers (org)                                    | Клиенти създадени                                                                          | **Done** (2026-07-26) | Може частично в **0**; тук gate преди deployments                      |
 | **16** | **Deployments**                                                                                           | Deployments                                        | Инсталации към versions                                                                    | **Done** (2026-07-26) | Affected customers                                                     |
 | **17** | **Patch campaigns**                                                                                       | Campaigns                                          | Кампания + notify/confirm path                                                             | **Done** (2026-07-26) | След vuln/deployments                                                  |
-| **18** | **Incidents**                                                                                             | Incidents (product + org index)                    | Инцидент + timeline                                                                        | Open                  | Може ad-hoc; тук за пълен продукт                                      |
+| **18** | **Incidents**                                                                                             | Incidents (product + org index)                    | Инцидент + timeline                                                                        | **Done** (2026-07-26) | Може ad-hoc; тук за пълен продукт                                      |
 | **19** | **SDL**                                                                                                   | SDL                                                | Run през stages; release gate                                                              | Open                  | Вържи evidence / Git                                                   |
 | **20** | **USI**                                                                                                   | Security instructions                              | Published (или under_review)                                                               | Open                  | Паралелно след versions                                                |
 | **21** | **Technical documentation**                                                                               | Tech docs                                          | Package + key sections + export                                                            | Open                  | Вкл. conformity/DoC **prep** (без auto-sign)                           |
@@ -181,7 +181,7 @@ Wizard notes: W-…
       ↓
 [15 Customers gate] ✅ → [16 Deployments] ✅ → [17 Campaigns] ✅
       ↓
-[18 Incidents]   [19 SDL]   [20 USI]   [21 Tech docs]   (могат успоредно след 11–14)
+[18 Incidents] ✅   [19 SDL]   [20 USI]   [21 Tech docs]   (могат успоредно след 11–14)
       ↓
 [22 Passport] → [23 Readiness] → ([24 Auditor]) → ([25 AI])
 ```
@@ -424,6 +424,7 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-26** — Spine **A_18** (Incidents): **Done**. Тествано и коректно. Следваща: стъпка **19** (SDL).
 - **2026-07-26** — Spine **A_17** (Patch campaigns): **Done**. Тествано и коректно. Следваща: стъпка **18** (Incidents).
 - **2026-07-26** — Spine **A_16** (Deployments): **Done**. Тествано и коректно. Следваща: стъпка **17** (Patch campaigns).
 - **2026-07-26** — Spine **A_15** (Customers): **Done**. Тествано и коректно. Следваща: стъпка **16** (Deployments).
@@ -471,6 +472,7 @@ UI идея (карта / стъпка / timeline): …
 - Стъпка 15 (Customers) Done — следва Deployments.
 - Стъпка 16 (Deployments) Done — следва Patch campaigns.
 - Стъпка 17 (Patch campaigns) Done — следва Incidents.
+- Стъпка 18 (Incidents) Done — следва SDL.
 - …
 
 ### P0/P1 triage queue
@@ -496,6 +498,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.11   | 2026-07-26 | Spine стъпка **18** (Incidents) → **Done**                                                                |
 | 1.10   | 2026-07-26 | Spine стъпка **17** (Patch campaigns) → **Done**                                                          |
 | 1.9    | 2026-07-26 | Spine стъпка **16** (Deployments) → **Done**                                                              |
 | 1.8    | 2026-07-26 | Spine стъпка **15** (Customers) → **Done**                                                                |
