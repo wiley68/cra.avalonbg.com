@@ -217,6 +217,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_products',
     },
     {
+        key: 'technical_documentation',
+        labelKey: 'products.technical_documentation_link',
+        descriptionKey: 'products.modules.technical_documentation.description',
+        icon: FileText,
+        href: (productId) => technicalDocumentationIndex(productId).url,
+        canViewFlag: 'can_view_technical_documentation',
+    },
+    {
         key: 'passport',
         labelKey: 'products.passport_link',
         descriptionKey: 'products.modules.passport.description',
@@ -239,14 +247,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Bot,
         href: (productId) => productAssistantShow(productId).url,
         canViewFlag: 'can_view_products',
-    },
-    {
-        key: 'technical_documentation',
-        labelKey: 'products.technical_documentation_link',
-        descriptionKey: 'products.modules.technical_documentation.description',
-        icon: FileText,
-        href: (productId) => technicalDocumentationIndex(productId).url,
-        canViewFlag: 'can_view_technical_documentation',
     },
 ];
 
