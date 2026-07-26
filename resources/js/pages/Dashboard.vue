@@ -52,6 +52,12 @@ type RecentCriticalVulnerability = {
     href: string;
 };
 
+type RecentSdlRun = {
+    id: number;
+    title: string;
+    href: string;
+};
+
 type DashboardPayload = {
     mode: 'platform' | 'organization' | 'empty';
     organization: { id: number; name: string; slug: string } | null;
@@ -60,6 +66,8 @@ type DashboardPayload = {
     recent_open_tasks?: RecentOpenTask[];
     recent_risks?: RecentRisk[];
     recent_critical_vulnerabilities?: RecentCriticalVulnerability[];
+    recent_approved_sdl_runs?: RecentSdlRun[];
+    recent_pending_monitoring_sdl_runs?: RecentSdlRun[];
     actions: DashboardAction[];
 };
 
@@ -281,17 +289,73 @@ const severityClass = (severity: string): string => {
                 <p class="text-sm text-muted-foreground">
                     {{ t('dashboard.counts.sdl_approved') }}
                 </p>
-                <p class="text-2xl font-semibold">
-                    {{ dashboard.counts.sdl_approved ?? 0 }}
-                </p>
+                <div class="mt-1 flex items-start gap-4">
+                    <p class="shrink-0 text-2xl font-semibold">
+                        {{ dashboard.counts.sdl_approved ?? 0 }}
+                    </p>
+                    <ul
+                        v-if="
+                            (dashboard.recent_approved_sdl_runs ?? []).length >
+                            0
+                        "
+                        class="min-w-0 flex-1 space-y-1 border-l pl-4"
+                    >
+                        <li
+                            v-for="run in dashboard.recent_approved_sdl_runs ??
+                            []"
+                            :key="run.id"
+                            class="flex min-w-0 items-baseline gap-2 text-sm"
+                        >
+                            <span
+                                class="shrink-0 font-mono text-muted-foreground"
+                                >{{ run.id }}</span
+                            >
+                            <Link
+                                :href="run.href"
+                                class="truncate font-medium underline-offset-4 hover:underline"
+                                :title="run.title"
+                            >
+                                {{ run.title }}
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">
                     {{ t('dashboard.counts.sdl_pending_monitoring') }}
                 </p>
-                <p class="text-2xl font-semibold">
-                    {{ dashboard.counts.sdl_pending_monitoring ?? 0 }}
-                </p>
+                <div class="mt-1 flex items-start gap-4">
+                    <p class="shrink-0 text-2xl font-semibold">
+                        {{ dashboard.counts.sdl_pending_monitoring ?? 0 }}
+                    </p>
+                    <ul
+                        v-if="
+                            (dashboard.recent_pending_monitoring_sdl_runs ?? [])
+                                .length > 0
+                        "
+                        class="min-w-0 flex-1 space-y-1 border-l pl-4"
+                    >
+                        <li
+                            v-for="run in dashboard.recent_pending_monitoring_sdl_runs ??
+                            []"
+                            :key="run.id"
+                            class="flex min-w-0 items-baseline gap-2 text-sm"
+                        >
+                            <span
+                                class="shrink-0 font-mono text-muted-foreground"
+                                >{{ run.id }}</span
+                            >
+                            <Link
+                                :href="run.href"
+                                class="truncate font-medium underline-offset-4 hover:underline"
+                                :title="run.title"
+                            >
+                                {{ run.title }}
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">

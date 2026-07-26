@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useSdlEditBack } from '@/composables/useSdlEditBack';
 import {
     aiDraft as suggestSdlAiDraft,
     approve as approveSdlRun,
@@ -186,6 +187,8 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+
+const { backHref } = useSdlEditBack(props.product.id, props.run.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -879,7 +882,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
             </div>
             <div class="flex flex-wrap items-center justify-end gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="productSdlIndex(props.product.id)">
+                    <Link :href="backHref">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
@@ -1713,7 +1716,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                     <div
                         class="flex flex-wrap items-center justify-between gap-2"
                     >
-                        <h3 class="text-sm font-medium">
+                        <h3 class="section-heading">
                             {{ enumLabel('stages', entry.stage) }}
                         </h3>
                         <p

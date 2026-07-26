@@ -157,7 +157,9 @@ test('approved SDL run can update monitoring stage but not pre-gate stages', fun
 });
 
 test('dashboard counts approved SDL runs with pending monitoring', function () {
-    ['owner' => $owner] = makeSdlMonitoringFixture();
+    ['owner' => $owner, 'product' => $product, 'run' => $run] = makeSdlMonitoringFixture();
+
+    $expectedHref = route('products.sdl.edit', [$product, $run]);
 
     $this->actingAs($owner)
         ->get(route('dashboard'))
@@ -166,6 +168,13 @@ test('dashboard counts approved SDL runs with pending monitoring', function () {
             ->component('Dashboard')
             ->where('dashboard.counts.sdl_approved', 1)
             ->where('dashboard.counts.sdl_pending_monitoring', 1)
+            ->has('dashboard.recent_approved_sdl_runs', 1)
+            ->where('dashboard.recent_approved_sdl_runs.0.id', $run->id)
+            ->where('dashboard.recent_approved_sdl_runs.0.title', $run->title)
+            ->where('dashboard.recent_approved_sdl_runs.0.href', $expectedHref)
+            ->has('dashboard.recent_pending_monitoring_sdl_runs', 1)
+            ->where('dashboard.recent_pending_monitoring_sdl_runs.0.id', $run->id)
+            ->where('dashboard.recent_pending_monitoring_sdl_runs.0.href', $expectedHref)
             ->where('dashboard.actions', function ($actions) {
                 $action = collect($actions)->firstWhere('key', 'sdl_pending_monitoring');
 
@@ -196,6 +205,8 @@ test('completing monitoring clears pending dashboard count', function () {
         ->assertInertia(fn($page) => $page
             ->where('dashboard.counts.sdl_approved', 1)
             ->where('dashboard.counts.sdl_pending_monitoring', 0)
+            ->has('dashboard.recent_approved_sdl_runs', 1)
+            ->has('dashboard.recent_pending_monitoring_sdl_runs', 0)
             ->where('dashboard.actions', function ($actions) {
                 return collect($actions)->firstWhere('key', 'sdl_pending_monitoring') === null;
             }));

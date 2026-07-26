@@ -7,6 +7,7 @@ import { initializeProductEditReturnTracking } from '@/composables/useProductEdi
 import { initializeRiskEditReturnTracking } from '@/composables/useRiskEditBack';
 import { initializeTaskEditReturnTracking } from '@/composables/useTaskEditBack';
 import { initializeVulnerabilityEditReturnTracking } from '@/composables/useVulnerabilityEditBack';
+import { initializeSdlEditReturnTracking } from '@/composables/useSdlEditBack';
 import { ensureTranslations, localeFromHtml } from '@/i18n/catalog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -61,6 +62,7 @@ async function boot(): Promise<void> {
     initializeTaskEditReturnTracking();
     initializeRiskEditReturnTracking();
     initializeVulnerabilityEditReturnTracking();
+    initializeSdlEditReturnTracking();
 }
 
 void boot();

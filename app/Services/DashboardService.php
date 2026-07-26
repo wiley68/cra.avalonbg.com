@@ -40,6 +40,8 @@ class DashboardService
 
     private const CRITICAL_VULNERABILITIES_PREVIEW_LIMIT = 3;
 
+    private const SDL_RUNS_PREVIEW_LIMIT = 3;
+
     public function __construct(
         private readonly ProductReadinessService $readiness,
     ) {
@@ -81,6 +83,8 @@ class DashboardService
             'recent_open_tasks' => [],
             'recent_risks' => [],
             'recent_critical_vulnerabilities' => [],
+            'recent_approved_sdl_runs' => [],
+            'recent_pending_monitoring_sdl_runs' => [],
             'actions' => [
                 [
                     'key' => 'manage_organizations',
@@ -106,6 +110,8 @@ class DashboardService
             'recent_open_tasks' => [],
             'recent_risks' => [],
             'recent_critical_vulnerabilities' => [],
+            'recent_approved_sdl_runs' => [],
+            'recent_pending_monitoring_sdl_runs' => [],
             'actions' => [],
         ];
     }
@@ -132,6 +138,8 @@ class DashboardService
         $supportBuckets = $this->supportEndingBuckets($productIds);
         $sdlPendingMonitoring = $this->sdlPendingMonitoringCount($organization);
         $sdlApproved = $this->sdlApprovedCount($organization);
+        $recentApprovedSdlRuns = $this->recentApprovedSdlRuns($organization);
+        $recentPendingMonitoringSdlRuns = $this->recentPendingMonitoringSdlRuns($organization);
         $pendingImportSuggestions = $this->pendingImportSuggestionCount($productIds);
         $failedIntegrationSyncs = $this->failedIntegrationSyncCount($productIds);
 
@@ -246,6 +254,8 @@ class DashboardService
             ),
             'recent_risks' => $this->recentRisks($productIds),
             'recent_critical_vulnerabilities' => $recentCriticalVulnerabilities,
+            'recent_approved_sdl_runs' => $recentApprovedSdlRuns,
+            'recent_pending_monitoring_sdl_runs' => $recentPendingMonitoringSdlRuns,
             'actions' => $actions,
         ];
     }
@@ -356,6 +366,46 @@ class DashboardService
 
     private function sdlPendingMonitoringCount(Organization $organization): int
     {
+        return $this->pendingMonitoringSdlQuery($organization)->count();
+    }
+
+    /**
+     * @return list<array{id: int, title: string, href: string}>
+     */
+    private function recentApprovedSdlRuns(Organization $organization): array
+    {
+        return SdlRun::query()
+            ->where('organization_id', $organization->id)
+            ->where('status', SdlRunStatus::Approved)
+            ->orderByDesc('approved_at')
+            ->orderByDesc('id')
+            ->limit(self::SDL_RUNS_PREVIEW_LIMIT)
+            ->get(['id', 'title', 'product_id'])
+            ->map(fn(SdlRun $run): array => $this->sdlRunPreviewItem($run))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{id: int, title: string, href: string}>
+     */
+    private function recentPendingMonitoringSdlRuns(Organization $organization): array
+    {
+        return $this->pendingMonitoringSdlQuery($organization)
+            ->orderByDesc('approved_at')
+            ->orderByDesc('id')
+            ->limit(self::SDL_RUNS_PREVIEW_LIMIT)
+            ->get(['id', 'title', 'product_id'])
+            ->map(fn(SdlRun $run): array => $this->sdlRunPreviewItem($run))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<SdlRun>
+     */
+    private function pendingMonitoringSdlQuery(Organization $organization)
+    {
         return SdlRun::query()
             ->where('organization_id', $organization->id)
             ->where('status', SdlRunStatus::Approved)
@@ -363,8 +413,22 @@ class DashboardService
                 $query
                     ->where('stage', SdlStage::Monitoring)
                     ->where('status', SdlStageStatus::Pending);
-            })
-            ->count();
+            });
+    }
+
+    /**
+     * @return array{id: int, title: string, href: string}
+     */
+    private function sdlRunPreviewItem(SdlRun $run): array
+    {
+        return [
+            'id' => $run->id,
+            'title' => $run->title,
+            'href' => route('products.sdl.edit', [
+                $run->product_id,
+                $run->id,
+            ]),
+        ];
     }
 
     private function unclassifiedProductCount(Organization $organization): int

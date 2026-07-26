@@ -79,6 +79,8 @@ test('authenticated organization owner sees action dashboard', function () {
                 ->has('recent_open_tasks')
                 ->has('recent_risks')
                 ->has('recent_critical_vulnerabilities')
+                ->has('recent_approved_sdl_runs')
+                ->has('recent_pending_monitoring_sdl_runs')
                 ->etc()));
 });
 
