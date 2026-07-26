@@ -20,7 +20,6 @@ use App\Enums\TaskStatus;
 use App\Enums\TechnicalDocumentationStatus;
 use App\Enums\UserSecurityInstructionStatus;
 use App\Enums\VulnerabilityBusinessSeverity;
-use App\Enums\VulnerabilityStatus;
 use App\Models\Evidence;
 use App\Models\ImportSuggestion;
 use App\Models\OrgPolicy;
@@ -1634,20 +1633,12 @@ class ProductReadinessService
      */
     private function vulnerabilityCounts(Product $product): array
     {
-        $closed = [
-            VulnerabilityStatus::Rejected,
-            VulnerabilityStatus::Duplicate,
-            VulnerabilityStatus::Patched,
-            VulnerabilityStatus::Released,
-            VulnerabilityStatus::Closed,
-        ];
-
         $vulns = ProductVulnerability::query()
             ->where('product_id', $product->id)
             ->get(['id', 'status', 'business_severity', 'awareness_at']);
 
         $open = $vulns->filter(
-            fn(ProductVulnerability $vuln) => !in_array($vuln->status, $closed, true),
+            fn(ProductVulnerability $vuln) => $vuln->status->isOpen(),
         );
 
         $critical = $open->filter(

@@ -408,6 +408,15 @@ test('organization dashboard includes latest three open critical vulnerabilities
 
     ProductVulnerability::query()->create([
         'product_id' => $product->id,
+        'title' => 'Patched critical ignored',
+        'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
+        'status' => VulnerabilityStatus::Patched,
+        'business_severity' => VulnerabilityBusinessSeverity::Critical,
+        'exploitation_status' => VulnerabilityExploitationStatus::None,
+    ]);
+
+    ProductVulnerability::query()->create([
+        'product_id' => $product->id,
         'title' => 'High severity ignored',
         'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
         'status' => VulnerabilityStatus::Triage,
@@ -431,7 +440,13 @@ test('organization dashboard includes latest three open critical vulnerabilities
             ->has('dashboard.recent_critical_vulnerabilities', 3)
             ->where('dashboard.recent_critical_vulnerabilities.0.id', $newestId)
             ->where('dashboard.recent_critical_vulnerabilities.0.title', $newestTitle)
-            ->where('dashboard.recent_critical_vulnerabilities.0.href', $expectedHref));
+            ->where('dashboard.recent_critical_vulnerabilities.0.href', $expectedHref)
+            ->where('dashboard.actions', fn($actions) => collect($actions)->contains(
+                fn(array $action): bool => $action['key'] === 'critical_vulnerabilities'
+                && $action['count'] === 4
+                && $action['href'] === $expectedHref
+                && ($action['items'][0]['href'] ?? null) === $expectedHref,
+            )));
 });
 
 test('dashboard counts open and unclassified security incidents', function () {

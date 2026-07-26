@@ -121,6 +121,7 @@ class DashboardService
             ->pluck('id');
 
         $criticalVulns = $this->criticalVulnerabilityCount($productIds);
+        $recentCriticalVulnerabilities = $this->recentCriticalVulnerabilities($productIds);
         $expiredEvidence = $this->expiredEvidenceCount($productIds);
         $overdueReporting = $this->overdueReportingCount($productIds);
         $risksCount = ProductRisk::query()->whereIn('product_id', $productIds)->count();
@@ -150,10 +151,9 @@ class DashboardService
                 'warn',
                 $this->productsWithoutRisksCount($organization),
             ),
-            $this->countAction(
-                'critical_vulnerabilities',
-                'fail',
+            $this->criticalVulnerabilitiesAction(
                 $criticalVulns,
+                $recentCriticalVulnerabilities,
             ),
             $this->countAction(
                 'open_incidents',
@@ -245,7 +245,7 @@ class DashboardService
                 $recentOpenTasks,
             ),
             'recent_risks' => $this->recentRisks($productIds),
-            'recent_critical_vulnerabilities' => $this->recentCriticalVulnerabilities($productIds),
+            'recent_critical_vulnerabilities' => $recentCriticalVulnerabilities,
             'actions' => $actions,
         ];
     }
@@ -402,10 +402,7 @@ class DashboardService
         return ProductVulnerability::query()
             ->whereIn('product_id', $productIds)
             ->where('business_severity', VulnerabilityBusinessSeverity::Critical->value)
-            ->whereNotIn('status', [
-                VulnerabilityStatus::Closed->value,
-                VulnerabilityStatus::Rejected->value,
-            ])
+            ->whereNotIn('status', VulnerabilityStatus::resolvedValues())
             ->count();
     }
 
@@ -524,10 +521,7 @@ class DashboardService
         return ProductVulnerability::query()
             ->whereIn('product_id', $productIds)
             ->where('business_severity', VulnerabilityBusinessSeverity::Critical->value)
-            ->whereNotIn('status', [
-                VulnerabilityStatus::Closed->value,
-                VulnerabilityStatus::Rejected->value,
-            ])
+            ->whereNotIn('status', VulnerabilityStatus::resolvedValues())
             ->orderByDesc('id')
             ->limit(self::CRITICAL_VULNERABILITIES_PREVIEW_LIMIT)
             ->get(['id', 'title', 'product_id'])
@@ -541,6 +535,26 @@ class DashboardService
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  list<array{id: int, title: string, href: string}>  $preview
+     * @return array<string, mixed>|null
+     */
+    private function criticalVulnerabilitiesAction(int $count, array $preview): ?array
+    {
+        if ($count <= 0) {
+            return null;
+        }
+
+        return [
+            'key' => 'critical_vulnerabilities',
+            'severity' => 'fail',
+            'title_key' => 'dashboard.actions.critical_vulnerabilities',
+            'count' => $count,
+            'href' => $preview[0]['href'] ?? route('products.index'),
+            'items' => $preview,
+        ];
     }
 
     /**
@@ -801,10 +815,7 @@ class DashboardService
         return ProductVulnerability::query()
             ->whereIn('product_id', $productIds)
             ->whereNotNull('awareness_at')
-            ->whereNotIn('status', [
-                VulnerabilityStatus::Closed->value,
-                VulnerabilityStatus::Rejected->value,
-            ])
+            ->whereNotIn('status', VulnerabilityStatus::resolvedValues())
             ->get()
             ->filter(function (ProductVulnerability $vulnerability): bool {
                 $deadline = $vulnerability->deadline72h();
