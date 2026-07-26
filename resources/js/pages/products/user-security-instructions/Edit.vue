@@ -1386,6 +1386,8 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                     'products.user_security_instructions.confirm_publish_evidence',
                 )
             "
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doPublishEvidence"
             @cancel="showPublishEvidenceDialog = false"
         />
