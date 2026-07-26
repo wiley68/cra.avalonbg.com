@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from '@lucide/vue';
+import { ArrowLeft, Plus } from '@lucide/vue';
 import { computed } from 'vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import InputError from '@/components/InputError.vue';
@@ -46,8 +46,14 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.support_periods.index_title', href: periodsIndex(props.product.id) },
-    { titleKey: 'products.support_periods.create_title', href: supportPeriodsCreate(props.product.id) },
+    {
+        titleKey: 'products.support_periods.index_title',
+        href: periodsIndex(props.product.id),
+    },
+    {
+        titleKey: 'products.support_periods.create_title',
+        href: supportPeriodsCreate(props.product.id),
+    },
 ]);
 
 const form = useForm({
@@ -282,6 +288,7 @@ const textareaClass =
             </div>
 
             <Button type="submit" :disabled="form.processing">
+                <Plus class="h-4 w-4" />
                 {{ t('common.create') }}
             </Button>
         </form>

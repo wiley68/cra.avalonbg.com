@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Save } from '@lucide/vue';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteOrganization from '@/components/DeleteOrganization.vue';
@@ -118,6 +119,7 @@ const saveLocale = () => {
                     :disabled="processing"
                     data-test="update-profile-button"
                 >
+                    <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
             </div>
@@ -157,6 +159,7 @@ const saveLocale = () => {
                 <InputError :message="localeForm.errors.locale" />
             </div>
             <Button type="submit" :disabled="localeForm.processing">
+                <Save class="h-4 w-4" />
                 {{ t('common.save') }}
             </Button>
         </form>

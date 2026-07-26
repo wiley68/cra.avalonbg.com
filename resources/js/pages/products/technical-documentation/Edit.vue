@@ -768,6 +768,12 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="packagesIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
                 <Button
                     v-if="!readOnly"
                     type="button"
@@ -802,12 +808,6 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                             t('products.technical_documentation.export_release')
                         }}
                     </a>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="packagesIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
                 </Button>
             </div>
         </div>
@@ -1598,6 +1598,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                             <Button
                                 type="button"
                                 size="sm"
+                                variant="outline"
                                 @click="applyAiDraft(index)"
                             >
                                 <CheckCircle2 class="h-4 w-4" />
@@ -1964,7 +1965,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                 <InputError :message="lifecycleError" />
             </div>
 
-            <div v-if="!readOnly" class="flex justify-end">
+            <div v-if="!readOnly" class="flex justify-start">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}

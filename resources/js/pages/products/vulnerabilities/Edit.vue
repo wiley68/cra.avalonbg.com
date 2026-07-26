@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useVulnerabilityEditBack } from '@/composables/useVulnerabilityEditBack';
 import { triage as triageVulnerability } from '@/routes/products/assistant';
 import {
     create as campaignsCreate,
@@ -99,6 +100,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { backHref } = useVulnerabilityEditBack(
+    props.product.id,
+    props.vulnerability.id,
+);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -280,6 +285,12 @@ const toggleId = (
                 </h1>
             </div>
             <div class="flex flex-wrap items-center justify-end gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="backHref">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
                 <Button
                     v-if="canManage"
                     type="button"
@@ -288,12 +299,6 @@ const toggleId = (
                 >
                     <Sparkles class="h-4 w-4" />
                     {{ t('products.vulnerabilities.ai_triage') }}
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="productVulnerabilitiesIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
                 </Button>
             </div>
         </div>
@@ -972,6 +977,7 @@ const toggleId = (
                         as-child
                         type="button"
                         size="sm"
+                        variant="outline"
                     >
                         <Link :href="startCampaignUrl">
                             <Plus class="h-4 w-4" />
@@ -1028,17 +1034,18 @@ const toggleId = (
                 v-if="canManage"
                 class="flex items-center justify-between gap-2"
             >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />
                     {{ t('common.delete') }}
-                </Button>
-                <Button type="submit" :disabled="form.processing">
-                    <Save class="h-4 w-4" />
-                    {{ t('common.save') }}
                 </Button>
             </div>
         </form>

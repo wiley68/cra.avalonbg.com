@@ -232,15 +232,15 @@ const copyGuestUrl = async () => {
             </div>
             <div class="flex flex-wrap gap-2">
                 <Button as-child variant="outline">
-                    <Link :href="packagesShow(package.id)">
-                        <Eye class="h-4 w-4" />
-                        {{ t('auditor.open_review') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
                     <Link :href="auditorIndex()">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link :href="packagesShow(package.id)">
+                        <Eye class="h-4 w-4" />
+                        {{ t('auditor.open_review') }}
                     </Link>
                 </Button>
             </div>
@@ -267,15 +267,6 @@ const copyGuestUrl = async () => {
             >
                 <Lock class="h-4 w-4" />
                 {{ t('auditor.close') }}
-            </Button>
-            <Button
-                v-if="canDelete"
-                type="button"
-                variant="outline"
-                @click="showDeleteDialog = true"
-            >
-                <Trash2 class="h-4 w-4" />
-                {{ t('common.delete') }}
             </Button>
         </div>
 
@@ -442,10 +433,23 @@ const copyGuestUrl = async () => {
                 </div>
             </fieldset>
 
-            <div v-if="canManage" class="flex justify-end">
+            <div
+                v-if="canManage"
+                class="flex items-center justify-between gap-2"
+            >
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
+                </Button>
+                <Button
+                    v-if="canDelete"
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </form>

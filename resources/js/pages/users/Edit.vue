@@ -171,7 +171,8 @@ const roleLabel = (slug: string): string => {
                 <Button
                     v-if="props.user.two_factor_enabled"
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showResetTwoFactorDialog = true"
                 >
                     <ShieldOff class="h-4 w-4" />
@@ -186,7 +187,8 @@ const roleLabel = (slug: string): string => {
                 </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />

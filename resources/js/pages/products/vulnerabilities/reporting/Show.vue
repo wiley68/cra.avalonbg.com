@@ -421,7 +421,12 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
             <p class="text-sm">
                 {{ t('products.vulnerabilities.reporting.escalation_banner') }}
             </p>
-            <Button type="button" variant="destructive" @click="escalate">
+            <Button
+                type="button"
+                variant="outline"
+                class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                @click="escalate"
+            >
                 <Siren class="h-4 w-4" />
                 {{ t('products.vulnerabilities.reporting.escalate') }}
             </Button>
@@ -732,7 +737,9 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                             )
                         }}
                     </p>
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
                         <Button
                             type="button"
                             :disabled="locked || draftForm.processing"
@@ -785,7 +792,9 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                         v-model="approvalComment"
                         :class="textareaClass"
                     />
-                    <div class="flex flex-wrap gap-2">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
                         <Button
                             type="button"
                             @click="postType(approveReport(routeArgs).url)"
@@ -797,7 +806,8 @@ const exportUrl = computed(() => reportingExport(routeArgs.value).url);
                         </Button>
                         <Button
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="postType(rejectReport(routeArgs).url)"
                         >
                             <X class="h-4 w-4" />

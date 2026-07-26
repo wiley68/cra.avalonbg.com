@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { Save } from '@lucide/vue';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -98,6 +99,7 @@ usePageBreadcrumbs(() => [
                     :disabled="processing"
                     data-test="update-password-button"
                 >
+                    <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
             </div>

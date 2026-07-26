@@ -2108,7 +2108,7 @@
                 "discovered_at": "When the issue was first discovered.",
                 "awareness_at": "When the organization became aware — used for 24h/72h deadlines.",
                 "status": "Lifecycle status of this vulnerability.",
-                "cvss_score": "Optional CVSS base score from 0.0 to 10.0.",
+                "cvss_score": "Common Vulnerability Scoring System (CVSS) — an industry standard for rating vulnerability severity from 0.0 (none) to 10.0 (critical). Helps prioritize triage and reporting; usually the base score from NVD/vendor or a calculator.",
                 "business_severity": "Internal severity for prioritisation.",
                 "exploitation_status": "Whether exploitation is known in the wild.",
                 "is_public": "Whether the issue is already public.",

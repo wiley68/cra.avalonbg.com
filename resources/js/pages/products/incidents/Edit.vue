@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    Check,
     ExternalLink,
     FileDown,
     Link2,
@@ -11,6 +12,7 @@ import {
     Sparkles,
     Trash2,
     Unlink,
+    X,
 } from '@lucide/vue';
 import { computed, reactive, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -665,15 +667,6 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                         {{ t('products.incidents.export_pdf') }}
                     </a>
                 </Button>
-                <Button
-                    v-if="canManage"
-                    variant="destructive"
-                    type="button"
-                    @click="showDeleteDialog = true"
-                >
-                    <Trash2 class="h-4 w-4" />
-                    {{ t('common.delete') }}
-                </Button>
             </div>
         </div>
 
@@ -756,9 +749,11 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                             <div class="flex flex-wrap gap-2">
                                 <Button
                                     type="button"
+                                    variant="outline"
                                     size="sm"
                                     @click="applyAiSummaryDraft"
                                 >
+                                    <Check class="h-4 w-4" />
                                     {{ t('products.incidents.ai_draft_apply') }}
                                 </Button>
                                 <Button
@@ -767,6 +762,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                                     size="sm"
                                     @click="discardAiSummaryDraft"
                                 >
+                                    <X class="h-4 w-4" />
                                     {{
                                         t('products.incidents.ai_draft_discard')
                                     }}
@@ -1457,10 +1453,22 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 </div>
             </fieldset>
 
-            <div v-if="canManage" class="flex justify-end">
+            <div
+                v-if="canManage"
+                class="flex items-center justify-between gap-2"
+            >
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </form>
@@ -1648,6 +1656,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     <Button
                         type="submit"
                         size="sm"
+                        variant="outline"
                         :disabled="
                             linkForm.processing || vulnerabilities.length === 0
                         "
@@ -1664,6 +1673,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     <Button
                         type="button"
                         size="sm"
+                        variant="outline"
                         :disabled="createVulnerabilityForm.processing"
                         @click="createVulnerabilityFromIncident"
                     >
@@ -1808,7 +1818,11 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button type="submit" :disabled="timelineForm.processing">
+                    <Button
+                        type="submit"
+                        variant="outline"
+                        :disabled="timelineForm.processing"
+                    >
                         <Plus class="h-4 w-4" />
                         {{ t('products.incidents.timeline_add') }}
                     </Button>
@@ -2024,7 +2038,11 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button type="submit" :disabled="reportForm.processing">
+                    <Button
+                        type="submit"
+                        variant="outline"
+                        :disabled="reportForm.processing"
+                    >
                         <Plus class="h-4 w-4" />
                         {{ t('products.incidents.reports_add') }}
                     </Button>
@@ -2324,6 +2342,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 <div class="flex justify-end">
                     <Button
                         type="submit"
+                        variant="outline"
                         :disabled="communicationForm.processing"
                     >
                         <Plus class="h-4 w-4" />

@@ -61,9 +61,9 @@ export type ProductModuleKey =
     | 'controls'
     | 'evidence'
     | 'tasks'
+    | 'vulnerabilities'
     | 'deployments'
     | 'campaigns'
-    | 'vulnerabilities'
     | 'incidents'
     | 'sdl'
     | 'passport'
@@ -162,6 +162,14 @@ export const productModules: ProductModuleDefinition[] = [
         canViewFlag: 'can_view_tasks',
     },
     {
+        key: 'vulnerabilities',
+        labelKey: 'products.vulnerabilities_link',
+        descriptionKey: 'products.modules.vulnerabilities.description',
+        icon: Bug,
+        href: (productId) => productVulnerabilitiesIndex(productId).url,
+        canViewFlag: 'can_view_vulnerabilities',
+    },
+    {
         key: 'deployments',
         labelKey: 'products.deployments_link',
         descriptionKey: 'products.modules.deployments.description',
@@ -176,14 +184,6 @@ export const productModules: ProductModuleDefinition[] = [
         icon: Megaphone,
         href: (productId) => campaignsIndex(productId).url,
         canViewFlag: 'can_view_products',
-    },
-    {
-        key: 'vulnerabilities',
-        labelKey: 'products.vulnerabilities_link',
-        descriptionKey: 'products.modules.vulnerabilities.description',
-        icon: Bug,
-        href: (productId) => productVulnerabilitiesIndex(productId).url,
-        canViewFlag: 'can_view_vulnerabilities',
     },
     {
         key: 'incidents',

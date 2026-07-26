@@ -678,6 +678,12 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="instructionsIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
                 <Button
                     v-if="canCreatePair"
                     type="button"
@@ -742,12 +748,6 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                             'products.user_security_instructions.export_customer_guide',
                         )
                     }}
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="instructionsIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
                 </Button>
             </div>
         </div>
@@ -1166,6 +1166,7 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                             <Button
                                 type="button"
                                 size="sm"
+                                variant="outline"
                                 @click="applyAiDraft(index)"
                             >
                                 <CheckCircle2 class="h-4 w-4" />
@@ -1237,7 +1238,7 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 <InputError :message="form.errors.sections" />
             </div>
 
-            <div v-if="canEdit" class="flex justify-end">
+            <div v-if="canEdit" class="flex justify-start">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}

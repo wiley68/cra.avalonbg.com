@@ -820,6 +820,12 @@ const textareaClass =
                 </h1>
             </div>
             <div class="flex items-center gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="backHref">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
                 <TableRowActionsMenu
                     :actions="moduleActions"
                     :label="t('products.modules_menu')"
@@ -827,12 +833,6 @@ const textareaClass =
                     :trigger-icon="Menu"
                     trigger-variant="outline"
                 />
-                <Button as-child variant="outline">
-                    <Link :href="backHref">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
-                </Button>
             </div>
         </div>
 
@@ -1346,7 +1346,8 @@ const textareaClass =
                 </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />

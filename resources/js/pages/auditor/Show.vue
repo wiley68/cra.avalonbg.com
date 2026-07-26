@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, FileDown, Pencil, Plus, Trash2 } from '@lucide/vue';
+import {
+    ArrowLeft,
+    FileDown,
+    Pencil,
+    Plus,
+    Save,
+    Trash2,
+    X,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
@@ -505,7 +513,11 @@ const doDeleteFinding = () => {
                     />
                     <InputError :message="createForm.errors.body" />
                 </div>
-                <Button type="submit" :disabled="createForm.processing">
+                <Button
+                    type="submit"
+                    variant="outline"
+                    :disabled="createForm.processing"
+                >
                     <Plus class="h-4 w-4" />
                     {{ t('auditor.findings.add') }}
                 </Button>
@@ -569,9 +581,11 @@ const doDeleteFinding = () => {
                         <div class="flex flex-wrap gap-2">
                             <Button
                                 type="button"
+                                variant="outline"
                                 :disabled="editForm.processing"
                                 @click="submitEdit(finding.id)"
                             >
+                                <Save class="h-4 w-4" />
                                 {{ t('common.save') }}
                             </Button>
                             <Button
@@ -579,6 +593,7 @@ const doDeleteFinding = () => {
                                 variant="outline"
                                 @click="cancelEdit"
                             >
+                                <X class="h-4 w-4" />
                                 {{ t('common.cancel') }}
                             </Button>
                         </div>
@@ -630,7 +645,8 @@ const doDeleteFinding = () => {
                                     v-if="finding.status === 'open'"
                                     type="button"
                                     size="sm"
-                                    variant="destructive"
+                                    variant="outline"
+                                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                     @click="confirmDeleteFinding(finding.id)"
                                 >
                                     <Trash2 class="h-4 w-4" />

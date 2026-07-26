@@ -14,10 +14,15 @@ use App\Enums\ScopeStatus;
 use App\Enums\TaskApprovalStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Enums\VulnerabilityBusinessSeverity;
+use App\Enums\VulnerabilityDiscoverySource;
+use App\Enums\VulnerabilityExploitationStatus;
+use App\Enums\VulnerabilityStatus;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRisk;
+use App\Models\ProductVulnerability;
 use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
@@ -73,6 +78,7 @@ test('authenticated organization owner sees action dashboard', function () {
                 ->has('recent_products')
                 ->has('recent_open_tasks')
                 ->has('recent_risks')
+                ->has('recent_critical_vulnerabilities')
                 ->etc()));
 });
 
@@ -339,6 +345,93 @@ test('organization dashboard includes latest three risks with edit links', funct
             ->where('dashboard.recent_risks.0.id', $newestId)
             ->where('dashboard.recent_risks.0.title', $newestTitle)
             ->where('dashboard.recent_risks.0.href', $expectedHref));
+});
+
+test('organization dashboard includes latest three open critical vulnerabilities with edit links', function () {
+    test()->seed([RolePermissionSeeder::class]);
+
+    $organization = Organization::query()->create([
+        'name' => 'Acme Soft',
+        'slug' => 'acme-soft-critical-vulns',
+        'is_active' => true,
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'two_factor_confirmed_at' => now(),
+        'must_change_password' => false,
+    ]);
+
+    $ownerRole = Role::query()->where('slug', 'organization_owner')->firstOrFail();
+    $organization->users()->attach($user->id, [
+        'role_id' => $ownerRole->id,
+        'joined_at' => now(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $product = Product::query()->create([
+        'organization_id' => $organization->id,
+        'name' => 'Gateway',
+        'slug' => 'gateway-critical-vulns',
+        'product_type' => ProductType::Software,
+        'licensing_model' => LicensingModel::Paid,
+        'has_remote_data_processing' => true,
+        'has_network_connectivity' => true,
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+        'scope_reviewed_at' => now(),
+        'scope_reviewed_by' => $user->id,
+        'classification_reviewed_at' => now(),
+        'classification_reviewed_by' => $user->id,
+    ]);
+
+    foreach (['Vuln A', 'Vuln B', 'Vuln C', 'Vuln D'] as $title) {
+        ProductVulnerability::query()->create([
+            'product_id' => $product->id,
+            'title' => $title,
+            'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
+            'status' => VulnerabilityStatus::Triage,
+            'business_severity' => VulnerabilityBusinessSeverity::Critical,
+            'exploitation_status' => VulnerabilityExploitationStatus::None,
+        ]);
+    }
+
+    ProductVulnerability::query()->create([
+        'product_id' => $product->id,
+        'title' => 'Closed critical ignored',
+        'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
+        'status' => VulnerabilityStatus::Closed,
+        'business_severity' => VulnerabilityBusinessSeverity::Critical,
+        'exploitation_status' => VulnerabilityExploitationStatus::None,
+    ]);
+
+    ProductVulnerability::query()->create([
+        'product_id' => $product->id,
+        'title' => 'High severity ignored',
+        'discovery_source' => VulnerabilityDiscoverySource::InternalDiscovery,
+        'status' => VulnerabilityStatus::Triage,
+        'business_severity' => VulnerabilityBusinessSeverity::High,
+        'exploitation_status' => VulnerabilityExploitationStatus::None,
+    ]);
+
+    $newestTitle = 'Vuln D';
+    $newestId = ProductVulnerability::query()->where('title', $newestTitle)->value('id');
+    $expectedHref = route('products.vulnerabilities.edit', [
+        $product->id,
+        $newestId,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('dashboard.counts.critical_vulnerabilities', 4)
+            ->has('dashboard.recent_critical_vulnerabilities', 3)
+            ->where('dashboard.recent_critical_vulnerabilities.0.id', $newestId)
+            ->where('dashboard.recent_critical_vulnerabilities.0.title', $newestTitle)
+            ->where('dashboard.recent_critical_vulnerabilities.0.href', $expectedHref));
 });
 
 test('dashboard counts open and unclassified security incidents', function () {

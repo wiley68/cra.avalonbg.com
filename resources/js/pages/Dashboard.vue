@@ -46,6 +46,12 @@ type RecentRisk = {
     href: string;
 };
 
+type RecentCriticalVulnerability = {
+    id: number;
+    title: string;
+    href: string;
+};
+
 type DashboardPayload = {
     mode: 'platform' | 'organization' | 'empty';
     organization: { id: number; name: string; slug: string } | null;
@@ -53,6 +59,7 @@ type DashboardPayload = {
     recent_products?: RecentProduct[];
     recent_open_tasks?: RecentOpenTask[];
     recent_risks?: RecentRisk[];
+    recent_critical_vulnerabilities?: RecentCriticalVulnerability[];
     actions: DashboardAction[];
 };
 
@@ -142,9 +149,37 @@ const severityClass = (severity: string): string => {
                 <p class="text-sm text-muted-foreground">
                     {{ t('dashboard.counts.critical_vulnerabilities') }}
                 </p>
-                <p class="text-2xl font-semibold">
-                    {{ dashboard.counts.critical_vulnerabilities ?? 0 }}
-                </p>
+                <div class="mt-1 flex items-start gap-4">
+                    <p class="shrink-0 text-2xl font-semibold">
+                        {{ dashboard.counts.critical_vulnerabilities ?? 0 }}
+                    </p>
+                    <ul
+                        v-if="
+                            (dashboard.recent_critical_vulnerabilities ?? [])
+                                .length > 0
+                        "
+                        class="min-w-0 flex-1 space-y-1 border-l pl-4"
+                    >
+                        <li
+                            v-for="vulnerability in dashboard.recent_critical_vulnerabilities ??
+                            []"
+                            :key="vulnerability.id"
+                            class="flex min-w-0 items-baseline gap-2 text-sm"
+                        >
+                            <span
+                                class="shrink-0 font-mono text-muted-foreground"
+                                >{{ vulnerability.id }}</span
+                            >
+                            <Link
+                                :href="vulnerability.href"
+                                class="truncate font-medium underline-offset-4 hover:underline"
+                                :title="vulnerability.title"
+                            >
+                                {{ vulnerability.title }}
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-sm text-muted-foreground">

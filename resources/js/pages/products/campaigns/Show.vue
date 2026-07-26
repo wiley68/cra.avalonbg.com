@@ -7,8 +7,10 @@ import {
     Mail,
     Pencil,
     Play,
+    Save,
     Sparkles,
     Trash2,
+    X,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -407,7 +409,8 @@ const textareaClass =
                         {{ t('products.campaigns.activate') }}
                     </Button>
                     <Button
-                        variant="destructive"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                         @click="showDeleteDialog = true"
                     >
                         <Trash2 class="h-4 w-4" />
@@ -686,9 +689,11 @@ const textareaClass =
                             variant="outline"
                             @click="closeStatusDialog"
                         >
+                            <X class="h-4 w-4" />
                             {{ t('common.cancel') }}
                         </Button>
                         <Button type="submit" :disabled="statusForm.processing">
+                            <Save class="h-4 w-4" />
                             {{ t('common.save') }}
                         </Button>
                     </DialogFooter>
@@ -882,6 +887,7 @@ const textareaClass =
                         :disabled="draftForm.processing"
                         @click="showDraftDialog = false"
                     >
+                        <X class="h-4 w-4" />
                         {{ t('common.cancel') }}
                     </Button>
                     <Button

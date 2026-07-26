@@ -55,7 +55,10 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.components.index_title', href: productComponentsIndex(props.product.id) },
+    {
+        titleKey: 'products.components.index_title',
+        href: productComponentsIndex(props.product.id),
+    },
     {
         title: props.component.name,
         href: productComponentsEdit({
@@ -356,17 +359,18 @@ const enumLabel = (group: string, value: string): string => {
                 v-if="canManage"
                 class="flex items-center justify-between gap-2"
             >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />
                     {{ t('common.delete') }}
-                </Button>
-                <Button type="submit" :disabled="form.processing">
-                    <Save class="h-4 w-4" />
-                    {{ t('common.save') }}
                 </Button>
             </div>
         </form>

@@ -66,10 +66,16 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
     { title: props.product.name, href: editProduct(props.product.id) },
-    { titleKey: 'products.versions.index_title', href: versionsIndex(props.product.id) },
+    {
+        titleKey: 'products.versions.index_title',
+        href: versionsIndex(props.product.id),
+    },
     {
         title: props.version.version_number,
-        href: versionsEdit({ product: props.product.id, version: props.version.id }),
+        href: versionsEdit({
+            product: props.product.id,
+            version: props.version.id,
+        }),
     },
 ]);
 const showDeleteDialog = ref(false);
@@ -146,9 +152,14 @@ const textareaClass =
 
         <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-2">
-                <FieldLabel html-for="version_number" required :help="t('products.versions.help.version_number')">{{
-                    t('products.versions.fields.version_number')
-                }}</FieldLabel>
+                <FieldLabel
+                    html-for="version_number"
+                    required
+                    :help="t('products.versions.help.version_number')"
+                    >{{
+                        t('products.versions.fields.version_number')
+                    }}</FieldLabel
+                >
                 <Input
                     id="version_number"
                     v-model="form.version_number"
@@ -159,9 +170,12 @@ const textareaClass =
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <FieldLabel html-for="state" required :help="t('products.versions.help.state')">{{
-                        t('products.versions.fields.state')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="state"
+                        required
+                        :help="t('products.versions.help.state')"
+                        >{{ t('products.versions.fields.state') }}</FieldLabel
+                    >
                     <select
                         id="state"
                         v-model="form.state"
@@ -178,9 +192,14 @@ const textareaClass =
                     <InputError :message="form.errors.state" />
                 </div>
                 <div class="grid gap-2">
-                    <FieldLabel html-for="support_status" required :help="t('products.versions.help.support_status')">{{
-                        t('products.versions.fields.support_status')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="support_status"
+                        required
+                        :help="t('products.versions.help.support_status')"
+                        >{{
+                            t('products.versions.fields.support_status')
+                        }}</FieldLabel
+                    >
                     <select
                         id="support_status"
                         v-model="form.support_status"
@@ -197,9 +216,13 @@ const textareaClass =
                     <InputError :message="form.errors.support_status" />
                 </div>
                 <div class="grid gap-2">
-                    <FieldLabel html-for="release_date" :help="t('products.versions.help.release_date')">{{
-                        t('products.versions.fields.release_date')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="release_date"
+                        :help="t('products.versions.help.release_date')"
+                        >{{
+                            t('products.versions.fields.release_date')
+                        }}</FieldLabel
+                    >
                     <Input
                         id="release_date"
                         v-model="form.release_date"
@@ -208,9 +231,19 @@ const textareaClass =
                     <InputError :message="form.errors.release_date" />
                 </div>
                 <div class="grid gap-2">
-                    <FieldLabel html-for="security_support_deadline" :help="t('products.versions.help.security_support_deadline')">{{
-                        t('products.versions.fields.security_support_deadline')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="security_support_deadline"
+                        :help="
+                            t(
+                                'products.versions.help.security_support_deadline',
+                            )
+                        "
+                        >{{
+                            t(
+                                'products.versions.fields.security_support_deadline',
+                            )
+                        }}</FieldLabel
+                    >
                     <Input
                         id="security_support_deadline"
                         v-model="form.security_support_deadline"
@@ -224,16 +257,22 @@ const textareaClass =
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <FieldLabel html-for="git_ref" :help="t('products.versions.help.git_ref')">{{
-                        t('products.versions.fields.git_ref')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="git_ref"
+                        :help="t('products.versions.help.git_ref')"
+                        >{{ t('products.versions.fields.git_ref') }}</FieldLabel
+                    >
                     <Input id="git_ref" v-model="form.git_ref" />
                     <InputError :message="form.errors.git_ref" />
                 </div>
                 <div class="grid gap-2">
-                    <FieldLabel html-for="build_identifier" :help="t('products.versions.help.build_identifier')">{{
-                        t('products.versions.fields.build_identifier')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="build_identifier"
+                        :help="t('products.versions.help.build_identifier')"
+                        >{{
+                            t('products.versions.fields.build_identifier')
+                        }}</FieldLabel
+                    >
                     <Input
                         id="build_identifier"
                         v-model="form.build_identifier"
@@ -241,16 +280,24 @@ const textareaClass =
                     <InputError :message="form.errors.build_identifier" />
                 </div>
                 <div class="grid gap-2 sm:col-span-2">
-                    <FieldLabel html-for="artifact_hash" :help="t('products.versions.help.artifact_hash')">{{
-                        t('products.versions.fields.artifact_hash')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="artifact_hash"
+                        :help="t('products.versions.help.artifact_hash')"
+                        >{{
+                            t('products.versions.fields.artifact_hash')
+                        }}</FieldLabel
+                    >
                     <Input id="artifact_hash" v-model="form.artifact_hash" />
                     <InputError :message="form.errors.artifact_hash" />
                 </div>
                 <div class="grid gap-2 sm:col-span-2">
-                    <FieldLabel html-for="previous_version_id" :help="t('products.versions.help.previous_version')">{{
-                        t('products.versions.fields.previous_version')
-                    }}</FieldLabel>
+                    <FieldLabel
+                        html-for="previous_version_id"
+                        :help="t('products.versions.help.previous_version')"
+                        >{{
+                            t('products.versions.fields.previous_version')
+                        }}</FieldLabel
+                    >
                     <select
                         id="previous_version_id"
                         v-model="form.previous_version_id"
@@ -270,9 +317,11 @@ const textareaClass =
             </div>
 
             <div class="grid gap-2">
-                <FieldLabel html-for="changelog" :help="t('products.versions.help.changelog')">{{
-                    t('products.versions.fields.changelog')
-                }}</FieldLabel>
+                <FieldLabel
+                    html-for="changelog"
+                    :help="t('products.versions.help.changelog')"
+                    >{{ t('products.versions.fields.changelog') }}</FieldLabel
+                >
                 <textarea
                     id="changelog"
                     v-model="form.changelog"
@@ -289,7 +338,8 @@ const textareaClass =
                 </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />

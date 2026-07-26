@@ -503,29 +503,7 @@ const textareaClass =
                 />
             </div>
 
-            <div class="flex flex-wrap justify-end gap-2">
-                <Button
-                    v-if="canSubmitForApproval"
-                    type="button"
-                    variant="outline"
-                    @click="submitForApproval"
-                >
-                    <Send class="h-4 w-4" />
-                    {{ t('products.tasks.submit_for_approval') }}
-                </Button>
-                <Button
-                    v-if="canDecideApproval"
-                    type="button"
-                    variant="outline"
-                    @click="reject"
-                >
-                    <X class="h-4 w-4" />
-                    {{ t('products.tasks.reject') }}
-                </Button>
-                <Button v-if="canDecideApproval" type="button" @click="approve">
-                    <Check class="h-4 w-4" />
-                    {{ t('products.tasks.approve') }}
-                </Button>
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <Button
                     v-if="canManage"
                     type="submit"
@@ -534,6 +512,45 @@ const textareaClass =
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
                 </Button>
+                <Button
+                    v-else-if="canDecideApproval"
+                    type="button"
+                    @click="approve"
+                >
+                    <Check class="h-4 w-4" />
+                    {{ t('products.tasks.approve') }}
+                </Button>
+                <div v-else />
+                <div class="flex flex-wrap justify-end gap-2">
+                    <Button
+                        v-if="canSubmitForApproval"
+                        type="button"
+                        variant="outline"
+                        @click="submitForApproval"
+                    >
+                        <Send class="h-4 w-4" />
+                        {{ t('products.tasks.submit_for_approval') }}
+                    </Button>
+                    <Button
+                        v-if="canDecideApproval"
+                        type="button"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        @click="reject"
+                    >
+                        <X class="h-4 w-4" />
+                        {{ t('products.tasks.reject') }}
+                    </Button>
+                    <Button
+                        v-if="canDecideApproval && canManage"
+                        type="button"
+                        variant="outline"
+                        @click="approve"
+                    >
+                        <Check class="h-4 w-4" />
+                        {{ t('products.tasks.approve') }}
+                    </Button>
+                </div>
             </div>
         </form>
     </div>

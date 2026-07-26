@@ -639,7 +639,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="
                                 disconnectTarget = {
                                     type: 'vcs',
@@ -1140,7 +1141,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="
                                 disconnectTarget = {
                                     type: 'vcs',
@@ -1375,7 +1377,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             data-test="disconnect-jira-button"
                             @click="
                                 disconnectTarget = {
@@ -1663,7 +1666,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             data-test="disconnect-azure-devops-button"
                             @click="
                                 disconnectTarget = {
@@ -1953,7 +1957,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             data-test="disconnect-snyk-button"
                             @click="
                                 disconnectTarget = {
@@ -2194,7 +2199,8 @@ const confirmDisconnect = () => {
                         <Button
                             v-if="canManage"
                             type="button"
-                            variant="destructive"
+                            variant="outline"
+                            class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                             @click="
                                 disconnectTarget = {
                                     type: 'integration',

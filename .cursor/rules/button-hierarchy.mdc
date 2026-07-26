@@ -1,0 +1,39 @@
+---
+description: Button hierarchy, placement, and variants across pages
+globs: resources/js/pages/**/*.vue
+alwaysApply: true
+---
+
+# Button hierarchy
+
+Apply these rules on every page (and when correcting existing pages).
+
+## Variants
+
+1. **One default (primary) button per page** — the main commit action (Save / Create / primary workflow CTA).
+2. **All other section or footer secondary actions** use `variant="outline"`.
+3. **Tertiary actions inside sections** use icon-only, link-style, or `variant="ghost"` (outline without border). Prefer Lucide glyphs over text when the action is clear.
+4. **Destructive secondary actions** (Delete, Reject, Revoke): `variant="outline"` plus
+   `class="text-destructive hover:bg-destructive/10 hover:text-destructive"` — not `variant="destructive"`.
+5. **Exception — two defaults allowed** when a new primary action is offered while the usual primary is disabled (e.g. Reporting workflow awaiting approval: Approve may be default while Save is unavailable).
+
+Dialogs/modals are a separate surface: one default CTA inside the dialog is OK.
+
+## Footer placement
+
+4. Main (default) button: **left**.
+5. Secondary buttons: **right** (`justify-between` or equivalent).
+
+## Header placement
+
+6. All header actions sit on the **right**. Among them, **Back is always leftmost** (first in the flex order).
+
+## Icons
+
+7. Every button has a suitable Lucide glyph before the label. See `button-action-icons.mdc`.
+
+## Do not
+
+- Do not put Delete/Reject as filled `destructive` when they are secondary footer/header actions.
+- Do not put Back after other header actions.
+- Do not leave multiple unrelated default buttons on the same page body (dialogs excluded; exception #5 applies).

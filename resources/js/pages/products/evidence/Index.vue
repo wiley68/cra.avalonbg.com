@@ -203,6 +203,7 @@ onMounted(() => {
                 <Button
                     v-if="canCreateReviewPackage && selectedIds.length > 0"
                     as-child
+                    variant="outline"
                 >
                     <Link
                         :href="createPackageHref"

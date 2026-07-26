@@ -26,3 +26,5 @@ Use Lucide (`@lucide/vue`) icons consistently for the same actions across the ap
 ```
 
 Do not mix synonyms (e.g. `ChevronLeft` for back, `Check` for save) unless the existing design system already requires it for that surface.
+
+Also follow `button-hierarchy.mdc` for variants and placement (one default primary, outline secondaries, Back leftmost in headers).

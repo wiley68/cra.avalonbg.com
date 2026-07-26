@@ -38,6 +38,8 @@ class DashboardService
 
     private const RECENT_RISKS_LIMIT = 3;
 
+    private const CRITICAL_VULNERABILITIES_PREVIEW_LIMIT = 3;
+
     public function __construct(
         private readonly ProductReadinessService $readiness,
     ) {
@@ -78,6 +80,7 @@ class DashboardService
             'recent_products' => [],
             'recent_open_tasks' => [],
             'recent_risks' => [],
+            'recent_critical_vulnerabilities' => [],
             'actions' => [
                 [
                     'key' => 'manage_organizations',
@@ -102,6 +105,7 @@ class DashboardService
             'recent_products' => [],
             'recent_open_tasks' => [],
             'recent_risks' => [],
+            'recent_critical_vulnerabilities' => [],
             'actions' => [],
         ];
     }
@@ -241,6 +245,7 @@ class DashboardService
                 $recentOpenTasks,
             ),
             'recent_risks' => $this->recentRisks($productIds),
+            'recent_critical_vulnerabilities' => $this->recentCriticalVulnerabilities($productIds),
             'actions' => $actions,
         ];
     }
@@ -504,6 +509,38 @@ class DashboardService
                 ProductVersionState::ReleaseCandidate->value,
             ])
             ->count();
+    }
+
+    /**
+     * @param  Collection<int, int|string>  $productIds
+     * @return list<array{id: int, title: string, href: string}>
+     */
+    private function recentCriticalVulnerabilities(Collection $productIds): array
+    {
+        if ($productIds->isEmpty()) {
+            return [];
+        }
+
+        return ProductVulnerability::query()
+            ->whereIn('product_id', $productIds)
+            ->where('business_severity', VulnerabilityBusinessSeverity::Critical->value)
+            ->whereNotIn('status', [
+                VulnerabilityStatus::Closed->value,
+                VulnerabilityStatus::Rejected->value,
+            ])
+            ->orderByDesc('id')
+            ->limit(self::CRITICAL_VULNERABILITIES_PREVIEW_LIMIT)
+            ->get(['id', 'title', 'product_id'])
+            ->map(fn(ProductVulnerability $vulnerability): array => [
+                'id' => $vulnerability->id,
+                'title' => $vulnerability->title,
+                'href' => route('products.vulnerabilities.edit', [
+                    $vulnerability->product_id,
+                    $vulnerability->id,
+                ]),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    Check,
     ExternalLink,
     FileDown,
     FileText,
@@ -10,7 +11,9 @@ import {
     RefreshCw,
     Save,
     ShieldCheck,
+    ShieldOff,
     Sparkles,
+    X,
 } from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
@@ -1552,6 +1555,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                     <Button
                         v-if="!isLocked"
                         type="button"
+                        variant="outline"
                         :disabled="!props.run.can_approve || approving"
                         @click="approveRun"
                     >
@@ -1571,6 +1575,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                         :disabled="revoking"
                         @click="showRevokeDialog = true"
                     >
+                        <ShieldOff class="h-4 w-4" />
                         {{ t('products.sdl.revoke_approval') }}
                     </Button>
                 </div>
@@ -1681,7 +1686,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                 </div>
             </section>
 
-            <div v-if="canEdit" class="flex justify-end">
+            <div v-if="canEdit" class="flex justify-start">
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
@@ -1846,9 +1851,11 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                 <div class="flex flex-wrap gap-2">
                                     <Button
                                         type="button"
+                                        variant="outline"
                                         size="sm"
                                         @click="applyAiStageDraft(entry.stage)"
                                     >
+                                        <Check class="h-4 w-4" />
                                         {{ t('products.sdl.ai_draft_apply') }}
                                     </Button>
                                     <Button
@@ -1859,6 +1866,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                                             discardAiStageDraft(entry.stage)
                                         "
                                     >
+                                        <X class="h-4 w-4" />
                                         {{ t('products.sdl.ai_draft_discard') }}
                                     </Button>
                                 </div>

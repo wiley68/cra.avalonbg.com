@@ -263,16 +263,16 @@ const doPublishEvidence = () => {
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <Button as-child variant="outline">
-                    <a :href="exportUrl" target="_blank" rel="noopener">
-                        <FileDown class="h-4 w-4" />
-                        {{ t('policies.export') }}
-                    </a>
-                </Button>
-                <Button as-child variant="outline">
                     <Link :href="policiesIndex()">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
                     </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <a :href="exportUrl" target="_blank" rel="noopener">
+                        <FileDown class="h-4 w-4" />
+                        {{ t('policies.export') }}
+                    </a>
                 </Button>
             </div>
         </div>
@@ -328,15 +328,6 @@ const doPublishEvidence = () => {
             >
                 <Archive class="h-4 w-4" />
                 {{ t('policies.retire') }}
-            </Button>
-            <Button
-                v-if="canDelete"
-                type="button"
-                variant="destructive"
-                @click="showDeleteDialog = true"
-            >
-                <Trash2 class="h-4 w-4" />
-                {{ t('common.delete') }}
             </Button>
         </div>
 
@@ -424,11 +415,35 @@ const doPublishEvidence = () => {
 
             <div
                 v-if="canManage && policy.is_editable"
-                class="flex justify-end"
+                class="flex items-center justify-between gap-2"
             >
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
+                </Button>
+                <Button
+                    v-if="canDelete"
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
+                </Button>
+            </div>
+            <div
+                v-else-if="canDelete"
+                class="flex items-center justify-end gap-2"
+            >
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </form>

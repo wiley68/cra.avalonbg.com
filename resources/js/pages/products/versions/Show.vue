@@ -209,16 +209,16 @@ const formatDateTime = (value: string | null): string => {
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <Button v-if="canManage" as-child variant="outline">
-                    <Link :href="versionsEdit(routeArgs)">
-                        <Pencil class="h-4 w-4" />
-                        {{ t('common.edit') }}
-                    </Link>
-                </Button>
                 <Button as-child variant="outline">
                     <Link :href="versionsIndex(product.id)">
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button v-if="canManage" as-child variant="outline">
+                    <Link :href="versionsEdit(routeArgs)">
+                        <Pencil class="h-4 w-4" />
+                        {{ t('common.edit') }}
                     </Link>
                 </Button>
             </div>

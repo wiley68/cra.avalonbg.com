@@ -81,20 +81,20 @@ const confirmDelete = () => {
             <div class="flex gap-2">
                 <Button as-child variant="outline">
                     <Link
-                        :href="organizationUsersIndex(props.organization.id)"
-                        class="inline-flex items-center gap-2"
-                    >
-                        <Users class="h-4 w-4" />
-                        {{ t('nav.users') }}
-                    </Link>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link
                         :href="organizationsIndex()"
                         class="inline-flex items-center gap-2"
                     >
                         <ArrowLeft class="h-4 w-4" />
                         {{ t('common.back') }}
+                    </Link>
+                </Button>
+                <Button as-child variant="outline">
+                    <Link
+                        :href="organizationUsersIndex(props.organization.id)"
+                        class="inline-flex items-center gap-2"
+                    >
+                        <Users class="h-4 w-4" />
+                        {{ t('nav.users') }}
                     </Link>
                 </Button>
             </div>
@@ -195,7 +195,8 @@ const confirmDelete = () => {
             </p>
             <Button
                 type="button"
-                variant="destructive"
+                variant="outline"
+                class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 :disabled="deleting"
                 @click="showDeleteDialog = true"
             >

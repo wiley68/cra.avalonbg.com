@@ -227,6 +227,12 @@ const toggleId = (
                 </p>
             </div>
             <div class="flex items-center gap-2">
+                <Button as-child variant="outline">
+                    <Link :href="evidenceIndex(props.product.id)">
+                        <ArrowLeft class="h-4 w-4" />
+                        {{ t('common.back') }}
+                    </Link>
+                </Button>
                 <Button v-if="evidence.has_file" as-child variant="outline">
                     <a
                         :href="
@@ -239,12 +245,6 @@ const toggleId = (
                         <Download class="h-4 w-4" />
                         {{ t('products.evidence.download') }}
                     </a>
-                </Button>
-                <Button as-child variant="outline">
-                    <Link :href="evidenceIndex(props.product.id)">
-                        <ArrowLeft class="h-4 w-4" />
-                        {{ t('common.back') }}
-                    </Link>
                 </Button>
             </div>
         </div>
@@ -740,17 +740,18 @@ const toggleId = (
                 v-if="canManage"
                 class="flex items-center justify-between gap-2"
             >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     @click="showDeleteDialog = true"
                 >
                     <Trash2 class="h-4 w-4" />
                     {{ t('common.delete') }}
-                </Button>
-                <Button type="submit" :disabled="form.processing">
-                    <Save class="h-4 w-4" />
-                    {{ t('common.save') }}
                 </Button>
             </div>
         </form>
