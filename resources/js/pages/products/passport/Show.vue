@@ -215,7 +215,12 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                 >
                     {{ t('products.readiness.metrics.failures') }}
                 </p>
-                <p class="mt-1 text-2xl font-semibold">{{ failCount }}</p>
+                <p
+                    class="mt-1 text-2xl font-semibold"
+                    :class="failCount > 0 ? 'text-destructive' : ''"
+                >
+                    {{ failCount }}
+                </p>
             </div>
             <div class="rounded-lg border p-4">
                 <p
@@ -223,7 +228,16 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                 >
                     {{ t('products.readiness.metrics.warnings') }}
                 </p>
-                <p class="mt-1 text-2xl font-semibold">{{ warnCount }}</p>
+                <p
+                    class="mt-1 text-2xl font-semibold"
+                    :class="
+                        warnCount > 0
+                            ? 'text-orange-600 dark:text-orange-400'
+                            : ''
+                    "
+                >
+                    {{ warnCount }}
+                </p>
             </div>
             <div class="rounded-lg border p-4">
                 <p
