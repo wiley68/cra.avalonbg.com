@@ -119,6 +119,13 @@ export function initializeReturnBackTracking(): void {
                 continue;
             }
 
+            if (
+                fromPath.replace(/\/$/, '') ===
+                destinationPath.replace(/\/$/, '')
+            ) {
+                continue;
+            }
+
             if (rule.shouldSkipCaptureFrom(fromPath)) {
                 continue;
             }

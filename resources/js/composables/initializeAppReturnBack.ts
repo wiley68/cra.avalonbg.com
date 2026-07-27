@@ -12,6 +12,7 @@ import '@/composables/useTaskEditBack';
 import '@/composables/useRiskEditBack';
 import '@/composables/useVulnerabilityEditBack';
 import '@/composables/useSdlEditBack';
+import '@/composables/useProductModuleBack';
 
 export function initializeAppReturnBackTracking(): void {
     initializeReturnBackTracking();
