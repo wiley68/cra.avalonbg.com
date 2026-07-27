@@ -3878,6 +3878,34 @@
                     "mandatory": "Optional. Enable only with AI configured; never auto-accept outputs.",
                     "interlinks": "Can draft against evidence, vulns, and documentation context."
                 }
+            },
+            "status": {
+                "empty": "Not started",
+                "complete": "Complete",
+                "attention": "Needs attention",
+                "critical": "Critical gap",
+                "na": "N/A"
+            },
+            "attention_heading": "Status signal",
+            "summaries": {
+                "wizard_customers": {
+                    "present": "At least one organization customer is recorded.",
+                    "none": "No customers yet — needed for deployments and campaigns."
+                },
+                "wizard_auditor": {
+                    "present": "An auditor review package exists for this product.",
+                    "none": "No auditor package yet — optional after the required path."
+                }
+            },
+            "org_prep": {
+                "heading": "Organization prep (step 0)",
+                "intro": "Complete these org-wide items before or alongside the product path. They are outside the numbered product spine.",
+                "settings": "Settings",
+                "users": "Users & roles",
+                "controls": "Controls library",
+                "policies": "Policies",
+                "customers": "Customers",
+                "optional_suffix": "optional"
             }
         }
     },

@@ -12,7 +12,8 @@ class ComplianceWizardService
 {
     public function __construct(
         private readonly ProductReadinessService $readiness,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{
@@ -25,6 +26,7 @@ class ComplianceWizardService
      *         content_key: string,
      *         href: string,
      *         status: 'empty'|'complete'|'attention'|'critical'|'na',
+     *         status_reason: array{section: string, summary: string}|null,
      *         is_complete: bool,
      *         is_current: bool
      *     }>,
@@ -53,6 +55,7 @@ class ComplianceWizardService
                 'content_key' => $definition['content_key'],
                 'href' => $this->resolveHref($product, $definition),
                 'status' => $status,
+                'status_reason' => $this->reasonForKey($product, $key, $status, $moduleDetails),
                 'is_complete' => $isComplete,
                 'is_current' => $currentKey === $key,
             ];
@@ -100,11 +103,11 @@ class ComplianceWizardService
         $definitions = ComplianceWizardSpine::steps();
 
         foreach ($definitions as $definition) {
-            if (! $definition['required']) {
+            if (!$definition['required']) {
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -114,7 +117,7 @@ class ComplianceWizardService
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -128,11 +131,11 @@ class ComplianceWizardService
     public function requiredStepsComplete(array $statuses): bool
     {
         foreach (ComplianceWizardSpine::steps() as $definition) {
-            if (! $definition['required']) {
+            if (!$definition['required']) {
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return false;
             }
         }
@@ -235,6 +238,75 @@ class ComplianceWizardService
     }
 
     /**
+     * @param  array<string, array{status: string, section: string, summary: string}>  $moduleDetails
+     * @param  'empty'|'complete'|'attention'|'critical'|'na'  $status
+     * @return array{section: string, summary: string}|null
+     */
+    private function reasonForKey(
+        Product $product,
+        string $key,
+        string $status,
+        array $moduleDetails,
+    ): ?array {
+        if (isset($moduleDetails[$key])) {
+            return [
+                'section' => (string) $moduleDetails[$key]['section'],
+                'summary' => (string) $moduleDetails[$key]['summary'],
+            ];
+        }
+
+        return match ($key) {
+            'product' => [
+                'section' => 'identification',
+                'summary' => $status === 'complete' ? 'complete' : 'incomplete',
+            ],
+            'scope' => [
+                'section' => 'scope',
+                'summary' => $status === 'complete'
+                    ? ($product->scope_status?->value ?? 'likely_in_scope')
+                    : 'insufficient_information',
+            ],
+            'classification' => [
+                'section' => 'classification',
+                'summary' => $status === 'complete'
+                    ? ($product->classification_status?->value ?? 'general')
+                    : ($product->classification_status?->value ?? 'unclassified'),
+            ],
+            'vcs_integrations' => [
+                'section' => 'repository',
+                'summary' => $status === 'complete' ? 'linked' : 'not_linked',
+            ],
+            'reporting' => $this->reportingReason($status),
+            'customers' => [
+                'section' => 'wizard_customers',
+                'summary' => $status === 'complete' ? 'present' : 'none',
+            ],
+            'auditor' => [
+                'section' => 'wizard_auditor',
+                'summary' => $status === 'complete' ? 'present' : 'none',
+            ],
+            default => null,
+        };
+    }
+
+    /**
+     * @param  'empty'|'complete'|'attention'|'critical'|'na'  $status
+     * @return array{section: string, summary: string}
+     */
+    private function reportingReason(string $status): array
+    {
+        return [
+            'section' => 'reporting',
+            'summary' => match ($status) {
+                'critical' => 'deadlines_at_risk',
+                'complete' => 'submissions_recorded',
+                'attention' => 'in_progress',
+                default => 'no_active_reporting',
+            },
+        ];
+    }
+
+    /**
      * @param  array{
      *     number: int,
      *     key: string,
@@ -249,13 +321,13 @@ class ComplianceWizardService
     private function resolveHref(Product $product, array $definition): string
     {
         $hash = isset($definition['hash']) && filled($definition['hash'])
-            ? '#'.$definition['hash']
+            ? '#' . $definition['hash']
             : '';
 
         return match ($definition['href_type']) {
-            'product_edit' => route('products.edit', $product).$hash,
-            'product_route' => route($definition['route'], $product).$hash,
-            'org_route' => route($definition['route']).$hash,
+            'product_edit' => route('products.edit', $product) . $hash,
+            'product_route' => route($definition['route'], $product) . $hash,
+            'org_route' => route($definition['route']) . $hash,
         };
     }
 }

@@ -96,14 +96,14 @@ test('owner can view compliance wizard', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->component('products/wizard/Show')
             ->where('product.id', $product->id)
             ->where('current_step_key', 'product')
             ->where('success', false)
             ->where('required_complete', false)
             ->has('steps', 25)
-            ->has('steps.0', fn ($step) => $step
+            ->has('steps.0', fn($step) => $step
                 ->where('key', 'product')
                 ->where('number', 1)
                 ->where('is_current', true)
@@ -118,7 +118,7 @@ test('read-only viewer can view compliance wizard', function () {
     $this->actingAs($viewer)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->component('products/wizard/Show')
             ->where('product.id', $product->id));
 });
@@ -166,7 +166,7 @@ test('current step advances after product identity and versions', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->where('current_step_key', 'versions'));
 
     ProductVersion::query()->create([
@@ -180,7 +180,7 @@ test('current step advances after product identity and versions', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->where('current_step_key', 'support_periods')
             ->where('success', false));
 });
@@ -217,14 +217,36 @@ test('wizard inertia payload includes href and content keys', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn($page) => $page
             ->has('organization.id')
-            ->has('steps.3', fn ($step) => $step
+            ->has('steps.3', fn($step) => $step
                 ->where('key', 'versions')
                 ->where('label_key', 'products.wizard.steps.versions.label')
                 ->where('content_key', 'products.wizard.steps.versions')
                 ->where('required', true)
                 ->has('href')
                 ->has('status')
+                ->has('status_reason.section')
+                ->has('status_reason.summary')
                 ->etc()));
+});
+
+test('wizard surfaces attention status beyond empty for incomplete modules', function () {
+    ['owner' => $owner, 'product' => $product] = makeWizardFixture();
+
+    $product->update([
+        'manufacturer' => 'Avalon',
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+        'product_owner_user_id' => $owner->id,
+        'security_contact_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('products.wizard.show', $product))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->where('current_step_key', 'versions')
+            ->where('steps.3.status', 'critical')
+            ->where('steps.3.status_reason.summary', 'none'));
 });

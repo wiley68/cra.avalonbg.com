@@ -1,8 +1,8 @@
 # Product Compliance Wizard
 
-**Версия:** 0.2  
+**Версия:** 0.4  
 **Дата:** 27 юли 2026 г.  
-**Статус:** Active — MVP имплементиран (polish / Should следва)  
+**Статус:** Active — MVP Must + Should #1–2 Done; остава dismiss optional  
 **Родителски документи:**
 
 - [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (§4.1 spine, §9 wizard pack)
@@ -29,20 +29,20 @@
 ## Must
 
 1. ~~Docs pointers + A_25 closeout в Internal plan~~ (същата вълна)
-2. Spine definition 1→25 + status resolution (readiness + product fields)
-3. Inertia Show: completed / current card (4 content sections) / upcoming / success
-4. ProductCard вход: title link + Wizard button; meta в wizard header
-5. i18n BG+EN shell + step content
-6. Feature tests (access, current step, success)
-7. Return-back: wizard е hub; CTA seed-ва wizard като origin
+2. ~~Spine definition 1→25 + status resolution (readiness + product fields)~~
+3. ~~Inertia Show: completed / current card (4 content sections) / upcoming / success~~
+4. ~~ProductCard вход: title link + Wizard button; meta в wizard header~~
+5. ~~i18n BG+EN shell + step content~~
+6. ~~Feature tests (access, current step, success)~~
+7. ~~Return-back: wizard е hub; CTA seed-ва wizard като origin~~
 
 ## Should (след MVP)
 
-- Attention signals beyond complete/empty
-- Org prep checklist deep links от header
-- Persist dismissed optional 24–25
+- ~~Attention signals beyond complete/empty~~
+- ~~Org prep checklist deep links от header~~
+- Persist dismissed optional 24–25 — **отворено**
 
-## Could
+## Could — **отворени**
 
 - Граф на side paths (§6)
 - Progress % strip
@@ -85,5 +85,8 @@
 
 | Версия | Дата       | Промяна                                                         |
 | ------ | ---------- | --------------------------------------------------------------- |
+| 0.4    | 2026-07-27 | Should: org prep checklist deep links в wizard header           |
+| 0.3    | 2026-07-27 | Should: attention signals (badge, reason, colored upcoming)     |
+| 0.2.1  | 2026-07-27 | Must 1–7 отбелязани Done; Should/Could остават следваща вълна   |
 | 0.2    | 2026-07-27 | MVP shipped: route, service, Show.vue, ProductCard, i18n, tests |
 | 0.1    | 2026-07-27 | Skeleton Active — MVP scope от Internal §9.3                    |
