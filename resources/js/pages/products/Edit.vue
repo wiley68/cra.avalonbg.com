@@ -2986,6 +2986,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showUnlinkRepositoryDialog"
+            variant="default"
             :title="t('products.repository.unlink_confirm_title')"
             :description="t('products.repository.unlink_confirm')"
             :confirm-label="t('products.repository.unlink')"
@@ -2994,6 +2995,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showUnlinkJiraDialog"
+            variant="default"
             :title="t('products.integrations.jira.unlink_confirm_title')"
             :description="t('products.integrations.jira.unlink_confirm')"
             :confirm-label="t('products.integrations.jira.unlink')"
@@ -3002,6 +3004,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showUnlinkAzureDevOpsDialog"
+            variant="default"
             :title="
                 t('products.integrations.azure_devops.unlink_confirm_title')
             "
@@ -3014,6 +3017,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showUnlinkSnykDialog"
+            variant="default"
             :title="t('products.integrations.snyk.unlink_confirm_title')"
             :description="t('products.integrations.snyk.unlink_confirm')"
             :confirm-label="t('products.integrations.snyk.unlink')"
@@ -3022,6 +3026,7 @@ const textareaClass =
 
         <AppAlertDialog
             v-model:open="showUnlinkSarifDialog"
+            variant="default"
             :title="t('products.integrations.sarif.unlink_confirm_title')"
             :description="t('products.integrations.sarif.unlink_confirm')"
             :confirm-label="t('products.integrations.sarif.unlink')"

@@ -2282,6 +2282,7 @@ const confirmDisconnect = () => {
 
     <AppAlertDialog
         v-model:open="disconnectDialogOpen"
+        variant="default"
         :title="t('settings.integrations.disconnect_confirm_title')"
         :description="t('settings.integrations.disconnect_confirm')"
         :confirm-label="t('settings.integrations.disconnect')"

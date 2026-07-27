@@ -1416,6 +1416,8 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
             :description="
                 t('products.user_security_instructions.confirm_retire')
             "
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
         />

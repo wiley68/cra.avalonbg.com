@@ -240,6 +240,7 @@ const roleLabel = (slug: string): string => {
 
         <AppAlertDialog
             v-model:open="showResetTwoFactorDialog"
+            variant="default"
             :title="t('admin.users.confirm_reset_two_factor_title')"
             :description="t('admin.users.confirm_reset_two_factor')"
             :confirm-label="t('admin.users.reset_two_factor')"

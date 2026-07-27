@@ -492,6 +492,8 @@ const copyGuestUrl = async () => {
             v-model:open="showShareDialog"
             :title="t('auditor.confirm_share_title')"
             :description="t('auditor.confirm_share')"
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doShare"
             @cancel="showShareDialog = false"
         />
@@ -500,6 +502,8 @@ const copyGuestUrl = async () => {
             v-model:open="showCloseDialog"
             :title="t('auditor.confirm_close_title')"
             :description="t('auditor.confirm_close')"
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doClose"
             @cancel="showCloseDialog = false"
         />
@@ -516,6 +520,8 @@ const copyGuestUrl = async () => {
             v-model:open="showRevokeGuestDialog"
             :title="t('auditor.confirm_revoke_guest_title')"
             :description="t('auditor.confirm_revoke_guest')"
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doRevokeGuestLink"
             @cancel="showRevokeGuestDialog = false"
         />

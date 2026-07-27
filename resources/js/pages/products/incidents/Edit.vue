@@ -2363,6 +2363,8 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             v-model:open="showCloseDialog"
             :title="t('products.incidents.confirm_close_title')"
             :description="t('products.incidents.confirm_close')"
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="confirmClose"
         />
 

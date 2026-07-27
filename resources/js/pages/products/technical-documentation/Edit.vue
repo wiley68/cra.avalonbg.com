@@ -2191,6 +2191,8 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
             v-model:open="showRetireDialog"
             :title="t('products.technical_documentation.confirm_retire_title')"
             :description="t('products.technical_documentation.confirm_retire')"
+            variant="default"
+            :confirm-label="t('common.yes')"
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
         />

@@ -56,7 +56,7 @@ const resolvedConfirmLabel = computed(() => {
 
     return props.variant === 'destructive'
         ? t('common.confirm_delete')
-        : t('common.confirm');
+        : t('common.yes');
 });
 
 const confirmActionClass = computed(() =>
@@ -79,7 +79,9 @@ const handleCancel = () => {
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>{{ title }}</AlertDialogTitle>
-                <AlertDialogDescription v-if="description || $slots.description">
+                <AlertDialogDescription
+                    v-if="description || $slots.description"
+                >
                     <slot name="description">
                         {{ description }}
                     </slot>

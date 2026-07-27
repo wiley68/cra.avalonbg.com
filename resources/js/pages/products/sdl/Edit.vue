@@ -2089,6 +2089,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
             variant="default"
             :title="t('products.sdl.confirm_revoke_title')"
             :description="t('products.sdl.confirm_revoke')"
+            :confirm-label="t('common.yes')"
             :loading="revoking"
             @confirm="confirmRevoke"
             @cancel="showRevokeDialog = false"
@@ -2099,6 +2100,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
             variant="default"
             :title="t('products.sdl.confirm_template_title')"
             :description="t('products.sdl.confirm_template_overwrite')"
+            :confirm-label="t('common.yes')"
             @confirm="confirmApplyTemplate"
             @cancel="cancelApplyTemplate"
         />
