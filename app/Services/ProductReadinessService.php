@@ -972,7 +972,8 @@ class ProductReadinessService
     }
 
     /**
-     * Active patch campaigns with high-criticality targets still unresolved (not updated/excepted).
+     * Customer installations health: unsupported versions, active patch-campaign risk,
+     * or recorded installations when no active campaign remains.
      *
      * @return array{key: string, status: string, summary: string, gap_key?: string, link?: string|null, metrics?: array<string, mixed>}
      */
@@ -1001,11 +1002,13 @@ class ProductReadinessService
             ->count();
 
         $unsupportedCount = $this->deployments->countOnUnsupportedVersions($product);
+        $installationCount = $product->deployments()->count();
 
         $metrics = [
             'active_campaigns' => $activeCampaigns,
             'unresolved_high_criticality' => $unresolvedHigh,
             'unsupported_installations' => $unsupportedCount,
+            'installations' => $installationCount,
         ];
 
         if ($unresolvedHigh > 0) {
@@ -1035,6 +1038,15 @@ class ProductReadinessService
                 'key' => 'deployments',
                 'status' => 'pass',
                 'summary' => 'campaigns_clear',
+                'metrics' => $metrics,
+            ];
+        }
+
+        if ($installationCount > 0) {
+            return [
+                'key' => 'deployments',
+                'status' => 'pass',
+                'summary' => 'installations_recorded',
                 'metrics' => $metrics,
             ];
         }

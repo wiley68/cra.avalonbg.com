@@ -189,6 +189,46 @@ test('no active campaign keeps deployments readiness section clear', function ()
         });
 });
 
+test('recorded installations without active campaign pass deployments readiness', function () {
+    $fixture = makeDeploymentsReadinessFixture();
+
+    $customer = Customer::query()->create([
+        'organization_id' => $fixture['organization']->id,
+        'name' => 'Installed Customer',
+        'criticality' => CustomerCriticality::Medium,
+        'is_active' => true,
+    ]);
+
+    ProductDeployment::query()->create([
+        'organization_id' => $fixture['organization']->id,
+        'customer_id' => $customer->id,
+        'product_id' => $fixture['product']->id,
+        'product_version_id' => $fixture['versionOld']->id,
+        'environment' => DeploymentEnvironment::Production,
+        'internet_exposure' => false,
+        'custom_modifications' => false,
+        'end_of_support_exception' => false,
+    ]);
+
+    $service = app(\App\Services\ProductReadinessService::class);
+    $details = $service->cardModuleStatusDetails($fixture['product']);
+
+    expect($details['deployments']['status'])->toBe('complete')
+        ->and($details['deployments']['summary'])->toBe('installations_recorded');
+
+    $this->actingAs($fixture['owner'])
+        ->get(route('products.readiness.show', $fixture['product']))
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $sections = collect($page->toArray()['props']['report']['sections']);
+            $deployments = $sections->firstWhere('key', 'deployments');
+
+            expect($deployments['status'])->toBe('pass')
+                ->and($deployments['summary'])->toBe('installations_recorded')
+                ->and($deployments['metrics']['installations'])->toBe(1);
+        });
+});
+
 test('active campaign with unresolved high-criticality target adds readiness warn gap', function () {
     $fixture = makeDeploymentsReadinessFixture();
     seedActiveCampaignWithTargets($fixture);

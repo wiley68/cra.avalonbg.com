@@ -204,13 +204,23 @@ test('success when all required spine steps are complete', function () {
 
     // Simulate required-complete payload shape for the UI contract.
     $statusesWithOptionalOpen = $statuses;
+    $statusesWithOptionalOpen['incidents'] = 'empty';
     $statusesWithOptionalOpen['auditor'] = 'empty';
     $statusesWithOptionalOpen['assistant'] = 'empty';
 
     expect($service->requiredStepsComplete($statusesWithOptionalOpen))->toBeTrue();
-    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen))->toBe('auditor');
-    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['auditor']))->toBe('assistant');
-    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['auditor', 'assistant']))->toBeNull();
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen))->toBe('incidents');
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['incidents']))->toBe('auditor');
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['incidents', 'auditor']))->toBe('assistant');
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['incidents', 'auditor', 'assistant']))->toBeNull();
+
+    // build() clears current once required spine is done so completed UI lists
+    // later finished steps (e.g. 19–23) instead of hiding them behind optional 18.
+    expect(
+        $service->requiredStepsComplete($statusesWithOptionalOpen)
+        ? null
+        : $service->resolveCurrentStepKey($statusesWithOptionalOpen),
+    )->toBeNull();
 });
 
 test('wizard inertia payload includes href and content keys', function () {
@@ -236,8 +246,8 @@ test('wizard inertia payload includes href and content keys', function () {
             ->has('can_manage')
             ->has('side_paths')
             ->has('progress')
-            ->where('progress.required_total', 23)
-            ->where('progress.optional_total', 2)
+            ->where('progress.required_total', 22)
+            ->where('progress.optional_total', 3)
             ->where('side_paths.0.to_key', 'incidents'));
 });
 
@@ -327,4 +337,31 @@ test('wizard surfaces attention status beyond empty for incomplete modules', fun
             ->where('current_step_key', 'versions')
             ->where('steps.3.status', 'critical')
             ->where('steps.3.status_reason.summary', 'none'));
+});
+
+test('wizard treats sdl as na when no release is in security review', function () {
+    ['owner' => $owner, 'product' => $product] = makeWizardFixture();
+
+    $product->update([
+        'manufacturer' => 'Avalon',
+        'scope_status' => ScopeStatus::LikelyInScope,
+        'classification_status' => ClassificationStatus::General,
+        'product_owner_user_id' => $owner->id,
+        'security_contact_user_id' => $owner->id,
+    ]);
+
+    ProductVersion::query()->create([
+        'product_id' => $product->id,
+        'version_number' => '1.0.0',
+        'state' => ProductVersionState::Released,
+        'support_status' => SupportStatus::Supported,
+        'release_date' => now()->toDateString(),
+    ]);
+
+    $payload = app(ComplianceWizardService::class)->build($product);
+    $sdl = collect($payload['steps'])->firstWhere('key', 'sdl');
+
+    expect($sdl['status'])->toBe('na')
+        ->and($sdl['is_complete'])->toBeTrue()
+        ->and($sdl['status_reason']['summary'])->toBe('no_release_in_progress');
 });

@@ -3,9 +3,9 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     ChevronDown,
     ChevronUp,
-    ListOrdered,
     Pencil,
     Trash2,
+    WandSparkles,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -134,10 +134,10 @@ const openWizard = (): void => {
             <Button
                 variant="outline"
                 size="sm"
-                class="w-fit cursor-pointer"
+                class="w-full cursor-pointer"
                 @click="openWizard"
             >
-                <ListOrdered class="size-3.5" />
+                <WandSparkles class="size-3.5" />
                 {{ t('products.wizard_link') }}
             </Button>
         </CardHeader>

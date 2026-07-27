@@ -7,13 +7,11 @@ import {
     GitBranch,
     IdCard,
     ListOrdered,
-    RotateCcw,
     ScrollText,
     Settings,
     Shield,
     Sparkles,
     Users,
-    X,
 } from '@lucide/vue';
 import { computed, ref, type Component } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -42,11 +40,7 @@ import { index as policiesIndex } from '@/routes/policies';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { show as passportShow } from '@/routes/products/passport';
 import { show as readinessShow } from '@/routes/products/readiness';
-import {
-    dismissOptional,
-    restoreOptional,
-    show as wizardShow,
-} from '@/routes/products/wizard';
+import { show as wizardShow } from '@/routes/products/wizard';
 import { edit as editProfile } from '@/routes/profile';
 import { index as usersIndex } from '@/routes/users';
 
@@ -203,44 +197,51 @@ const classificationLabel = computed(() =>
         : t('products.passport.empty'),
 );
 
-const completedSteps = computed(() => {
-    const currentNumber = currentStep.value?.number ?? Number.POSITIVE_INFINITY;
-
-    return props.steps.filter(
-        (step) => step.is_complete && step.number < currentNumber,
-    );
-});
-
 const currentStep = computed(
     () => props.steps.find((step) => step.is_current) ?? null,
 );
 
+/**
+ * Spine rows already passed by number: finished steps, plus optional steps that
+ * sit behind the current required stick-point (or all open optionals after success).
+ */
+const completedSteps = computed(() => {
+    const currentNumber = currentStep.value?.number ?? null;
+
+    return props.steps
+        .filter((step) => {
+            if (step.is_current || step.is_dismissed) {
+                return false;
+            }
+
+            if (step.is_complete) {
+                return true;
+            }
+
+            // Optional leftovers stay in number order — not in Upcoming.
+            if (!step.required) {
+                return currentNumber === null || step.number < currentNumber;
+            }
+
+            return false;
+        })
+        .sort((a, b) => a.number - b.number);
+});
+
+/** Only unfinished required steps ahead of the current stick-point. */
 const upcomingSteps = computed(() => {
     if (!currentStep.value) {
-        return props.steps.filter(
-            (step) => !step.is_complete && !step.is_dismissed,
-        );
+        return [];
     }
 
     return props.steps.filter(
         (step) =>
-            step.number > currentStep.value!.number &&
+            step.required &&
             !step.is_complete &&
-            !step.is_dismissed,
+            !step.is_current &&
+            step.number > currentStep.value!.number,
     );
 });
-
-const optionalOpenSteps = computed(() =>
-    props.steps.filter(
-        (step) => !step.required && !step.is_complete && !step.is_dismissed,
-    ),
-);
-
-const dismissedOptionalSteps = computed(() =>
-    props.steps.filter(
-        (step) => !step.required && step.is_dismissed && !step.is_complete,
-    ),
-);
 
 const showAllSidePaths = ref(false);
 
@@ -281,7 +282,7 @@ const optionalProgressSummary = computed(() =>
 
 const stepStatusClass = (status: WizardStepStatus): string => {
     if (status === 'na') {
-        return 'text-muted-foreground';
+        return 'text-foreground';
     }
 
     return productModuleStatusClass(status as ProductModuleStatus);
@@ -334,14 +335,6 @@ const showsAttentionSignal = (status: WizardStepStatus): boolean =>
 const openStep = (href: string): void => {
     setProductModuleOrigin(props.product.id, 'wizard');
     router.visit(href);
-};
-
-const dismissStep = (key: string): void => {
-    router.post(dismissOptional(props.product.id).url, { key });
-};
-
-const restoreStep = (key: string): void => {
-    router.post(restoreOptional(props.product.id).url, { key });
 };
 </script>
 
@@ -450,79 +443,6 @@ const restoreStep = (key: string): void => {
             </div>
         </section>
 
-        <Card v-if="success">
-            <CardHeader>
-                <CardTitle class="flex items-center gap-2 text-base">
-                    <Sparkles class="h-4 w-4 text-emerald-600" />
-                    {{ t('products.wizard.success.title') }}
-                </CardTitle>
-                <CardDescription>
-                    {{ t('products.wizard.success.description') }}
-                </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <div class="flex flex-wrap gap-2">
-                    <Button as-child>
-                        <Link :href="passportShow(product.id).url">
-                            <IdCard class="h-4 w-4" />
-                            {{ t('products.passport_link') }}
-                        </Link>
-                    </Button>
-                    <Button variant="outline" as-child>
-                        <Link :href="readinessShow(product.id).url">
-                            <ClipboardCheck class="h-4 w-4" />
-                            {{ t('products.readiness_link') }}
-                        </Link>
-                    </Button>
-                </div>
-                <div
-                    v-if="optionalOpenSteps.length > 0"
-                    class="flex flex-col gap-2"
-                >
-                    <div
-                        v-for="step in optionalOpenSteps"
-                        :key="step.key"
-                        class="flex flex-wrap gap-2"
-                    >
-                        <Button variant="outline" @click="openStep(step.href)">
-                            <ListOrdered class="h-4 w-4" />
-                            {{ t(step.label_key) }}
-                        </Button>
-                        <Button
-                            v-if="can_manage"
-                            variant="outline"
-                            @click="dismissStep(step.key)"
-                        >
-                            <X class="h-4 w-4" />
-                            {{ t('products.wizard.dismiss_optional') }}
-                        </Button>
-                    </div>
-                </div>
-                <div
-                    v-if="dismissedOptionalSteps.length > 0"
-                    class="space-y-2 border-t pt-3"
-                >
-                    <p class="text-sm font-medium text-muted-foreground">
-                        {{ t('products.wizard.dismissed_heading') }}
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                        <Button
-                            v-for="step in dismissedOptionalSteps"
-                            :key="step.key"
-                            variant="ghost"
-                            size="sm"
-                            :disabled="!can_manage"
-                            @click="restoreStep(step.key)"
-                        >
-                            <RotateCcw class="h-4 w-4" />
-                            {{ t(step.label_key) }} —
-                            {{ t('products.wizard.restore_optional') }}
-                        </Button>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-
         <section v-if="completedSteps.length > 0" class="space-y-2">
             <h2 class="text-sm font-medium text-muted-foreground">
                 {{ t('products.wizard.completed_heading') }}
@@ -537,8 +457,16 @@ const restoreStep = (key: string): void => {
                         class="w-6 shrink-0 text-muted-foreground tabular-nums"
                         >{{ step.number }}.</span
                     >
-                    <span :class="stepStatusClass(step.status)">
+                    <button
+                        type="button"
+                        class="cursor-pointer text-left hover:underline"
+                        :class="stepStatusClass(step.status)"
+                        @click="openStep(step.href)"
+                    >
                         {{ t(step.label_key) }}
+                    </button>
+                    <span class="text-xs font-normal text-muted-foreground">
+                        ({{ t(`${step.content_key}.summary`) }})
                     </span>
                     <span
                         v-if="!step.required"
@@ -572,6 +500,9 @@ const restoreStep = (key: string): void => {
                         {{ t(`products.wizard.status.${currentStep.status}`) }}
                     </Badge>
                 </div>
+                <p class="text-sm font-normal text-muted-foreground">
+                    {{ t(`${currentStep.content_key}.summary`) }}
+                </p>
                 <p
                     v-if="showsAttentionSignal(currentStep.status)"
                     class="text-sm"
@@ -622,14 +553,6 @@ const restoreStep = (key: string): void => {
                     <Button @click="openStep(currentStep.href)">
                         <ListOrdered class="h-4 w-4" />
                         {{ t('products.wizard.open_step') }}
-                    </Button>
-                    <Button
-                        v-if="can_manage && !currentStep.required"
-                        variant="outline"
-                        @click="dismissStep(currentStep.key)"
-                    >
-                        <X class="h-4 w-4" />
-                        {{ t('products.wizard.dismiss_optional') }}
                     </Button>
                 </div>
             </CardContent>
@@ -719,6 +642,9 @@ const restoreStep = (key: string): void => {
                     <span :class="stepStatusClass(step.status)">
                         {{ t(step.label_key) }}
                     </span>
+                    <span class="text-xs font-normal text-muted-foreground">
+                        ({{ t(`${step.content_key}.summary`) }})
+                    </span>
                     <span
                         v-if="!step.required"
                         class="text-xs text-muted-foreground"
@@ -738,5 +664,36 @@ const restoreStep = (key: string): void => {
                 </li>
             </ol>
         </section>
+
+        <Card
+            v-if="success"
+            class="border-emerald-600/25 bg-emerald-50 dark:bg-emerald-950/30"
+        >
+            <CardHeader>
+                <CardTitle class="flex items-center gap-2 text-base">
+                    <Sparkles class="h-4 w-4 text-emerald-600" />
+                    {{ t('products.wizard.success.title') }}
+                </CardTitle>
+                <CardDescription>
+                    {{ t('products.wizard.success.description') }}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div class="flex flex-wrap gap-2">
+                    <Button as-child>
+                        <Link :href="passportShow(product.id).url">
+                            <IdCard class="h-4 w-4" />
+                            {{ t('products.passport_link') }}
+                        </Link>
+                    </Button>
+                    <Button variant="outline" as-child>
+                        <Link :href="readinessShow(product.id).url">
+                            <ClipboardCheck class="h-4 w-4" />
+                            {{ t('products.readiness_link') }}
+                        </Link>
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
     </div>
 </template>

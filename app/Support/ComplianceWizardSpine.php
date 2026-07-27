@@ -179,7 +179,7 @@ final class ComplianceWizardSpine
             [
                 'number' => 18,
                 'key' => 'incidents',
-                'required' => true,
+                'required' => false,
                 'label_key' => 'products.wizard.steps.incidents.label',
                 'content_key' => 'products.wizard.steps.incidents',
                 'href_type' => 'product_route',
@@ -252,17 +252,17 @@ final class ComplianceWizardSpine
     }
 
     /**
-     * Optional spine keys that may be dismissed (24–25).
+     * Optional spine keys that may be dismissed (18, 24–25).
      *
      * @return list<string>
      */
     public static function optionalKeys(): array
     {
         return array_values(array_map(
-            static fn (array $step): string => $step['key'],
+            static fn(array $step): string => $step['key'],
             array_filter(
                 self::steps(),
-                static fn (array $step): bool => ! $step['required'],
+                static fn(array $step): bool => !$step['required'],
             ),
         ));
     }

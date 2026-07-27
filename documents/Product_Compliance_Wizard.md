@@ -1,6 +1,6 @@
 # Product Compliance Wizard
 
-**Версия:** 0.7  
+**Версия:** 0.8  
 **Дата:** 27 юли 2026 г.  
 **Статус:** Done — Must / Should / Could complete  
 **Родителски документи:**
@@ -14,15 +14,15 @@
 
 ## Решения (MVP)
 
-| Тема           | Решение                                                       |
-| -------------- | ------------------------------------------------------------- |
-| Route          | `GET /products/{product}/wizard`                              |
-| Edit vs Wizard | Edit = данни; Wizard = пътека                                 |
-| Org prep (0)   | Извън product wizard                                          |
-| Optional       | 24 Auditor, 25 AI — в timeline; success при required **1–23** |
-| Layout         | Една колона: completed → current card → upcoming              |
-| CTA            | Само deep-link; без дублиране на форми                        |
-| Back от модул  | Seed return-back към wizard URL                               |
+| Тема           | Решение                                                                             |
+| -------------- | ----------------------------------------------------------------------------------- |
+| Route          | `GET /products/{product}/wizard`                                                    |
+| Edit vs Wizard | Edit = данни; Wizard = пътека                                                       |
+| Org prep (0)   | Извън product wizard                                                                |
+| Optional       | 18 Incidents, 24 Auditor, 25 AI — в timeline; success при required **1–17 + 19–23** |
+| Layout         | Една колона: completed → current card → upcoming                                    |
+| CTA            | Само deep-link; без дублиране на форми                                              |
+| Back от модул  | Seed return-back към wizard URL                                                     |
 
 ---
 
@@ -70,7 +70,7 @@
 | 15  | `customers`               | yes      | Org Customers index              |
 | 16  | `deployments`             | yes      | Deployments                      |
 | 17  | `campaigns`               | yes      | Campaigns                        |
-| 18  | `incidents`               | yes      | Incidents                        |
+| 18  | `incidents`               | no       | Incidents                        |
 | 19  | `sdl`                     | yes      | SDL                              |
 | 20  | `security_instructions`   | yes      | USI                              |
 | 21  | `technical_documentation` | yes      | Tech docs                        |
@@ -85,6 +85,7 @@
 
 | Версия | Дата       | Промяна                                                         |
 | ------ | ---------- | --------------------------------------------------------------- |
+| 0.8    | 2026-07-27 | Incidents (18) → optional в spine (не блокира success)          |
 | 0.7    | 2026-07-27 | Could: progress % strip за required 1–23                        |
 | 0.6    | 2026-07-27 | Could: side paths граф (§6) в wizard + payload                  |
 | 0.5    | 2026-07-27 | Should: persist dismissed optional 24–25 (DB + dismiss/restore) |

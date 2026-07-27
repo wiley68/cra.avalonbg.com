@@ -380,7 +380,7 @@ UI идея (карта / стъпка / timeline): …
 | Въпрос                                       | Решение (след тестове)                                                                       |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Edit остава ли за „данни“, Show за „пътека“? | **Да** — Edit = данни; **Compliance Wizard** = номерirani пътека (§4.1)                      |
-| Кои блокове са optional в MVP wizard?        | **24–25** (Auditor, AI); success при required **1–23**                                       |
+| Кои блокове са optional в MVP wizard?        | **18, 24–25** (Incidents, Auditor, AI); success при required **1–17 + 19–23**                |
 | Един колоннен timeline vs граф?              | **Една колона** (completed → current card → upcoming)                                        |
 | Org-wide елементи в Show?                    | Етап **0** остава **преди** product wizard; Customers (15) е deep link към org customers     |
 | Етап 0 в onboarding диаграмата?              | **Да** — users/roles/settings + controls review + policy drafts + optional customers (§4.1a) |

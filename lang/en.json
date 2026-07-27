@@ -2581,6 +2581,7 @@
                 "deployments": {
                     "unresolved_high": "Active patch campaign still has high-criticality installations not updated.",
                     "campaigns_clear": "Active patch campaigns have no unresolved high-criticality targets.",
+                    "installations_recorded": "Customer installations are recorded.",
                     "no_active_campaign": "No active patch campaign for customer installations.",
                     "unsupported_versions": "Customer installations remain on unsupported or expired versions."
                 },
@@ -3684,7 +3685,7 @@
                 "invalid_format": "Export format must be markdown, pdf, or release."
             }
         },
-        "wizard_link": "Compliance wizard",
+        "wizard_link": "Follow the Wizard",
         "wizard": {
             "title": "Compliance wizard",
             "disclaimer": "This wizard is an operational readiness path. It does not provide legal advice or guaranteed CRA conformity.",
@@ -3700,11 +3701,12 @@
             },
             "success": {
                 "title": "Required path complete",
-                "description": "Steps 1–23 are complete. Review the passport and readiness report, or continue with optional auditor / AI steps."
+                "description": "Required steps are complete. Review the passport and readiness report."
             },
             "steps": {
                 "product": {
                     "label": "Product identity",
+                    "summary": "Catalogue: name, type, and owners",
                     "cra_context": "CRA readiness starts from a clear product identity: name, manufacturer, type, and responsible people.",
                     "why_next": "Without a stable product record, later modules cannot be scoped or owned correctly.",
                     "mandatory": "Required. Fill manufacturer, product type, product owner, and security contact.",
@@ -3712,6 +3714,7 @@
                 },
                 "scope": {
                     "label": "CRA scope",
+                    "summary": "Whether CRA applies to this product",
                     "cra_context": "Scope decides whether and how CRA obligations apply to this product.",
                     "why_next": "Downstream work only makes sense once applicability is recorded.",
                     "mandatory": "Required. Complete the scope assessment so status is not insufficient information.",
@@ -3719,13 +3722,15 @@
                 },
                 "classification": {
                     "label": "Classification",
-                    "cra_context": "Classification (default / important / critical) sets the intensity of conformity expectations.",
+                    "summary": "General, important I/II, critical, excluded, or sector-specific",
+                    "cra_context": "Classification (general / important I–II / critical / excluded / sector-specific) sets the intensity of conformity expectations.",
                     "why_next": "Controls, evidence depth, and reporting urgency depend on the class.",
                     "mandatory": "Required. Leave unclassified / under review only while assessment is unfinished.",
                     "interlinks": "Affects readiness thresholds and auditor expectations."
                 },
                 "versions": {
                     "label": "Versions",
+                    "summary": "Releases on the market and in development",
                     "cra_context": "Supported releases define what is placed on the market and what must stay secure.",
                     "why_next": "Support periods, SBOM, vulnerabilities, and deployments attach to versions.",
                     "mandatory": "Required. Add at least one non-draft version.",
@@ -3733,20 +3738,23 @@
                 },
                 "support_periods": {
                     "label": "Support periods",
+                    "summary": "Security support window",
                     "cra_context": "CRA expects a clear security support window for products with digital elements.",
                     "why_next": "Without support windows, patch and vulnerability obligations lack a time box.",
                     "mandatory": "Required. Define structured support periods or equivalent policy data.",
                     "interlinks": "Used by passport, readiness, and vulnerability prioritisation."
                 },
                 "vcs_integrations": {
-                    "label": "VCS / integrations",
-                    "cra_context": "Source and scanner links improve evidence freshness and reduce manual inventory work.",
+                    "label": "Repository / VCS",
+                    "summary": "Linked GitHub or GitLab repository",
+                    "cra_context": "A linked repository (VCS) improves evidence freshness and reduces manual inventory work.",
                     "why_next": "Imports and syncs populate components, findings, and tasks faster.",
                     "mandatory": "Required for the spine path. Link a repository or product integration.",
                     "interlinks": "Feeds components, vulnerabilities, and import suggestions."
                 },
                 "components": {
                     "label": "Components / SBOM",
+                    "summary": "Component inventory / SBOM",
                     "cra_context": "A maintained component inventory is the base for vulnerability and supply-chain work.",
                     "why_next": "Risks and vulns without SBOM coverage stay incomplete.",
                     "mandatory": "Required. Record components / SBOM for in-scope product versions.",
@@ -3754,6 +3762,7 @@
                 },
                 "risks": {
                     "label": "Risks",
+                    "summary": "Threats and treatment",
                     "cra_context": "Risk assessment explains which threats matter for this product and how they are treated.",
                     "why_next": "Controls and residual risk only make sense after risks are listed.",
                     "mandatory": "Required. Capture product risks and treatment status.",
@@ -3761,6 +3770,7 @@
                 },
                 "requirements": {
                     "label": "Requirements",
+                    "summary": "Applicable CRA requirements",
                     "cra_context": "CRA essential requirements must be marked applicable and tracked per product.",
                     "why_next": "Controls and evidence are the response to applicable requirements.",
                     "mandatory": "Required. Review applicability of requirements for this product.",
@@ -3768,6 +3778,7 @@
                 },
                 "controls": {
                     "label": "Controls",
+                    "summary": "Measures against requirements",
                     "cra_context": "Controls implement applicable requirements and organise verification work.",
                     "why_next": "Evidence and tasks hang off controls that need proof.",
                     "mandatory": "Required. Assign and progress product controls.",
@@ -3775,6 +3786,7 @@
                 },
                 "evidence": {
                     "label": "Evidence",
+                    "summary": "Proof that controls operate",
                     "cra_context": "Evidence packages show that controls and processes are operating, not only described.",
                     "why_next": "Auditor review and passport confidence depend on linked evidence.",
                     "mandatory": "Required. Attach fresh evidence to material controls and processes.",
@@ -3782,6 +3794,7 @@
                 },
                 "tasks": {
                     "label": "Tasks",
+                    "summary": "Remediation with deadlines",
                     "cra_context": "Tasks turn gaps into owned work with deadlines and approval where needed.",
                     "why_next": "Open readiness issues should become trackable remediation.",
                     "mandatory": "Required in the spine. Create or close remediation tasks as needed.",
@@ -3789,6 +3802,7 @@
                 },
                 "vulnerabilities": {
                     "label": "Vulnerabilities",
+                    "summary": "Register and triage",
                     "cra_context": "Known vulnerabilities must be triaged with CRA-aware handling and timelines.",
                     "why_next": "Reporting and campaigns follow from triaged findings.",
                     "mandatory": "Required path. Maintain the vulnerability register even when empty after review.",
@@ -3796,6 +3810,7 @@
                 },
                 "reporting": {
                     "label": "Vulnerability reporting",
+                    "summary": "Disclosure and reporting milestones",
                     "cra_context": "Certain findings trigger coordinated vulnerability disclosure / authority reporting milestones.",
                     "why_next": "Missed milestones create readiness fails and legal risk.",
                     "mandatory": "Required when reporting applies; otherwise marked N/A when nothing is active.",
@@ -3803,6 +3818,7 @@
                 },
                 "customers": {
                     "label": "Customers",
+                    "summary": "Customer directory",
                     "cra_context": "Customer records enable deployment mapping and targeted patch communication.",
                     "why_next": "Deployments and campaigns need a customer directory.",
                     "mandatory": "Required org-wide step for the product path. Add at least one customer.",
@@ -3810,6 +3826,7 @@
                 },
                 "deployments": {
                     "label": "Deployments",
+                    "summary": "Where versions run",
                     "cra_context": "Knowing where versions run is essential for impact and patch rollout.",
                     "why_next": "Campaigns target deployments, not abstract versions alone.",
                     "mandatory": "Required in the spine. Record customer deployments where relevant.",
@@ -3817,6 +3834,7 @@
                 },
                 "campaigns": {
                     "label": "Patch campaigns",
+                    "summary": "Coordinated patches across installs",
                     "cra_context": "Campaigns track coordinated updates across customer installations.",
                     "why_next": "Closes the loop from fix → notify → verify adoption.",
                     "mandatory": "Required path when deployments exist; keep the module current.",
@@ -3824,13 +3842,15 @@
                 },
                 "incidents": {
                     "label": "Incidents",
+                    "summary": "Security incidents and trail",
                     "cra_context": "Security incidents need a product-linked record and follow-up trail.",
                     "why_next": "Incident lessons feed SDL, controls, and evidence updates.",
-                    "mandatory": "Required spine step. Use the module for real incidents or confirm readiness.",
+                    "mandatory": "Optional. Use the module for real incidents — an empty register does not block the path.",
                     "interlinks": "May relate to vulnerabilities, tasks, and auditor findings."
                 },
                 "sdl": {
                     "label": "Secure development lifecycle",
+                    "summary": "Security gates before release",
                     "cra_context": "SDL runs show that secure development gates are applied before release.",
                     "why_next": "Tech docs and passport expect SDL evidence for releases.",
                     "mandatory": "Required. Record SDL runs / gates for significant releases.",
@@ -3838,6 +3858,7 @@
                 },
                 "security_instructions": {
                     "label": "User security instructions",
+                    "summary": "Guidance for users / deployers",
                     "cra_context": "Manufacturers must provide clear security guidance to users / deployers.",
                     "why_next": "USI is part of the conformity documentation story.",
                     "mandatory": "Required. Publish or maintain user security instructions.",
@@ -3845,6 +3866,7 @@
                 },
                 "technical_documentation": {
                     "label": "Technical documentation",
+                    "summary": "Conformity documentation pack",
                     "cra_context": "§5.12-style technical documentation packages organise conformity material.",
                     "why_next": "Passport and auditor review lean on a structured package.",
                     "mandatory": "Required. Maintain the technical documentation workspace for the product.",
@@ -3852,6 +3874,7 @@
                 },
                 "passport": {
                     "label": "Compliance passport",
+                    "summary": "Single-page readiness overview",
                     "cra_context": "The passport is the single-page operational overview of CRA readiness.",
                     "why_next": "Review gaps here before treating readiness as green.",
                     "mandatory": "Required. Review the passport after core modules are filled.",
@@ -3859,13 +3882,15 @@
                 },
                 "readiness": {
                     "label": "Readiness report",
+                    "summary": "Pass / warn / fail scoring",
                     "cra_context": "Readiness scores sections with pass / warn / fail and exportable evidence of status.",
-                    "why_next": "Last required checkpoint before optional auditor / AI steps.",
+                    "why_next": "Last required checkpoint before optional incidents / auditor / AI.",
                     "mandatory": "Required. Resolve critical gaps or document treatment.",
                     "interlinks": "Summarises almost every earlier module."
                 },
                 "auditor": {
                     "label": "Auditor package",
+                    "summary": "Shared package for external review",
                     "cra_context": "Optional shared packages help external reviewers inspect evidence safely.",
                     "why_next": "Useful after required path is stable and you need third-party review.",
                     "mandatory": "Optional. Create packages when an audit engagement starts.",
@@ -3873,6 +3898,7 @@
                 },
                 "assistant": {
                     "label": "AI assistant",
+                    "summary": "AI drafts with human review",
                     "cra_context": "Optional AI help for drafts and triage — always with human review.",
                     "why_next": "Speeds writing and analysis after the operational path exists.",
                     "mandatory": "Optional. Enable only with AI configured; never auto-accept outputs.",
