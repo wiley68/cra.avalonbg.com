@@ -4,6 +4,12 @@ import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { edit as editPackage } from '@/routes/products/technical-documentation';
 
 export type OrgTechnicalDocumentationListItem = {
@@ -111,8 +117,30 @@ export const createOrgTechnicalDocumentationColumns = ({
                     t('products.technical_documentation.columns.title'),
                     column,
                 ),
-            cell: ({ row }) =>
-                h('div', { class: 'font-medium' }, row.getValue('title')),
+            cell: ({ row }) => {
+                const value = row.getValue('title') as string;
+
+                return h(TooltipProvider, null, () =>
+                    h(Tooltip, null, {
+                        default: () => [
+                            h(TooltipTrigger, { asChild: true }, () =>
+                                h(
+                                    'div',
+                                    {
+                                        class: 'max-w-[220px] truncate font-medium',
+                                    },
+                                    value,
+                                ),
+                            ),
+                            h(
+                                TooltipContent,
+                                { side: 'top', class: 'max-w-xs' },
+                                () => value,
+                            ),
+                        ],
+                    }),
+                );
+            },
         },
         {
             accessorKey: 'product_name',
@@ -121,12 +149,30 @@ export const createOrgTechnicalDocumentationColumns = ({
                     t('technical_documentation.columns.product'),
                     column,
                 ),
-            cell: ({ row }) =>
-                h(
-                    'div',
-                    { class: 'text-muted-foreground' },
-                    String(row.getValue('product_name') || '—'),
-                ),
+            cell: ({ row }) => {
+                const value = String(row.getValue('product_name') || '—');
+
+                return h(TooltipProvider, null, () =>
+                    h(Tooltip, null, {
+                        default: () => [
+                            h(TooltipTrigger, { asChild: true }, () =>
+                                h(
+                                    'div',
+                                    {
+                                        class: 'max-w-[180px] truncate text-muted-foreground',
+                                    },
+                                    value,
+                                ),
+                            ),
+                            h(
+                                TooltipContent,
+                                { side: 'top', class: 'max-w-xs' },
+                                () => value,
+                            ),
+                        ],
+                    }),
+                );
+            },
         },
         {
             accessorKey: 'status',

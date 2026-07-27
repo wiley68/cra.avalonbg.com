@@ -54,6 +54,7 @@ import { edit as editSecurityInstruction } from '@/routes/products/security-inst
 import { edit as editTask } from '@/routes/products/tasks';
 import {
     aiDraft as suggestAiDraft,
+    destroy as destroyPackage,
     edit as packagesEdit,
     exportMethod as exportPackage,
     index as packagesIndex,
@@ -301,6 +302,7 @@ const lifecycleError = computed(() => {
 
 const showSubmitDialog = ref(false);
 const showRetireDialog = ref(false);
+const showDeleteDialog = ref(false);
 const submitForm = useForm({
     assignee_user_id: '' as number | '',
 });
@@ -705,6 +707,11 @@ const doRetire = () => {
     );
 };
 
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(destroyPackage(routeArgs).url);
+};
+
 const submit = () => {
     if (readOnly.value) {
         return;
@@ -758,7 +765,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
 <template>
     <Head :title="t('products.technical_documentation.edit_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -874,428 +881,106 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
         </p>
 
         <form class="space-y-8" @submit.prevent="submit">
-            <div class="space-y-4">
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="title"
-                        :help="t('products.technical_documentation.help.title')"
-                        required
-                    >
-                        {{ t('products.technical_documentation.fields.title') }}
-                    </FieldLabel>
-                    <Input
-                        id="title"
-                        v-model="form.title"
-                        :disabled="readOnly"
-                        required
-                    />
-                    <InputError :message="form.errors.title" />
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
+            <div class="space-y-5 rounded-lg border p-6">
+                <div class="space-y-5">
                     <div class="grid gap-2">
                         <FieldLabel
-                            html-for="version_label"
+                            html-for="title"
                             :help="
-                                t(
-                                    'products.technical_documentation.help.version_label',
-                                )
+                                t('products.technical_documentation.help.title')
                             "
                             required
                         >
                             {{
                                 t(
-                                    'products.technical_documentation.fields.version_label',
+                                    'products.technical_documentation.fields.title',
                                 )
                             }}
                         </FieldLabel>
                         <Input
-                            id="version_label"
-                            v-model="form.version_label"
+                            id="title"
+                            v-model="form.title"
                             :disabled="readOnly"
                             required
                         />
-                        <InputError :message="form.errors.version_label" />
+                        <InputError :message="form.errors.title" />
                     </div>
 
-                    <div class="grid gap-2">
-                        <Label>{{
-                            t('products.technical_documentation.fields.locale')
-                        }}</Label>
-                        <Select v-model="form.locale" :disabled="readOnly">
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="locale in options.locales"
-                                    :key="locale"
-                                    :value="locale"
-                                >
-                                    {{ localeLabel(locale) }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError :message="form.errors.locale" />
-                    </div>
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="product_version_id"
-                        :help="
-                            t(
-                                'products.technical_documentation.help.product_version',
-                            )
-                        "
-                    >
-                        {{
-                            t(
-                                'products.technical_documentation.fields.product_version',
-                            )
-                        }}
-                    </FieldLabel>
-                    <Select
-                        :disabled="readOnly"
-                        :model-value="
-                            form.product_version_id === ''
-                                ? '__none__'
-                                : String(form.product_version_id)
-                        "
-                        @update:model-value="
-                            (value) => {
-                                form.product_version_id =
-                                    value === '__none__' ||
-                                    value === undefined ||
-                                    value === null
-                                        ? ''
-                                        : Number(value);
-                            }
-                        "
-                    >
-                        <SelectTrigger id="product_version_id" class="w-full">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="__none__">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                html-for="version_label"
+                                :help="
+                                    t(
+                                        'products.technical_documentation.help.version_label',
+                                    )
+                                "
+                                required
+                            >
                                 {{
                                     t(
-                                        'products.technical_documentation.product_wide',
+                                        'products.technical_documentation.fields.version_label',
                                     )
                                 }}
-                            </SelectItem>
-                            <SelectItem
-                                v-for="version in versions"
-                                :key="version.id"
-                                :value="String(version.id)"
-                            >
-                                {{ version.version_number }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <InputError :message="form.errors.product_version_id" />
-                </div>
+                            </FieldLabel>
+                            <Input
+                                id="version_label"
+                                v-model="form.version_label"
+                                :disabled="readOnly"
+                                required
+                            />
+                            <InputError :message="form.errors.version_label" />
+                        </div>
 
-                <div
-                    v-if="hasSupersedes"
-                    class="space-y-2 rounded-md border px-3 py-3 text-sm"
-                >
-                    <p class="text-muted-foreground">
-                        {{
-                            t(
-                                'products.technical_documentation.fields.supersedes',
-                            )
-                        }}:
-                        {{ props.package.supersedes_title }}
-                    </p>
-                    <p v-if="changedSections.length > 0" class="font-medium">
-                        {{
-                            t(
-                                'products.technical_documentation.delta_changed_summary',
-                                {
-                                    count: String(changedSections.length),
-                                },
-                            )
-                        }}
-                    </p>
-                    <ul
-                        v-if="changedSections.length > 0"
-                        class="flex flex-wrap gap-2"
-                    >
-                        <li
-                            v-for="section in changedSections"
-                            :key="section.section_key"
-                        >
-                            <a
-                                :href="`#section-${section.section_key}`"
-                                class="text-xs underline underline-offset-2"
-                            >
-                                {{ sectionLabel(section.section_key) }}
-                            </a>
-                        </li>
-                    </ul>
-                    <p v-else class="text-muted-foreground">
-                        {{
-                            t(
-                                'products.technical_documentation.delta_unchanged_summary',
-                            )
-                        }}
-                    </p>
-
-                    <div
-                        v-if="dependencyDelta"
-                        class="space-y-2 border-t border-border pt-3"
-                    >
-                        <p class="font-medium">
-                            {{
+                        <div class="grid gap-2">
+                            <Label>{{
                                 t(
-                                    'products.technical_documentation.dependency_delta_title',
+                                    'products.technical_documentation.fields.locale',
                                 )
-                            }}
-                        </p>
-                        <p
-                            v-if="!dependencyDelta.available"
-                            class="text-muted-foreground"
-                        >
-                            {{
-                                dependencyDelta.unavailable_reason ===
-                                'same_product_version'
-                                    ? t(
-                                          'products.technical_documentation.dependency_delta_same_version',
-                                      )
-                                    : t(
-                                          'products.technical_documentation.dependency_delta_needs_versions',
-                                      )
-                            }}
-                        </p>
-                        <template v-else>
-                            <p class="text-muted-foreground">
-                                {{
-                                    t(
-                                        'products.technical_documentation.dependency_delta_versions',
-                                        {
-                                            parent:
-                                                dependencyDelta.parent_version_number ??
-                                                '—',
-                                            current:
-                                                dependencyDelta.current_version_number ??
-                                                '—',
-                                        },
-                                    )
-                                }}
-                            </p>
-                            <p
-                                v-if="hasDependencyDeltaChanges"
-                                class="font-medium"
-                            >
-                                {{
-                                    t(
-                                        'products.technical_documentation.dependency_delta_summary',
-                                        {
-                                            added: String(
-                                                dependencyDelta.counts.added,
-                                            ),
-                                            removed: String(
-                                                dependencyDelta.counts.removed,
-                                            ),
-                                            changed: String(
-                                                dependencyDelta.counts.changed,
-                                            ),
-                                        },
-                                    )
-                                }}
-                            </p>
-                            <p v-else class="text-muted-foreground">
-                                {{
-                                    t(
-                                        'products.technical_documentation.dependency_delta_unchanged',
-                                    )
-                                }}
-                            </p>
-                            <p
-                                v-if="dependencyDelta.truncated"
-                                class="text-xs text-muted-foreground"
-                            >
-                                {{
-                                    t(
-                                        'products.technical_documentation.dependency_delta_truncated',
-                                    )
-                                }}
-                            </p>
-
-                            <div
-                                v-if="dependencyDelta.added.length > 0"
-                                class="space-y-1"
-                            >
-                                <p
-                                    class="text-xs font-medium text-emerald-700 dark:text-emerald-400"
-                                >
-                                    {{
-                                        t(
-                                            'products.technical_documentation.dependency_delta_added',
-                                        )
-                                    }}
-                                </p>
-                                <ul
-                                    class="space-y-0.5 text-xs text-muted-foreground"
-                                >
-                                    <li
-                                        v-for="row in dependencyDelta.added"
-                                        :key="`added-${row.purl ?? row.name}`"
+                            }}</Label>
+                            <Select v-model="form.locale" :disabled="readOnly">
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="locale in options.locales"
+                                        :key="locale"
+                                        :value="locale"
                                     >
-                                        + {{ row.name }}
-                                        <span v-if="row.version"
-                                            >@{{ row.version }}</span
-                                        >
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div
-                                v-if="dependencyDelta.removed.length > 0"
-                                class="space-y-1"
-                            >
-                                <p class="text-xs font-medium text-destructive">
-                                    {{
-                                        t(
-                                            'products.technical_documentation.dependency_delta_removed',
-                                        )
-                                    }}
-                                </p>
-                                <ul
-                                    class="space-y-0.5 text-xs text-muted-foreground"
-                                >
-                                    <li
-                                        v-for="row in dependencyDelta.removed"
-                                        :key="`removed-${row.purl ?? row.name}`"
-                                    >
-                                        − {{ row.name }}
-                                        <span v-if="row.version"
-                                            >@{{ row.version }}</span
-                                        >
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div
-                                v-if="dependencyDelta.changed.length > 0"
-                                class="space-y-1"
-                            >
-                                <p class="text-xs font-medium">
-                                    {{
-                                        t(
-                                            'products.technical_documentation.dependency_delta_changed',
-                                        )
-                                    }}
-                                </p>
-                                <ul
-                                    class="space-y-0.5 text-xs text-muted-foreground"
-                                >
-                                    <li
-                                        v-for="row in dependencyDelta.changed"
-                                        :key="`changed-${row.purl ?? row.name}`"
-                                    >
-                                        ~ {{ row.name }}:
-                                        {{ row.from_version ?? '—' }} →
-                                        {{ row.to_version ?? '—' }}
-                                    </li>
-                                </ul>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <div
-                    v-if="hasStaleEvidence"
-                    class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-3 text-sm text-destructive"
-                >
-                    <p>
-                        {{
-                            t(
-                                'products.technical_documentation.stale_evidence_hint',
-                                {
-                                    stale: String(evidenceFreshness.stale),
-                                    total: String(evidenceFreshness.total),
-                                    expired: String(evidenceFreshness.expired),
-                                    review_due: String(
-                                        evidenceFreshness.review_due,
-                                    ),
-                                },
-                            )
-                        }}
-                    </p>
-                    <Link
-                        :href="evidenceHref"
-                        class="mt-1 inline-flex text-xs font-medium underline underline-offset-2"
-                    >
-                        {{
-                            t(
-                                'products.technical_documentation.stale_evidence_link',
-                            )
-                        }}
-                    </Link>
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="notes"
-                        :help="t('products.technical_documentation.help.notes')"
-                    >
-                        {{ t('products.technical_documentation.fields.notes') }}
-                    </FieldLabel>
-                    <textarea
-                        id="notes"
-                        v-model="form.notes"
-                        rows="3"
-                        :disabled="readOnly"
-                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
-                    />
-                    <InputError :message="form.errors.notes" />
-                </div>
-
-                <div class="space-y-3 rounded-md border p-3">
-                    <div>
-                        <h2 class="text-sm font-medium">
-                            {{
-                                t(
-                                    'products.technical_documentation.documentation_links_heading',
-                                )
-                            }}
-                        </h2>
-                        <p class="text-sm text-muted-foreground">
-                            {{
-                                t(
-                                    'products.technical_documentation.documentation_links_help',
-                                )
-                            }}
-                        </p>
+                                        {{ localeLabel(locale) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="form.errors.locale" />
+                        </div>
                     </div>
 
                     <div class="grid gap-2">
                         <FieldLabel
-                            html-for="user_security_instruction_id"
+                            html-for="product_version_id"
                             :help="
                                 t(
-                                    'products.technical_documentation.help.linked_usi',
+                                    'products.technical_documentation.help.product_version',
                                 )
                             "
                         >
                             {{
                                 t(
-                                    'products.technical_documentation.fields.linked_usi',
+                                    'products.technical_documentation.fields.product_version',
                                 )
                             }}
                         </FieldLabel>
                         <Select
                             :disabled="readOnly"
                             :model-value="
-                                form.user_security_instruction_id === ''
+                                form.product_version_id === ''
                                     ? '__none__'
-                                    : String(form.user_security_instruction_id)
+                                    : String(form.product_version_id)
                             "
                             @update:model-value="
                                 (value) => {
-                                    form.user_security_instruction_id =
+                                    form.product_version_id =
                                         value === '__none__' ||
                                         value === undefined ||
                                         value === null
@@ -1305,7 +990,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                             "
                         >
                             <SelectTrigger
-                                id="user_security_instruction_id"
+                                id="product_version_id"
                                 class="w-full"
                             >
                                 <SelectValue />
@@ -1314,45 +999,267 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                                 <SelectItem value="__none__">
                                     {{
                                         t(
-                                            'products.technical_documentation.none_selected',
+                                            'products.technical_documentation.product_wide',
                                         )
                                     }}
                                 </SelectItem>
                                 <SelectItem
-                                    v-for="item in published_usi"
-                                    :key="item.id"
-                                    :value="String(item.id)"
+                                    v-for="version in versions"
+                                    :key="version.id"
+                                    :value="String(version.id)"
                                 >
-                                    {{ usiOptionLabel(item) }}
+                                    {{ version.version_number }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <InputError
-                            :message="form.errors.user_security_instruction_id"
-                        />
+                        <InputError :message="form.errors.product_version_id" />
+                    </div>
+
+                    <div
+                        v-if="hasSupersedes"
+                        class="space-y-2 rounded-md border px-3 py-3 text-sm"
+                    >
+                        <p class="text-muted-foreground">
+                            {{
+                                t(
+                                    'products.technical_documentation.fields.supersedes',
+                                )
+                            }}:
+                            {{ props.package.supersedes_title }}
+                        </p>
                         <p
-                            v-if="published_usi.length === 0"
-                            class="text-sm text-muted-foreground"
+                            v-if="changedSections.length > 0"
+                            class="font-medium"
                         >
                             {{
                                 t(
-                                    'products.technical_documentation.usi_link_none',
+                                    'products.technical_documentation.delta_changed_summary',
+                                    {
+                                        count: String(changedSections.length),
+                                    },
+                                )
+                            }}
+                        </p>
+                        <ul
+                            v-if="changedSections.length > 0"
+                            class="flex flex-wrap gap-2"
+                        >
+                            <li
+                                v-for="section in changedSections"
+                                :key="section.section_key"
+                            >
+                                <a
+                                    :href="`#section-${section.section_key}`"
+                                    class="text-xs underline underline-offset-2"
+                                >
+                                    {{ sectionLabel(section.section_key) }}
+                                </a>
+                            </li>
+                        </ul>
+                        <p v-else class="text-muted-foreground">
+                            {{
+                                t(
+                                    'products.technical_documentation.delta_unchanged_summary',
+                                )
+                            }}
+                        </p>
+
+                        <div
+                            v-if="dependencyDelta"
+                            class="space-y-2 border-t border-border pt-3"
+                        >
+                            <p class="font-medium">
+                                {{
+                                    t(
+                                        'products.technical_documentation.dependency_delta_title',
+                                    )
+                                }}
+                            </p>
+                            <p
+                                v-if="!dependencyDelta.available"
+                                class="text-muted-foreground"
+                            >
+                                {{
+                                    dependencyDelta.unavailable_reason ===
+                                    'same_product_version'
+                                        ? t(
+                                              'products.technical_documentation.dependency_delta_same_version',
+                                          )
+                                        : t(
+                                              'products.technical_documentation.dependency_delta_needs_versions',
+                                          )
+                                }}
+                            </p>
+                            <template v-else>
+                                <p class="text-muted-foreground">
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_versions',
+                                            {
+                                                parent:
+                                                    dependencyDelta.parent_version_number ??
+                                                    '—',
+                                                current:
+                                                    dependencyDelta.current_version_number ??
+                                                    '—',
+                                            },
+                                        )
+                                    }}
+                                </p>
+                                <p
+                                    v-if="hasDependencyDeltaChanges"
+                                    class="font-medium"
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_summary',
+                                            {
+                                                added: String(
+                                                    dependencyDelta.counts
+                                                        .added,
+                                                ),
+                                                removed: String(
+                                                    dependencyDelta.counts
+                                                        .removed,
+                                                ),
+                                                changed: String(
+                                                    dependencyDelta.counts
+                                                        .changed,
+                                                ),
+                                            },
+                                        )
+                                    }}
+                                </p>
+                                <p v-else class="text-muted-foreground">
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_unchanged',
+                                        )
+                                    }}
+                                </p>
+                                <p
+                                    v-if="dependencyDelta.truncated"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{
+                                        t(
+                                            'products.technical_documentation.dependency_delta_truncated',
+                                        )
+                                    }}
+                                </p>
+
+                                <div
+                                    v-if="dependencyDelta.added.length > 0"
+                                    class="space-y-1"
+                                >
+                                    <p
+                                        class="text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                                    >
+                                        {{
+                                            t(
+                                                'products.technical_documentation.dependency_delta_added',
+                                            )
+                                        }}
+                                    </p>
+                                    <ul
+                                        class="space-y-0.5 text-xs text-muted-foreground"
+                                    >
+                                        <li
+                                            v-for="row in dependencyDelta.added"
+                                            :key="`added-${row.purl ?? row.name}`"
+                                        >
+                                            + {{ row.name }}
+                                            <span v-if="row.version"
+                                                >@{{ row.version }}</span
+                                            >
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div
+                                    v-if="dependencyDelta.removed.length > 0"
+                                    class="space-y-1"
+                                >
+                                    <p
+                                        class="text-xs font-medium text-destructive"
+                                    >
+                                        {{
+                                            t(
+                                                'products.technical_documentation.dependency_delta_removed',
+                                            )
+                                        }}
+                                    </p>
+                                    <ul
+                                        class="space-y-0.5 text-xs text-muted-foreground"
+                                    >
+                                        <li
+                                            v-for="row in dependencyDelta.removed"
+                                            :key="`removed-${row.purl ?? row.name}`"
+                                        >
+                                            − {{ row.name }}
+                                            <span v-if="row.version"
+                                                >@{{ row.version }}</span
+                                            >
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div
+                                    v-if="dependencyDelta.changed.length > 0"
+                                    class="space-y-1"
+                                >
+                                    <p class="text-xs font-medium">
+                                        {{
+                                            t(
+                                                'products.technical_documentation.dependency_delta_changed',
+                                            )
+                                        }}
+                                    </p>
+                                    <ul
+                                        class="space-y-0.5 text-xs text-muted-foreground"
+                                    >
+                                        <li
+                                            v-for="row in dependencyDelta.changed"
+                                            :key="`changed-${row.purl ?? row.name}`"
+                                        >
+                                            ~ {{ row.name }}:
+                                            {{ row.from_version ?? '—' }} →
+                                            {{ row.to_version ?? '—' }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="hasStaleEvidence"
+                        class="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-3 text-sm text-destructive"
+                    >
+                        <p>
+                            {{
+                                t(
+                                    'products.technical_documentation.stale_evidence_hint',
+                                    {
+                                        stale: String(evidenceFreshness.stale),
+                                        total: String(evidenceFreshness.total),
+                                        expired: String(
+                                            evidenceFreshness.expired,
+                                        ),
+                                        review_due: String(
+                                            evidenceFreshness.review_due,
+                                        ),
+                                    },
                                 )
                             }}
                         </p>
                         <Link
-                            v-if="props.package.linked_usi"
-                            :href="
-                                editSecurityInstruction({
-                                    product: props.product.id,
-                                    instruction: props.package.linked_usi.id,
-                                }).url
-                            "
-                            class="text-sm font-medium underline underline-offset-2"
+                            :href="evidenceHref"
+                            class="mt-1 inline-flex text-xs font-medium underline underline-offset-2"
                         >
                             {{
                                 t(
-                                    'products.technical_documentation.open_linked_usi',
+                                    'products.technical_documentation.stale_evidence_link',
                                 )
                             }}
                         </Link>
@@ -1360,85 +1267,244 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
 
                     <div class="grid gap-2">
                         <FieldLabel
-                            html-for="sdl_run_id"
+                            html-for="notes"
                             :help="
-                                t(
-                                    'products.technical_documentation.help.linked_sdl',
-                                )
+                                t('products.technical_documentation.help.notes')
                             "
                         >
                             {{
                                 t(
-                                    'products.technical_documentation.fields.linked_sdl',
+                                    'products.technical_documentation.fields.notes',
                                 )
                             }}
                         </FieldLabel>
-                        <Select
+                        <textarea
+                            id="notes"
+                            v-model="form.notes"
+                            rows="3"
                             :disabled="readOnly"
-                            :model-value="
-                                form.sdl_run_id === ''
-                                    ? '__none__'
-                                    : String(form.sdl_run_id)
-                            "
-                            @update:model-value="
-                                (value) => {
-                                    form.sdl_run_id =
-                                        value === '__none__' ||
-                                        value === undefined ||
-                                        value === null
-                                            ? ''
-                                            : Number(value);
-                                }
-                            "
-                        >
-                            <SelectTrigger id="sdl_run_id" class="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__none__">
-                                    {{
-                                        t(
-                                            'products.technical_documentation.none_selected',
-                                        )
-                                    }}
-                                </SelectItem>
-                                <SelectItem
-                                    v-for="item in sdl_runs"
-                                    :key="item.id"
-                                    :value="String(item.id)"
-                                >
-                                    {{ sdlOptionLabel(item) }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError :message="form.errors.sdl_run_id" />
-                        <p
-                            v-if="sdl_runs.length === 0"
-                            class="text-sm text-muted-foreground"
-                        >
-                            {{
-                                t(
-                                    'products.technical_documentation.sdl_link_none',
-                                )
-                            }}
-                        </p>
-                        <Link
-                            v-if="props.package.linked_sdl"
-                            :href="
-                                editSdlRun({
-                                    product: props.product.id,
-                                    sdlRun: props.package.linked_sdl.id,
-                                }).url
-                            "
-                            class="text-sm font-medium underline underline-offset-2"
-                        >
-                            {{
-                                t(
-                                    'products.technical_documentation.open_linked_sdl',
-                                )
-                            }}
-                        </Link>
+                            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                        />
+                        <InputError :message="form.errors.notes" />
                     </div>
+
+                    <div class="space-y-3 rounded-md border p-3">
+                        <div>
+                            <h2 class="text-sm font-medium">
+                                {{
+                                    t(
+                                        'products.technical_documentation.documentation_links_heading',
+                                    )
+                                }}
+                            </h2>
+                            <p class="text-sm text-muted-foreground">
+                                {{
+                                    t(
+                                        'products.technical_documentation.documentation_links_help',
+                                    )
+                                }}
+                            </p>
+                        </div>
+
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                html-for="user_security_instruction_id"
+                                :help="
+                                    t(
+                                        'products.technical_documentation.help.linked_usi',
+                                    )
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.fields.linked_usi',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <Select
+                                :disabled="readOnly"
+                                :model-value="
+                                    form.user_security_instruction_id === ''
+                                        ? '__none__'
+                                        : String(
+                                              form.user_security_instruction_id,
+                                          )
+                                "
+                                @update:model-value="
+                                    (value) => {
+                                        form.user_security_instruction_id =
+                                            value === '__none__' ||
+                                            value === undefined ||
+                                            value === null
+                                                ? ''
+                                                : Number(value);
+                                    }
+                                "
+                            >
+                                <SelectTrigger
+                                    id="user_security_instruction_id"
+                                    class="w-full"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__none__">
+                                        {{
+                                            t(
+                                                'products.technical_documentation.none_selected',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem
+                                        v-for="item in published_usi"
+                                        :key="item.id"
+                                        :value="String(item.id)"
+                                    >
+                                        {{ usiOptionLabel(item) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError
+                                :message="
+                                    form.errors.user_security_instruction_id
+                                "
+                            />
+                            <p
+                                v-if="published_usi.length === 0"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.usi_link_none',
+                                    )
+                                }}
+                            </p>
+                            <Link
+                                v-if="props.package.linked_usi"
+                                :href="
+                                    editSecurityInstruction({
+                                        product: props.product.id,
+                                        instruction:
+                                            props.package.linked_usi.id,
+                                    }).url
+                                "
+                                class="text-sm font-medium underline underline-offset-2"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.open_linked_usi',
+                                    )
+                                }}
+                            </Link>
+                        </div>
+
+                        <div class="grid gap-2">
+                            <FieldLabel
+                                html-for="sdl_run_id"
+                                :help="
+                                    t(
+                                        'products.technical_documentation.help.linked_sdl',
+                                    )
+                                "
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.fields.linked_sdl',
+                                    )
+                                }}
+                            </FieldLabel>
+                            <Select
+                                :disabled="readOnly"
+                                :model-value="
+                                    form.sdl_run_id === ''
+                                        ? '__none__'
+                                        : String(form.sdl_run_id)
+                                "
+                                @update:model-value="
+                                    (value) => {
+                                        form.sdl_run_id =
+                                            value === '__none__' ||
+                                            value === undefined ||
+                                            value === null
+                                                ? ''
+                                                : Number(value);
+                                    }
+                                "
+                            >
+                                <SelectTrigger id="sdl_run_id" class="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__none__">
+                                        {{
+                                            t(
+                                                'products.technical_documentation.none_selected',
+                                            )
+                                        }}
+                                    </SelectItem>
+                                    <SelectItem
+                                        v-for="item in sdl_runs"
+                                        :key="item.id"
+                                        :value="String(item.id)"
+                                    >
+                                        {{ sdlOptionLabel(item) }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="form.errors.sdl_run_id" />
+                            <p
+                                v-if="sdl_runs.length === 0"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.sdl_link_none',
+                                    )
+                                }}
+                            </p>
+                            <Link
+                                v-if="props.package.linked_sdl"
+                                :href="
+                                    editSdlRun({
+                                        product: props.product.id,
+                                        sdlRun: props.package.linked_sdl.id,
+                                    }).url
+                                "
+                                class="text-sm font-medium underline underline-offset-2"
+                            >
+                                {{
+                                    t(
+                                        'products.technical_documentation.open_linked_sdl',
+                                    )
+                                }}
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    v-if="!readOnly || canManage"
+                    class="flex items-center justify-between gap-3"
+                >
+                    <Button
+                        v-if="!readOnly"
+                        type="submit"
+                        :disabled="form.processing"
+                    >
+                        <Save class="h-4 w-4" />
+                        {{ t('common.save') }}
+                    </Button>
+                    <div v-else />
+                    <Button
+                        v-if="canManage"
+                        type="button"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        @click="showDeleteDialog = true"
+                    >
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('common.delete') }}
+                    </Button>
                 </div>
             </div>
 
@@ -1462,12 +1528,12 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     v-for="(section, index) in form.sections"
                     :id="`section-${section.section_key}`"
                     :key="section.section_key"
-                    class="scroll-mt-6 space-y-4 border-t border-border pt-6"
+                    class="scroll-mt-6 space-y-4 rounded-lg border p-6"
                 >
                     <div class="flex items-start justify-between gap-4">
                         <div class="space-y-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h3 class="font-medium">
+                                <h3 class="section-heading">
                                     {{ sectionLabel(section.section_key) }}
                                 </h3>
                                 <Badge
@@ -1972,13 +2038,6 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
 
                 <InputError :message="lifecycleError" />
             </div>
-
-            <div v-if="!readOnly" class="flex justify-start">
-                <Button type="submit" :disabled="form.processing">
-                    <Save class="h-4 w-4" />
-                    {{ t('common.save') }}
-                </Button>
-            </div>
         </form>
 
         <Dialog
@@ -2066,6 +2125,14 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.technical_documentation.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
 
         <AppAlertDialog
             v-model:open="showRetireDialog"
