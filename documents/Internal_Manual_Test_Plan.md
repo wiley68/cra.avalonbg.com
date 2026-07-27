@@ -1,6 +1,6 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.15  
+**Версия:** 1.16  
 **Дата:** 27 юли 2026 г.  
 **Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
 **Родителски документи:**
@@ -130,7 +130,7 @@ Wizard notes: W-…
 | **21** | **Technical documentation**                                                                               | Tech docs                                          | Package + key sections + export                                                            | **Done** (2026-07-27) | Вкл. conformity/DoC **prep** (без auto-sign); тестовете са успешни     |
 | **22** | **Compliance passport**                                                                                   | Passport                                           | Преглед; gaps осмислени                                                                    | **Done** (2026-07-27) | Обобщение; тестовете са успешни                                        |
 | **23** | **Readiness**                                                                                             | Readiness → export                                 | Review + exported report                                                                   | **Done** (2026-07-27) | **Финална operational оценка** за release; тестовете са успешни        |
-| **24** | **Auditor package** (опционално за външен преглед)                                                        | Auditor                                            | Package shared / guest open                                                                | Open                  | Не е задължително за всеки release                                     |
+| **24** | **Auditor package** (опционално за външен преглед)                                                        | Auditor                                            | Package shared / guest open                                                                | **Done** (2026-07-27) | Не е задължително за всеки release; тестовете са успешни               |
 | **25** | **AI assistant / RAG** (опционално)                                                                       | Assistant                                          | Chat/analyse с human review                                                                | Open                  | След evidence; `ai:index-embeddings`                                   |
 
 ### 4.1a Предварителен етап 0 — org prep (детайл)
@@ -502,6 +502,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.16   | 2026-07-27 | Spine стъпка **24** (Auditor package) → **Done**; тестовете успешни                                       |
 | 1.15   | 2026-07-27 | Spine стъпка **23** (Readiness) → **Done**; тестовете успешни                                             |
 | 1.14   | 2026-07-27 | Spine стъпка **22** (Compliance passport) → **Done**; тестовете успешни                                   |
 | 1.13   | 2026-07-26 | Spine стъпка **20** (USI) → **Done**                                                                      |
