@@ -23,7 +23,9 @@ class ProductService
      *     classification_status: string,
      *     scope_status: string,
      *     product_line: string|null,
-     *     module_statuses: array<string, 'empty'|'complete'|'attention'|'critical'>
+     *     module_statuses: array<string, 'empty'|'complete'|'attention'|'critical'>,
+     *     module_status_reasons: array<string, array{section: string, summary: string}>,
+     *     module_counts: array<string, int>
      * }>
      */
     public function paginate(
@@ -65,6 +67,24 @@ class ProductService
 
         $query->orderBy($orderColumn, $sortOrder === 'desc' ? 'desc' : 'asc');
 
+        $query->withCount([
+            'versions',
+            'supportPeriods',
+            'components',
+            'risks',
+            'productRequirements',
+            'productControls',
+            'evidence',
+            'tasks',
+            'vulnerabilities',
+            'deployments',
+            'campaigns',
+            'incidents',
+            'sdlRuns',
+            'userSecurityInstructions',
+            'technicalDocumentationPackages',
+        ]);
+
         return $query
             ->paginate($perPage, ['*'], 'page', $page)
             ->through(function (Product $product): array {
@@ -89,6 +109,23 @@ class ProductService
                         ],
                         $moduleDetails,
                     ),
+                    'module_counts' => [
+                        'versions' => (int) $product->versions_count,
+                        'support_periods' => (int) $product->support_periods_count,
+                        'components' => (int) $product->components_count,
+                        'risks' => (int) $product->risks_count,
+                        'requirements' => (int) $product->product_requirements_count,
+                        'controls' => (int) $product->product_controls_count,
+                        'evidence' => (int) $product->evidence_count,
+                        'tasks' => (int) $product->tasks_count,
+                        'vulnerabilities' => (int) $product->vulnerabilities_count,
+                        'deployments' => (int) $product->deployments_count,
+                        'campaigns' => (int) $product->campaigns_count,
+                        'incidents' => (int) $product->incidents_count,
+                        'sdl' => (int) $product->sdl_runs_count,
+                        'security_instructions' => (int) $product->user_security_instructions_count,
+                        'technical_documentation' => (int) $product->technical_documentation_packages_count,
+                    ],
                 ];
             });
     }

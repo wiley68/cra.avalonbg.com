@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
-import { Pencil, Trash2 } from '@lucide/vue';
-import { computed } from 'vue';
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -46,6 +46,8 @@ const { t } = useTranslations();
 const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 
+const modulesExpanded = ref(false);
+
 const typeLabel = computed(() =>
     productEnumLabel(t, 'types', props.product.product_type),
 );
@@ -78,8 +80,24 @@ const canAccessAssistant = computed(() =>
 
 const showFooter = computed(() => props.canManage || canAccessAssistant.value);
 
+const modulesToggleLabel = computed(() =>
+    modulesExpanded.value
+        ? t('products.hide_all_modules')
+        : t('products.show_all_modules'),
+);
+
 const moduleStatus = (key: string): ProductModuleStatus =>
     props.product.module_statuses?.[key] ?? 'empty';
+
+const moduleCount = (key: string): number | null => {
+    const count = props.product.module_counts?.[key];
+
+    if (count === undefined || count <= 0) {
+        return null;
+    }
+
+    return count;
+};
 
 const moduleReasonLabel = (key: string): string =>
     productModuleStatusReasonLabel(
@@ -87,6 +105,10 @@ const moduleReasonLabel = (key: string): string =>
         props.product.module_status_reasons?.[key],
         moduleStatus(key),
     );
+
+const toggleModules = (): void => {
+    modulesExpanded.value = !modulesExpanded.value;
+};
 
 const openModule = (href: string): void => {
     setProductModuleOrigin(props.product.id, 'index');
@@ -126,55 +148,38 @@ const openEdit = (): void => {
         </CardHeader>
 
         <TooltipProvider :delay-duration="300">
-            <CardContent class="space-y-2 px-4 py-3">
-                <div
-                    v-for="module in cardModules"
-                    :key="module.key"
-                    class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
-                    :class="
-                        canAccessProductModule(module, authUser)
-                            ? ''
-                            : 'opacity-50'
-                    "
+            <CardContent class="space-y-0 p-0">
+                <button
+                    type="button"
+                    class="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-none px-4 py-1.5 text-left transition-colors hover:bg-muted/60"
+                    :aria-expanded="modulesExpanded"
+                    @click="toggleModules"
                 >
-                    <component
-                        :is="module.icon"
-                        class="size-4 shrink-0"
+                    <span
+                        class="truncate text-sm font-medium text-muted-foreground hover:text-foreground"
+                    >
+                        {{ modulesToggleLabel }}
+                    </span>
+                    <span
+                        class="inline-flex h-7 w-13 shrink-0 items-center justify-center text-muted-foreground"
+                        aria-hidden="true"
+                    >
+                        <ChevronUp v-if="modulesExpanded" class="size-4" />
+                        <ChevronDown v-else class="size-4" />
+                    </span>
+                </button>
+
+                <div v-if="modulesExpanded" class="divide-y border-t">
+                    <button
+                        v-for="module in cardModules"
+                        :key="module.key"
+                        type="button"
+                        class="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 text-left transition-colors"
                         :class="
-                            productModuleStatusClass(moduleStatus(module.key))
+                            canAccessProductModule(module, authUser)
+                                ? 'cursor-pointer hover:bg-muted/60'
+                                : 'cursor-not-allowed opacity-50'
                         "
-                    />
-                    <div class="min-w-0">
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <p
-                                    class="truncate text-sm leading-tight font-medium"
-                                    :class="
-                                        productModuleStatusClass(
-                                            moduleStatus(module.key),
-                                        )
-                                    "
-                                >
-                                    {{ t(module.labelKey) }}
-                                </p>
-                            </TooltipTrigger>
-                            <TooltipContent
-                                side="top"
-                                class="max-w-xs text-left leading-relaxed"
-                            >
-                                {{ moduleReasonLabel(module.key) }}
-                            </TooltipContent>
-                        </Tooltip>
-                        <p
-                            class="truncate text-xs leading-tight text-muted-foreground"
-                        >
-                            {{ t(module.descriptionKey) }}
-                        </p>
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        class="h-7 px-2 text-xs"
                         :disabled="!canAccessProductModule(module, authUser)"
                         :title="
                             canAccessProductModule(module, authUser)
@@ -186,8 +191,49 @@ const openEdit = (): void => {
                             openModule(module.href(product.id))
                         "
                     >
-                        {{ t('dashboard.open') }}
-                    </Button>
+                        <component
+                            :is="module.icon"
+                            class="size-4 shrink-0"
+                            :class="
+                                productModuleStatusClass(
+                                    moduleStatus(module.key),
+                                )
+                            "
+                        />
+                        <div class="min-w-0">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <p
+                                        class="w-fit max-w-full truncate text-sm leading-tight font-medium"
+                                        :class="
+                                            productModuleStatusClass(
+                                                moduleStatus(module.key),
+                                            )
+                                        "
+                                    >
+                                        {{ t(module.labelKey) }}
+                                    </p>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                    side="top"
+                                    class="max-w-xs text-left leading-relaxed"
+                                >
+                                    {{ moduleReasonLabel(module.key) }}
+                                </TooltipContent>
+                            </Tooltip>
+                            <p
+                                class="truncate text-xs leading-tight text-muted-foreground"
+                            >
+                                {{ t(module.descriptionKey) }}
+                            </p>
+                        </div>
+                        <span
+                            v-if="moduleCount(module.key) !== null"
+                            class="inline-flex h-7 min-w-7 shrink-0 items-center justify-center text-xs text-muted-foreground/70 tabular-nums"
+                        >
+                            {{ moduleCount(module.key) }}
+                        </span>
+                    </button>
                 </div>
             </CardContent>
 
@@ -200,6 +246,7 @@ const openEdit = (): void => {
                         <Button
                             variant="outline"
                             size="icon-sm"
+                            class="cursor-pointer"
                             :disabled="!canAccessAssistant"
                             :aria-label="t(assistantModule.labelKey)"
                             @click="
@@ -223,14 +270,19 @@ const openEdit = (): void => {
                 <span v-else />
 
                 <div v-if="canManage" class="flex items-center gap-2">
-                    <Button variant="outline" size="sm" @click="openEdit">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="cursor-pointer"
+                        @click="openEdit"
+                    >
                         <Pencil class="size-3.5" />
                         {{ t('common.edit') }}
                     </Button>
                     <Button
                         variant="outline"
                         size="sm"
-                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        class="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive"
                         @click="emit('delete', product.id)"
                     >
                         <Trash2 class="size-3.5" />

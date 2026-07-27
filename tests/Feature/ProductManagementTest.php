@@ -376,7 +376,19 @@ test('products internal api returns paginated results', function () {
         ]))
         ->assertOk()
         ->assertJsonPath('total', 1)
-        ->assertJsonPath('data.0.slug', 'payment-module');
+        ->assertJsonPath('data.0.slug', 'payment-module')
+        ->assertJsonStructure([
+            'data' => [
+                [
+                    'module_counts' => [
+                        'versions',
+                        'risks',
+                        'tasks',
+                        'campaigns',
+                    ],
+                ],
+            ],
+        ]);
 });
 
 test('product versions internal api returns paginated results', function () {

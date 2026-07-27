@@ -56,6 +56,7 @@ export type ProductListItem = {
     product_line: string | null;
     module_statuses: Record<string, ProductModuleStatus>;
     module_status_reasons?: Record<string, ProductModuleStatusReason>;
+    module_counts?: Record<string, number>;
 };
 
 export type ProductModuleKey =
