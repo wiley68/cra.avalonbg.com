@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { useReadinessLinks } from '@/composables/useReadinessLinks';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct } from '@/routes/products';
@@ -57,14 +58,22 @@ type ReadinessSection = {
     key: string;
     status: 'pass' | 'warn' | 'fail' | 'na';
     summary: string;
+    link?: string | null;
     metrics?: Record<string, number | string | boolean | null>;
+};
+
+type ReadinessGap = {
+    section: string;
+    status: 'warn' | 'fail';
+    message_key: string;
+    link: string | null;
 };
 
 type ReadinessReport = {
     generated_at: string;
     product: { id: number; name: string; slug: string };
     sections: ReadinessSection[];
-    gaps: Array<{ section: string; status: string; message_key: string }>;
+    gaps: ReadinessGap[];
     metrics: Record<string, number | null>;
 };
 
@@ -75,6 +84,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { resolveLink, sectionLink } = useReadinessLinks(props.product.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -111,6 +121,36 @@ const summaryLabel = (section: ReadinessSection): string => {
     const translated = t(key);
 
     return translated === key ? section.summary : translated;
+};
+
+const gapForSection = (sectionKey: string): ReadinessGap | null =>
+    props.report.gaps.find((gap) => gap.section === sectionKey) ?? null;
+
+const sectionHref = (section: ReadinessSection): string | null =>
+    sectionLink(section.key, section.link);
+
+const issueHref = (section: ReadinessSection): string | null => {
+    if (section.status !== 'fail' && section.status !== 'warn') {
+        return null;
+    }
+
+    const gap = gapForSection(section.key);
+
+    return (
+        resolveLink(gap?.link ?? section.link ?? null) ?? sectionHref(section)
+    );
+};
+
+const issueTextClass = (status: ReadinessSection['status']): string => {
+    if (status === 'fail') {
+        return 'text-destructive hover:underline';
+    }
+
+    if (status === 'warn') {
+        return 'text-orange-600 hover:underline dark:text-orange-400';
+    }
+
+    return 'text-muted-foreground';
 };
 
 const enumLabel = (group: string, value: string | null): string => {
@@ -532,7 +572,14 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                 >
                     <div class="flex items-start justify-between gap-2">
                         <h3 class="text-sm font-semibold">
-                            {{ sectionTitle(section.key) }}
+                            <Link
+                                v-if="sectionHref(section)"
+                                :href="sectionHref(section)!"
+                                class="hover:underline"
+                            >
+                                {{ sectionTitle(section.key) }}
+                            </Link>
+                            <span v-else>{{ sectionTitle(section.key) }}</span>
                         </h3>
                         <Badge :variant="statusVariant(section.status)">
                             {{
@@ -540,8 +587,17 @@ const readinessUrl = computed(() => readinessShow(props.product.id).url);
                             }}
                         </Badge>
                     </div>
-                    <p class="mt-2 text-sm text-muted-foreground">
-                        {{ summaryLabel(section) }}
+                    <p class="mt-2 text-sm">
+                        <Link
+                            v-if="issueHref(section)"
+                            :href="issueHref(section)!"
+                            :class="issueTextClass(section.status)"
+                        >
+                            {{ summaryLabel(section) }}
+                        </Link>
+                        <span v-else class="text-muted-foreground">
+                            {{ summaryLabel(section) }}
+                        </span>
                     </p>
                 </div>
             </div>

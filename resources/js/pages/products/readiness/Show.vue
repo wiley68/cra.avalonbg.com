@@ -4,32 +4,16 @@ import { ArrowLeft, FileDown, IdCard } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from '@/composables/useTranslations';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
+import { useReadinessLinks } from '@/composables/useReadinessLinks';
+import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
-import { edit as editProduct } from '@/routes/products';
-import { index as campaignsIndex } from '@/routes/products/campaigns';
-import {
-    index as deploymentsIndex,
-    unsupported as deploymentsUnsupported,
-} from '@/routes/products/deployments';
-import { index as productComponentsIndex } from '@/routes/products/components';
-import { index as productControlsIndex } from '@/routes/products/controls';
-import { index as productEvidenceIndex } from '@/routes/products/evidence';
-import { exportMethod as readinessExport } from '@/routes/products/readiness';
-import { index as requirementsIndex } from '@/routes/products/requirements';
-import { index as productRisksIndex } from '@/routes/products/risks';
-import { index as productTasksIndex } from '@/routes/products/tasks';
-import { index as versionsIndex } from '@/routes/products/versions';
-import { index as productVulnerabilitiesIndex } from '@/routes/products/vulnerabilities';
+import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { show as passportShow } from '@/routes/products/passport';
-import { index as supportPeriodsIndex } from '@/routes/products/support-periods';
-import { index as policiesIndex } from '@/routes/policies';
-import { index as productsIndex } from '@/routes/products';
-import { show as readinessShow } from '@/routes/products/readiness';
-import { index as securityInstructionsIndex } from '@/routes/products/security-instructions';
-import { index as productSdlIndex } from '@/routes/products/sdl';
-import { index as technicalDocumentationIndex } from '@/routes/products/technical-documentation';
+import {
+    exportMethod as readinessExport,
+    show as readinessShow,
+} from '@/routes/products/readiness';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -38,6 +22,7 @@ type ReadinessSection = {
     key: string;
     status: 'pass' | 'warn' | 'fail' | 'na';
     summary: string;
+    link?: string | null;
     metrics?: Record<string, number | string | boolean | null>;
 };
 
@@ -63,6 +48,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { resolveLink } = useReadinessLinks(props.product.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -110,51 +96,6 @@ const gapMessage = (gap: ReadinessGap): string => {
     return translated === gap.message_key
         ? t('products.readiness.gaps.generic')
         : translated;
-};
-
-const resolveLink = (link: string | null): string | null => {
-    if (!link) {
-        return null;
-    }
-
-    const id = props.product.id;
-
-    switch (link) {
-        case 'edit':
-            return editProduct(id).url;
-        case 'versions':
-            return versionsIndex(id).url;
-        case 'support-periods':
-            return supportPeriodsIndex(id).url;
-        case 'requirements':
-            return requirementsIndex(id).url;
-        case 'controls':
-            return productControlsIndex(id).url;
-        case 'risks':
-            return productRisksIndex(id).url;
-        case 'components':
-            return productComponentsIndex(id).url;
-        case 'vulnerabilities':
-            return productVulnerabilitiesIndex(id).url;
-        case 'campaigns':
-            return campaignsIndex(id).url;
-        case 'deployments-unsupported':
-            return deploymentsUnsupported(id).url;
-        case 'evidence':
-            return productEvidenceIndex(id).url;
-        case 'tasks':
-            return productTasksIndex(id).url;
-        case 'policies':
-            return policiesIndex().url;
-        case 'security-instructions':
-            return securityInstructionsIndex(id).url;
-        case 'sdl':
-            return productSdlIndex(id).url;
-        case 'technical-documentation':
-            return technicalDocumentationIndex(id).url;
-        default:
-            return null;
-    }
 };
 
 const failCount = computed(

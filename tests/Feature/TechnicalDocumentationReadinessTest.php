@@ -155,7 +155,7 @@ test('in-scope product without published tech-doc produces missing gap', functio
                     fn($gap) => $gap['message_key'] === 'products.readiness.gaps.technical_documentation_missing'
                     && $gap['section'] === 'technical_documentation'
                     && $gap['status'] === 'fail'
-                    && $gap['link'] === 'technical-documentation',
+                    && str_starts_with((string) $gap['link'], 'technical-documentation'),
                 ))->toBeTrue();
         });
 });
@@ -226,7 +226,7 @@ test('published tech-doc without linked USI produces warn gap', function () {
                 ->and($section['summary'])->toBe('usi_unlinked')
                 ->and($gaps->contains(
                     fn($gap) => $gap['message_key'] === 'products.readiness.gaps.technical_documentation_usi_unlinked'
-                    && $gap['link'] === 'technical-documentation'
+                    && str_starts_with((string) $gap['link'], 'technical-documentation')
                     && $gap['status'] === 'warn',
                 ))->toBeTrue();
         });

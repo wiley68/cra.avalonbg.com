@@ -279,7 +279,7 @@ class ProductReadinessService
      * @return array{
      *     generated_at: string,
      *     product: array{id: int, name: string, slug: string},
-     *     sections: list<array{key: string, status: string, summary: string, metrics?: array<string, int|float|string|null>}>,
+     *     sections: list<array{key: string, status: string, summary: string, link?: string|null, metrics?: array<string, int|float|string|null>}>,
      *     gaps: list<array{section: string, status: string, message_key: string, link: string|null}>,
      *     metrics: array<string, int|float|null>
      * }
@@ -318,7 +318,7 @@ class ProductReadinessService
                     'section' => $section['key'],
                     'status' => $section['status'],
                     'message_key' => $section['gap_key'] ?? ('products.readiness.gaps.' . $section['key']),
-                    'link' => $section['link'] ?? null,
+                    'link' => $section['link'] ?? $this->defaultLinkForSection($section['key']),
                 ];
             }
         }
@@ -335,7 +335,8 @@ class ProductReadinessService
                 'slug' => $product->slug,
             ],
             'sections' => array_map(function (array $section): array {
-                unset($section['gap_key'], $section['link']);
+                unset($section['gap_key']);
+                $section['link'] = $section['link'] ?? $this->defaultLinkForSection($section['key']);
 
                 return $section;
             }, $sections),
@@ -370,6 +371,36 @@ class ProductReadinessService
                 'failed_integration_syncs' => $this->failedIntegrationSyncCount($product),
             ],
         ];
+    }
+
+    /**
+     * Default module navigation target for a readiness / passport section card.
+     */
+    private function defaultLinkForSection(string $key): ?string
+    {
+        return match ($key) {
+            'identification',
+            'classification',
+            'scope',
+            'responsible_persons',
+            'repository',
+            'integrations' => 'edit',
+            'versions', 'release' => 'versions',
+            'support' => 'support-periods',
+            'policies' => 'policies',
+            'security_instructions' => 'security-instructions',
+            'requirements' => 'requirements',
+            'controls' => 'controls',
+            'risks' => 'risks',
+            'sbom' => 'components',
+            'vulnerabilities', 'reporting' => 'vulnerabilities',
+            'deployments' => 'deployments',
+            'evidence' => 'evidence',
+            'technical_documentation' => 'technical-documentation',
+            'tasks' => 'tasks',
+            'sdl' => 'sdl',
+            default => null,
+        };
     }
 
     /**
@@ -901,23 +932,33 @@ class ProductReadinessService
         $counts = $this->vulnerabilityCounts($product);
 
         if ($counts['overdue'] > 0) {
+            $link = 'vulnerabilities';
+            if ($counts['overdue'] === 1 && isset($counts['first_overdue_id'])) {
+                $link = 'vulnerability:' . $counts['first_overdue_id'];
+            }
+
             return [
                 'key' => 'vulnerabilities',
                 'status' => 'fail',
                 'summary' => 'overdue',
                 'gap_key' => 'products.readiness.gaps.vulnerabilities_overdue',
-                'link' => 'vulnerabilities',
+                'link' => $link,
                 'metrics' => $counts,
             ];
         }
 
         if ($counts['critical'] > 0) {
+            $link = 'vulnerabilities';
+            if ($counts['critical'] === 1 && isset($counts['first_critical_id'])) {
+                $link = 'vulnerability:' . $counts['first_critical_id'];
+            }
+
             return [
                 'key' => 'vulnerabilities',
                 'status' => 'warn',
                 'summary' => 'critical_open',
                 'gap_key' => 'products.readiness.gaps.vulnerabilities_critical',
-                'link' => 'vulnerabilities',
+                'link' => $link,
                 'metrics' => $counts,
             ];
         }
@@ -1124,12 +1165,27 @@ class ProductReadinessService
         }
 
         if ($publishedCount === 0) {
+            $link = 'technical-documentation';
+            if ($draftOrReviewCount === 1) {
+                $packageId = TechnicalDocumentationPackage::query()
+                    ->where('product_id', $product->id)
+                    ->whereIn('status', [
+                        TechnicalDocumentationStatus::Draft,
+                        TechnicalDocumentationStatus::UnderReview,
+                    ])
+                    ->value('id');
+
+                if ($packageId !== null) {
+                    $link = 'technical-documentation:' . $packageId;
+                }
+            }
+
             return [
                 'key' => 'technical_documentation',
                 'status' => 'fail',
                 'summary' => $draftOrReviewCount > 0 ? 'draft_or_review' : 'missing',
                 'gap_key' => 'products.readiness.gaps.technical_documentation_missing',
-                'link' => 'technical-documentation',
+                'link' => $link,
                 'metrics' => $metrics,
             ];
         }
@@ -1140,7 +1196,7 @@ class ProductReadinessService
                 'status' => 'fail',
                 'summary' => 'incomplete',
                 'gap_key' => 'products.readiness.gaps.technical_documentation_incomplete',
-                'link' => 'technical-documentation',
+                'link' => 'technical-documentation:' . $latestPublished->id,
                 'metrics' => $metrics,
             ];
         }
@@ -1151,7 +1207,7 @@ class ProductReadinessService
                 'status' => 'warn',
                 'summary' => 'usi_unlinked',
                 'gap_key' => 'products.readiness.gaps.technical_documentation_usi_unlinked',
-                'link' => 'technical-documentation',
+                'link' => 'technical-documentation:' . $latestPublished->id,
                 'metrics' => $metrics,
             ];
         }
@@ -1345,7 +1401,7 @@ class ProductReadinessService
             fn(Task $task) => in_array($task->status, $openStatuses, true),
         );
 
-        $overdue = $open->contains(
+        $overdueTasks = $open->filter(
             fn(Task $task) => $task->due_at !== null && $task->due_at->lt(now()),
         );
 
@@ -1354,13 +1410,18 @@ class ProductReadinessService
             'total_tasks' => $tasks->count(),
         ];
 
-        if ($overdue) {
+        if ($overdueTasks->isNotEmpty()) {
+            $link = 'tasks';
+            if ($overdueTasks->count() === 1) {
+                $link = 'task:' . $overdueTasks->first()->id;
+            }
+
             return [
                 'key' => 'tasks',
                 'status' => 'warn',
                 'summary' => 'overdue',
                 'gap_key' => 'products.readiness.gaps.tasks_overdue',
-                'link' => 'tasks',
+                'link' => $link,
                 'metrics' => $metrics,
             ];
         }
@@ -1519,12 +1580,24 @@ class ProductReadinessService
         $metrics['uncovered_awaiting'] = $uncoveredCount;
 
         if ($uncoveredCount > 0) {
+            $link = 'sdl';
+            $candidateRuns = SdlRun::query()
+                ->where('product_id', $product->id)
+                ->where('status', '!=', SdlRunStatus::Approved)
+                ->orderByDesc('id')
+                ->limit(2)
+                ->pluck('id');
+
+            if ($candidateRuns->count() === 1) {
+                $link = 'sdl:' . $candidateRuns->first();
+            }
+
             return [
                 'key' => 'sdl',
                 'status' => 'fail',
                 'summary' => 'missing',
                 'gap_key' => 'products.readiness.gaps.sdl_release_approval_missing',
-                'link' => 'sdl',
+                'link' => $link,
                 'metrics' => $metrics,
             ];
         }
@@ -1629,7 +1702,7 @@ class ProductReadinessService
     }
 
     /**
-     * @return array{open: int, critical: int, overdue: int, total: int}
+     * @return array{open: int, critical: int, overdue: int, total: int, first_overdue_id?: int, first_critical_id?: int}
      */
     private function vulnerabilityCounts(Product $product): array
     {
@@ -1643,7 +1716,7 @@ class ProductReadinessService
 
         $critical = $open->filter(
             fn(ProductVulnerability $vuln) => $vuln->business_severity === VulnerabilityBusinessSeverity::Critical,
-        )->count();
+        );
 
         $overdue = $open->filter(function (ProductVulnerability $vuln): bool {
             $d24 = ProductVulnerabilityService::deadline24h($vuln->awareness_at);
@@ -1651,14 +1724,24 @@ class ProductReadinessService
 
             return ProductVulnerabilityService::isOverdue($d24)
                 || ProductVulnerabilityService::isOverdue($d72);
-        })->count();
+        });
 
-        return [
+        $result = [
             'open' => $open->count(),
-            'critical' => $critical,
-            'overdue' => $overdue,
+            'critical' => $critical->count(),
+            'overdue' => $overdue->count(),
             'total' => $vulns->count(),
         ];
+
+        if ($overdue->count() === 1) {
+            $result['first_overdue_id'] = (int) $overdue->first()->id;
+        }
+
+        if ($critical->count() === 1) {
+            $result['first_critical_id'] = (int) $critical->first()->id;
+        }
+
+        return $result;
     }
 
     /**
