@@ -48,7 +48,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
-const { resolveLink } = useReadinessLinks(props.product.id);
+const { resolveLink, sectionLink } = useReadinessLinks(props.product.id);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -88,6 +88,36 @@ const summaryLabel = (section: ReadinessSection): string => {
     const translated = t(key);
 
     return translated === key ? section.summary : translated;
+};
+
+const gapForSection = (sectionKey: string): ReadinessGap | null =>
+    props.report.gaps.find((gap) => gap.section === sectionKey) ?? null;
+
+const sectionHref = (section: ReadinessSection): string | null =>
+    sectionLink(section.key, section.link);
+
+const issueHref = (section: ReadinessSection): string | null => {
+    if (section.status !== 'fail' && section.status !== 'warn') {
+        return null;
+    }
+
+    const gap = gapForSection(section.key);
+
+    return (
+        resolveLink(gap?.link ?? section.link ?? null) ?? sectionHref(section)
+    );
+};
+
+const issueTextClass = (status: ReadinessSection['status']): string => {
+    if (status === 'fail') {
+        return 'text-destructive hover:underline';
+    }
+
+    if (status === 'warn') {
+        return 'text-orange-600 hover:underline dark:text-orange-400';
+    }
+
+    return 'text-muted-foreground';
 };
 
 const gapMessage = (gap: ReadinessGap): string => {
@@ -162,13 +192,27 @@ const exportUrl = computed(() => readinessExport(props.product.id).url);
                 <p class="text-xs text-muted-foreground">
                     {{ t('products.readiness.metrics.failures') }}
                 </p>
-                <p class="text-2xl font-semibold">{{ failCount }}</p>
+                <p
+                    class="text-2xl font-semibold"
+                    :class="failCount > 0 ? 'text-destructive' : ''"
+                >
+                    {{ failCount }}
+                </p>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-xs text-muted-foreground">
                     {{ t('products.readiness.metrics.warnings') }}
                 </p>
-                <p class="text-2xl font-semibold">{{ warnCount }}</p>
+                <p
+                    class="text-2xl font-semibold"
+                    :class="
+                        warnCount > 0
+                            ? 'text-orange-600 dark:text-orange-400'
+                            : ''
+                    "
+                >
+                    {{ warnCount }}
+                </p>
             </div>
             <div class="rounded-lg border p-4">
                 <p class="text-xs text-muted-foreground">
@@ -222,7 +266,14 @@ const exportUrl = computed(() => readinessExport(props.product.id).url);
                 >
                     <div class="flex items-center justify-between gap-2">
                         <h3 class="font-medium">
-                            {{ sectionTitle(section.key) }}
+                            <Link
+                                v-if="sectionHref(section)"
+                                :href="sectionHref(section)!"
+                                class="hover:underline"
+                            >
+                                {{ sectionTitle(section.key) }}
+                            </Link>
+                            <span v-else>{{ sectionTitle(section.key) }}</span>
                         </h3>
                         <Badge :variant="statusVariant(section.status)">
                             {{
@@ -230,8 +281,17 @@ const exportUrl = computed(() => readinessExport(props.product.id).url);
                             }}
                         </Badge>
                     </div>
-                    <p class="text-sm text-muted-foreground">
-                        {{ summaryLabel(section) }}
+                    <p class="text-sm">
+                        <Link
+                            v-if="issueHref(section)"
+                            :href="issueHref(section)!"
+                            :class="issueTextClass(section.status)"
+                        >
+                            {{ summaryLabel(section) }}
+                        </Link>
+                        <span v-else class="text-muted-foreground">
+                            {{ summaryLabel(section) }}
+                        </span>
                     </p>
                 </article>
             </div>
