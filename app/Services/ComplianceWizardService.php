@@ -6,13 +6,15 @@ use App\Enums\ClassificationStatus;
 use App\Enums\ScopeStatus;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Support\ComplianceWizardSidePaths;
 use App\Support\ComplianceWizardSpine;
 
 class ComplianceWizardService
 {
     public function __construct(
         private readonly ProductReadinessService $readiness,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{
@@ -30,6 +32,18 @@ class ComplianceWizardService
      *         is_current: bool,
      *         is_dismissed: bool
      *     }>,
+     *     side_paths: list<array{
+     *         from_key: string,
+     *         to_key: string,
+     *         from_number: int,
+     *         to_number: int,
+     *         from_label_key: string,
+     *         to_label_key: string,
+     *         when_key: string,
+     *         href: string,
+     *         relevant: bool,
+     *         to_dismissed: bool
+     *     }>,
      *     dismissed_optional: list<string>,
      *     current_step_key: string|null,
      *     required_complete: bool,
@@ -43,6 +57,7 @@ class ComplianceWizardService
         $dismissed = $this->dismissedOptionalKeys($product);
         $currentKey = $this->resolveCurrentStepKey($statuses, $dismissed);
 
+        $stepsByKey = [];
         $steps = [];
         foreach (ComplianceWizardSpine::steps() as $definition) {
             $key = $definition['key'];
@@ -50,7 +65,7 @@ class ComplianceWizardService
             $isComplete = $this->isCompleteStatus($status);
             $isDismissed = in_array($key, $dismissed, true);
 
-            $steps[] = [
+            $step = [
                 'number' => $definition['number'],
                 'key' => $key,
                 'required' => $definition['required'],
@@ -63,6 +78,8 @@ class ComplianceWizardService
                 'is_current' => $currentKey === $key,
                 'is_dismissed' => $isDismissed,
             ];
+            $steps[] = $step;
+            $stepsByKey[$key] = $step;
         }
 
         $requiredComplete = $this->requiredStepsComplete($statuses);
@@ -77,11 +94,93 @@ class ComplianceWizardService
                 'classification_status' => $product->classification_status?->value,
             ],
             'steps' => $steps,
+            'side_paths' => $this->buildSidePaths($product, $stepsByKey, $currentKey, $dismissed),
             'dismissed_optional' => $dismissed,
             'current_step_key' => $currentKey,
             'required_complete' => $requiredComplete,
             'success' => $requiredComplete,
         ];
+    }
+
+    /**
+     * @param  array<string, array{
+     *     number: int,
+     *     key: string,
+     *     required: bool,
+     *     label_key: string,
+     *     content_key: string,
+     *     href: string,
+     *     status: string,
+     *     status_reason: array{section: string, summary: string}|null,
+     *     is_complete: bool,
+     *     is_current: bool,
+     *     is_dismissed: bool
+     * }>  $stepsByKey
+     * @param  list<string>  $dismissed
+     * @return list<array{
+     *     from_key: string,
+     *     to_key: string,
+     *     from_number: int,
+     *     to_number: int,
+     *     from_label_key: string,
+     *     to_label_key: string,
+     *     when_key: string,
+     *     href: string,
+     *     relevant: bool,
+     *     to_dismissed: bool
+     * }>
+     */
+    public function buildSidePaths(
+        Product $product,
+        array $stepsByKey,
+        ?string $currentKey,
+        array $dismissed,
+    ): array {
+        $paths = [];
+
+        foreach (ComplianceWizardSidePaths::edges() as $edge) {
+            $fromKey = $edge['from'];
+            $toKey = $edge['to'];
+
+            if ($fromKey === '*') {
+                if ($currentKey === null || $currentKey === $toKey) {
+                    continue;
+                }
+
+                $fromKey = $currentKey;
+            }
+
+            $from = $stepsByKey[$fromKey] ?? null;
+            $to = $stepsByKey[$toKey] ?? null;
+
+            if ($from === null || $to === null) {
+                continue;
+            }
+
+            $relevant = $currentKey !== null
+                && ($fromKey === $currentKey || $toKey === $currentKey);
+
+            $paths[] = [
+                'from_key' => $fromKey,
+                'to_key' => $toKey,
+                'from_number' => $from['number'],
+                'to_number' => $to['number'],
+                'from_label_key' => $from['label_key'],
+                'to_label_key' => $to['label_key'],
+                'when_key' => $edge['when_key'],
+                'href' => $to['href'],
+                'relevant' => $relevant,
+                'to_dismissed' => in_array($toKey, $dismissed, true),
+            ];
+        }
+
+        usort(
+            $paths,
+            static fn(array $a, array $b): int => [$b['relevant'], $a['from_number'], $a['to_number']]
+            <=> [$a['relevant'], $b['from_number'], $b['to_number']],
+        );
+
+        return $paths;
     }
 
     /**
@@ -91,7 +190,7 @@ class ComplianceWizardService
     {
         $raw = $product->wizard_dismissed_optional;
 
-        if (! is_array($raw)) {
+        if (!is_array($raw)) {
             return [];
         }
 
@@ -99,19 +198,19 @@ class ComplianceWizardService
 
         return array_values(array_filter(
             $raw,
-            static fn (mixed $key): bool => is_string($key) && in_array($key, $allowed, true),
+            static fn(mixed $key): bool => is_string($key) && in_array($key, $allowed, true),
         ));
     }
 
     public function dismissOptional(Product $product, string $key): void
     {
-        if (! ComplianceWizardSpine::isOptionalKey($key)) {
+        if (!ComplianceWizardSpine::isOptionalKey($key)) {
             abort(422, 'Only optional wizard steps can be dismissed.');
         }
 
         $dismissed = $this->dismissedOptionalKeys($product);
 
-        if (! in_array($key, $dismissed, true)) {
+        if (!in_array($key, $dismissed, true)) {
             $dismissed[] = $key;
         }
 
@@ -122,14 +221,14 @@ class ComplianceWizardService
 
     public function restoreOptional(Product $product, string $key): void
     {
-        if (! ComplianceWizardSpine::isOptionalKey($key)) {
+        if (!ComplianceWizardSpine::isOptionalKey($key)) {
             abort(422, 'Only optional wizard steps can be restored.');
         }
 
         $product->forceFill([
             'wizard_dismissed_optional' => array_values(array_filter(
                 $this->dismissedOptionalKeys($product),
-                static fn (string $dismissed): bool => $dismissed !== $key,
+                static fn(string $dismissed): bool => $dismissed !== $key,
             )),
         ])->save();
     }
@@ -159,11 +258,11 @@ class ComplianceWizardService
         $definitions = ComplianceWizardSpine::steps();
 
         foreach ($definitions as $definition) {
-            if (! $definition['required']) {
+            if (!$definition['required']) {
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -177,7 +276,7 @@ class ComplianceWizardService
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -191,11 +290,11 @@ class ComplianceWizardService
     public function requiredStepsComplete(array $statuses): bool
     {
         foreach (ComplianceWizardSpine::steps() as $definition) {
-            if (! $definition['required']) {
+            if (!$definition['required']) {
                 continue;
             }
 
-            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return false;
             }
         }
@@ -381,13 +480,13 @@ class ComplianceWizardService
     private function resolveHref(Product $product, array $definition): string
     {
         $hash = isset($definition['hash']) && filled($definition['hash'])
-            ? '#'.$definition['hash']
+            ? '#' . $definition['hash']
             : '';
 
         return match ($definition['href_type']) {
-            'product_edit' => route('products.edit', $product).$hash,
-            'product_route' => route($definition['route'], $product).$hash,
-            'org_route' => route($definition['route']).$hash,
+            'product_edit' => route('products.edit', $product) . $hash,
+            'product_route' => route($definition['route'], $product) . $hash,
+            'org_route' => route($definition['route']) . $hash,
         };
     }
 }

@@ -3911,7 +3911,25 @@
             "restore_optional": "Restore",
             "dismissed_heading": "Skipped optional steps",
             "optional_dismissed": "Optional step skipped for this product.",
-            "optional_restored": "Optional step restored to the wizard path."
+            "optional_restored": "Optional step restored to the wizard path.",
+            "side_paths": {
+                "heading": "Allowed side paths",
+                "intro": "Deviations from the linear spine that are safe when the situation matches. Prefer the main path unless one of these applies.",
+                "show_all": "Show all allowed paths",
+                "show_relevant": "Show paths for current step",
+                "empty_relevant": "No extra side paths for the current step beyond the linear spine.",
+                "avoid": "Avoid advertising as normal: Scope ↔ Tech docs before versions; Readiness before risks/controls/evidence; accepting imports without triage.",
+                "jump": "Open target",
+                "from_to": ":from → :to",
+                "when": {
+                    "release": "Release work in progress",
+                    "finding": "New finding needs immediate triage",
+                    "continuous": "Attach or refresh evidence continuously",
+                    "patch": "Patch rollout across installations",
+                    "incident": "A real security incident occurs",
+                    "external_review": "External auditor review"
+                }
+            }
         }
     },
     "audit_logs": {

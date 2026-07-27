@@ -2,7 +2,9 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    ArrowRight,
     ClipboardCheck,
+    GitBranch,
     IdCard,
     ListOrdered,
     RotateCcw,
@@ -13,7 +15,7 @@ import {
     Users,
     X,
 } from '@lucide/vue';
-import { computed, type Component } from 'vue';
+import { computed, ref, type Component } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,10 +82,24 @@ type WizardStep = {
     is_dismissed: boolean;
 };
 
+type WizardSidePath = {
+    from_key: string;
+    to_key: string;
+    from_number: number;
+    to_number: number;
+    from_label_key: string;
+    to_label_key: string;
+    when_key: string;
+    href: string;
+    relevant: boolean;
+    to_dismissed: boolean;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: WizardProduct;
     steps: WizardStep[];
+    side_paths: WizardSidePath[];
     dismissed_optional: string[];
     current_step_key: string | null;
     required_complete: boolean;
@@ -215,6 +231,28 @@ const dismissedOptionalSteps = computed(() =>
         (step) => !step.required && step.is_dismissed && !step.is_complete,
     ),
 );
+
+const showAllSidePaths = ref(false);
+
+const visibleSidePaths = computed(() => {
+    const paths = props.side_paths.filter((path) => !path.to_dismissed);
+
+    if (showAllSidePaths.value) {
+        return paths;
+    }
+
+    return paths.filter((path) => path.relevant);
+});
+
+const hasRelevantSidePaths = computed(() =>
+    props.side_paths.some((path) => path.relevant && !path.to_dismissed),
+);
+
+const sidePathLabel = (path: WizardSidePath): string =>
+    t('products.wizard.side_paths.from_to', {
+        from: `${path.from_number}. ${t(path.from_label_key)}`,
+        to: `${path.to_number}. ${t(path.to_label_key)}`,
+    });
 
 const stepStatusClass = (status: WizardStepStatus): string => {
     if (status === 'na') {
@@ -539,6 +577,73 @@ const restoreStep = (key: string): void => {
                         {{ t('products.wizard.dismiss_optional') }}
                     </Button>
                 </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader class="space-y-2">
+                <CardTitle class="flex items-center gap-2 text-base">
+                    <GitBranch class="h-4 w-4" />
+                    {{ t('products.wizard.side_paths.heading') }}
+                </CardTitle>
+                <CardDescription>
+                    {{ t('products.wizard.side_paths.intro') }}
+                </CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4">
+                <div
+                    v-if="visibleSidePaths.length === 0"
+                    class="text-sm text-muted-foreground"
+                >
+                    {{ t('products.wizard.side_paths.empty_relevant') }}
+                </div>
+                <ul v-else class="space-y-3">
+                    <li
+                        v-for="path in visibleSidePaths"
+                        :key="`${path.from_key}-${path.to_key}-${path.when_key}`"
+                        class="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div class="min-w-0 space-y-1 text-sm">
+                            <p class="font-medium">
+                                {{ sidePathLabel(path) }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ t(path.when_key) }}
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="shrink-0"
+                            @click="openStep(path.href)"
+                        >
+                            <ArrowRight class="h-4 w-4" />
+                            {{ t('products.wizard.side_paths.jump') }}
+                        </Button>
+                    </li>
+                </ul>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        @click="showAllSidePaths = !showAllSidePaths"
+                    >
+                        {{
+                            showAllSidePaths
+                                ? t('products.wizard.side_paths.show_relevant')
+                                : t('products.wizard.side_paths.show_all')
+                        }}
+                    </Button>
+                    <Badge
+                        v-if="hasRelevantSidePaths && !showAllSidePaths"
+                        variant="outline"
+                    >
+                        {{ visibleSidePaths.length }}
+                    </Badge>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('products.wizard.side_paths.avoid') }}
+                </p>
             </CardContent>
         </Card>
 

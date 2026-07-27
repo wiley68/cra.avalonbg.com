@@ -3911,7 +3911,25 @@
             "restore_optional": "Възстанови",
             "dismissed_heading": "Пропуснати незадължителни стъпки",
             "optional_dismissed": "Незадължителната стъпка е пропусната за този продукт.",
-            "optional_restored": "Незадължителната стъпка е върната в wizard пътеката."
+            "optional_restored": "Незадължителната стъпка е върната в wizard пътеката.",
+            "side_paths": {
+                "heading": "Разрешени странични пътеки",
+                "intro": "Отклонения от линейния spine, които са безопасни при подходяща ситуация. Предпочитай главната пътека, освен ако някое от тези се прилага.",
+                "show_all": "Покажи всички разрешени пътеки",
+                "show_relevant": "Покажи пътеки за текущата стъпка",
+                "empty_relevant": "Няма допълнителни странични пътеки за текущата стъпка извън линейния spine.",
+                "avoid": "Не рекламирай като нормални: Scope ↔ Tech docs преди versions; Readiness преди risks/controls/evidence; Accept на import без triage.",
+                "jump": "Към целта",
+                "from_to": ":from → :to",
+                "when": {
+                    "release": "Release работа в ход",
+                    "finding": "Нов finding изисква незабавен triage",
+                    "continuous": "Непрекъснато прикачване/опресняване на evidence",
+                    "patch": "Patch rollout по инсталации",
+                    "incident": "Реален security инцидент",
+                    "external_review": "Външен одиторски преглед"
+                }
+            }
         }
     },
     "audit_logs": {

@@ -16,7 +16,8 @@ class ProductComplianceWizardController extends Controller
 {
     public function __construct(
         private readonly ComplianceWizardService $wizard,
-    ) {}
+    ) {
+    }
 
     public function show(Product $product): InertiaResponse
     {
@@ -34,6 +35,7 @@ class ProductComplianceWizardController extends Controller
             ],
             'product' => $wizard['product'],
             'steps' => $wizard['steps'],
+            'side_paths' => $wizard['side_paths'],
             'dismissed_optional' => $wizard['dismissed_optional'],
             'current_step_key' => $wizard['current_step_key'],
             'required_complete' => $wizard['required_complete'],
@@ -49,7 +51,7 @@ class ProductComplianceWizardController extends Controller
         $this->authorize('update', [$product, $organization]);
 
         $key = $request->validate([
-            'key' => ['required', 'string', 'in:'.implode(',', ComplianceWizardSpine::optionalKeys())],
+            'key' => ['required', 'string', 'in:' . implode(',', ComplianceWizardSpine::optionalKeys())],
         ])['key'];
 
         $this->wizard->dismissOptional($product, $key);
@@ -66,7 +68,7 @@ class ProductComplianceWizardController extends Controller
         $this->authorize('update', [$product, $organization]);
 
         $key = $request->validate([
-            'key' => ['required', 'string', 'in:'.implode(',', ComplianceWizardSpine::optionalKeys())],
+            'key' => ['required', 'string', 'in:' . implode(',', ComplianceWizardSpine::optionalKeys())],
         ])['key'];
 
         $this->wizard->restoreOptional($product, $key);
