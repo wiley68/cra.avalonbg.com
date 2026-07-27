@@ -1,8 +1,8 @@
 # Product Compliance Wizard
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 27 юли 2026 г.  
-**Статус:** Active — Must + Should + side paths Done; остава progress %  
+**Статус:** Done — Must / Should / Could complete  
 **Родителски документи:**
 
 - [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (§4.1 spine, §9 wizard pack)
@@ -45,7 +45,7 @@
 ## Could
 
 - ~~Граф на side paths (§6)~~
-- Progress % strip — **отворено**
+- ~~Progress % strip~~
 
 ---
 
@@ -85,6 +85,7 @@
 
 | Версия | Дата       | Промяна                                                         |
 | ------ | ---------- | --------------------------------------------------------------- |
+| 0.7    | 2026-07-27 | Could: progress % strip за required 1–23                        |
 | 0.6    | 2026-07-27 | Could: side paths граф (§6) в wizard + payload                  |
 | 0.5    | 2026-07-27 | Should: persist dismissed optional 24–25 (DB + dismiss/restore) |
 | 0.4    | 2026-07-27 | Should: org prep checklist deep links в wizard header           |

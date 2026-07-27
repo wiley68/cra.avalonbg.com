@@ -13,8 +13,7 @@ class ComplianceWizardService
 {
     public function __construct(
         private readonly ProductReadinessService $readiness,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{
@@ -44,6 +43,14 @@ class ComplianceWizardService
      *         relevant: bool,
      *         to_dismissed: bool
      *     }>,
+     *     progress: array{
+     *         required_total: int,
+     *         required_complete: int,
+     *         percent: int,
+     *         optional_total: int,
+     *         optional_complete: int,
+     *         optional_dismissed: int
+     *     },
      *     dismissed_optional: list<string>,
      *     current_step_key: string|null,
      *     required_complete: bool,
@@ -83,6 +90,7 @@ class ComplianceWizardService
         }
 
         $requiredComplete = $this->requiredStepsComplete($statuses);
+        $progress = $this->buildProgress($steps);
 
         return [
             'product' => [
@@ -95,10 +103,59 @@ class ComplianceWizardService
             ],
             'steps' => $steps,
             'side_paths' => $this->buildSidePaths($product, $stepsByKey, $currentKey, $dismissed),
+            'progress' => $progress,
             'dismissed_optional' => $dismissed,
             'current_step_key' => $currentKey,
             'required_complete' => $requiredComplete,
             'success' => $requiredComplete,
+        ];
+    }
+
+    /**
+     * @param  list<array{required: bool, is_complete: bool, is_dismissed: bool}>  $steps
+     * @return array{
+     *     required_total: int,
+     *     required_complete: int,
+     *     percent: int,
+     *     optional_total: int,
+     *     optional_complete: int,
+     *     optional_dismissed: int
+     * }
+     */
+    public function buildProgress(array $steps): array
+    {
+        $required = array_values(array_filter(
+            $steps,
+            static fn (array $step): bool => $step['required'],
+        ));
+        $optional = array_values(array_filter(
+            $steps,
+            static fn (array $step): bool => ! $step['required'],
+        ));
+
+        $requiredTotal = count($required);
+        $requiredComplete = count(array_filter(
+            $required,
+            static fn (array $step): bool => $step['is_complete'],
+        ));
+        $optionalComplete = count(array_filter(
+            $optional,
+            static fn (array $step): bool => $step['is_complete'],
+        ));
+        $optionalDismissed = count(array_filter(
+            $optional,
+            static fn (array $step): bool => $step['is_dismissed'] && ! $step['is_complete'],
+        ));
+
+        return [
+            'required_total' => $requiredTotal,
+            'required_complete' => $requiredComplete,
+            'percent' => $requiredTotal === 0
+                ? 0
+                : (int) round(($requiredComplete / $requiredTotal) * 100),
+            'optional_total' => count($optional),
+            'optional_complete' => $optionalComplete,
+            'optional_dismissed' => $optionalDismissed,
         ];
     }
 
@@ -176,7 +233,7 @@ class ComplianceWizardService
 
         usort(
             $paths,
-            static fn(array $a, array $b): int => [$b['relevant'], $a['from_number'], $a['to_number']]
+            static fn (array $a, array $b): int => [$b['relevant'], $a['from_number'], $a['to_number']]
             <=> [$a['relevant'], $b['from_number'], $b['to_number']],
         );
 
@@ -190,7 +247,7 @@ class ComplianceWizardService
     {
         $raw = $product->wizard_dismissed_optional;
 
-        if (!is_array($raw)) {
+        if (! is_array($raw)) {
             return [];
         }
 
@@ -198,19 +255,19 @@ class ComplianceWizardService
 
         return array_values(array_filter(
             $raw,
-            static fn(mixed $key): bool => is_string($key) && in_array($key, $allowed, true),
+            static fn (mixed $key): bool => is_string($key) && in_array($key, $allowed, true),
         ));
     }
 
     public function dismissOptional(Product $product, string $key): void
     {
-        if (!ComplianceWizardSpine::isOptionalKey($key)) {
+        if (! ComplianceWizardSpine::isOptionalKey($key)) {
             abort(422, 'Only optional wizard steps can be dismissed.');
         }
 
         $dismissed = $this->dismissedOptionalKeys($product);
 
-        if (!in_array($key, $dismissed, true)) {
+        if (! in_array($key, $dismissed, true)) {
             $dismissed[] = $key;
         }
 
@@ -221,14 +278,14 @@ class ComplianceWizardService
 
     public function restoreOptional(Product $product, string $key): void
     {
-        if (!ComplianceWizardSpine::isOptionalKey($key)) {
+        if (! ComplianceWizardSpine::isOptionalKey($key)) {
             abort(422, 'Only optional wizard steps can be restored.');
         }
 
         $product->forceFill([
             'wizard_dismissed_optional' => array_values(array_filter(
                 $this->dismissedOptionalKeys($product),
-                static fn(string $dismissed): bool => $dismissed !== $key,
+                static fn (string $dismissed): bool => $dismissed !== $key,
             )),
         ])->save();
     }
@@ -258,11 +315,11 @@ class ComplianceWizardService
         $definitions = ComplianceWizardSpine::steps();
 
         foreach ($definitions as $definition) {
-            if (!$definition['required']) {
+            if (! $definition['required']) {
                 continue;
             }
 
-            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -276,7 +333,7 @@ class ComplianceWizardService
                 continue;
             }
 
-            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return $definition['key'];
             }
         }
@@ -290,11 +347,11 @@ class ComplianceWizardService
     public function requiredStepsComplete(array $statuses): bool
     {
         foreach (ComplianceWizardSpine::steps() as $definition) {
-            if (!$definition['required']) {
+            if (! $definition['required']) {
                 continue;
             }
 
-            if (!$this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
+            if (! $this->isCompleteStatus($statuses[$definition['key']] ?? 'empty')) {
                 return false;
             }
         }
@@ -480,13 +537,13 @@ class ComplianceWizardService
     private function resolveHref(Product $product, array $definition): string
     {
         $hash = isset($definition['hash']) && filled($definition['hash'])
-            ? '#' . $definition['hash']
+            ? '#'.$definition['hash']
             : '';
 
         return match ($definition['href_type']) {
-            'product_edit' => route('products.edit', $product) . $hash,
-            'product_route' => route($definition['route'], $product) . $hash,
-            'org_route' => route($definition['route']) . $hash,
+            'product_edit' => route('products.edit', $product).$hash,
+            'product_route' => route($definition['route'], $product).$hash,
+            'org_route' => route($definition['route']).$hash,
         };
     }
 }

@@ -235,6 +235,9 @@ test('wizard inertia payload includes href and content keys', function () {
             ->has('dismissed_optional')
             ->has('can_manage')
             ->has('side_paths')
+            ->has('progress')
+            ->where('progress.required_total', 23)
+            ->where('progress.optional_total', 2)
             ->where('side_paths.0.to_key', 'incidents'));
 });
 

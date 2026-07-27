@@ -3929,6 +3929,11 @@
                     "incident": "Реален security инцидент",
                     "external_review": "Външен одиторски преглед"
                 }
+            },
+            "progress": {
+                "label": "Напредък по задължителната пътека",
+                "summary": ":done от :total задължителни стъпки (:percent%)",
+                "optional_summary": "Незадължителни: :done готови, :dismissed пропуснати"
             }
         }
     },

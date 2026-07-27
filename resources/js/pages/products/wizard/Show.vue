@@ -95,11 +95,21 @@ type WizardSidePath = {
     to_dismissed: boolean;
 };
 
+type WizardProgress = {
+    required_total: number;
+    required_complete: number;
+    percent: number;
+    optional_total: number;
+    optional_complete: number;
+    optional_dismissed: number;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     product: WizardProduct;
     steps: WizardStep[];
     side_paths: WizardSidePath[];
+    progress: WizardProgress;
     dismissed_optional: string[];
     current_step_key: string | null;
     required_complete: boolean;
@@ -254,6 +264,21 @@ const sidePathLabel = (path: WizardSidePath): string =>
         to: `${path.to_number}. ${t(path.to_label_key)}`,
     });
 
+const progressSummary = computed(() =>
+    t('products.wizard.progress.summary', {
+        done: String(props.progress.required_complete),
+        total: String(props.progress.required_total),
+        percent: String(props.progress.percent),
+    }),
+);
+
+const optionalProgressSummary = computed(() =>
+    t('products.wizard.progress.optional_summary', {
+        done: String(props.progress.optional_complete),
+        dismissed: String(props.progress.optional_dismissed),
+    }),
+);
+
 const stepStatusClass = (status: WizardStepStatus): string => {
     if (status === 'na') {
         return 'text-muted-foreground';
@@ -358,6 +383,36 @@ const restoreStep = (key: string): void => {
                 </Button>
             </div>
         </div>
+
+        <section class="space-y-2" aria-labelledby="wizard-progress-label">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <p id="wizard-progress-label" class="text-sm font-medium">
+                    {{ t('products.wizard.progress.label') }}
+                </p>
+                <p class="text-sm text-muted-foreground tabular-nums">
+                    {{ progressSummary }}
+                </p>
+            </div>
+            <div
+                class="h-2 w-full overflow-hidden rounded-full bg-muted"
+                role="progressbar"
+                :aria-valuenow="progress.percent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                :aria-label="progressSummary"
+            >
+                <div
+                    class="h-full rounded-full bg-emerald-600 transition-[width] duration-300 dark:bg-emerald-500"
+                    :style="{ width: `${progress.percent}%` }"
+                />
+            </div>
+            <p
+                v-if="progress.optional_total > 0"
+                class="text-xs text-muted-foreground"
+            >
+                {{ optionalProgressSummary }}
+            </p>
+        </section>
 
         <section
             v-if="orgPrepLinks.length > 0"

@@ -3929,6 +3929,11 @@
                     "incident": "A real security incident occurs",
                     "external_review": "External auditor review"
                 }
+            },
+            "progress": {
+                "label": "Required path progress",
+                "summary": ":done of :total required steps (:percent%)",
+                "optional_summary": "Optional: :done complete, :dismissed skipped"
             }
         }
     },
