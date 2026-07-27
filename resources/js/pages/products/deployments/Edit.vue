@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
@@ -19,6 +21,7 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
+    destroy as destroyDeployment,
     edit as deploymentsEdit,
     index as deploymentsIndex,
     update,
@@ -90,6 +93,8 @@ usePageBreadcrumbs(() => [
     },
 ]);
 
+const showDeleteDialog = ref(false);
+
 const form = useForm({
     customer_id: props.deployment.customer_id as number | '',
     product_version_id: (props.deployment.product_version_id ?? '') as
@@ -122,6 +127,16 @@ const submit = () => {
     );
 };
 
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(
+        destroyDeployment({
+            product: props.product.id,
+            deployment: props.deployment.id,
+        }).url,
+    );
+};
+
 const environmentLabel = (value: string): string => {
     const key = `products.deployments.environments.${value}`;
     const translated = t(key);
@@ -138,6 +153,9 @@ const textareaClass =
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
             <h1 class="text-xl font-semibold">
                 {{ t('products.deployments.edit_title') }}
             </h1>
@@ -397,10 +415,32 @@ const textareaClass =
                 </div>
             </fieldset>
 
-            <Button v-if="canManage" type="submit" :disabled="form.processing">
-                <Save class="h-4 w-4" />
-                {{ t('common.save') }}
-            </Button>
+            <div
+                v-if="canManage"
+                class="flex items-center justify-between gap-3"
+            >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
+                </Button>
+            </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.deployments.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

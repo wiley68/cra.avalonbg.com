@@ -156,7 +156,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
 <template>
     <Head :title="t('products.incidents.create_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -175,7 +175,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </template>
         </PageFormHeader>
 
-        <form class="space-y-6" @submit.prevent="submit">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2 sm:col-span-2">
                     <FieldLabel
@@ -750,7 +750,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                 <InputError :message="form.errors.deployment_ids" />
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-end gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Plus class="h-4 w-4" />
                     {{ t('products.incidents.create') }}

@@ -133,7 +133,7 @@ const toggleEvidence = (id: number, checked: boolean) => {
 <template>
     <Head :title="t('products.sdl.create_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -155,7 +155,7 @@ const toggleEvidence = (id: number, checked: boolean) => {
             </template>
         </PageFormHeader>
 
-        <form class="space-y-4" @submit.prevent="submit">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div
                 class="flex items-center justify-between gap-4 rounded-md border p-3"
             >
@@ -405,7 +405,7 @@ const toggleEvidence = (id: number, checked: boolean) => {
                 <InputError :message="form.errors.evidence_ids" />
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-end gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Plus class="h-4 w-4" />
                     {{ t('products.sdl.create') }}

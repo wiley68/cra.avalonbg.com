@@ -81,7 +81,7 @@ const enumLabel = (group: string, value: string): string => {
 <template>
     <Head :title="t('products.components.create_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-2xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -100,7 +100,7 @@ const enumLabel = (group: string, value: string): string => {
             </template>
         </PageFormHeader>
 
-        <form class="space-y-6" @submit.prevent="submit">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="grid gap-2 sm:col-span-2">
                     <FieldLabel
@@ -303,7 +303,7 @@ const enumLabel = (group: string, value: string): string => {
                 </div>
             </div>
 
-            <div class="flex justify-end gap-2">
+            <div class="flex items-center justify-end gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Plus class="h-4 w-4" />
                     {{ t('products.components.create') }}

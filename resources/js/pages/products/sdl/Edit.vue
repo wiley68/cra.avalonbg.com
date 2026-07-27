@@ -4,8 +4,9 @@ import {
     ArrowLeft,
     Check,
     ExternalLink,
-    FileDown,
+    FileCode,
     FileText,
+    FileType,
     Link2,
     Plus,
     RefreshCw,
@@ -13,6 +14,7 @@ import {
     ShieldCheck,
     ShieldOff,
     Sparkles,
+    Trash2,
     X,
 } from '@lucide/vue';
 import { computed, reactive, ref, watch } from 'vue';
@@ -31,6 +33,7 @@ import { useSdlEditBack } from '@/composables/useSdlEditBack';
 import {
     aiDraft as suggestSdlAiDraft,
     approve as approveSdlRun,
+    destroy as destroySdlRun,
     edit as productSdlEdit,
     exportMethod as exportSdlRun,
     index as productSdlIndex,
@@ -255,6 +258,7 @@ const approving = ref(false);
 const revoking = ref(false);
 const showRevokeDialog = ref(false);
 const showTemplateDialog = ref(false);
+const showDeleteDialog = ref(false);
 const templateStagePending = ref<string | null>(null);
 const syncingRepository = ref(false);
 const linkingExternal = ref(false);
@@ -622,6 +626,16 @@ const confirmRevoke = () => {
     );
 };
 
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(
+        destroySdlRun({
+            product: props.product.id,
+            sdlRun: props.run.id,
+        }).url,
+    );
+};
+
 const hasStageTemplate = (stage: string): boolean =>
     Object.prototype.hasOwnProperty.call(props.stage_note_templates, stage);
 
@@ -862,7 +876,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
 <template>
     <Head :title="t('products.sdl.edit_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -894,7 +908,7 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                     :inertia="false"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileCode class="h-4 w-4" />
                 </HeaderActionButton>
                 <HeaderActionButton
                     :label="t('products.sdl.export_pdf')"
@@ -903,13 +917,13 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                     target="_blank"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileType class="h-4 w-4" />
                 </HeaderActionButton>
             </template>
         </PageFormHeader>
 
-        <form class="space-y-4" @submit.prevent="submit">
-            <fieldset class="space-y-4" :disabled="!canEdit">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
+            <fieldset class="space-y-5" :disabled="!canEdit">
                 <div class="space-y-2">
                     <FieldLabel
                         html-for="title"
@@ -1695,10 +1709,28 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                 </div>
             </section>
 
-            <div v-if="canEdit" class="flex justify-start">
-                <Button type="submit" :disabled="form.processing">
+            <div
+                v-if="canEdit || props.canManage"
+                class="flex items-center justify-between gap-3"
+            >
+                <Button
+                    v-if="canEdit"
+                    type="submit"
+                    :disabled="form.processing"
+                >
                     <Save class="h-4 w-4" />
                     {{ t('common.save') }}
+                </Button>
+                <div v-else />
+                <Button
+                    v-if="props.canManage"
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
                 </Button>
             </div>
         </form>
@@ -2043,6 +2075,14 @@ const exceptionTaskHref = (entry: StageEntry): string | null => {
                 </li>
             </ul>
         </section>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.sdl.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
 
         <AppAlertDialog
             v-model:open="showRevokeDialog"

@@ -4,7 +4,8 @@ import {
     ArrowLeft,
     Check,
     ExternalLink,
-    FileDown,
+    FileCode,
+    FileType,
     Link2,
     Lock,
     Plus,
@@ -640,7 +641,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
 <template>
     <Head :title="t('products.incidents.edit_title')" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -662,7 +663,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     :inertia="false"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileCode class="h-4 w-4" />
                 </HeaderActionButton>
                 <HeaderActionButton
                     :label="t('products.incidents.export_pdf')"
@@ -671,13 +672,13 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
                     target="_blank"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileType class="h-4 w-4" />
                 </HeaderActionButton>
             </template>
         </PageFormHeader>
 
-        <form class="space-y-6" @submit.prevent="submit">
-            <fieldset :disabled="!canManage" class="space-y-6">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
+            <fieldset :disabled="!canManage" class="space-y-5">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="grid gap-2 sm:col-span-2">
                         <FieldLabel
@@ -1461,7 +1462,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
 
             <div
                 v-if="canManage"
-                class="flex items-center justify-between gap-2"
+                class="flex items-center justify-between gap-3"
             >
                 <Button type="submit" :disabled="form.processing">
                     <Save class="h-4 w-4" />
@@ -1479,7 +1480,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </div>
         </form>
 
-        <section class="space-y-4 border-t pt-6">
+        <section class="space-y-4 rounded-lg border p-6">
             <div>
                 <h2 class="text-base font-semibold">
                     {{ t('products.incidents.closure_title') }}
@@ -1550,7 +1551,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </template>
         </section>
 
-        <section class="space-y-4 border-t pt-6">
+        <section class="space-y-4 rounded-lg border p-6">
             <div>
                 <h2 class="text-base font-semibold">
                     {{ t('products.incidents.vulnerability_title') }}
@@ -1690,7 +1691,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </div>
         </section>
 
-        <section class="space-y-4 border-t pt-6">
+        <section class="space-y-4 rounded-lg border p-6">
             <div>
                 <h2 class="text-base font-semibold">
                     {{ t('products.incidents.timeline_title') }}
@@ -1836,7 +1837,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </form>
         </section>
 
-        <section class="space-y-4 border-t pt-6">
+        <section class="space-y-4 rounded-lg border p-6">
             <div>
                 <h2 class="text-base font-semibold">
                     {{ t('products.incidents.reports_title') }}
@@ -2056,7 +2057,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             </form>
         </section>
 
-        <section class="space-y-4 border-t pt-6">
+        <section class="space-y-4 rounded-lg border p-6">
             <div>
                 <h2 class="text-base font-semibold">
                     {{ t('products.incidents.communications_title') }}
@@ -2370,6 +2371,7 @@ const deploymentLabel = (deployment: DeploymentOption): string => {
             :title="t('common.delete_confirm_title')"
             :description="t('products.incidents.confirm_delete')"
             @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
         />
     </div>
 </template>

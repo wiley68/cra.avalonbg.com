@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Check, Save, Send, X } from '@lucide/vue';
+import { ArrowLeft, Check, Save, Send, Trash2, X } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
@@ -13,6 +14,7 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTaskEditBack } from '@/composables/useTaskEditBack';
 import {
     approve as approveTask,
+    destroy as destroyProductTask,
     index as productTasksIndex,
     reject as rejectTask,
     submitApproval,
@@ -90,6 +92,7 @@ usePageBreadcrumbs(() => [
 ]);
 
 const approvalComment = ref(props.task.approval_comment ?? '');
+const showDeleteDialog = ref(false);
 
 const form = useForm({
     title: props.task.title,
@@ -225,6 +228,16 @@ const reject = () => {
         }).url,
         { approval_comment: approvalComment.value || null },
         { preserveScroll: true },
+    );
+};
+
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(
+        destroyProductTask({
+            product: props.product.id,
+            task: props.task.id,
+        }).url,
     );
 };
 
@@ -506,7 +519,7 @@ const textareaClass =
                 />
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-3">
                 <Button
                     v-if="canManage"
                     type="submit"
@@ -553,8 +566,26 @@ const textareaClass =
                         <Check class="h-4 w-4" />
                         {{ t('products.tasks.approve') }}
                     </Button>
+                    <Button
+                        v-if="canManage"
+                        type="button"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        @click="showDeleteDialog = true"
+                    >
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('common.delete') }}
+                    </Button>
                 </div>
             </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.tasks.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

@@ -4,7 +4,9 @@ import {
     Archive,
     ArrowLeft,
     CheckCircle2,
+    FileCode,
     FileDown,
+    FileType,
     Pencil,
     RefreshCcw,
     Save,
@@ -270,8 +272,9 @@ const form = useForm({
         section_key: section.section_key,
         source: section.source,
         body_markdown: section.body_markdown ?? '',
+        // Inertia props are Vue proxies — structuredClone cannot clone Proxies.
         manual_pack: section.manual_pack
-            ? structuredClone(section.manual_pack)
+            ? (JSON.parse(JSON.stringify(section.manual_pack)) as ManualPack)
             : null,
         sort_order: section.sort_order,
         is_applicable: section.is_applicable,
@@ -793,7 +796,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     :inertia="false"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileCode class="h-4 w-4" />
                 </HeaderActionButton>
                 <HeaderActionButton
                     :label="t('products.technical_documentation.export_pdf')"
@@ -802,7 +805,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                     target="_blank"
                     rel="noopener"
                 >
-                    <FileDown class="h-4 w-4" />
+                    <FileType class="h-4 w-4" />
                 </HeaderActionButton>
                 <HeaderActionButton
                     :label="

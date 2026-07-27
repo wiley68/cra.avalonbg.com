@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
@@ -10,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
+    destroy as destroyProductControl,
     index as productControlsIndex,
     update,
 } from '@/routes/products/controls';
@@ -46,6 +49,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const showDeleteDialog = ref(false);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -71,6 +75,16 @@ const form = useForm({
 const submit = () => {
     form.put(
         update({
+            product: props.product.id,
+            product_control: props.productControl.id,
+        }).url,
+    );
+};
+
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(
+        destroyProductControl({
             product: props.product.id,
             product_control: props.productControl.id,
         }).url,
@@ -194,10 +208,32 @@ const textareaClass =
                 <InputError :message="form.errors.notes" />
             </div>
 
-            <Button v-if="canManage" type="submit" :disabled="form.processing">
-                <Save class="h-4 w-4" />
-                {{ t('common.save') }}
-            </Button>
+            <div
+                v-if="canManage"
+                class="flex items-center justify-between gap-3"
+            >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
+                </Button>
+            </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.controls.confirm_remove')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

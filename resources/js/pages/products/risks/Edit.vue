@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save } from '@lucide/vue';
-import { computed } from 'vue';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Save, Trash2 } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import FieldLabel from '@/components/FieldLabel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
@@ -12,7 +13,11 @@ import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useRiskEditBack } from '@/composables/useRiskEditBack';
-import { index as productRisksIndex, update } from '@/routes/products/risks';
+import {
+    destroy as destroyProductRisk,
+    index as productRisksIndex,
+    update,
+} from '@/routes/products/risks';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { edit as productRisksEdit } from '@/routes/products/risks';
 
@@ -76,6 +81,7 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 const { backHref } = useRiskEditBack(props.product.id, props.risk.id);
+const showDeleteDialog = ref(false);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -157,6 +163,16 @@ const submit = () => {
         deadline: data.deadline || null,
     })).put(
         update({
+            product: props.product.id,
+            risk: props.risk.id,
+        }).url,
+    );
+};
+
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(
+        destroyProductRisk({
             product: props.product.id,
             risk: props.risk.id,
         }).url,
@@ -670,10 +686,32 @@ const textareaClass =
                 </div>
             </fieldset>
 
-            <Button v-if="canManage" type="submit" :disabled="form.processing">
-                <Save class="h-4 w-4" />
-                {{ t('common.save') }}
-            </Button>
+            <div
+                v-if="canManage"
+                class="flex items-center justify-between gap-3"
+            >
+                <Button type="submit" :disabled="form.processing">
+                    <Save class="h-4 w-4" />
+                    {{ t('common.save') }}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    @click="showDeleteDialog = true"
+                >
+                    <Trash2 class="h-4 w-4" />
+                    {{ t('common.delete') }}
+                </Button>
+            </div>
         </form>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="t('products.risks.confirm_delete')"
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
     </div>
 </template>

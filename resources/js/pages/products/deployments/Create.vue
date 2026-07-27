@@ -115,6 +115,9 @@ const textareaClass =
 
     <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
+            <p class="text-sm text-muted-foreground">
+                {{ props.product.name }}
+            </p>
             <h1 class="text-xl font-semibold">
                 {{ t('products.deployments.create_title') }}
             </h1>
@@ -359,10 +362,12 @@ const textareaClass =
                 <InputError :message="form.errors.notes" />
             </div>
 
-            <Button type="submit" :disabled="form.processing">
-                <Plus class="h-4 w-4" />
-                {{ t('products.deployments.create') }}
-            </Button>
+            <div class="flex items-center justify-end gap-3">
+                <Button type="submit" :disabled="form.processing">
+                    <Plus class="h-4 w-4" />
+                    {{ t('products.deployments.create') }}
+                </Button>
+            </div>
         </form>
     </div>
 </template>

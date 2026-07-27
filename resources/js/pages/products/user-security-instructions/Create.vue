@@ -121,7 +121,7 @@ const submit = () => {
 <template>
     <Head :title="t('products.user_security_instructions.create_title')" />
 
-    <div class="mx-auto max-w-2xl space-y-6">
+    <div class="mx-auto w-full max-w-2xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -143,7 +143,7 @@ const submit = () => {
             </template>
         </PageFormHeader>
 
-        <form class="space-y-4" @submit.prevent="submit">
+        <form class="space-y-5 rounded-lg border p-6" @submit.prevent="submit">
             <div
                 class="flex items-center justify-between gap-4 rounded-md border px-3 py-2"
             >
@@ -296,7 +296,7 @@ const submit = () => {
                 <InputError :message="form.errors.notes" />
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex items-center justify-end gap-3">
                 <Button type="submit" :disabled="form.processing">
                     <Plus class="h-4 w-4" />
                     {{ t('products.user_security_instructions.create') }}

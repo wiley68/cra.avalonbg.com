@@ -57,6 +57,7 @@ import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { edit as editEvidence } from '@/routes/products/evidence';
 import {
     edit as instructionsEdit,
+    destroy as destroyInstruction,
     exportMethod as instructionsExport,
     index as instructionsIndex,
     aiDraft as suggestAiDraft,
@@ -181,6 +182,7 @@ const form = useForm({
 
 const showRetireDialog = ref(false);
 const showPublishEvidenceDialog = ref(false);
+const showDeleteDialog = ref(false);
 const showDocumentPreview = ref(false);
 const showSubmitDialog = ref(false);
 
@@ -625,6 +627,11 @@ const doRetire = () => {
     router.post(retireInstruction(routeArgs).url, {}, { preserveScroll: true });
 };
 
+const confirmDelete = () => {
+    showDeleteDialog.value = false;
+    router.delete(destroyInstruction(routeArgs).url);
+};
+
 const doPublishEvidence = () => {
     showPublishEvidenceDialog.value = false;
     router.post(publishEvidence(routeArgs).url, {}, { preserveScroll: true });
@@ -650,7 +657,7 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
 <template>
     <Head :title="instruction.title" />
 
-    <div class="mx-auto max-w-3xl space-y-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6">
         <PageFormHeader>
             <p class="text-sm text-muted-foreground">
                 {{ props.product.name }}
@@ -851,165 +858,201 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
         </p>
 
         <form class="space-y-8" @submit.prevent="submit">
-            <div class="space-y-4">
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="title"
-                        :help="
-                            t('products.user_security_instructions.help.title')
-                        "
-                        required
-                    >
-                        {{
-                            t(
-                                'products.user_security_instructions.fields.title',
-                            )
-                        }}
-                    </FieldLabel>
-                    <Input
-                        id="title"
-                        v-model="form.title"
-                        :disabled="!canEdit"
-                        required
-                    />
-                    <InputError :message="form.errors.title" />
-                </div>
+            <div class="space-y-5 rounded-lg border p-6">
+                <div class="space-y-5">
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="title"
+                            :help="
+                                t(
+                                    'products.user_security_instructions.help.title',
+                                )
+                            "
+                            required
+                        >
+                            {{
+                                t(
+                                    'products.user_security_instructions.fields.title',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="title"
+                            v-model="form.title"
+                            :disabled="!canEdit"
+                            required
+                        />
+                        <InputError :message="form.errors.title" />
+                    </div>
 
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="version_label"
-                        :help="
-                            t(
-                                'products.user_security_instructions.help.version_label',
-                            )
-                        "
-                        required
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="version_label"
+                            :help="
+                                t(
+                                    'products.user_security_instructions.help.version_label',
+                                )
+                            "
+                            required
+                        >
+                            {{
+                                t(
+                                    'products.user_security_instructions.fields.version_label',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Input
+                            id="version_label"
+                            v-model="form.version_label"
+                            :disabled="!canEdit"
+                            required
+                        />
+                        <InputError :message="form.errors.version_label" />
+                    </div>
+
+                    <div
+                        v-if="instruction.supersedes_title"
+                        class="text-sm text-muted-foreground"
                     >
                         {{
                             t(
-                                'products.user_security_instructions.fields.version_label',
+                                'products.user_security_instructions.fields.supersedes',
                             )
-                        }}
-                    </FieldLabel>
-                    <Input
-                        id="version_label"
-                        v-model="form.version_label"
-                        :disabled="!canEdit"
-                        required
-                    />
-                    <InputError :message="form.errors.version_label" />
+                        }}:
+                        {{ instruction.supersedes_title }}
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="product_version_id"
+                            :help="
+                                t(
+                                    'products.user_security_instructions.help.product_version',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.user_security_instructions.fields.product_version',
+                                )
+                            }}
+                        </FieldLabel>
+                        <Select
+                            :model-value="
+                                form.product_version_id === ''
+                                    ? '__none__'
+                                    : String(form.product_version_id)
+                            "
+                            :disabled="!canEdit"
+                            @update:model-value="
+                                (value) => {
+                                    form.product_version_id =
+                                        value === '__none__' ||
+                                        value === undefined ||
+                                        value === null
+                                            ? ''
+                                            : Number(value);
+                                }
+                            "
+                        >
+                            <SelectTrigger
+                                id="product_version_id"
+                                class="w-full"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="__none__">
+                                    {{
+                                        t(
+                                            'products.user_security_instructions.product_wide',
+                                        )
+                                    }}
+                                </SelectItem>
+                                <SelectItem
+                                    v-for="version in versions"
+                                    :key="version.id"
+                                    :value="String(version.id)"
+                                >
+                                    {{ version.version_number }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.product_version_id" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label>{{
+                            t(
+                                'products.user_security_instructions.fields.locale',
+                            )
+                        }}</Label>
+                        <Select v-model="form.locale" :disabled="!canEdit">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="locale in options.locales"
+                                    :key="locale"
+                                    :value="locale"
+                                >
+                                    {{ localeLabel(locale) }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.locale" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <FieldLabel
+                            html-for="notes"
+                            :help="
+                                t(
+                                    'products.user_security_instructions.help.notes',
+                                )
+                            "
+                        >
+                            {{
+                                t(
+                                    'products.user_security_instructions.fields.notes',
+                                )
+                            }}
+                        </FieldLabel>
+                        <textarea
+                            id="notes"
+                            v-model="form.notes"
+                            rows="3"
+                            :disabled="!canEdit"
+                            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+                        />
+                        <InputError :message="form.errors.notes" />
+                    </div>
                 </div>
 
                 <div
-                    v-if="instruction.supersedes_title"
-                    class="text-sm text-muted-foreground"
+                    v-if="canEdit || canManage"
+                    class="flex items-center justify-between gap-3"
                 >
-                    {{
-                        t(
-                            'products.user_security_instructions.fields.supersedes',
-                        )
-                    }}:
-                    {{ instruction.supersedes_title }}
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="product_version_id"
-                        :help="
-                            t(
-                                'products.user_security_instructions.help.product_version',
-                            )
-                        "
+                    <Button
+                        v-if="canEdit"
+                        type="submit"
+                        :disabled="form.processing"
                     >
-                        {{
-                            t(
-                                'products.user_security_instructions.fields.product_version',
-                            )
-                        }}
-                    </FieldLabel>
-                    <Select
-                        :model-value="
-                            form.product_version_id === ''
-                                ? '__none__'
-                                : String(form.product_version_id)
-                        "
-                        :disabled="!canEdit"
-                        @update:model-value="
-                            (value) => {
-                                form.product_version_id =
-                                    value === '__none__' ||
-                                    value === undefined ||
-                                    value === null
-                                        ? ''
-                                        : Number(value);
-                            }
-                        "
+                        <Save class="h-4 w-4" />
+                        {{ t('common.save') }}
+                    </Button>
+                    <div v-else />
+                    <Button
+                        v-if="canManage"
+                        type="button"
+                        variant="outline"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        @click="showDeleteDialog = true"
                     >
-                        <SelectTrigger id="product_version_id" class="w-full">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="__none__">
-                                {{
-                                    t(
-                                        'products.user_security_instructions.product_wide',
-                                    )
-                                }}
-                            </SelectItem>
-                            <SelectItem
-                                v-for="version in versions"
-                                :key="version.id"
-                                :value="String(version.id)"
-                            >
-                                {{ version.version_number }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <InputError :message="form.errors.product_version_id" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label>{{
-                        t('products.user_security_instructions.fields.locale')
-                    }}</Label>
-                    <Select v-model="form.locale" :disabled="!canEdit">
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="locale in options.locales"
-                                :key="locale"
-                                :value="locale"
-                            >
-                                {{ localeLabel(locale) }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <InputError :message="form.errors.locale" />
-                </div>
-
-                <div class="grid gap-2">
-                    <FieldLabel
-                        html-for="notes"
-                        :help="
-                            t('products.user_security_instructions.help.notes')
-                        "
-                    >
-                        {{
-                            t(
-                                'products.user_security_instructions.fields.notes',
-                            )
-                        }}
-                    </FieldLabel>
-                    <textarea
-                        id="notes"
-                        v-model="form.notes"
-                        rows="3"
-                        :disabled="!canEdit"
-                        class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
-                    />
-                    <InputError :message="form.errors.notes" />
+                        <Trash2 class="h-4 w-4" />
+                        {{ t('common.delete') }}
+                    </Button>
                 </div>
             </div>
 
@@ -1079,7 +1122,7 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 <div
                     v-for="(section, index) in form.sections"
                     :key="section.section_key"
-                    class="space-y-4 border-t border-border pt-6"
+                    class="space-y-4 rounded-lg border p-6"
                 >
                     <div class="flex items-start justify-between gap-4">
                         <h3 class="section-heading">
@@ -1265,13 +1308,6 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 </div>
                 <InputError :message="form.errors.sections" />
             </div>
-
-            <div v-if="canEdit" class="flex justify-start">
-                <Button type="submit" :disabled="form.processing">
-                    <Save class="h-4 w-4" />
-                    {{ t('common.save') }}
-                </Button>
-            </div>
         </form>
 
         <Dialog
@@ -1361,6 +1397,16 @@ const previousSectionApplicable = (sectionKey: string): boolean | null => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <AppAlertDialog
+            v-model:open="showDeleteDialog"
+            :title="t('common.delete_confirm_title')"
+            :description="
+                t('products.user_security_instructions.confirm_delete')
+            "
+            @confirm="confirmDelete"
+            @cancel="showDeleteDialog = false"
+        />
 
         <AppAlertDialog
             v-model:open="showRetireDialog"
