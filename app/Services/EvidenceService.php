@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductRisk;
 use App\Models\ProductVersion;
 use App\Models\ProductVulnerability;
+use App\Models\TechnicalDocumentationPackage;
 use App\Models\User;
 use App\Models\UserSecurityInstruction;
 use App\Support\AuditLogger;
@@ -31,6 +32,7 @@ class EvidenceService
 {
     public function __construct(
         private readonly UserSecurityInstructionExportService $userSecurityInstructionExports,
+        private readonly TechnicalDocumentationExportService $technicalDocumentationExports,
     ) {
     }
 
@@ -314,6 +316,61 @@ class EvidenceService
             'uploaded_by' => $uploader->id,
             'notes' => 'Published from user security instructions (locale: '
                 . $instruction->locale . ').',
+        ]);
+
+        AuditLogger::logEvidenceCreated($evidence, $uploader);
+
+        return $evidence;
+    }
+
+    /**
+     * Persist a published technical documentation package as Markdown evidence (type=document).
+     */
+    public function createFromTechnicalDocumentation(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+        User $uploader,
+    ): Evidence {
+        if ($product->id !== $package->product_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('products.technical_documentation.publish_product_invalid')],
+            ]);
+        }
+
+        $product->loadMissing('organization');
+        $organization = $product->organization;
+
+        $safeVersion = preg_replace('/[^A-Za-z0-9._-]+/', '-', $package->version_label) ?: '1';
+        $safeLocale = preg_replace('/[^A-Za-z0-9._-]+/', '-', $package->locale) ?: 'en';
+        $filename = sprintf('technical-documentation-v%s-%s.md', $safeVersion, $safeLocale);
+        $storagePath = "evidence/{$product->id}/" . uniqid('ev_', true) . '_' . $filename;
+        $body = $this->technicalDocumentationExports->toMarkdown(
+            $this->technicalDocumentationExports->viewPayload(
+                $package,
+                $product,
+                $organization,
+            ),
+        );
+
+        Storage::disk('local')->put($storagePath, $body);
+
+        $evidence = Evidence::query()->create([
+            'organization_id' => $product->organization_id,
+            'product_id' => $product->id,
+            'product_version_id' => $package->product_version_id,
+            'type' => EvidenceType::Document,
+            'title' => $package->title . ' (' . $package->version_label . ')',
+            'source' => 'technical_documentation:' . $package->id,
+            'owner_user_id' => $uploader->id,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $body),
+            'confidentiality' => EvidenceConfidentiality::Internal,
+            'collected_at' => $package->published_at ?? now(),
+            'freshness_status' => EvidenceFreshnessStatus::Current,
+            'uploaded_by' => $uploader->id,
+            'notes' => 'Published from technical documentation (locale: '
+                . $package->locale . ').',
         ]);
 
         AuditLogger::logEvidenceCreated($evidence, $uploader);

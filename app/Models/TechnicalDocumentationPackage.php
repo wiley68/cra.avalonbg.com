@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property int|null $user_security_instruction_id
  * @property int|null $sdl_run_id
+ * @property int|null $evidence_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Organization|null $organization
@@ -35,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $publisher
  * @property-read UserSecurityInstruction|null $userSecurityInstruction
  * @property-read SdlRun|null $sdlRun
+ * @property-read Evidence|null $evidence
  * @property-read \Illuminate\Database\Eloquent\Collection<int, TechnicalDocumentationSection> $sections
  */
 #[Fillable([
@@ -51,6 +53,7 @@ use Illuminate\Support\Carbon;
     'notes',
     'user_security_instruction_id',
     'sdl_run_id',
+    'evidence_id',
 ])]
 class TechnicalDocumentationPackage extends Model
 {
@@ -102,6 +105,12 @@ class TechnicalDocumentationPackage extends Model
     public function sdlRun(): BelongsTo
     {
         return $this->belongsTo(SdlRun::class);
+    }
+
+    /** @return BelongsTo<Evidence, $this> */
+    public function evidence(): BelongsTo
+    {
+        return $this->belongsTo(Evidence::class);
     }
 
     /** @return HasMany<TechnicalDocumentationSection, $this> */

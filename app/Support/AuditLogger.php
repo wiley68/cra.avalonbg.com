@@ -825,6 +825,28 @@ class AuditLogger
         );
     }
 
+    public static function logTechnicalDocumentationPublishedEvidence(
+        TechnicalDocumentationPackage $package,
+        Evidence $evidence,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::TechnicalDocumentationPublishedEvidence,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $package->organization_id,
+            productId: $evidence->product_id,
+            details: [
+                ['field' => 'package_id', 'value' => (string) $package->id],
+                ['field' => 'title', 'value' => $package->title],
+                ['field' => 'evidence_id', 'value' => (string) $evidence->id],
+                ['field' => 'locale', 'value' => $package->locale],
+                ['field' => 'version_label', 'value' => $package->version_label],
+            ],
+        );
+    }
+
     public static function logIncidentStatusUpdated(
         ProductIncident $incident,
         User $actor,

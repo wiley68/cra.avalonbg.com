@@ -7,6 +7,7 @@ import {
     FileCode,
     FileDown,
     FileType,
+    FileUp,
     Pencil,
     RefreshCcw,
     Save,
@@ -48,7 +49,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
-import { index as evidenceIndex } from '@/routes/products/evidence';
+import {
+    edit as editEvidence,
+    index as evidenceIndex,
+} from '@/routes/products/evidence';
 import { edit as editSdlRun } from '@/routes/products/sdl';
 import { edit as editSecurityInstruction } from '@/routes/products/security-instructions';
 import { edit as editTask } from '@/routes/products/tasks';
@@ -59,6 +63,7 @@ import {
     exportMethod as exportPackage,
     index as packagesIndex,
     publish as publishPackage,
+    publishEvidence,
     refreshGenerated,
     retire as retirePackage,
     submitReview,
@@ -145,6 +150,8 @@ type PackageDetail = {
     product_version_number: string | null;
     user_security_instruction_id: number | null;
     sdl_run_id: number | null;
+    evidence_id: number | null;
+    evidence_title: string | null;
     linked_usi: {
         id: number;
         title: string;
@@ -303,6 +310,7 @@ const lifecycleError = computed(() => {
 const showSubmitDialog = ref(false);
 const showRetireDialog = ref(false);
 const showDeleteDialog = ref(false);
+const showPublishEvidenceDialog = ref(false);
 const submitForm = useForm({
     assignee_user_id: '' as number | '',
 });
@@ -539,7 +547,7 @@ const hasDependencyDeltaChanges = computed(() => {
     return delta.counts.added + delta.counts.removed + delta.counts.changed > 0;
 });
 
-const evidenceHref = computed(() => evidenceIndex(props.product.id).url);
+const evidenceIndexHref = computed(() => evidenceIndex(props.product.id).url);
 
 const hasStaleEvidence = computed(() => props.evidenceFreshness.stale > 0);
 
@@ -559,6 +567,24 @@ const canPublish = computed(
 const canRetire = computed(
     () => props.canManage && props.package.status === 'published',
 );
+
+const canPublishEvidence = computed(
+    () =>
+        props.canManage &&
+        props.package.status === 'published' &&
+        props.package.evidence_id === null,
+);
+
+const publishedEvidenceHref = computed(() => {
+    if (props.package.evidence_id === null) {
+        return null;
+    }
+
+    return editEvidence({
+        product: props.product.id,
+        evidence: props.package.evidence_id,
+    }).url;
+});
 
 const reviewTaskHref = computed(() => {
     if (props.reviewTask === null) {
@@ -699,6 +725,18 @@ const doRetire = () => {
     showRetireDialog.value = false;
     router.post(
         retirePackage(routeArgs).url,
+        {},
+        {
+            preserveScroll: true,
+            onError: showRequestErrors,
+        },
+    );
+};
+
+const doPublishEvidence = () => {
+    showPublishEvidenceDialog.value = false;
+    router.post(
+        publishEvidence(routeArgs).url,
         {},
         {
             preserveScroll: true,
@@ -854,6 +892,21 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
             >
                 <CheckCircle2 class="h-4 w-4" />
                 {{ t('products.technical_documentation.publish') }}
+            </Button>
+            <Button
+                v-if="canPublishEvidence"
+                type="button"
+                variant="outline"
+                @click="showPublishEvidenceDialog = true"
+            >
+                <FileUp class="h-4 w-4" />
+                {{ t('products.technical_documentation.publish_evidence') }}
+            </Button>
+            <Button v-if="publishedEvidenceHref" as-child variant="outline">
+                <Link :href="publishedEvidenceHref">
+                    <Pencil class="h-4 w-4" />
+                    {{ t('products.technical_documentation.view_evidence') }}
+                </Link>
             </Button>
             <Button
                 v-if="canRetire"
@@ -1254,7 +1307,7 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
                             }}
                         </p>
                         <Link
-                            :href="evidenceHref"
+                            :href="evidenceIndexHref"
                             class="mt-1 inline-flex text-xs font-medium underline underline-offset-2"
                         >
                             {{
@@ -2140,6 +2193,22 @@ const sdlOptionLabel = (item: SdlRunOption): string => {
             :description="t('products.technical_documentation.confirm_retire')"
             @confirm="doRetire"
             @cancel="showRetireDialog = false"
+        />
+
+        <AppAlertDialog
+            v-model:open="showPublishEvidenceDialog"
+            :title="
+                t(
+                    'products.technical_documentation.confirm_publish_evidence_title',
+                )
+            "
+            :description="
+                t('products.technical_documentation.confirm_publish_evidence')
+            "
+            variant="default"
+            :confirm-label="t('common.yes')"
+            @confirm="doPublishEvidence"
+            @cancel="showPublishEvidenceDialog = false"
         />
     </div>
 </template>

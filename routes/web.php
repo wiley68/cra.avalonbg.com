@@ -307,6 +307,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [TechnicalDocumentationController::class, 'publish'],
         )->name('products.technical-documentation.publish')->scopeBindings();
         Route::post(
+            'products/{product}/technical-documentation/{package}/publish-evidence',
+            [TechnicalDocumentationController::class, 'publishEvidence'],
+        )->name('products.technical-documentation.publish-evidence')->scopeBindings();
+        Route::post(
             'products/{product}/technical-documentation/{package}/retire',
             [TechnicalDocumentationController::class, 'retire'],
         )->name('products.technical-documentation.retire')->scopeBindings();

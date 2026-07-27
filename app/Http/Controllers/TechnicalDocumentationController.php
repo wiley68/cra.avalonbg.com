@@ -287,6 +287,25 @@ class TechnicalDocumentationController extends Controller
         return redirect()->route('products.technical-documentation.edit', [$product, $package]);
     }
 
+    public function publishEvidence(
+        Product $product,
+        TechnicalDocumentationPackage $package,
+    ): RedirectResponse {
+        $organization = $this->currentOrganization();
+        $this->assertProductInOrganization($product, $organization);
+        $this->assertPackageBelongsToProduct($package, $product);
+        $this->authorize('update', [$package, $organization]);
+
+        $this->packages->publishEvidence($package, $product, request()->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('products.technical_documentation.published_evidence'),
+        ]);
+
+        return redirect()->route('products.technical-documentation.edit', [$product, $package]);
+    }
+
     public function retire(
         Product $product,
         TechnicalDocumentationPackage $package,

@@ -33,6 +33,7 @@ class TechnicalDocumentationService
     public function __construct(
         private readonly TechnicalDocumentationGeneratorService $generator,
         private readonly TaskService $tasks,
+        private readonly EvidenceService $evidence,
     ) {
     }
 
@@ -658,6 +659,50 @@ class TechnicalDocumentationService
         });
     }
 
+    public function publishEvidence(
+        TechnicalDocumentationPackage $package,
+        Product $product,
+        User $actor,
+    ): TechnicalDocumentationPackage {
+        if ($package->status !== TechnicalDocumentationStatus::Published) {
+            throw ValidationException::withMessages([
+                'status' => [Translations::get('products.technical_documentation.only_published_evidence')],
+            ]);
+        }
+
+        if ($package->evidence_id !== null) {
+            throw ValidationException::withMessages([
+                'evidence_id' => [Translations::get('products.technical_documentation.already_published_evidence')],
+            ]);
+        }
+
+        if ($product->id !== $package->product_id) {
+            throw ValidationException::withMessages([
+                'product_id' => [Translations::get('products.technical_documentation.publish_product_invalid')],
+            ]);
+        }
+
+        return DB::transaction(function () use ($package, $product, $actor): TechnicalDocumentationPackage {
+            $evidence = $this->evidence->createFromTechnicalDocumentation(
+                $product,
+                $package,
+                $actor,
+            );
+
+            $package->update(['evidence_id' => $evidence->id]);
+
+            $fresh = $package->fresh([
+                'sections',
+                'productVersion:id,version_number',
+                'publisher:id,name',
+                'evidence',
+            ]);
+            AuditLogger::logTechnicalDocumentationPublishedEvidence($fresh, $evidence, $actor);
+
+            return $fresh;
+        });
+    }
+
     public function retire(
         TechnicalDocumentationPackage $package,
         User $actor,
@@ -807,6 +852,7 @@ class TechnicalDocumentationService
             'supersedes.productVersion:id,version_number',
             'userSecurityInstruction.productVersion:id,version_number',
             'sdlRun.version:id,version_number',
+            'evidence:id,title',
         ]);
 
         $previous = $package->supersedes;
@@ -827,6 +873,8 @@ class TechnicalDocumentationService
             'product_version_number' => $package->productVersion?->version_number,
             'user_security_instruction_id' => $package->user_security_instruction_id,
             'sdl_run_id' => $package->sdl_run_id,
+            'evidence_id' => $package->evidence_id,
+            'evidence_title' => $package->evidence?->title,
             'linked_usi' => $usi === null
                 ? null
                 : [
