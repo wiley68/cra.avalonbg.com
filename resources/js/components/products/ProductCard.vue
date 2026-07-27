@@ -62,6 +62,22 @@ const titleStatus = computed(() =>
     aggregateProductModuleStatus(props.product.module_statuses),
 );
 
+const cardModules = computed(() =>
+    productModules.filter((module) => module.key !== 'assistant'),
+);
+
+const assistantModule = computed(
+    () => productModules.find((module) => module.key === 'assistant') ?? null,
+);
+
+const canAccessAssistant = computed(() =>
+    assistantModule.value
+        ? canAccessProductModule(assistantModule.value, authUser.value)
+        : false,
+);
+
+const showFooter = computed(() => props.canManage || canAccessAssistant.value);
+
 const moduleStatus = (key: string): ProductModuleStatus =>
     props.product.module_statuses?.[key] ?? 'empty';
 
@@ -109,10 +125,10 @@ const openEdit = (): void => {
             </CardDescription>
         </CardHeader>
 
-        <CardContent class="space-y-2 px-4 py-3">
-            <TooltipProvider :delay-duration="300">
+        <TooltipProvider :delay-duration="300">
+            <CardContent class="space-y-2 px-4 py-3">
                 <div
-                    v-for="module in productModules"
+                    v-for="module in cardModules"
                     :key="module.key"
                     class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2"
                     :class="
@@ -173,25 +189,55 @@ const openEdit = (): void => {
                         {{ t('dashboard.open') }}
                     </Button>
                 </div>
-            </TooltipProvider>
-        </CardContent>
+            </CardContent>
 
-        <CardFooter
-            v-if="canManage"
-            class="justify-end gap-2 border-t px-4 py-3 [.border-t]:pt-3"
-        >
-            <Button variant="outline" size="sm" @click="openEdit">
-                <Pencil class="mr-1.5 size-3.5" />
-                {{ t('common.edit') }}
-            </Button>
-            <Button
-                variant="destructive"
-                size="sm"
-                @click="emit('delete', product.id)"
+            <CardFooter
+                v-if="showFooter"
+                class="justify-between gap-2 border-t px-4 py-3 [.border-t]:pt-3"
             >
-                <Trash2 class="mr-1.5 size-3.5" />
-                {{ t('common.delete') }}
-            </Button>
-        </CardFooter>
+                <Tooltip v-if="assistantModule">
+                    <TooltipTrigger as-child>
+                        <Button
+                            variant="outline"
+                            size="icon-sm"
+                            :disabled="!canAccessAssistant"
+                            :aria-label="t(assistantModule.labelKey)"
+                            @click="
+                                canAccessAssistant &&
+                                openModule(assistantModule.href(product.id))
+                            "
+                        >
+                            <component
+                                :is="assistantModule.icon"
+                                class="size-4"
+                            />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        side="top"
+                        class="max-w-xs text-left leading-relaxed"
+                    >
+                        {{ t(assistantModule.descriptionKey) }}
+                    </TooltipContent>
+                </Tooltip>
+                <span v-else />
+
+                <div v-if="canManage" class="flex items-center gap-2">
+                    <Button variant="outline" size="sm" @click="openEdit">
+                        <Pencil class="size-3.5" />
+                        {{ t('common.edit') }}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        @click="emit('delete', product.id)"
+                    >
+                        <Trash2 class="size-3.5" />
+                        {{ t('common.delete') }}
+                    </Button>
+                </div>
+            </CardFooter>
+        </TooltipProvider>
     </Card>
 </template>
