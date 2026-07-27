@@ -3,11 +3,7 @@ import {
     initializeTheme,
     syncThemeFromPageProps,
 } from '@/composables/useAppearance';
-import { initializeProductEditReturnTracking } from '@/composables/useProductEditBack';
-import { initializeRiskEditReturnTracking } from '@/composables/useRiskEditBack';
-import { initializeTaskEditReturnTracking } from '@/composables/useTaskEditBack';
-import { initializeVulnerabilityEditReturnTracking } from '@/composables/useVulnerabilityEditBack';
-import { initializeSdlEditReturnTracking } from '@/composables/useSdlEditBack';
+import { initializeAppReturnBackTracking } from '@/composables/initializeAppReturnBack';
 import { ensureTranslations, localeFromHtml } from '@/i18n/catalog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -58,11 +54,7 @@ async function boot(): Promise<void> {
 
     initializeTheme();
     initializeFlashToast();
-    initializeProductEditReturnTracking();
-    initializeTaskEditReturnTracking();
-    initializeRiskEditReturnTracking();
-    initializeVulnerabilityEditReturnTracking();
-    initializeSdlEditReturnTracking();
+    initializeAppReturnBackTracking();
 }
 
 void boot();
