@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
-import { ChevronDown, ChevronUp, Pencil, Trash2 } from '@lucide/vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import {
+    ChevronDown,
+    ChevronUp,
+    ListOrdered,
+    Pencil,
+    Trash2,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
@@ -22,7 +27,6 @@ import { useTranslations } from '@/composables/useTranslations';
 import {
     aggregateProductModuleStatus,
     canAccessProductModule,
-    productEnumLabel,
     productModules,
     productModuleStatusClass,
     productModuleStatusReasonLabel,
@@ -32,6 +36,7 @@ import type {
     ProductModuleStatus,
 } from '@/pages/products/columns';
 import { edit as editProduct } from '@/routes/products';
+import { show as wizardShow } from '@/routes/products/wizard';
 
 const props = defineProps<{
     product: ProductListItem;
@@ -47,18 +52,6 @@ const page = usePage();
 const authUser = computed(() => page.props.auth.user);
 
 const modulesExpanded = ref(false);
-
-const typeLabel = computed(() =>
-    productEnumLabel(t, 'types', props.product.product_type),
-);
-
-const scopeLabel = computed(() =>
-    productEnumLabel(t, 'scope', props.product.scope_status),
-);
-
-const classificationLabel = computed(() =>
-    productEnumLabel(t, 'classification', props.product.classification_status),
-);
 
 const titleStatus = computed(() =>
     aggregateProductModuleStatus(props.product.module_statuses),
@@ -118,6 +111,10 @@ const openModule = (href: string): void => {
 const openEdit = (): void => {
     router.visit(editProduct(props.product.id).url);
 };
+
+const openWizard = (): void => {
+    router.visit(wizardShow(props.product.id).url);
+};
 </script>
 
 <template>
@@ -127,24 +124,22 @@ const openEdit = (): void => {
                 class="text-base leading-snug"
                 :class="productModuleStatusClass(titleStatus)"
             >
-                {{ product.name }}
+                <Link
+                    :href="wizardShow(product.id).url"
+                    class="hover:underline"
+                >
+                    {{ product.name }}
+                </Link>
             </CardTitle>
-            <CardDescription class="text-xs leading-relaxed">
-                <span
-                    >{{ t('products.columns.product_type') }}:
-                    {{ typeLabel }}</span
-                >
-                <span class="mx-1.5 text-border">·</span>
-                <span
-                    >{{ t('products.columns.scope_status') }}:
-                    {{ scopeLabel }}</span
-                >
-                <span class="mx-1.5 text-border">·</span>
-                <span
-                    >{{ t('products.columns.classification_status') }}:
-                    {{ classificationLabel }}</span
-                >
-            </CardDescription>
+            <Button
+                variant="outline"
+                size="sm"
+                class="w-fit cursor-pointer"
+                @click="openWizard"
+            >
+                <ListOrdered class="size-3.5" />
+                {{ t('products.wizard_link') }}
+            </Button>
         </CardHeader>
 
         <TooltipProvider :delay-duration="300">

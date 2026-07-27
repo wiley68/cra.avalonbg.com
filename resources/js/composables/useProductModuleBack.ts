@@ -1,21 +1,22 @@
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
+import { show as wizardShow } from '@/routes/products/wizard';
 import {
     registerReturnBackRule,
     setReturnBackUrl,
     useReturnBack,
 } from '@/composables/useReturnBack';
 
-export type ProductModuleOrigin = 'edit' | 'index';
+export type ProductModuleOrigin = 'edit' | 'index' | 'wizard';
 
 /**
  * Product module entry pages (Index / Show) that share one Back target per product.
  */
 const productModuleEntryPathPattern =
-    /^\/products\/(\d+)\/(versions|support-periods|components|risks|requirements|controls|evidence|tasks|vulnerabilities|deployments|campaigns|incidents|sdl|passport|readiness|assistant|security-instructions|technical-documentation)(?:\/unsupported)?\/?$/;
+    /^\/products\/(\d+)\/(versions|support-periods|components|risks|requirements|controls|evidence|tasks|vulnerabilities|deployments|campaigns|incidents|sdl|passport|readiness|assistant|wizard|security-instructions|technical-documentation)(?:\/unsupported)?\/?$/;
 
 /** Hubs that should become the remembered Back target when opening other modules. */
 const productModuleHubPathPattern =
-    /^\/products\/\d+\/(passport|readiness|assistant)\/?$/;
+    /^\/products\/\d+\/(passport|readiness|assistant|wizard)\/?$/;
 
 const productModuleNestedSkipFromPatterns = [
     /^\/products\/\d+\/[^/]+\/create\/?$/,
@@ -63,7 +64,11 @@ export function setProductModuleOrigin(
     origin: ProductModuleOrigin,
 ): void {
     const url =
-        origin === 'edit' ? editProduct(productId).url : productsIndex().url;
+        origin === 'edit'
+            ? editProduct(productId).url
+            : origin === 'wizard'
+              ? wizardShow(productId).url
+              : productsIndex().url;
 
     setReturnBackUrl(productModuleReturnScope(productId), url);
 }

@@ -1,8 +1,8 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.16  
+**Версия:** 1.17  
 **Дата:** 27 юли 2026 г.  
-**Статус:** Active — ръчни тестове с реални данни (блокира Candidate F)  
+**Статус:** Active — ръчни тестове (spine A Done); следваща вълна: Product Compliance Wizard  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§11 MVP flow, §14–§16)
@@ -131,7 +131,7 @@ Wizard notes: W-…
 | **22** | **Compliance passport**                                                                                   | Passport                                           | Преглед; gaps осмислени                                                                    | **Done** (2026-07-27) | Обобщение; тестовете са успешни                                        |
 | **23** | **Readiness**                                                                                             | Readiness → export                                 | Review + exported report                                                                   | **Done** (2026-07-27) | **Финална operational оценка** за release; тестовете са успешни        |
 | **24** | **Auditor package** (опционално за външен преглед)                                                        | Auditor                                            | Package shared / guest open                                                                | **Done** (2026-07-27) | Не е задължително за всеки release; тестовете са успешни               |
-| **25** | **AI assistant / RAG** (опционално)                                                                       | Assistant                                          | Chat/analyse с human review                                                                | Open                  | След evidence; `ai:index-embeddings`                                   |
+| **25** | **AI assistant / RAG** (опционално)                                                                       | Assistant                                          | Chat/analyse с human review                                                                | **Done** (2026-07-27) | След evidence; `ai:index-embeddings`; тестовете са успешни             |
 
 ### 4.1a Предварителен етап 0 — org prep (детайл)
 
@@ -377,13 +377,13 @@ UI идея (карта / стъпка / timeline): …
 
 ### 9.3 Решение за опростяване (попълни след пътека A)
 
-| Въпрос                                       | Решение (след тестове)                                                                                                   |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Edit остава ли за „данни“, Show за „пътека“? | _TBD_                                                                                                                    |
-| Кои блокове са optional в MVP wizard?        | _TBD (кандидат: 24–25)_                                                                                                  |
-| Един колоннен timeline vs граф?              | _TBD_                                                                                                                    |
-| Org-wide елементи в Show?                    | _TBD — етап **0** (org prep) е **преди** Product Show; Show сочи deep links към Customers / Policies / Controls library_ |
-| Етап 0 в onboarding диаграмата?              | **Да** — users/roles/settings + controls review + policy drafts + optional customers (§4.1a)                             |
+| Въпрос                                       | Решение (след тестове)                                                                       |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Edit остава ли за „данни“, Show за „пътека“? | **Да** — Edit = данни; **Compliance Wizard** = номерirani пътека (§4.1)                      |
+| Кои блокове са optional в MVP wizard?        | **24–25** (Auditor, AI); success при required **1–23**                                       |
+| Един колоннен timeline vs граф?              | **Една колона** (completed → current card → upcoming)                                        |
+| Org-wide елементи в Show?                    | Етап **0** остава **преди** product wizard; Customers (15) е deep link към org customers     |
+| Етап 0 в onboarding диаграмата?              | **Да** — users/roles/settings + controls review + policy drafts + optional customers (§4.1a) |
 
 ---
 
@@ -404,15 +404,15 @@ UI идея (карта / стъпка / timeline): …
 
 ## 11. Exit criteria (преди Phase 2_F)
 
-| #   | Критерий                                                               | Статус |
-| --- | ---------------------------------------------------------------------- | ------ |
-| 1   | Пътека **A** завършена за ≥1 реален продукт (1→23)                     | Open   |
-| 2   | Пътеки **B–G** минати поне веднъж (или N/A с причина, напр. няма Jira) | Open   |
-| 3   | Всички **P0** findings closed или workaround документиран              | Open   |
-| 4   | §4.1 потвърдена или коригирана (финален numbered order)                | Open   |
-| 5   | §9 wizard pack: блокове + преходи + done/attention критерии попълнени  | Open   |
-| 6   | Goal A: 1-page client path draft готов за help                         | Open   |
-| 7   | Phase 2_E closeout посочва този план като следваща активна вълна       | Open*  |
+| #   | Критерий                                                               | Статус                            |
+| --- | ---------------------------------------------------------------------- | --------------------------------- |
+| 1   | Пътека **A** завършена за ≥1 реален продукт (1→23)                     | **Done** (2026-07-27; spine 1→25) |
+| 2   | Пътеки **B–G** минати поне веднъж (или N/A с причина, напр. няма Jira) | Open                              |
+| 3   | Всички **P0** findings closed или workaround документиран              | Open                              |
+| 4   | §4.1 потвърдена или коригирана (финален numbered order)                | Open                              |
+| 5   | §9 wizard pack: блокове + преходи + done/attention критерии попълнени  | Open                              |
+| 6   | Goal A: 1-page client path draft готов за help                         | Open                              |
+| 7   | Phase 2_E closeout посочва този план като следваща активна вълна       | Open*                             |
 
 \*Може да се затвори заедно с формален Phase2_E closeout документ.
 
@@ -424,6 +424,7 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-27** — Spine **A_25** (AI assistant): **Done**. Всички тестове успешни. Spine A (1→25) завършен. Следваща вълна: [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md).
 - **2026-07-26** — Spine **A_20** (USI): **Done**. Тествано и коректно. Следваща: стъпка **21** (Tech docs).
 - **2026-07-26** — Spine **A_19** (SDL): **Done**. Тествано и коректно. Следваща: стъпка **20** (USI).
 - **2026-07-26** — Spine **A_18** (Incidents): **Done**. Тествано и коректно. Следваща: стъпка **19** (SDL).
@@ -502,6 +503,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.17   | 2026-07-27 | Spine стъпка **25** (AI assistant) → **Done**; пътека A complete; pointer към Product Compliance Wizard   |
 | 1.16   | 2026-07-27 | Spine стъпка **24** (Auditor package) → **Done**; тестовете успешни                                       |
 | 1.15   | 2026-07-27 | Spine стъпка **23** (Readiness) → **Done**; тестовете успешни                                             |
 | 1.14   | 2026-07-27 | Spine стъпка **22** (Compliance passport) → **Done**; тестовете успешни                                   |
