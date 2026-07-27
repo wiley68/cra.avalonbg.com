@@ -1,8 +1,8 @@
 # Product Compliance Wizard
 
-**Версия:** 0.4  
+**Версия:** 0.5  
 **Дата:** 27 юли 2026 г.  
-**Статус:** Active — MVP Must + Should #1–2 Done; остава dismiss optional  
+**Статус:** Active — MVP Must + всички Should Done; Could остават  
 **Родителски документи:**
 
 - [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (§4.1 spine, §9 wizard pack)
@@ -40,7 +40,7 @@
 
 - ~~Attention signals beyond complete/empty~~
 - ~~Org prep checklist deep links от header~~
-- Persist dismissed optional 24–25 — **отворено**
+- ~~Persist dismissed optional 24–25~~
 
 ## Could — **отворени**
 
@@ -85,6 +85,7 @@
 
 | Версия | Дата       | Промяна                                                         |
 | ------ | ---------- | --------------------------------------------------------------- |
+| 0.5    | 2026-07-27 | Should: persist dismissed optional 24–25 (DB + dismiss/restore) |
 | 0.4    | 2026-07-27 | Should: org prep checklist deep links в wizard header           |
 | 0.3    | 2026-07-27 | Should: attention signals (badge, reason, colored upcoming)     |
 | 0.2.1  | 2026-07-27 | Must 1–7 отбелязани Done; Should/Could остават следваща вълна   |

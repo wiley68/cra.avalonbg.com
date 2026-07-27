@@ -3906,7 +3906,12 @@
                 "policies": "Policies",
                 "customers": "Customers",
                 "optional_suffix": "optional"
-            }
+            },
+            "dismiss_optional": "Skip for now",
+            "restore_optional": "Restore",
+            "dismissed_heading": "Skipped optional steps",
+            "optional_dismissed": "Optional step skipped for this product.",
+            "optional_restored": "Optional step restored to the wizard path."
         }
     },
     "audit_logs": {

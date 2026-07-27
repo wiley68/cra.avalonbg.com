@@ -250,4 +250,25 @@ final class ComplianceWizardSpine
             ],
         ];
     }
+
+    /**
+     * Optional spine keys that may be dismissed (24–25).
+     *
+     * @return list<string>
+     */
+    public static function optionalKeys(): array
+    {
+        return array_values(array_map(
+            static fn (array $step): string => $step['key'],
+            array_filter(
+                self::steps(),
+                static fn (array $step): bool => ! $step['required'],
+            ),
+        ));
+    }
+
+    public static function isOptionalKey(string $key): bool
+    {
+        return in_array($key, self::optionalKeys(), true);
+    }
 }

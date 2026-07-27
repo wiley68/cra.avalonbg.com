@@ -96,14 +96,14 @@ test('owner can view compliance wizard', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->component('products/wizard/Show')
             ->where('product.id', $product->id)
             ->where('current_step_key', 'product')
             ->where('success', false)
             ->where('required_complete', false)
             ->has('steps', 25)
-            ->has('steps.0', fn($step) => $step
+            ->has('steps.0', fn ($step) => $step
                 ->where('key', 'product')
                 ->where('number', 1)
                 ->where('is_current', true)
@@ -118,7 +118,7 @@ test('read-only viewer can view compliance wizard', function () {
     $this->actingAs($viewer)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->component('products/wizard/Show')
             ->where('product.id', $product->id));
 });
@@ -166,7 +166,7 @@ test('current step advances after product identity and versions', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->where('current_step_key', 'versions'));
 
     ProductVersion::query()->create([
@@ -180,7 +180,7 @@ test('current step advances after product identity and versions', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->where('current_step_key', 'support_periods')
             ->where('success', false));
 });
@@ -209,6 +209,8 @@ test('success when all required spine steps are complete', function () {
 
     expect($service->requiredStepsComplete($statusesWithOptionalOpen))->toBeTrue();
     expect($service->resolveCurrentStepKey($statusesWithOptionalOpen))->toBe('auditor');
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['auditor']))->toBe('assistant');
+    expect($service->resolveCurrentStepKey($statusesWithOptionalOpen, ['auditor', 'assistant']))->toBeNull();
 });
 
 test('wizard inertia payload includes href and content keys', function () {
@@ -217,9 +219,9 @@ test('wizard inertia payload includes href and content keys', function () {
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->has('organization.id')
-            ->has('steps.3', fn($step) => $step
+            ->has('steps.3', fn ($step) => $step
                 ->where('key', 'versions')
                 ->where('label_key', 'products.wizard.steps.versions.label')
                 ->where('content_key', 'products.wizard.steps.versions')
@@ -228,7 +230,45 @@ test('wizard inertia payload includes href and content keys', function () {
                 ->has('status')
                 ->has('status_reason.section')
                 ->has('status_reason.summary')
-                ->etc()));
+                ->where('is_dismissed', false)
+                ->etc())
+            ->has('dismissed_optional')
+            ->has('can_manage'));
+});
+
+test('owner can dismiss and restore optional wizard steps', function () {
+    ['owner' => $owner, 'product' => $product] = makeWizardFixture();
+
+    $this->actingAs($owner)
+        ->post(route('products.wizard.dismiss-optional', $product), ['key' => 'auditor'])
+        ->assertRedirect(route('products.wizard.show', $product));
+
+    $product->refresh();
+    expect($product->wizard_dismissed_optional)->toBe(['auditor']);
+
+    $this->actingAs($owner)
+        ->get(route('products.wizard.show', $product))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('dismissed_optional', ['auditor'])
+            ->where('steps.23.is_dismissed', true)
+            ->where('steps.23.key', 'auditor'));
+
+    $this->actingAs($owner)
+        ->post(route('products.wizard.restore-optional', $product), ['key' => 'auditor'])
+        ->assertRedirect(route('products.wizard.show', $product));
+
+    $product->refresh();
+    expect($product->wizard_dismissed_optional)->toBe([]);
+});
+
+test('viewer cannot dismiss optional wizard steps', function () {
+    ['organization' => $organization, 'product' => $product] = makeWizardFixture();
+    $viewer = makeWizardViewer($organization);
+
+    $this->actingAs($viewer)
+        ->post(route('products.wizard.dismiss-optional', $product), ['key' => 'assistant'])
+        ->assertForbidden();
 });
 
 test('wizard surfaces attention status beyond empty for incomplete modules', function () {
@@ -245,7 +285,7 @@ test('wizard surfaces attention status beyond empty for incomplete modules', fun
     $this->actingAs($owner)
         ->get(route('products.wizard.show', $product))
         ->assertOk()
-        ->assertInertia(fn($page) => $page
+        ->assertInertia(fn ($page) => $page
             ->where('current_step_key', 'versions')
             ->where('steps.3.status', 'critical')
             ->where('steps.3.status_reason.summary', 'none'));

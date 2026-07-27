@@ -3906,7 +3906,12 @@
                 "policies": "Политики",
                 "customers": "Клиенти",
                 "optional_suffix": "незадължително"
-            }
+            },
+            "dismiss_optional": "Пропусни засега",
+            "restore_optional": "Възстанови",
+            "dismissed_heading": "Пропуснати незадължителни стъпки",
+            "optional_dismissed": "Незадължителната стъпка е пропусната за този продукт.",
+            "optional_restored": "Незадължителната стъпка е върната в wizard пътеката."
         }
     },
     "audit_logs": {

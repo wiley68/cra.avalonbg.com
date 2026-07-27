@@ -5,11 +5,13 @@ import {
     ClipboardCheck,
     IdCard,
     ListOrdered,
+    RotateCcw,
     ScrollText,
     Settings,
     Shield,
     Sparkles,
     Users,
+    X,
 } from '@lucide/vue';
 import { computed, type Component } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +40,11 @@ import { index as policiesIndex } from '@/routes/policies';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { show as passportShow } from '@/routes/products/passport';
 import { show as readinessShow } from '@/routes/products/readiness';
-import { show as wizardShow } from '@/routes/products/wizard';
+import {
+    dismissOptional,
+    restoreOptional,
+    show as wizardShow,
+} from '@/routes/products/wizard';
 import { edit as editProfile } from '@/routes/profile';
 import { index as usersIndex } from '@/routes/users';
 
@@ -71,15 +77,18 @@ type WizardStep = {
     status_reason: WizardStatusReason | null;
     is_complete: boolean;
     is_current: boolean;
+    is_dismissed: boolean;
 };
 
 const props = defineProps<{
     organization: OrganizationSummary;
     product: WizardProduct;
     steps: WizardStep[];
+    dismissed_optional: string[];
     current_step_key: string | null;
     required_complete: boolean;
     success: boolean;
+    can_manage: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -182,16 +191,29 @@ const currentStep = computed(
 
 const upcomingSteps = computed(() => {
     if (!currentStep.value) {
-        return props.steps.filter((step) => !step.is_complete);
+        return props.steps.filter(
+            (step) => !step.is_complete && !step.is_dismissed,
+        );
     }
 
     return props.steps.filter(
-        (step) => step.number > currentStep.value!.number && !step.is_complete,
+        (step) =>
+            step.number > currentStep.value!.number &&
+            !step.is_complete &&
+            !step.is_dismissed,
     );
 });
 
 const optionalOpenSteps = computed(() =>
-    props.steps.filter((step) => !step.required && !step.is_complete),
+    props.steps.filter(
+        (step) => !step.required && !step.is_complete && !step.is_dismissed,
+    ),
+);
+
+const dismissedOptionalSteps = computed(() =>
+    props.steps.filter(
+        (step) => !step.required && step.is_dismissed && !step.is_complete,
+    ),
 );
 
 const stepStatusClass = (status: WizardStepStatus): string => {
@@ -249,6 +271,14 @@ const showsAttentionSignal = (status: WizardStepStatus): boolean =>
 const openStep = (href: string): void => {
     setProductModuleOrigin(props.product.id, 'wizard');
     router.visit(href);
+};
+
+const dismissStep = (key: string): void => {
+    router.post(dismissOptional(props.product.id).url, { key });
+};
+
+const restoreStep = (key: string): void => {
+    router.post(restoreOptional(props.product.id).url, { key });
 };
 </script>
 
@@ -337,28 +367,66 @@ const openStep = (href: string): void => {
                     {{ t('products.wizard.success.description') }}
                 </CardDescription>
             </CardHeader>
-            <CardContent class="flex flex-wrap gap-2">
-                <Button as-child>
-                    <Link :href="passportShow(product.id).url">
-                        <IdCard class="h-4 w-4" />
-                        {{ t('products.passport_link') }}
-                    </Link>
-                </Button>
-                <Button variant="outline" as-child>
-                    <Link :href="readinessShow(product.id).url">
-                        <ClipboardCheck class="h-4 w-4" />
-                        {{ t('products.readiness_link') }}
-                    </Link>
-                </Button>
-                <Button
-                    v-for="step in optionalOpenSteps"
-                    :key="step.key"
-                    variant="outline"
-                    @click="openStep(step.href)"
+            <CardContent class="space-y-4">
+                <div class="flex flex-wrap gap-2">
+                    <Button as-child>
+                        <Link :href="passportShow(product.id).url">
+                            <IdCard class="h-4 w-4" />
+                            {{ t('products.passport_link') }}
+                        </Link>
+                    </Button>
+                    <Button variant="outline" as-child>
+                        <Link :href="readinessShow(product.id).url">
+                            <ClipboardCheck class="h-4 w-4" />
+                            {{ t('products.readiness_link') }}
+                        </Link>
+                    </Button>
+                </div>
+                <div
+                    v-if="optionalOpenSteps.length > 0"
+                    class="flex flex-col gap-2"
                 >
-                    <ListOrdered class="h-4 w-4" />
-                    {{ t(step.label_key) }}
-                </Button>
+                    <div
+                        v-for="step in optionalOpenSteps"
+                        :key="step.key"
+                        class="flex flex-wrap gap-2"
+                    >
+                        <Button variant="outline" @click="openStep(step.href)">
+                            <ListOrdered class="h-4 w-4" />
+                            {{ t(step.label_key) }}
+                        </Button>
+                        <Button
+                            v-if="can_manage"
+                            variant="outline"
+                            @click="dismissStep(step.key)"
+                        >
+                            <X class="h-4 w-4" />
+                            {{ t('products.wizard.dismiss_optional') }}
+                        </Button>
+                    </div>
+                </div>
+                <div
+                    v-if="dismissedOptionalSteps.length > 0"
+                    class="space-y-2 border-t pt-3"
+                >
+                    <p class="text-sm font-medium text-muted-foreground">
+                        {{ t('products.wizard.dismissed_heading') }}
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <Button
+                            v-for="step in dismissedOptionalSteps"
+                            :key="step.key"
+                            variant="ghost"
+                            size="sm"
+                            :disabled="!can_manage"
+                            @click="restoreStep(step.key)"
+                        >
+                            <RotateCcw class="h-4 w-4" />
+                            {{ t(step.label_key) }} —
+                            {{ t('products.wizard.restore_optional') }}
+                        </Button>
+                    </div>
+                </div>
             </CardContent>
         </Card>
 
@@ -461,6 +529,14 @@ const openStep = (href: string): void => {
                     <Button @click="openStep(currentStep.href)">
                         <ListOrdered class="h-4 w-4" />
                         {{ t('products.wizard.open_step') }}
+                    </Button>
+                    <Button
+                        v-if="can_manage && !currentStep.required"
+                        variant="outline"
+                        @click="dismissStep(currentStep.key)"
+                    >
+                        <X class="h-4 w-4" />
+                        {{ t('products.wizard.dismiss_optional') }}
                     </Button>
                 </div>
             </CardContent>

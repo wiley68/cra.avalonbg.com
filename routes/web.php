@@ -260,6 +260,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('products.passport.show');
         Route::get('products/{product}/wizard', [ProductComplianceWizardController::class, 'show'])
             ->name('products.wizard.show');
+        Route::post('products/{product}/wizard/dismiss-optional', [ProductComplianceWizardController::class, 'dismissOptional'])
+            ->name('products.wizard.dismiss-optional');
+        Route::post('products/{product}/wizard/restore-optional', [ProductComplianceWizardController::class, 'restoreOptional'])
+            ->name('products.wizard.restore-optional');
         Route::get('products/{product}/readiness', [ProductReadinessController::class, 'show'])
             ->name('products.readiness.show');
         Route::get('products/{product}/readiness/export', [ProductReadinessController::class, 'export'])

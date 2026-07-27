@@ -41,6 +41,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $classification_reviewed_at
  * @property int|null $classification_reviewed_by
  * @property Carbon|null $classification_next_review_at
+ * @property array<int, string>|null $wizard_dismissed_optional
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -71,6 +72,7 @@ use Illuminate\Support\Carbon;
     'classification_reviewed_at',
     'classification_reviewed_by',
     'classification_next_review_at',
+    'wizard_dismissed_optional',
 ])]
 class Product extends Model
 {
@@ -86,6 +88,7 @@ class Product extends Model
             'classification_status' => ClassificationStatus::class,
             'classification_reviewed_at' => 'datetime',
             'classification_next_review_at' => 'date',
+            'wizard_dismissed_optional' => 'array',
         ];
     }
 
