@@ -730,8 +730,8 @@
             "supersedes": "Замества",
             "approved_at": "Одобрена на",
             "product": "Продукт",
-            "evidence": "Evidence",
-            "assignee": "Assignee за преглед"
+            "evidence": "Доказателства",
+            "assignee": "Правоприемник за преглед"
         },
         "help": {
             "policy_type": "Изберете категорията на организационната политика.",
