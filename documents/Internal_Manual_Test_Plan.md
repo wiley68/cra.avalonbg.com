@@ -2,7 +2,7 @@
 
 **Версия:** 1.18  
 **Дата:** 28 юли 2026 г.  
-**Статус:** **Done / exited** (2026-07-28) — §11 complete; следваща вълна: Phase 2_F (kickoff Q&A)  
+**Статус:** **Done / exited** (2026-07-28) — §11 complete; следваща вълна: [Phase2_F_Platform_Billing_SSO.md](Phase2_F_Platform_Billing_SSO.md) (**Active**)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§11 MVP flow, §14–§16)
