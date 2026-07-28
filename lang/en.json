@@ -3686,6 +3686,7 @@
             }
         },
         "wizard_link": "Follow the Wizard",
+        "wizard_button_tooltip": "Opens the numbered compliance path — shows the next step and links you into the modules to fill in.",
         "wizard": {
             "title": "Compliance wizard",
             "disclaimer": "This wizard is an operational readiness path. It does not provide legal advice or guaranteed CRA conformity.",

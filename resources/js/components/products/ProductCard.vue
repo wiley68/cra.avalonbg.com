@@ -119,30 +119,40 @@ const openWizard = (): void => {
 
 <template>
     <Card class="gap-0 overflow-hidden py-0">
-        <CardHeader class="gap-2 border-b px-4 py-4 [.border-b]:pb-4">
-            <CardTitle
-                class="text-base leading-snug"
-                :class="productModuleStatusClass(titleStatus)"
-            >
-                <Link
-                    :href="wizardShow(product.id).url"
-                    class="hover:underline"
-                >
-                    {{ product.name }}
-                </Link>
-            </CardTitle>
-            <Button
-                variant="outline"
-                size="sm"
-                class="w-full cursor-pointer"
-                @click="openWizard"
-            >
-                <WandSparkles class="size-3.5" />
-                {{ t('products.wizard_link') }}
-            </Button>
-        </CardHeader>
-
         <TooltipProvider :delay-duration="300">
+            <CardHeader class="gap-2 border-b px-4 py-4 [.border-b]:pb-4">
+                <CardTitle
+                    class="text-base leading-snug"
+                    :class="productModuleStatusClass(titleStatus)"
+                >
+                    <Link
+                        :href="wizardShow(product.id).url"
+                        class="hover:underline"
+                    >
+                        {{ product.name }}
+                    </Link>
+                </CardTitle>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="w-full cursor-pointer"
+                            @click="openWizard"
+                        >
+                            <WandSparkles class="size-3.5" />
+                            {{ t('products.wizard_link') }}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        side="top"
+                        class="max-w-xs text-left leading-relaxed"
+                    >
+                        {{ t('products.wizard_button_tooltip') }}
+                    </TooltipContent>
+                </Tooltip>
+            </CardHeader>
+
             <CardContent class="space-y-0 p-0">
                 <button
                     type="button"
@@ -150,9 +160,7 @@ const openWizard = (): void => {
                     :aria-expanded="modulesExpanded"
                     @click="toggleModules"
                 >
-                    <span
-                        class="truncate text-sm font-medium text-muted-foreground hover:text-foreground"
-                    >
+                    <span class="truncate text-sm font-medium">
                         {{ modulesToggleLabel }}
                     </span>
                     <span
