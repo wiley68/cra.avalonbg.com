@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { register } from '@/routes';
 
 defineOptions({
     layout: {
@@ -21,6 +22,7 @@ defineOptions({
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+    canRegister?: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -102,5 +104,12 @@ const { t } = useTranslations();
                 {{ t('auth.login.submit') }}
             </Button>
         </div>
+
+        <p v-if="canRegister" class="text-center text-sm text-muted-foreground">
+            {{ t('auth.login.no_account') }}
+            <TextLink :href="register()" class="underline underline-offset-4">
+                {{ t('auth.login.register_link') }}
+            </TextLink>
+        </p>
     </Form>
 </template>

@@ -32,7 +32,7 @@ const displayDescription = computed(() =>
             <LocaleSwitcher />
         </div>
 
-        <div class="w-full max-w-sm">
+        <div class="w-full max-w-md">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
                     <Link

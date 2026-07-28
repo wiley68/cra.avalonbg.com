@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BillingStatus;
 use App\Enums\RoleSlug;
 use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
@@ -50,7 +51,9 @@ class OrganizationController extends Controller
                 'name' => $request->string('name'),
                 'slug' => $request->string('slug'),
                 'billing_email' => $request->input('billing_email'),
-                'subscription_plan' => $request->input('subscription_plan'),
+                'subscription_plan' => $request->input('subscription_plan') ?: SubscriptionPlan::Free->value,
+                'billing_status' => BillingStatus::Active->value,
+                'billing_interval' => null,
                 'is_active' => $request->boolean('is_active', true),
                 'locale' => $request->string('locale')->toString(),
             ]);

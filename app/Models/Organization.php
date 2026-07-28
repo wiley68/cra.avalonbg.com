@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\BillingInterval;
+use App\Enums\BillingStatus;
 use App\Enums\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'slug',
     'is_active',
     'subscription_plan',
+    'billing_status',
+    'billing_interval',
     'trial_ends_at',
     'billing_email',
     'locale',
@@ -28,6 +32,8 @@ class Organization extends Model
         return [
             'is_active' => 'boolean',
             'trial_ends_at' => 'datetime',
+            'billing_status' => BillingStatus::class,
+            'billing_interval' => BillingInterval::class,
         ];
     }
 
@@ -43,6 +49,20 @@ class Organization extends Model
     public function resolvedSubscriptionPlan(): SubscriptionPlan
     {
         return SubscriptionPlan::fromStoredOrDefault($this->subscription_plan);
+    }
+
+    public function resolvedBillingStatus(): BillingStatus
+    {
+        if ($this->billing_status instanceof BillingStatus) {
+            return $this->billing_status;
+        }
+
+        return BillingStatus::tryFrom((string) $this->billing_status) ?? BillingStatus::Active;
+    }
+
+    public function isBillingActive(): bool
+    {
+        return $this->resolvedBillingStatus() === BillingStatus::Active;
     }
 
     /**
@@ -64,6 +84,10 @@ class Organization extends Model
 
     public function canAddProduct(): bool
     {
+        if (!$this->isBillingActive()) {
+            return false;
+        }
+
         $max = $this->maxProducts();
 
         if ($max === null) {
@@ -76,6 +100,7 @@ class Organization extends Model
     /**
      * @return array{
      *     plan: string,
+     *     billing_status: string,
      *     max_products: int|null,
      *     used: int,
      *     can_create: bool
@@ -85,6 +110,7 @@ class Organization extends Model
     {
         return [
             'plan' => $this->resolvedSubscriptionPlan()->value,
+            'billing_status' => $this->resolvedBillingStatus()->value,
             'max_products' => $this->maxProducts(),
             'used' => $this->productsCount(),
             'can_create' => $this->canAddProduct(),

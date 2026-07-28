@@ -81,6 +81,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'organizations.is_active',
                 'organizations.locale',
                 'organizations.subscription_plan',
+                'organizations.billing_status',
+                'organizations.billing_interval',
                 'organizations.billing_email',
                 'organizations.trial_ends_at',
             )

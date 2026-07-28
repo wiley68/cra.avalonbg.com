@@ -24,6 +24,7 @@ type OrganizationSummary = {
 
 type ProductQuota = {
     plan: string;
+    billing_status: string;
     max_products: number | null;
     used: number;
     can_create: boolean;
@@ -37,7 +38,15 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 
+const isPendingPayment = computed(
+    () => props.productQuota.billing_status === 'pending_payment',
+);
+
 const quotaLabel = computed(() => {
+    if (isPendingPayment.value) {
+        return t('products.plan_pending_payment');
+    }
+
     const planName = t(`billing.plans.${props.productQuota.plan}`);
 
     if (props.productQuota.max_products === null) {
@@ -56,6 +65,12 @@ const quotaLabel = computed(() => {
 
 const canCreateProduct = computed(
     () => props.canManage && props.productQuota.can_create,
+);
+
+const createDisabledTitle = computed(() =>
+    isPendingPayment.value
+        ? t('products.create_disabled_pending')
+        : t('products.create_disabled_limit'),
 );
 
 const moduleColorHelpItems = computed(() => [
@@ -181,7 +196,7 @@ onMounted(() => {
                     v-else-if="canManage"
                     class="shrink-0"
                     disabled
-                    :title="t('products.create_disabled_limit')"
+                    :title="createDisabledTitle"
                 >
                     <Plus class="h-4 w-4" />
                     {{ t('products.create') }}
