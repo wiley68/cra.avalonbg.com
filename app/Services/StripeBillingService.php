@@ -408,6 +408,7 @@ class StripeBillingService
                 'payment_method' => PaymentMethod::Stripe->value,
                 'billing_activated_at' => $organization->billing_activated_at ?? now(),
                 'billing_past_due_at' => null,
+                'trial_ends_at' => null,
                 'stripe_customer_id' => $customerId ?? $organization->stripe_customer_id,
                 'stripe_subscription_id' => $subscriptionId ?? $organization->stripe_subscription_id,
             ])->save();
@@ -448,6 +449,9 @@ class StripeBillingService
                 BillingStatus::Active => null,
                 default => $organization->billing_past_due_at,
             },
+            'trial_ends_at' => $status === BillingStatus::Active
+                ? null
+                : $organization->trial_ends_at,
             'stripe_customer_id' => $customerId ?? $organization->stripe_customer_id,
             'stripe_subscription_id' => $subscriptionId ?? $organization->stripe_subscription_id,
         ])->save();

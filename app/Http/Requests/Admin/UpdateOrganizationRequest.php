@@ -57,6 +57,7 @@ class UpdateOrganizationRequest extends FormRequest
             'subscription_plan' => ['required', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
+            'trial_ends_at' => ['nullable', 'date'],
         ];
     }
 }

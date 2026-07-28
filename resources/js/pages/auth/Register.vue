@@ -278,6 +278,23 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
                 <InputError :message="errors.billing_interval" />
             </div>
 
+            <div v-if="isPaidPlan" class="grid gap-2">
+                <Label for="promo_code">{{
+                    t('auth.register.promo_code')
+                }}</Label>
+                <Input
+                    id="promo_code"
+                    type="text"
+                    name="promo_code"
+                    autocomplete="off"
+                    :placeholder="t('auth.register.promo_code_placeholder')"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{ t('auth.register.promo_code_help') }}
+                </p>
+                <InputError :message="errors.promo_code" />
+            </div>
+
             <Button
                 type="submit"
                 class="mt-2 w-full"

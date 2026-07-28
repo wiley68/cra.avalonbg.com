@@ -100,4 +100,28 @@ return [
     'dunning' => [
         'grace_days' => (int) env('BILLING_DUNNING_GRACE_DAYS', 14),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Promo codes → trial_ends_at
+    |--------------------------------------------------------------------------
+    |
+    | Codes are matched case-insensitively. A valid code on paid signup (or
+    | Billing apply) starts an active trial without payment; when trial_ends_at
+    | elapses without confirmed payment, status becomes pending_payment.
+    | plans: null = any paid plan; otherwise list of allowed plan keys.
+    |
+    */
+    'promo_codes' => [
+        'TRIAL14' => [
+            'trial_days' => (int) env('BILLING_PROMO_TRIAL14_DAYS', 14),
+            'plans' => null,
+            'active' => (bool) env('BILLING_PROMO_TRIAL14_ACTIVE', true),
+        ],
+        'STANDARD30' => [
+            'trial_days' => (int) env('BILLING_PROMO_STANDARD30_DAYS', 30),
+            'plans' => ['standard', 'enterprise'],
+            'active' => (bool) env('BILLING_PROMO_STANDARD30_ACTIVE', true),
+        ],
+    ],
 ];

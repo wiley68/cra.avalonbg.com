@@ -18,6 +18,7 @@ class TenantBillingService
 {
     public function __construct(
         private readonly BankPaymentService $bankPayments,
+        private readonly BillingPromoCodeService $promoCodes,
     ) {
     }
 
@@ -35,6 +36,41 @@ class TenantBillingService
     public function canChangePlanInApp(Organization $organization): bool
     {
         return !$this->canManageStripe($organization);
+    }
+
+    public function canApplyPromo(Organization $organization): bool
+    {
+        if ($this->canManageStripe($organization)) {
+            return false;
+        }
+
+        if ($organization->resolvedSubscriptionPlan() === SubscriptionPlan::Free) {
+            return false;
+        }
+
+        if ($organization->hasConfirmedPaidSubscription()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function applyPromoCode(
+        Organization $organization,
+        string $promoCode,
+    ): Organization {
+        if (!$this->canApplyPromo($organization)) {
+            throw ValidationException::withMessages([
+                'promo_code' => Translations::get('billing.promo.errors.not_applicable'),
+            ]);
+        }
+
+        $promo = $this->promoCodes->assertApplicable(
+            $promoCode,
+            $organization->resolvedSubscriptionPlan(),
+        );
+
+        return $this->promoCodes->startTrial($organization, $promo);
     }
 
     public function changePlan(
@@ -69,6 +105,8 @@ class TenantBillingService
                     'billing_status' => BillingStatus::Active->value,
                     'payment_method' => null,
                     'billing_activated_at' => $organization->billing_activated_at ?? now(),
+                    'trial_ends_at' => null,
+                    'promo_code' => null,
                 ])->save();
 
                 return;
@@ -84,10 +122,14 @@ class TenantBillingService
                 ]);
             }
 
+            $onTrial = $organization->isOnTrial();
+
             $organization->forceFill([
                 'subscription_plan' => $plan->value,
                 'billing_interval' => $interval->value,
-                'billing_status' => BillingStatus::PendingPayment->value,
+                'billing_status' => $onTrial
+                    ? BillingStatus::Active->value
+                    : BillingStatus::PendingPayment->value,
                 'billing_activated_at' => null,
                 'payment_method' => null,
             ])->save();

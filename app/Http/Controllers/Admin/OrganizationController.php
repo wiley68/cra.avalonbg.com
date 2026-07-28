@@ -119,6 +119,8 @@ class OrganizationController extends Controller
                     ?: $organization->resolvedSubscriptionPlan()->value,
                 'is_active' => (bool) $organization->is_active,
                 'locale' => $organization->resolvedLocale(),
+                'trial_ends_at' => $organization->trial_ends_at?->format('Y-m-d\TH:i'),
+                'promo_code' => $organization->promo_code,
                 'users_count' => $organization->users()->count(),
             ],
             'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
@@ -158,15 +160,32 @@ class OrganizationController extends Controller
         $previousPlan = $organization->resolvedSubscriptionPlan()->value;
         $locale = $request->string('locale')->toString();
         $nextPlan = (string) $request->input('subscription_plan');
+        $trialEndsAt = $request->filled('trial_ends_at')
+            ? $request->date('trial_ends_at')
+            : null;
 
-        $organization->update([
+        $updates = [
             'name' => $request->string('name'),
             'slug' => $request->string('slug'),
             'billing_email' => $request->input('billing_email'),
             'subscription_plan' => $nextPlan,
             'is_active' => $request->boolean('is_active'),
             'locale' => $locale,
-        ]);
+            'trial_ends_at' => $trialEndsAt,
+        ];
+
+        if (
+            $trialEndsAt !== null
+            && $trialEndsAt->isFuture()
+            && !$organization->hasConfirmedPaidSubscription()
+            && $nextPlan !== SubscriptionPlan::Free->value
+        ) {
+            $updates['billing_status'] = BillingStatus::Active->value;
+            $updates['billing_activated_at'] = null;
+            $updates['payment_method'] = null;
+        }
+
+        $organization->update($updates);
 
         AuditLogger::logSubscriptionPlanChanged(
             $organization->fresh() ?? $organization,

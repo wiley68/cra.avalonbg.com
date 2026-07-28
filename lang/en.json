@@ -123,7 +123,10 @@
             "paid_pending_note": "Paid plans stay pending until payment is confirmed. You can finish email verification and 2FA setup meanwhile.",
             "submit": "Create account",
             "have_account": "Already have an account?",
-            "login_link": "Log in"
+            "login_link": "Log in",
+            "promo_code": "Promo code (optional)",
+            "promo_code_placeholder": "e.g. TRIAL14",
+            "promo_code_help": "A valid code starts a free trial without waiting for payment."
         },
         "forgot_password": {
             "title": "Forgot password",
@@ -352,6 +355,29 @@
             "cancelled_body": "Your subscription is cancelled. Existing data is retained; renew or choose a plan to restore full access.",
             "no_delete_note": "We do not automatically delete your organization or compliance data for unpaid invoices.",
             "open_billing": "Open billing"
+        },
+        "promo": {
+            "title": "Promo code",
+            "help": "Enter a promo code to start a free trial on your current paid plan.",
+            "code": "Promo code",
+            "placeholder": "e.g. TRIAL14",
+            "apply": "Apply promo",
+            "applied": "Promo applied — your trial is active.",
+            "errors": {
+                "required": "Enter a promo code.",
+                "invalid": "This promo code is invalid or inactive.",
+                "free_plan": "Promo codes apply to paid plans only.",
+                "plan_not_allowed": "This promo code is not valid for the selected plan.",
+                "not_applicable": "A promo code cannot be applied to this subscription."
+            }
+        },
+        "trial": {
+            "title": "Trial active",
+            "help": "You have full access for the trial period. Convert to a paid subscription before it ends to keep creating products.",
+            "banner_title": "Trial in progress",
+            "banner_body": "About :days day(s) left on your trial. Existing work stays available.",
+            "promo_applied": "Promo: :code",
+            "open_billing": "Manage billing"
         }
     },
     "admin": {
@@ -430,7 +456,10 @@
             "confirm_delete": "This permanently deletes the organization, all its products, controls, evidence and related data, and removes member accounts that belong only to this organization. This cannot be undone.",
             "sso_enabled": "SSO enabled (Standard)",
             "sso_enabled_help": "Deprecated — Standard and Enterprise always include SSO.",
-            "sso_included_help": "Standard and Enterprise plans include OIDC SSO configuration under Settings → SSO."
+            "sso_included_help": "Standard and Enterprise plans include OIDC SSO configuration under Settings → SSO.",
+            "trial_ends_at": "Trial ends at",
+            "trial_ends_at_help": "Set a future date to grant an unpaid trial on a paid plan. Clear to remove.",
+            "promo_code_label": "Applied promo: :code"
         },
         "requirements": {
             "index_title": "Requirements catalogue",

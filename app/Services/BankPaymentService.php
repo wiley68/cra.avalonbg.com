@@ -131,6 +131,8 @@ class BankPaymentService
                 'billing_status' => BillingStatus::Active->value,
                 'payment_method' => $paymentMethod->value,
                 'billing_activated_at' => now(),
+                'trial_ends_at' => null,
+                'billing_past_due_at' => null,
             ])->save();
 
             $fresh = $organization->fresh();

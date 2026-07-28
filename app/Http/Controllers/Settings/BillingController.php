@@ -34,10 +34,14 @@ class BillingController extends Controller
         $organization = $this->currentOrganization();
         $this->authorize('update', $organization);
 
+        $organization->syncExpiredTrial();
+
         $pending = $this->bankPayments->pendingRequest($organization);
         $billingActive = $organization->isBillingActive();
+        $onTrial = $organization->isOnTrial();
         $paidPlan = $organization->resolvedSubscriptionPlan()->value !== 'free';
         $canManageStripe = $this->tenantBilling->canManageStripe($organization);
+        $needsPayment = $paidPlan && !$organization->hasConfirmedPaidSubscription();
 
         return Inertia::render('settings/Billing', [
             'organization' => [
@@ -49,18 +53,22 @@ class BillingController extends Controller
                 'billing_email' => $organization->billing_email,
                 'payment_method' => $organization->payment_method?->value,
                 'billing_activated_at' => $organization->billing_activated_at?->toIso8601String(),
+                'trial_ends_at' => $organization->trial_ends_at?->toIso8601String(),
+                'promo_code' => $organization->promo_code,
+                'on_trial' => $onTrial,
             ],
             'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
             'pendingRequest' => $this->bankPayments->requestPayload($pending),
             'bankInstructions' => $this->bankPayments->bankInstructions(),
-            'canRequestBankPayment' => !$billingActive
-                && $paidPlan
-                && $pending === null,
+            'canRequestBankPayment' => $needsPayment
+                && $pending === null
+                && !$organization->isBillingCancelled(),
             'canCheckoutStripe' => $this->stripeBilling->isConfigured()
-                && $paidPlan
-                && !$billingActive,
+                && $needsPayment
+                && !$organization->isBillingCancelled(),
             'canManageStripe' => $canManageStripe,
             'canChangePlan' => $this->tenantBilling->canChangePlanInApp($organization),
+            'canApplyPromo' => $this->tenantBilling->canApplyPromo($organization),
             'stripeConfigured' => $this->stripeBilling->isConfigured(),
             'documents' => $billingActive
                 ? $this->documents->listPayload($organization)
@@ -98,6 +106,28 @@ class BillingController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('billing.change_plan.updated'),
+        ]);
+
+        return redirect()->route('settings.billing.edit');
+    }
+
+    public function applyPromo(Request $request): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('update', $organization);
+
+        $validated = $request->validate([
+            'promo_code' => ['required', 'string', 'max:64'],
+        ]);
+
+        $this->tenantBilling->applyPromoCode(
+            $organization,
+            $validated['promo_code'],
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('billing.promo.applied'),
         ]);
 
         return redirect()->route('settings.billing.edit');

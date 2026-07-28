@@ -10,6 +10,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('audit-logs:prune')->daily();
 Schedule::command('evidence:refresh-freshness')->daily();
+Schedule::command('billing:expire-trials')->hourly();
 Schedule::command('vcs:sync-scheduled')->hourly();
 Schedule::command('integrations:sync-scheduled')->hourly();
 

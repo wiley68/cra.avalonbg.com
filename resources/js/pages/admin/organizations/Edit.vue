@@ -36,6 +36,8 @@ type OrganizationPayload = {
     subscription_plan: string | null;
     is_active: boolean;
     locale: string;
+    trial_ends_at: string | null;
+    promo_code: string | null;
     users_count: number;
 };
 
@@ -70,6 +72,7 @@ const form = useForm({
     subscription_plan: props.organization.subscription_plan ?? 'free',
     is_active: Boolean(props.organization.is_active),
     locale: props.organization.locale || 'en',
+    trial_ends_at: props.organization.trial_ends_at ?? '',
 });
 
 const submit = () => {
@@ -212,6 +215,31 @@ const confirmDelete = () => {
                     {{ t('admin.organizations.locale_help_edit') }}
                 </p>
                 <InputError :message="form.errors.locale" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="trial_ends_at">{{
+                    t('admin.organizations.trial_ends_at')
+                }}</Label>
+                <Input
+                    id="trial_ends_at"
+                    v-model="form.trial_ends_at"
+                    type="datetime-local"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.trial_ends_at_help') }}
+                </p>
+                <p
+                    v-if="organization.promo_code"
+                    class="text-xs text-muted-foreground"
+                >
+                    {{
+                        t('admin.organizations.promo_code_label', {
+                            code: organization.promo_code,
+                        })
+                    }}
+                </p>
+                <InputError :message="form.errors.trial_ends_at" />
             </div>
 
             <div class="flex items-center gap-3">

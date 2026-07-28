@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.billing.edit');
     Route::post('settings/billing/change-plan', [BillingController::class, 'changePlan'])
         ->name('settings.billing.change-plan');
+    Route::post('settings/billing/promo', [BillingController::class, 'applyPromo'])
+        ->name('settings.billing.promo');
     Route::post('settings/billing/bank-payment', [BillingController::class, 'requestBankPayment'])
         ->name('settings.billing.bank-payment.store');
     Route::post('settings/billing/stripe/checkout', [BillingController::class, 'checkoutStripe'])

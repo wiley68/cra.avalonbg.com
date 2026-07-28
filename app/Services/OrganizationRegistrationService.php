@@ -18,6 +18,7 @@ class OrganizationRegistrationService
         private readonly OrganizationMembershipService $memberships,
         private readonly ControlService $controls,
         private readonly BankPaymentService $bankPayments,
+        private readonly BillingPromoCodeService $promoCodes,
     ) {
     }
 
@@ -31,7 +32,8 @@ class OrganizationRegistrationService
      *     subscription_plan: string,
      *     billing_interval?: string|null,
      *     billing_email?: string|null,
-     *     locale?: string|null
+     *     locale?: string|null,
+     *     promo_code?: string|null
      * }  $input
      */
     public function register(array $input): User
@@ -47,9 +49,17 @@ class OrganizationRegistrationService
             : (string) $input['organization_name'],
         );
 
+        $promo = null;
+        if (filled($input['promo_code'] ?? null)) {
+            $promo = $this->promoCodes->assertApplicable(
+                (string) $input['promo_code'],
+                $plan,
+            );
+        }
+
         $billingStatus = $plan === SubscriptionPlan::Free
             ? BillingStatus::Active
-            : BillingStatus::PendingPayment;
+            : ($promo !== null ? BillingStatus::Active : BillingStatus::PendingPayment);
 
         $interval = null;
         if ($plan !== SubscriptionPlan::Free) {
@@ -57,7 +67,7 @@ class OrganizationRegistrationService
                 ?? BillingInterval::Month;
         }
 
-        return DB::transaction(function () use ($input, $plan, $locale, $slug, $billingStatus, $interval): User {
+        return DB::transaction(function () use ($input, $plan, $locale, $slug, $billingStatus, $interval, $promo): User {
             $user = User::query()->create([
                 'name' => $input['name'],
                 'email' => $input['email'],
@@ -77,6 +87,10 @@ class OrganizationRegistrationService
                     ? $input['billing_email']
                     : $input['email'],
                 'locale' => $locale,
+                'trial_ends_at' => $promo !== null
+                    ? now()->addDays($promo['trial_days'])
+                    : null,
+                'promo_code' => $promo['code'] ?? null,
             ]);
 
             $ownerRoleId = Role::query()

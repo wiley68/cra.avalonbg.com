@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'payment_method',
     'billing_activated_at',
     'trial_ends_at',
+    'promo_code',
     'billing_email',
     'stripe_customer_id',
     'stripe_subscription_id',
@@ -77,7 +78,95 @@ class Organization extends Model
 
     public function isBillingActive(): bool
     {
+        $this->syncExpiredTrial();
+
         return $this->resolvedBillingStatus() === BillingStatus::Active;
+    }
+
+    public function hasConfirmedPaidSubscription(): bool
+    {
+        return $this->billing_activated_at !== null
+            && $this->payment_method !== null;
+    }
+
+    public function isOnTrial(): bool
+    {
+        $this->syncExpiredTrial();
+
+        return $this->trial_ends_at !== null
+            && $this->trial_ends_at->isFuture()
+            && !$this->hasConfirmedPaidSubscription()
+            && $this->resolvedBillingStatus() === BillingStatus::Active;
+    }
+
+    /**
+     * Convert unpaid expired trials to pending_payment. Confirmed paid orgs clear trial_ends_at.
+     */
+    public function syncExpiredTrial(): bool
+    {
+        if ($this->trial_ends_at === null) {
+            return false;
+        }
+
+        if ($this->hasConfirmedPaidSubscription()) {
+            if ($this->exists) {
+                $this->forceFill(['trial_ends_at' => null])->save();
+            } else {
+                $this->trial_ends_at = null;
+            }
+
+            return false;
+        }
+
+        if ($this->trial_ends_at->isFuture()) {
+            return false;
+        }
+
+        if ($this->resolvedBillingStatus() !== BillingStatus::Active) {
+            return false;
+        }
+
+        if ($this->exists) {
+            $this->forceFill([
+                'billing_status' => BillingStatus::PendingPayment->value,
+            ])->save();
+        } else {
+            $this->billing_status = BillingStatus::PendingPayment;
+        }
+
+        return true;
+    }
+
+    /**
+     * Soft trial notice for shared Inertia layout.
+     *
+     * @return array{
+     *     ends_at: string,
+     *     days_remaining: int,
+     *     promo_code: string|null,
+     *     billing_href: string,
+     *     can_convert: bool
+     * }|null
+     */
+    public function trialNoticePayload(): ?array
+    {
+        if (!$this->isOnTrial() || $this->trial_ends_at === null) {
+            return null;
+        }
+
+        $secondsRemaining = max(
+            0,
+            $this->trial_ends_at->getTimestamp() - now()->getTimestamp(),
+        );
+        $daysRemaining = (int) ceil($secondsRemaining / 86400);
+
+        return [
+            'ends_at' => $this->trial_ends_at->toIso8601String(),
+            'days_remaining' => $daysRemaining,
+            'promo_code' => $this->promo_code,
+            'billing_href' => route('settings.billing.edit'),
+            'can_convert' => $this->resolvedSubscriptionPlan() !== SubscriptionPlan::Free,
+        ];
     }
 
     public function isPastDue(): bool

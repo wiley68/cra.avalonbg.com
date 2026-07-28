@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import BillingNoticeBanner from '@/components/BillingNoticeBanner.vue';
+import TrialNoticeBanner from '@/components/TrialNoticeBanner.vue';
 import { Toaster } from '@/components/ui/sonner';
 import type { BreadcrumbItem } from '@/types';
 
@@ -23,6 +24,7 @@ withDefaults(defineProps<Props>(), {
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <div class="flex flex-1 flex-col p-4 md:p-6">
                 <BillingNoticeBanner />
+                <TrialNoticeBanner />
                 <slot />
             </div>
         </AppContent>

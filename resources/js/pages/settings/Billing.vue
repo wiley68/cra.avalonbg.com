@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { Banknote, CreditCard, Save } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -13,7 +16,11 @@ import {
     monthlyYearTotalEur,
     type PlanPriceOption,
 } from '@/lib/billingPricing';
-import { changePlan, edit as editBilling } from '@/routes/settings/billing';
+import {
+    changePlan,
+    edit as editBilling,
+    promo as applyPromoRoute,
+} from '@/routes/settings/billing';
 import { store as storeBankPayment } from '@/routes/settings/billing/bank-payment';
 import { download as downloadDocument } from '@/routes/settings/billing/documents';
 import {
@@ -30,6 +37,9 @@ type OrganizationBilling = {
     billing_email: string | null;
     payment_method: string | null;
     billing_activated_at: string | null;
+    trial_ends_at: string | null;
+    promo_code: string | null;
+    on_trial: boolean;
 };
 
 type SubscriptionPlanOption = PlanPriceOption & {
@@ -77,12 +87,18 @@ const props = defineProps<{
     canCheckoutStripe: boolean;
     canManageStripe: boolean;
     canChangePlan: boolean;
+    canApplyPromo: boolean;
     stripeConfigured: boolean;
     documents: BillingDocumentItem[];
     canManageDocuments: boolean;
 }>();
 
 const { t } = useTranslations();
+const page = usePage();
+
+const promoError = computed(
+    () => (page.props.errors as Record<string, string> | undefined)?.promo_code,
+);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'settings.nav.billing', href: editBilling() },
@@ -90,6 +106,7 @@ usePageBreadcrumbs(() => [
 
 const selectedPlan = ref(props.organization.subscription_plan);
 const billingInterval = ref(props.organization.billing_interval ?? 'month');
+const promoCode = ref('');
 
 watch(
     () => props.organization,
@@ -221,6 +238,19 @@ const submitChangePlan = () => {
         { preserveScroll: true },
     );
 };
+
+const applyPromo = () => {
+    router.post(
+        applyPromoRoute().url,
+        { promo_code: promoCode.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                promoCode.value = '';
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -272,6 +302,26 @@ const submitChangePlan = () => {
                     {{ t('billing.billing_email') }}
                 </p>
                 <p class="font-medium">{{ organization.billing_email }}</p>
+            </div>
+
+            <div
+                v-if="organization.on_trial && organization.trial_ends_at"
+                class="rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-3 text-sm text-sky-950 dark:text-sky-50"
+            >
+                <p class="font-medium">{{ t('billing.trial.title') }}</p>
+                <p class="mt-1 text-xs opacity-90">
+                    {{ t('billing.trial.help') }}
+                </p>
+                <p
+                    v-if="organization.promo_code"
+                    class="mt-1 text-xs opacity-80"
+                >
+                    {{
+                        t('billing.trial.promo_applied', {
+                            code: organization.promo_code,
+                        })
+                    }}
+                </p>
             </div>
 
             <div
@@ -508,7 +558,9 @@ const submitChangePlan = () => {
 
         <p
             v-else-if="
-                organization.billing_status === 'active' && !canManageStripe
+                organization.billing_status === 'active' &&
+                !canManageStripe &&
+                !organization.on_trial
             "
             class="text-sm text-muted-foreground"
         >
@@ -523,6 +575,30 @@ const submitChangePlan = () => {
         >
             {{ t('billing.stripe.not_configured_hint') }}
         </p>
+
+        <div v-if="canApplyPromo" class="space-y-3 rounded-lg border p-5">
+            <div class="space-y-1">
+                <h2 class="font-medium">{{ t('billing.promo.title') }}</h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.promo.help') }}
+                </p>
+            </div>
+            <div class="grid gap-2 sm:max-w-sm">
+                <Label for="promo_code">{{ t('billing.promo.code') }}</Label>
+                <Input
+                    id="promo_code"
+                    v-model="promoCode"
+                    type="text"
+                    autocomplete="off"
+                    :placeholder="t('billing.promo.placeholder')"
+                />
+                <InputError :message="promoError" />
+            </div>
+            <Button type="button" @click="applyPromo">
+                <Save class="h-4 w-4" />
+                {{ t('billing.promo.apply') }}
+            </Button>
+        </div>
 
         <BillingDocumentsPanel
             :documents="documents"

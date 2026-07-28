@@ -50,6 +50,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'billing_email' => ['nullable', 'email', 'max:255'],
             'locale' => ['nullable', 'string', Rule::in(Organization::LOCALES)],
+            'promo_code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
         return $this->registrations->register($input);

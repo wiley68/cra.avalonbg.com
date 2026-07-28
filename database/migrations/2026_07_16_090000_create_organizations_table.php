@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->string('payment_method')->nullable();
             $table->timestamp('billing_activated_at')->nullable();
             $table->timestamp('trial_ends_at')->nullable();
+            $table->string('promo_code')->nullable();
             $table->string('billing_email')->nullable();
             $table->string('stripe_customer_id')->nullable()->index();
             $table->string('stripe_subscription_id')->nullable()->index();

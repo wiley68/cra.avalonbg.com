@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.14  
+**Версия:** 0.15  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could open  
+**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could 15 Done; Could 16–19 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -160,7 +160,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 
 ### Could
 
-15. Promo codes / trial_ends_at wired към реален trial
+15. ~~Promo codes / trial_ends_at wired към реален trial~~ **Done** (2026-07-28) — config promos, signup/Billing apply, expire → pending
 16. Paid-only feature flags (първи конкретни разлики Free vs paid) — **предпочитано след F exit**
 17. SAML 2.0
 18. Auto-generate simple license PDF template
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.15   | 2026-07-28 | Could 15 Done — promo codes + real trial_ends_at (signup/Billing, expire→pending, no auto-delete)                      |
 | 0.14   | 2026-07-28 | Should 14 Done — dunning/past_due UX (grace banner, read-only hint, no auto-delete; Billing + Products messaging)      |
 | 0.13   | 2026-07-28 | Should 13 Done — SSO for Standard (no optional sso_enabled gate; same as Enterprise)                                   |
 | 0.12   | 2026-07-28 | Should 12 Done — annual pricing UX (20% messaging) on signup + Billing change plan                                     |

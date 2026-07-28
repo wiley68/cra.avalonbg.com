@@ -183,6 +183,7 @@ class HandleInertiaRequests extends Middleware
                     'can_use_sso' => $organization->canUseSso(),
                 ],
             'billing_notice' => $organization?->billingNoticePayload(),
+            'trial_notice' => $organization?->trialNoticePayload(),
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
