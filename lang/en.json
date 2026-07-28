@@ -4701,14 +4701,15 @@
     },
     "sso": {
         "title": "Single sign-on",
-        "description": "Connect an OpenID Connect identity provider (Microsoft Entra ID or generic OIDC).",
+        "description": "Connect an OpenID Connect or SAML 2.0 identity provider (Microsoft Entra ID, generic OIDC, or SAML).",
         "current_plan": "Current plan",
         "plan_locked": "SSO is available on Standard and Enterprise plans.",
         "enable_for_standard": "Enable SSO for this Standard organization",
         "provider": "Provider",
         "providers": {
             "generic": "Generic OIDC",
-            "entra": "Microsoft Entra ID"
+            "entra": "Microsoft Entra ID",
+            "saml": "SAML 2.0"
         },
         "issuer": "Issuer URL",
         "issuer_placeholder": "https://login.microsoftonline.com/{tenant}/v2.0",
@@ -4738,7 +4739,28 @@
             "invalid_state": "Invalid SSO response (state mismatch).",
             "provider_denied": "Sign-in was cancelled by the identity provider.",
             "missing_code": "Missing authorization code from the identity provider.",
-            "login_failed": "SSO login failed."
+            "login_failed": "SSO login failed.",
+            "cert_required": "IdP certificate is required when connecting SAML for the first time.",
+            "saml_misconfigured": "SAML SSO is not fully configured for this organization.",
+            "saml_failed": "Could not complete the SAML handshake.",
+            "saml_use_acs": "SAML sign-in must complete at the ACS endpoint.",
+            "missing_saml_response": "Missing SAMLResponse from the identity provider."
+        },
+        "saml": {
+            "idp_entity_id": "IdP entity ID",
+            "idp_entity_id_placeholder": "https://idp.example.com/metadata or urn:…",
+            "idp_entity_id_help": "Must match the Issuer in SAML Responses from your identity provider.",
+            "idp_sso_url": "IdP SSO URL",
+            "idp_sso_url_placeholder": "https://idp.example.com/sso/redirect",
+            "idp_sso_url_help": "HTTP-Redirect single sign-on endpoint from your IdP metadata.",
+            "idp_x509_cert": "IdP X.509 certificate",
+            "idp_x509_cert_placeholder": "-----BEGIN CERTIFICATE----- …",
+            "idp_x509_cert_keep": "Leave blank to keep the current certificate",
+            "idp_x509_cert_help": "Used to verify SAML Response signatures. Stored encrypted and never written to audit logs.",
+            "sp_details": "Service provider details (configure in your IdP)",
+            "sp_entity_id": "SP entity ID",
+            "acs_url": "Assertion Consumer Service (ACS) URL",
+            "metadata_link": "Download SP metadata XML"
         }
     }
 }

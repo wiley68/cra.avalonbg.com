@@ -14,10 +14,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'issuer',
     'client_id',
     'client_secret',
+    'idp_sso_url',
+    'idp_x509_cert',
     'allowed_email_domains',
     'is_enabled',
 ])]
-#[Hidden(['client_secret'])]
+#[Hidden(['client_secret', 'idp_x509_cert'])]
 class OrganizationSsoConnection extends Model
 {
     protected function casts(): array
@@ -25,6 +27,7 @@ class OrganizationSsoConnection extends Model
         return [
             'provider' => SsoProvider::class,
             'client_secret' => 'encrypted',
+            'idp_x509_cert' => 'encrypted',
             'allowed_email_domains' => 'array',
             'is_enabled' => 'boolean',
         ];
@@ -33,6 +36,25 @@ class OrganizationSsoConnection extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function resolvedProvider(): SsoProvider
+    {
+        if ($this->provider instanceof SsoProvider) {
+            return $this->provider;
+        }
+
+        return SsoProvider::tryFrom((string) $this->provider) ?? SsoProvider::Generic;
+    }
+
+    public function isSaml(): bool
+    {
+        return $this->resolvedProvider()->isSaml();
+    }
+
+    public function isOidc(): bool
+    {
+        return $this->resolvedProvider()->isOidc();
     }
 
     /**

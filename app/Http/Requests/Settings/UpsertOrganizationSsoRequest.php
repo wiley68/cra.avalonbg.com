@@ -30,11 +30,31 @@ class UpsertOrganizationSsoRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isSaml = $this->input('provider') === SsoProvider::Saml->value;
+
         return [
             'provider' => ['required', Rule::enum(SsoProvider::class)],
-            'issuer' => ['required', 'string', 'max:500', 'url'],
-            'client_id' => ['required', 'string', 'max:255'],
+            'issuer' => array_values(array_filter([
+                'required',
+                'string',
+                'max:500',
+                $isSaml ? null : 'url',
+            ])),
+            'client_id' => [
+                Rule::requiredIf(!$isSaml),
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'client_secret' => ['nullable', 'string', 'max:2000'],
+            'idp_sso_url' => [
+                Rule::requiredIf($isSaml),
+                'nullable',
+                'string',
+                'max:500',
+                'url',
+            ],
+            'idp_x509_cert' => ['nullable', 'string', 'max:10000'],
             'allowed_email_domains' => ['required', 'string', 'max:2000'],
             'is_enabled' => ['boolean'],
         ];

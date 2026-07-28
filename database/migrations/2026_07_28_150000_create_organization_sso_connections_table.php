@@ -12,8 +12,10 @@ return new class extends Migration {
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             $table->string('provider')->default('generic');
             $table->string('issuer');
-            $table->string('client_id');
-            $table->text('client_secret');
+            $table->string('client_id')->nullable();
+            $table->text('client_secret')->nullable();
+            $table->string('idp_sso_url')->nullable();
+            $table->text('idp_x509_cert')->nullable();
             $table->json('allowed_email_domains')->nullable();
             $table->boolean('is_enabled')->default(false);
             $table->timestamps();

@@ -102,7 +102,13 @@ Route::middleware(['guest', 'throttle:10,1'])->group(function () {
         ->name('auth.sso.redirect');
     Route::get('auth/sso/callback', [SsoAuthController::class, 'callback'])
         ->name('auth.sso.callback');
+    Route::post('auth/sso/acs', [SsoAuthController::class, 'acs'])
+        ->name('auth.sso.acs');
 });
+
+Route::get('auth/sso/metadata', [SsoAuthController::class, 'metadata'])
+    ->middleware('throttle:60,1')
+    ->name('auth.sso.metadata');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('auth/force-password-change', [ForcePasswordChangeController::class, 'edit'])->name('auth.force-password.edit');

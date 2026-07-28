@@ -27,10 +27,15 @@ type SsoConnection = {
     id: number;
     provider: string;
     issuer: string;
-    client_id: string;
+    client_id: string | null;
     has_client_secret: boolean;
+    idp_sso_url: string | null;
+    has_idp_x509_cert: boolean;
     allowed_email_domains: string[];
     is_enabled: boolean;
+    sp_entity_id?: string;
+    acs_url?: string;
+    metadata_url?: string;
 } | null;
 
 type ProviderOption = {
@@ -47,6 +52,11 @@ const props = defineProps<{
         can_use_sso: boolean;
     };
     connection: SsoConnection;
+    spEndpoints: {
+        sp_entity_id: string;
+        acs_url: string;
+        metadata_url: string;
+    };
     providers: ProviderOption[];
 }>();
 
@@ -59,11 +69,15 @@ const form = useForm({
     issuer: props.connection?.issuer ?? '',
     client_id: props.connection?.client_id ?? '',
     client_secret: '',
+    idp_sso_url: props.connection?.idp_sso_url ?? '',
+    idp_x509_cert: '',
     allowed_email_domains: (props.connection?.allowed_email_domains ?? []).join(
         ', ',
     ),
     is_enabled: Boolean(props.connection?.is_enabled),
 });
+
+const isSaml = computed(() => form.provider === 'saml');
 
 const planLabel = computed(() =>
     t(`billing.plans.${props.organization.subscription_plan}`),
@@ -134,49 +148,131 @@ const disconnect = () => {
             </div>
 
             <div class="grid gap-2">
-                <Label for="issuer">{{ t('sso.issuer') }}</Label>
+                <Label for="issuer">{{
+                    isSaml ? t('sso.saml.idp_entity_id') : t('sso.issuer')
+                }}</Label>
                 <Input
                     id="issuer"
                     v-model="form.issuer"
-                    type="url"
+                    :type="isSaml ? 'text' : 'url'"
                     required
-                    :placeholder="t('sso.issuer_placeholder')"
+                    :placeholder="
+                        isSaml
+                            ? t('sso.saml.idp_entity_id_placeholder')
+                            : t('sso.issuer_placeholder')
+                    "
                 />
                 <p class="text-xs text-muted-foreground">
-                    {{ t('sso.issuer_help') }}
+                    {{
+                        isSaml
+                            ? t('sso.saml.idp_entity_id_help')
+                            : t('sso.issuer_help')
+                    }}
                 </p>
                 <InputError :message="form.errors.issuer" />
             </div>
 
-            <div class="grid gap-2">
-                <Label for="client_id">{{ t('sso.client_id') }}</Label>
-                <Input
-                    id="client_id"
-                    v-model="form.client_id"
-                    required
-                    autocomplete="off"
-                />
-                <InputError :message="form.errors.client_id" />
-            </div>
+            <template v-if="isSaml">
+                <div class="grid gap-2">
+                    <Label for="idp_sso_url">{{
+                        t('sso.saml.idp_sso_url')
+                    }}</Label>
+                    <Input
+                        id="idp_sso_url"
+                        v-model="form.idp_sso_url"
+                        type="url"
+                        required
+                        :placeholder="t('sso.saml.idp_sso_url_placeholder')"
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('sso.saml.idp_sso_url_help') }}
+                    </p>
+                    <InputError :message="form.errors.idp_sso_url" />
+                </div>
 
-            <div class="grid gap-2">
-                <Label for="client_secret">{{ t('sso.client_secret') }}</Label>
-                <Input
-                    id="client_secret"
-                    v-model="form.client_secret"
-                    type="password"
-                    autocomplete="new-password"
-                    :placeholder="
-                        connection?.has_client_secret
-                            ? t('sso.client_secret_keep')
-                            : undefined
-                    "
-                />
-                <p class="text-xs text-muted-foreground">
-                    {{ t('sso.client_secret_help') }}
-                </p>
-                <InputError :message="form.errors.client_secret" />
-            </div>
+                <div class="grid gap-2">
+                    <Label for="idp_x509_cert">{{
+                        t('sso.saml.idp_x509_cert')
+                    }}</Label>
+                    <textarea
+                        id="idp_x509_cert"
+                        v-model="form.idp_x509_cert"
+                        rows="6"
+                        class="flex min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        :placeholder="
+                            connection?.has_idp_x509_cert
+                                ? t('sso.saml.idp_x509_cert_keep')
+                                : t('sso.saml.idp_x509_cert_placeholder')
+                        "
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('sso.saml.idp_x509_cert_help') }}
+                    </p>
+                    <InputError :message="form.errors.idp_x509_cert" />
+                </div>
+
+                <div
+                    class="space-y-2 rounded-md border border-dashed p-4 text-sm"
+                >
+                    <p class="font-medium">{{ t('sso.saml.sp_details') }}</p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('sso.saml.sp_entity_id') }}:
+                        <span class="font-mono break-all text-foreground">{{
+                            spEndpoints.sp_entity_id
+                        }}</span>
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('sso.saml.acs_url') }}:
+                        <span class="font-mono break-all text-foreground">{{
+                            spEndpoints.acs_url
+                        }}</span>
+                    </p>
+                    <p class="text-xs">
+                        <a
+                            :href="spEndpoints.metadata_url"
+                            class="underline underline-offset-2"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {{ t('sso.saml.metadata_link') }}
+                        </a>
+                    </p>
+                </div>
+            </template>
+
+            <template v-else>
+                <div class="grid gap-2">
+                    <Label for="client_id">{{ t('sso.client_id') }}</Label>
+                    <Input
+                        id="client_id"
+                        v-model="form.client_id"
+                        required
+                        autocomplete="off"
+                    />
+                    <InputError :message="form.errors.client_id" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="client_secret">{{
+                        t('sso.client_secret')
+                    }}</Label>
+                    <Input
+                        id="client_secret"
+                        v-model="form.client_secret"
+                        type="password"
+                        autocomplete="new-password"
+                        :placeholder="
+                            connection?.has_client_secret
+                                ? t('sso.client_secret_keep')
+                                : undefined
+                        "
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('sso.client_secret_help') }}
+                    </p>
+                    <InputError :message="form.errors.client_secret" />
+                </div>
+            </template>
 
             <div class="grid gap-2">
                 <Label for="allowed_email_domains">{{

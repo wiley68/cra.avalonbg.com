@@ -32,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->validateCsrfTokens(except: [
+            'auth/sso/acs',
+        ]);
         $middleware->trimStrings(except: [
             'current_password',
             'password',

@@ -4701,14 +4701,15 @@
     },
     "sso": {
         "title": "Единен вход (SSO)",
-        "description": "Свържете OpenID Connect доставчик (Microsoft Entra ID или generic OIDC).",
+        "description": "Свържете OpenID Connect или SAML 2.0 доставчик на идентичност (Microsoft Entra ID, generic OIDC или SAML).",
         "current_plan": "Текущ план",
         "plan_locked": "SSO е наличен за плановете Standard и Enterprise.",
         "enable_for_standard": "Включи SSO за тази Standard организация",
         "provider": "Доставчик",
         "providers": {
             "generic": "Generic OIDC",
-            "entra": "Microsoft Entra ID"
+            "entra": "Microsoft Entra ID",
+            "saml": "SAML 2.0"
         },
         "issuer": "Issuer URL",
         "issuer_placeholder": "https://login.microsoftonline.com/{tenant}/v2.0",
@@ -4738,7 +4739,28 @@
             "invalid_state": "Невалиден SSO отговор (несъответствие на state).",
             "provider_denied": "Входът беше отказан от доставчика.",
             "missing_code": "Липсва authorization code от доставчика.",
-            "login_failed": "SSO входът беше неуспешен."
+            "login_failed": "SSO входът беше неуспешен.",
+            "cert_required": "IdP сертификатът е задължителен при първоначално свързване на SAML.",
+            "saml_misconfigured": "SAML SSO не е напълно конфигуриран за тази организация.",
+            "saml_failed": "SAML handshake не можа да бъде завършен.",
+            "saml_use_acs": "SAML входът трябва да завърши през ACS endpoint.",
+            "missing_saml_response": "Липсва SAMLResponse от доставчика на идентичност."
+        },
+        "saml": {
+            "idp_entity_id": "IdP entity ID",
+            "idp_entity_id_placeholder": "https://idp.example.com/metadata или urn:…",
+            "idp_entity_id_help": "Трябва да съвпада с Issuer в SAML Response от вашия IdP.",
+            "idp_sso_url": "IdP SSO URL",
+            "idp_sso_url_placeholder": "https://idp.example.com/sso/redirect",
+            "idp_sso_url_help": "HTTP-Redirect SSO endpoint от метаданните на IdP.",
+            "idp_x509_cert": "IdP X.509 сертификат",
+            "idp_x509_cert_placeholder": "-----BEGIN CERTIFICATE----- …",
+            "idp_x509_cert_keep": "Оставете празно, за да запазите текущия сертификат",
+            "idp_x509_cert_help": "Използва се за проверка на SAML подписи. Съхранява се криптиран и никога не влиза в audit логове.",
+            "sp_details": "Данни за service provider (за конфигуриране в IdP)",
+            "sp_entity_id": "SP entity ID",
+            "acs_url": "Assertion Consumer Service (ACS) URL",
+            "metadata_link": "Изтегли SP metadata XML"
         }
     }
 }

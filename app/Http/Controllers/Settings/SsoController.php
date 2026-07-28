@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpsertOrganizationSsoRequest;
 use App\Models\Organization;
 use App\Services\OrganizationSsoService;
+use App\Services\SamlClient;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ class SsoController extends Controller
 {
     public function __construct(
         private readonly OrganizationSsoService $sso,
+        private readonly SamlClient $saml,
     ) {
     }
 
@@ -35,9 +37,15 @@ class SsoController extends Controller
                 'can_use_sso' => $organization->canUseSso(),
             ],
             'connection' => $this->sso->connectionPayload($organization->ssoConnection),
+            'spEndpoints' => [
+                'sp_entity_id' => $this->saml->spEntityId(),
+                'acs_url' => $this->saml->acsUrl(),
+                'metadata_url' => route('auth.sso.metadata', absolute: true),
+            ],
             'providers' => [
                 ['value' => 'generic', 'label' => Translations::get('sso.providers.generic')],
                 ['value' => 'entra', 'label' => Translations::get('sso.providers.entra')],
+                ['value' => 'saml', 'label' => Translations::get('sso.providers.saml')],
             ],
         ]);
     }
