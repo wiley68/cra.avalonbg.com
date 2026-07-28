@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'billing_activated_at',
     'trial_ends_at',
     'billing_email',
+    'stripe_customer_id',
+    'stripe_subscription_id',
     'locale',
 ])]
 class Organization extends Model

@@ -57,4 +57,34 @@ return [
         'bank_name' => env('BILLING_BANK_NAME', ''),
         'reference_prefix' => env('BILLING_BANK_REFERENCE_PREFIX', 'CRA'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe Checkout / Subscriptions
+    |--------------------------------------------------------------------------
+    |
+    | Optional price IDs override dynamic price_data. When empty, Checkout uses
+    | recurring price_data from the plan catalog (EUR).
+    |
+    */
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET', ''),
+        'publishable' => env('STRIPE_KEY', ''),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
+        'currency' => env('STRIPE_CURRENCY', 'eur'),
+        'prices' => [
+            'small' => [
+                'month' => env('STRIPE_PRICE_SMALL_MONTH', ''),
+                'year' => env('STRIPE_PRICE_SMALL_YEAR', ''),
+            ],
+            'standard' => [
+                'month' => env('STRIPE_PRICE_STANDARD_MONTH', ''),
+                'year' => env('STRIPE_PRICE_STANDARD_YEAR', ''),
+            ],
+            'enterprise' => [
+                'month' => env('STRIPE_PRICE_ENTERPRISE_MONTH', ''),
+                'year' => env('STRIPE_PRICE_ENTERPRISE_YEAR', ''),
+            ],
+        ],
+    ],
 ];

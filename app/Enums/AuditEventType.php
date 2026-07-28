@@ -143,6 +143,9 @@ enum AuditEventType: string
     case BillingDocumentUploaded = 'billing_document_uploaded';
     case BillingDocumentSent = 'billing_document_sent';
     case BillingDocumentDeleted = 'billing_document_deleted';
+    case StripeCheckoutStarted = 'stripe_checkout_started';
+    case StripeSubscriptionUpdated = 'stripe_subscription_updated';
+    case StripeSubscriptionRenewed = 'stripe_subscription_renewed';
 
     public function label(): string
     {

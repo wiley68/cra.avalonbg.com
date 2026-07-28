@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { Banknote } from '@lucide/vue';
+import { Banknote, CreditCard } from '@lucide/vue';
 import { computed } from 'vue';
 import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import Heading from '@/components/Heading.vue';
@@ -10,6 +10,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { edit as editBilling } from '@/routes/settings/billing';
 import { store as storeBankPayment } from '@/routes/settings/billing/bank-payment';
 import { download as downloadDocument } from '@/routes/settings/billing/documents';
+import { checkout as stripeCheckout } from '@/routes/settings/billing/stripe';
 
 type OrganizationBilling = {
     id: number;
@@ -59,6 +60,8 @@ const props = defineProps<{
     pendingRequest: PendingRequest;
     bankInstructions: BankInstructions;
     canRequestBankPayment: boolean;
+    canCheckoutStripe: boolean;
+    stripeConfigured: boolean;
     documents: BillingDocumentItem[];
     canManageDocuments: boolean;
 }>();
@@ -79,6 +82,10 @@ const statusLabel = computed(() =>
 
 const requestPayment = () => {
     router.post(storeBankPayment().url, {}, { preserveScroll: true });
+};
+
+const startStripeCheckout = () => {
+    router.post(stripeCheckout().url);
 };
 </script>
 
@@ -166,16 +173,53 @@ const requestPayment = () => {
                     {{ t('billing.invoice_outside_note') }}
                 </p>
             </div>
+
+            <div
+                v-if="canCheckoutStripe"
+                class="flex flex-col gap-2 border-t pt-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.stripe.alt_help') }}
+                </p>
+                <Button type="button" @click="startStripeCheckout">
+                    <CreditCard class="h-4 w-4" />
+                    {{ t('billing.stripe.checkout') }}
+                </Button>
+            </div>
         </div>
 
-        <div v-else-if="canRequestBankPayment" class="space-y-3">
-            <p class="text-sm text-muted-foreground">
-                {{ t('billing.request_help') }}
-            </p>
-            <Button type="button" @click="requestPayment">
-                <Banknote class="h-4 w-4" />
-                {{ t('billing.request_bank_payment') }}
-            </Button>
+        <div
+            v-else-if="canCheckoutStripe || canRequestBankPayment"
+            class="space-y-4 rounded-lg border p-5"
+        >
+            <div v-if="canCheckoutStripe" class="space-y-3">
+                <h2 class="font-medium">{{ t('billing.stripe.title') }}</h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.stripe.help') }}
+                </p>
+                <Button type="button" @click="startStripeCheckout">
+                    <CreditCard class="h-4 w-4" />
+                    {{ t('billing.stripe.checkout') }}
+                </Button>
+            </div>
+
+            <div
+                v-if="canRequestBankPayment"
+                class="space-y-3"
+                :class="canCheckoutStripe ? 'border-t pt-4' : ''"
+            >
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.request_help') }}
+                </p>
+                <Button
+                    type="button"
+                    :variant="canCheckoutStripe ? 'outline' : 'default'"
+                    @click="requestPayment"
+                >
+                    <Banknote class="h-4 w-4" />
+                    {{ t('billing.request_bank_payment') }}
+                </Button>
+            </div>
         </div>
 
         <p
@@ -183,6 +227,18 @@ const requestPayment = () => {
             class="text-sm text-muted-foreground"
         >
             {{ t('billing.active_help') }}
+            <span v-if="organization.payment_method === 'stripe'">
+                (Stripe)
+            </span>
+        </p>
+
+        <p
+            v-else-if="
+                organization.subscription_plan !== 'free' && !stripeConfigured
+            "
+            class="text-sm text-muted-foreground"
+        >
+            {{ t('billing.stripe.not_configured_hint') }}
         </p>
 
         <BillingDocumentsPanel

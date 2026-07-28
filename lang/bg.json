@@ -242,6 +242,21 @@
         "request_bank_payment": "Заяви банков превод",
         "request_created": "Заявката за банков превод е създадена.",
         "active_help": "Фактурирането за тази организация е активно.",
+        "stripe": {
+            "title": "Плащане с карта (Stripe)",
+            "help": "Платете сигурно с карта. Планът се активира автоматично след успешно плащане.",
+            "checkout": "Плати със Stripe",
+            "alt_help": "Предпочитате карта вместо банков превод?",
+            "success": "Stripe плащането е получено. Фактурирането ще се активира след webhook потвърждение.",
+            "cancelled": "Stripe Checkout е отказан. Можете да опитате отново.",
+            "not_configured_hint": "Плащанията с карта още не са конфигурирани.",
+            "errors": {
+                "not_configured": "Stripe не е конфигуриран.",
+                "free_no_checkout": "Безплатните планове не използват Stripe Checkout.",
+                "already_active_other": "Фактурирането вече е активно с друг метод на плащане.",
+                "session_failed": "Неуспешно стартиране на Stripe Checkout."
+            }
+        },
         "documents": {
             "title": "Фактури и лицензни документи",
             "description": "Съхранявайте фактури и лицензни документи, издадени извън приложението. Изпращайте ги към billing имейла.",
@@ -4241,6 +4256,9 @@
             "billing_document_uploaded": "Качен billing документ",
             "billing_document_sent": "Изпратен billing документ",
             "billing_document_deleted": "Изтрит billing документ",
+            "stripe_checkout_started": "Стартиран Stripe checkout",
+            "stripe_subscription_updated": "Обновен Stripe абонамент",
+            "stripe_subscription_renewed": "Подновено Stripe плащане",
             "sdl_exception_recorded": "Записано SDL изключение",
             "sdl_exception_cleared": "Премахнато SDL изключение",
             "technical_documentation_created": "Техническа документация създадена",

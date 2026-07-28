@@ -37,6 +37,12 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.billing.edit');
     Route::post('settings/billing/bank-payment', [BillingController::class, 'requestBankPayment'])
         ->name('settings.billing.bank-payment.store');
+    Route::post('settings/billing/stripe/checkout', [BillingController::class, 'checkoutStripe'])
+        ->name('settings.billing.stripe.checkout');
+    Route::get('settings/billing/stripe/success', [BillingController::class, 'stripeSuccess'])
+        ->name('settings.billing.stripe.success');
+    Route::get('settings/billing/stripe/cancel', [BillingController::class, 'stripeCancel'])
+        ->name('settings.billing.stripe.cancel');
     Route::get('settings/billing/documents/{document}', [BillingController::class, 'downloadDocument'])
         ->name('settings.billing.documents.download');
 

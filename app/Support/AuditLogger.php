@@ -187,7 +187,7 @@ class AuditLogger
 
     public static function logBillingActivated(
         Organization $organization,
-        User $actor,
+        ?User $actor = null,
         ?OrganizationBankPaymentRequest $request = null,
     ): void {
         $details = [
@@ -211,8 +211,71 @@ class AuditLogger
             success: true,
             source: self::resolveSource(),
             actor: $actor,
+            email: $actor === null ? 'stripe-webhook' : null,
+            name: $actor === null ? 'Stripe' : null,
             organizationId: $organization->id,
             details: $details,
+        );
+    }
+
+    public static function logStripeCheckoutStarted(
+        Organization $organization,
+        User $actor,
+        string $sessionId,
+    ): void {
+        self::persist(
+            type: AuditEventType::StripeCheckoutStarted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'session_id', 'value' => $sessionId],
+                ['field' => 'subscription_plan', 'value' => $organization->resolvedSubscriptionPlan()->value],
+                [
+                    'field' => 'billing_interval',
+                    'value' => $organization->billing_interval instanceof \App\Enums\BillingInterval
+                        ? $organization->billing_interval->value
+                        : (string) ($organization->billing_interval ?? ''),
+                ],
+            ],
+        );
+    }
+
+    public static function logStripeSubscriptionUpdated(
+        Organization $organization,
+        \App\Enums\BillingStatus $status,
+    ): void {
+        self::persist(
+            type: AuditEventType::StripeSubscriptionUpdated,
+            success: true,
+            source: AuditEventSource::Api,
+            actor: null,
+            email: 'stripe-webhook',
+            name: 'Stripe',
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'billing_status', 'value' => $status->value],
+                ['field' => 'subscription_plan', 'value' => (string) $organization->subscription_plan],
+                ['field' => 'stripe_subscription_id', 'value' => (string) ($organization->stripe_subscription_id ?? '')],
+            ],
+        );
+    }
+
+    public static function logStripeSubscriptionRenewed(Organization $organization): void
+    {
+        self::persist(
+            type: AuditEventType::StripeSubscriptionRenewed,
+            success: true,
+            source: AuditEventSource::Api,
+            actor: null,
+            email: 'stripe-webhook',
+            name: 'Stripe',
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'stripe_subscription_id', 'value' => (string) ($organization->stripe_subscription_id ?? '')],
+                ['field' => 'billing_status', 'value' => $organization->resolvedBillingStatus()->value],
+            ],
         );
     }
 

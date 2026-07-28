@@ -242,6 +242,21 @@
         "request_bank_payment": "Request bank payment",
         "request_created": "Bank payment request created.",
         "active_help": "Billing is active for this organization.",
+        "stripe": {
+            "title": "Pay with card (Stripe)",
+            "help": "Pay securely by card. Your plan activates automatically after successful payment.",
+            "checkout": "Pay with Stripe",
+            "alt_help": "Prefer card instead of bank transfer?",
+            "success": "Stripe payment received. Billing will activate once the webhook confirms the subscription.",
+            "cancelled": "Stripe checkout was cancelled. You can try again anytime.",
+            "not_configured_hint": "Card payments are not configured yet.",
+            "errors": {
+                "not_configured": "Stripe is not configured.",
+                "free_no_checkout": "Free plans do not use Stripe Checkout.",
+                "already_active_other": "Billing is already active with another payment method.",
+                "session_failed": "Could not start Stripe Checkout."
+            }
+        },
         "documents": {
             "title": "Invoices & license documents",
             "description": "Store invoices and license documents issued outside the app. Send them to the billing email.",
@@ -4241,6 +4256,9 @@
             "billing_document_uploaded": "Billing document uploaded",
             "billing_document_sent": "Billing document sent",
             "billing_document_deleted": "Billing document deleted",
+            "stripe_checkout_started": "Stripe checkout started",
+            "stripe_subscription_updated": "Stripe subscription updated",
+            "stripe_subscription_renewed": "Stripe subscription renewed",
             "sdl_exception_recorded": "SDL exception recorded",
             "sdl_exception_cleared": "SDL exception cleared",
             "technical_documentation_created": "Technical documentation created",
