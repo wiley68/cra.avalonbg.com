@@ -8,14 +8,13 @@ use App\Enums\BillingStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\SubscriptionPlan;
 use App\Models\Organization;
+use App\Models\OrganizationBankPaymentRequest;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Stripe\Checkout\Session as StripeCheckoutSession;
 use Stripe\Exception\SignatureVerificationException;
-use Stripe\StripeClient;
 use Stripe\Webhook;
 use UnexpectedValueException;
 
@@ -71,9 +70,33 @@ class StripeBillingService
             ? $organization->billing_interval
             : BillingInterval::Month;
 
-        $client = $this->client();
-        $lineItem = $this->lineItem($plan, $interval);
+        $session = $this->requestCheckoutSession(
+            $this->buildCheckoutSessionParams($organization, $actor, $plan, $interval),
+        );
 
+        if ($session['url'] === '') {
+            throw ValidationException::withMessages([
+                'stripe' => Translations::get('billing.stripe.errors.session_failed'),
+            ]);
+        }
+
+        AuditLogger::logStripeCheckoutStarted($organization, $actor, $session['id']);
+
+        return [
+            'url' => $session['url'],
+            'session_id' => $session['id'],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildCheckoutSessionParams(
+        Organization $organization,
+        User $actor,
+        SubscriptionPlan $plan,
+        BillingInterval $interval,
+    ): array {
         $params = [
             'mode' => 'subscription',
             'success_url' => route('settings.billing.stripe.success', absolute: true)
@@ -93,7 +116,7 @@ class StripeBillingService
                     'billing_interval' => $interval->value,
                 ],
             ],
-            'line_items' => [$lineItem],
+            'line_items' => [$this->lineItem($plan, $interval)],
         ];
 
         if (filled($organization->stripe_customer_id)) {
@@ -104,21 +127,16 @@ class StripeBillingService
             $params['customer_email'] = $actor->email;
         }
 
-        /** @var StripeCheckoutSession $session */
-        $session = $client->checkout->sessions->create($params);
+        return $params;
+    }
 
-        if (!filled($session->url)) {
-            throw ValidationException::withMessages([
-                'stripe' => Translations::get('billing.stripe.errors.session_failed'),
-            ]);
-        }
-
-        AuditLogger::logStripeCheckoutStarted($organization, $actor, (string) $session->id);
-
-        return [
-            'url' => (string) $session->url,
-            'session_id' => (string) $session->id,
-        ];
+    /**
+     * @param  array<string, mixed>  $params
+     * @return array{id: string, url: string}
+     */
+    private function requestCheckoutSession(array $params): array
+    {
+        return app(StripeCheckoutGateway::class)->createSession($params);
     }
 
     /**
@@ -331,6 +349,7 @@ class StripeBillingService
         $previousPlan = $organization->resolvedSubscriptionPlan()->value;
 
         DB::transaction(function () use ($organization, $plan, $interval, $customerId, $subscriptionId, $status): void {
+            /** @var OrganizationBankPaymentRequest|null $pending */
             $pending = $organization->bankPaymentRequests()
                 ->where('status', BankPaymentRequestStatus::Pending->value)
                 ->latest('id')
@@ -510,10 +529,5 @@ class StripeBillingService
             'month' => BillingInterval::Month,
             default => null,
         };
-    }
-
-    private function client(): StripeClient
-    {
-        return new StripeClient((string) config('billing.stripe.secret'));
     }
 }
