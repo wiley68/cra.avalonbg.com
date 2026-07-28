@@ -217,10 +217,10 @@
     },
     "billing": {
         "plans": {
-            "free": "Free",
-            "small": "Small",
-            "standard": "Standard",
-            "enterprise": "Enterprise"
+            "free": "Безплатен",
+            "small": "Малък",
+            "standard": "Стандартен",
+            "enterprise": "Предприемачески"
         },
         "status": {
             "active": "Активен",
