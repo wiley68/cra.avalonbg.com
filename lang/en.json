@@ -95,7 +95,12 @@
             "forgot": "Forgot your password?",
             "submit": "Log in",
             "no_account": "Don't have an account?",
-            "register_link": "Create one"
+            "register_link": "Create one",
+            "or": "Or",
+            "sso_label": "Work email or organization slug",
+            "sso_placeholder": "you@company.com or acme-corp",
+            "sso_help": "Continue with your organization’s OpenID Connect identity provider.",
+            "sso_submit": "Continue with SSO"
         },
         "register": {
             "title": "Create your account",
@@ -366,7 +371,9 @@
             "deleted": "Organization deleted.",
             "delete": "Delete organization",
             "confirm_delete_title": "Delete organization permanently?",
-            "confirm_delete": "This permanently deletes the organization, all its products, controls, evidence and related data, and removes member accounts that belong only to this organization. This cannot be undone."
+            "confirm_delete": "This permanently deletes the organization, all its products, controls, evidence and related data, and removes member accounts that belong only to this organization. This cannot be undone.",
+            "sso_enabled": "SSO enabled (Standard)",
+            "sso_enabled_help": "Allows Standard plans to configure OIDC SSO. Enterprise always includes SSO."
         },
         "requirements": {
             "index_title": "Requirements catalogue",
@@ -4269,7 +4276,11 @@
             "technical_documentation_published": "Technical documentation published",
             "technical_documentation_retired": "Technical documentation retired",
             "technical_documentation_exported": "Technical documentation exported",
-            "technical_documentation_published_evidence": "Technical documentation published as evidence"
+            "technical_documentation_published_evidence": "Technical documentation published as evidence",
+            "sso_connection_created": "SSO connection created",
+            "sso_connection_updated": "SSO connection updated",
+            "sso_connection_deleted": "SSO connection deleted",
+            "sso_login_success": "SSO login success"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -4385,7 +4396,8 @@
             "appearance": "Appearance",
             "integrations": "Integrations",
             "integration_health": "Integration health",
-            "billing": "Billing"
+            "billing": "Billing",
+            "sso": "SSO"
         },
         "integrations": {
             "title": "Integrations",
@@ -4574,6 +4586,48 @@
         "analyse": {
             "unsupported_type": "Unsupported file type. Upload a text document (txt, md, csv, json, xml, html, log).",
             "empty_file": "The uploaded file is empty or could not be read as text."
+        }
+    },
+    "sso": {
+        "title": "Single sign-on",
+        "description": "Connect an OpenID Connect identity provider (Microsoft Entra ID or generic OIDC).",
+        "current_plan": "Current plan",
+        "plan_locked": "SSO is available on Enterprise (and optionally Standard when enabled by an admin).",
+        "enable_for_standard": "Enable SSO for this Standard organization",
+        "provider": "Provider",
+        "providers": {
+            "generic": "Generic OIDC",
+            "entra": "Microsoft Entra ID"
+        },
+        "issuer": "Issuer URL",
+        "issuer_placeholder": "https://login.microsoftonline.com/{tenant}/v2.0",
+        "issuer_help": "Must match the OIDC issuer from your IdP discovery document.",
+        "client_id": "Client ID",
+        "client_secret": "Client secret",
+        "client_secret_keep": "Leave blank to keep the current secret",
+        "client_secret_help": "Stored encrypted. Never shown again and never written to audit logs.",
+        "allowed_domains": "Allowed email domains",
+        "allowed_domains_placeholder": "company.com, subsidiary.com",
+        "allowed_domains_help": "Only users with emails in these domains can sign in via SSO. Unknown domains are rejected.",
+        "is_enabled": "SSO login enabled",
+        "disconnect": "Disconnect SSO",
+        "saved": "SSO settings saved.",
+        "disconnected": "SSO connection removed.",
+        "errors": {
+            "plan_not_allowed": "SSO is not available for this subscription plan.",
+            "domains_required": "At least one allowed email domain is required.",
+            "secret_required": "Client secret is required when connecting SSO for the first time.",
+            "not_available": "SSO is not available for this email or organization.",
+            "invalid_nonce": "Invalid SSO response (nonce mismatch).",
+            "email_missing": "The identity provider did not return an email address.",
+            "domain_rejected": "Your email domain is not allowed for this organization.",
+            "unknown_user": "No matching user exists in this organization. Ask an owner to invite you first.",
+            "oidc_failed": "Could not complete the OpenID Connect handshake.",
+            "session_expired": "SSO session expired. Please try again.",
+            "invalid_state": "Invalid SSO response (state mismatch).",
+            "provider_denied": "Sign-in was cancelled by the identity provider.",
+            "missing_code": "Missing authorization code from the identity provider.",
+            "login_failed": "SSO login failed."
         }
     }
 }

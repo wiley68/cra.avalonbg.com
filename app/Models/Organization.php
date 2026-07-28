@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'name',
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'billing_email',
     'stripe_customer_id',
     'stripe_subscription_id',
+    'sso_enabled',
     'locale',
 ])]
 class Organization extends Model
@@ -36,6 +38,7 @@ class Organization extends Model
     {
         return [
             'is_active' => 'boolean',
+            'sso_enabled' => 'boolean',
             'trial_ends_at' => 'datetime',
             'billing_activated_at' => 'datetime',
             'billing_status' => BillingStatus::class,
@@ -105,6 +108,20 @@ class Organization extends Model
     }
 
     /**
+     * Enterprise always; Standard only when sso_enabled flag is on.
+     */
+    public function canUseSso(): bool
+    {
+        $plan = $this->resolvedSubscriptionPlan();
+
+        if ($plan === SubscriptionPlan::Enterprise) {
+            return true;
+        }
+
+        return $plan === SubscriptionPlan::Standard && (bool) $this->sso_enabled;
+    }
+
+    /**
      * @return array{
      *     plan: string,
      *     billing_status: string,
@@ -129,6 +146,11 @@ class Organization extends Model
         return $this->belongsToMany(User::class)
             ->withPivot(['role_id', 'invited_by', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function ssoConnection(): HasOne
+    {
+        return $this->hasOne(OrganizationSsoConnection::class);
     }
 
     public function bankPaymentRequests(): HasMany

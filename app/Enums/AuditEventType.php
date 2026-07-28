@@ -146,6 +146,10 @@ enum AuditEventType: string
     case StripeCheckoutStarted = 'stripe_checkout_started';
     case StripeSubscriptionUpdated = 'stripe_subscription_updated';
     case StripeSubscriptionRenewed = 'stripe_subscription_renewed';
+    case SsoConnectionCreated = 'sso_connection_created';
+    case SsoConnectionUpdated = 'sso_connection_updated';
+    case SsoConnectionDeleted = 'sso_connection_deleted';
+    case SsoLoginSuccess = 'sso_login_success';
 
     public function label(): string
     {

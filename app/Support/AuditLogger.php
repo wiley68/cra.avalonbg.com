@@ -68,6 +68,7 @@ class AuditLogger
         'credentials',
         'context',
         'messages',
+        'client_secret',
     ];
 
     public static function resolveSource(?Request $request = null): AuditEventSource
@@ -337,6 +338,89 @@ class AuditLogger
                 ['field' => 'title', 'value' => $title],
             ],
         );
+    }
+
+    public static function logSsoConnectionCreated(
+        \App\Models\OrganizationSsoConnection $connection,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::SsoConnectionCreated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $connection->organization_id,
+            details: self::ssoConnectionAuditDetails($connection),
+        );
+    }
+
+    public static function logSsoConnectionUpdated(
+        \App\Models\OrganizationSsoConnection $connection,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::SsoConnectionUpdated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $connection->organization_id,
+            details: self::ssoConnectionAuditDetails($connection),
+        );
+    }
+
+    public static function logSsoConnectionDeleted(
+        Organization $organization,
+        User $actor,
+        int $connectionId,
+    ): void {
+        self::persist(
+            type: AuditEventType::SsoConnectionDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'connection_id', 'value' => (string) $connectionId],
+            ],
+        );
+    }
+
+    public static function logSsoLoginSuccess(User $user, Organization $organization): void
+    {
+        self::persist(
+            type: AuditEventType::SsoLoginSuccess,
+            success: true,
+            source: self::resolveSource(),
+            actor: $user,
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'email', 'value' => $user->email],
+                ['field' => 'organization_id', 'value' => (string) $organization->id],
+            ],
+        );
+    }
+
+    /**
+     * @return list<array{field: string, value: string}>
+     */
+    private static function ssoConnectionAuditDetails(
+        \App\Models\OrganizationSsoConnection $connection,
+    ): array {
+        $provider = $connection->provider instanceof \App\Enums\SsoProvider
+            ? $connection->provider->value
+            : (string) $connection->provider;
+
+        return [
+            ['field' => 'connection_id', 'value' => (string) $connection->id],
+            ['field' => 'provider', 'value' => $provider],
+            ['field' => 'issuer', 'value' => $connection->issuer],
+            ['field' => 'client_id', 'value' => $connection->client_id],
+            [
+                'field' => 'allowed_email_domains',
+                'value' => implode(',', $connection->normalizedDomains()),
+            ],
+            ['field' => 'is_enabled', 'value' => $connection->is_enabled ? '1' : '0'],
+        ];
     }
 
     public static function logProductCreated(Product $product, User $actor): void

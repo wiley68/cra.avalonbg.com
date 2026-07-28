@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, useForm, usePage } from '@inertiajs/vue3';
+import { KeyRound } from '@lucide/vue';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -8,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { redirect as ssoRedirect } from '@/routes/auth/sso';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { register } from '@/routes';
@@ -26,6 +29,21 @@ defineProps<{
 }>();
 
 const { t } = useTranslations();
+const page = usePage();
+
+const ssoForm = useForm({
+    email_or_slug: '',
+});
+
+const ssoError = computed(() => {
+    const pageErrors = page.props.errors as Record<string, string> | undefined;
+
+    return ssoForm.errors.email_or_slug || pageErrors?.email_or_slug;
+});
+
+const startSso = () => {
+    ssoForm.post(ssoRedirect().url);
+};
 </script>
 
 <template>
@@ -112,4 +130,47 @@ const { t } = useTranslations();
             </TextLink>
         </p>
     </Form>
+
+    <div class="relative my-8">
+        <div class="absolute inset-0 flex items-center">
+            <span class="w-full border-t" />
+        </div>
+        <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-background px-2 text-muted-foreground">
+                {{ t('auth.login.or') }}
+            </span>
+        </div>
+    </div>
+
+    <form class="flex flex-col gap-4" @submit.prevent="startSso">
+        <div class="grid gap-2">
+            <Label for="email_or_slug">{{ t('auth.login.sso_label') }}</Label>
+            <Input
+                id="email_or_slug"
+                v-model="ssoForm.email_or_slug"
+                type="text"
+                required
+                :tabindex="5"
+                autocomplete="off"
+                :placeholder="t('auth.login.sso_placeholder')"
+            />
+            <p class="text-xs text-muted-foreground">
+                {{ t('auth.login.sso_help') }}
+            </p>
+            <InputError :message="ssoError" />
+        </div>
+
+        <Button
+            type="submit"
+            variant="outline"
+            class="w-full"
+            :tabindex="6"
+            :disabled="ssoForm.processing"
+            data-test="sso-login-button"
+        >
+            <Spinner v-if="ssoForm.processing" />
+            <KeyRound v-else class="h-4 w-4" />
+            {{ t('auth.login.sso_submit') }}
+        </Button>
+    </form>
 </template>

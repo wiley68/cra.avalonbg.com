@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->string('billing_email')->nullable();
             $table->string('stripe_customer_id')->nullable()->index();
             $table->string('stripe_subscription_id')->nullable()->index();
+            $table->boolean('sso_enabled')->default(false);
             $table->string('locale', 5)->default('en');
             $table->timestamps();
         });

@@ -21,7 +21,14 @@ declare module '@inertiajs/core' {
             auth: Auth;
             appearance: 'light' | 'dark' | 'system';
             locale: string;
-            organization: { id: number; name: string; slug: string } | null;
+            organization: {
+                id: number;
+                name: string;
+                slug: string;
+                locale?: string;
+                subscription_plan?: string;
+                can_use_sso?: boolean;
+            } | null;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

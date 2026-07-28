@@ -95,7 +95,12 @@
             "forgot": "Забравена парола?",
             "submit": "Вход",
             "no_account": "Нямате акаунт?",
-            "register_link": "Създайте"
+            "register_link": "Създайте",
+            "or": "Или",
+            "sso_label": "Служебен имейл или slug на организация",
+            "sso_placeholder": "you@company.com или acme-corp",
+            "sso_help": "Продължете с OpenID Connect доставчика на вашата организация.",
+            "sso_submit": "Продължи със SSO"
         },
         "register": {
             "title": "Създайте акаунт",
@@ -366,7 +371,9 @@
             "deleted": "Организацията е изтрита.",
             "delete": "Изтрий организацията",
             "confirm_delete_title": "Да се изтрие ли организацията завинаги?",
-            "confirm_delete": "Това окончателно изтрива организацията, всички нейни продукти, контроли, доказателства и свързани данни, както и потребителските акаунти, които принадлежат само на тази организация. Действието е необратимо."
+            "confirm_delete": "Това окончателно изтрива организацията, всички нейни продукти, контроли, доказателства и свързани данни, както и потребителските акаунти, които принадлежат само на тази организация. Действието е необратимо.",
+            "sso_enabled": "SSO включено (Standard)",
+            "sso_enabled_help": "Позволява на Standard план да конфигурира OIDC SSO. Enterprise винаги включва SSO."
         },
         "requirements": {
             "index_title": "Каталог изисквания",
@@ -4269,7 +4276,11 @@
             "technical_documentation_published": "Техническа документация публикувана",
             "technical_documentation_retired": "Техническа документация извадена от употреба",
             "technical_documentation_exported": "Техническа документация експортирана",
-            "technical_documentation_published_evidence": "Техническа документация публикувана като доказателство"
+            "technical_documentation_published_evidence": "Техническа документация публикувана като доказателство",
+            "sso_connection_created": "Създадена SSO връзка",
+            "sso_connection_updated": "Обновена SSO връзка",
+            "sso_connection_deleted": "Изтрита SSO връзка",
+            "sso_login_success": "Успешен SSO вход"
         },
         "event_sources": {
             "workspace": "Workspace",
@@ -4385,7 +4396,8 @@
             "appearance": "Изглед",
             "integrations": "Интеграции",
             "integration_health": "Здраве на интеграциите",
-            "billing": "Фактуриране"
+            "billing": "Фактуриране",
+            "sso": "SSO"
         },
         "integrations": {
             "title": "Интеграции",
@@ -4574,6 +4586,48 @@
         "analyse": {
             "unsupported_type": "Неподдържан тип файл. Качете текстов документ (txt, md, csv, json, xml, html, log).",
             "empty_file": "Каченият файл е празен или не може да се прочете като текст."
+        }
+    },
+    "sso": {
+        "title": "Единен вход (SSO)",
+        "description": "Свържете OpenID Connect доставчик (Microsoft Entra ID или generic OIDC).",
+        "current_plan": "Текущ план",
+        "plan_locked": "SSO е наличен за Enterprise (и по желание за Standard, когато е включен от админ).",
+        "enable_for_standard": "Включи SSO за тази Standard организация",
+        "provider": "Доставчик",
+        "providers": {
+            "generic": "Generic OIDC",
+            "entra": "Microsoft Entra ID"
+        },
+        "issuer": "Issuer URL",
+        "issuer_placeholder": "https://login.microsoftonline.com/{tenant}/v2.0",
+        "issuer_help": "Трябва да съвпада с OIDC issuer от discovery документа на IdP.",
+        "client_id": "Client ID",
+        "client_secret": "Client secret",
+        "client_secret_keep": "Оставете празно, за да запазите текущия secret",
+        "client_secret_help": "Съхранява се криптиран. Не се показва повторно и не влиза в audit логове.",
+        "allowed_domains": "Разрешени имейл домейни",
+        "allowed_domains_placeholder": "company.com, subsidiary.com",
+        "allowed_domains_help": "Само потребители с имейли от тези домейни могат да влязат чрез SSO. Непознати домейни се отказват.",
+        "is_enabled": "SSO вход е включен",
+        "disconnect": "Изключи SSO",
+        "saved": "SSO настройките са записани.",
+        "disconnected": "SSO връзката е премахната.",
+        "errors": {
+            "plan_not_allowed": "SSO не е наличен за този абонаментен план.",
+            "domains_required": "Изисква се поне един разрешен имейл домейн.",
+            "secret_required": "Client secret е задължителен при първо свързване.",
+            "not_available": "SSO не е наличен за този имейл или организация.",
+            "invalid_nonce": "Невалиден SSO отговор (несъответствие на nonce).",
+            "email_missing": "Доставчикът не върна имейл адрес.",
+            "domain_rejected": "Имейл домейнът ви не е разрешен за тази организация.",
+            "unknown_user": "Няма съвпадащ потребител в организацията. Помолете owner да ви покани първо.",
+            "oidc_failed": "Неуспешен OpenID Connect handshake.",
+            "session_expired": "SSO сесията изтече. Опитайте отново.",
+            "invalid_state": "Невалиден SSO отговор (несъответствие на state).",
+            "provider_denied": "Входът беше отказан от доставчика.",
+            "missing_code": "Липсва authorization code от доставчика.",
+            "login_failed": "SSO входът беше неуспешен."
         }
     }
 }

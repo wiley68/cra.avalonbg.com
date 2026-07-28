@@ -13,6 +13,7 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import { edit as editBilling } from '@/routes/settings/billing';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
+import { edit as editSso } from '@/routes/settings/sso';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -40,6 +41,17 @@ const sidebarNavItems = computed<NavItem[]>(() => {
             title: t('settings.nav.billing'),
             href: editBilling(),
         });
+
+        const plan = String(
+            page.props.organization?.subscription_plan ?? '',
+        ).toLowerCase();
+
+        if (plan === 'enterprise' || plan === 'standard') {
+            items.push({
+                title: t('settings.nav.sso'),
+                href: editSso(),
+            });
+        }
     }
 
     const canAccessIntegrations =

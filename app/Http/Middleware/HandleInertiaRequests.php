@@ -175,7 +175,13 @@ class HandleInertiaRequests extends Middleware
                     'can_manage_organizations' => $canManageOrganizations,
                 ] : null,
             ],
-            'organization' => $organization?->only(['id', 'name', 'slug', 'locale']),
+            'organization' => $organization === null
+                ? null
+                : [
+                    ...$organization->only(['id', 'name', 'slug', 'locale']),
+                    'subscription_plan' => $organization->resolvedSubscriptionPlan()->value,
+                    'can_use_sso' => $organization->canUseSso(),
+                ],
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

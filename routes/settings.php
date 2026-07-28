@@ -6,6 +6,7 @@ use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\SsoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -45,6 +46,13 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.billing.stripe.cancel');
     Route::get('settings/billing/documents/{document}', [BillingController::class, 'downloadDocument'])
         ->name('settings.billing.documents.download');
+
+    Route::get('settings/sso', [SsoController::class, 'edit'])
+        ->name('settings.sso.edit');
+    Route::put('settings/sso', [SsoController::class, 'update'])
+        ->name('settings.sso.update');
+    Route::delete('settings/sso', [SsoController::class, 'destroy'])
+        ->name('settings.sso.destroy');
 
     Route::get('settings/integrations', [IntegrationController::class, 'edit'])
         ->name('settings.integrations.edit');

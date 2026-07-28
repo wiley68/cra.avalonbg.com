@@ -40,6 +40,7 @@ use App\Http\Controllers\AuditorFindingController;
 use App\Http\Controllers\AuditorGuestReviewController;
 use App\Http\Controllers\AuditorReviewPackageController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\Auth\SsoAuthController;
 use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\CustomerController;
@@ -93,6 +94,13 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('auditor/guest/{token}', [AuditorGuestReviewController::class, 'show'])
         ->where('token', '[A-Fa-f0-9]{64}')
         ->name('auditor.guest.show');
+});
+
+Route::middleware(['guest', 'throttle:10,1'])->group(function () {
+    Route::post('auth/sso/redirect', [SsoAuthController::class, 'redirect'])
+        ->name('auth.sso.redirect');
+    Route::get('auth/sso/callback', [SsoAuthController::class, 'callback'])
+        ->name('auth.sso.callback');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

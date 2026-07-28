@@ -1,6 +1,6 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.6  
+**Версия:** 0.7  
 **Дата:** 28 юли 2026 г.  
 **Статус:** Active — Must 2–6 Done (plans + registration + bank + docs + Stripe)  
 **Родителски документи:**
@@ -146,7 +146,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 4. ~~Bank payment request flow + admin **activate on payment** (+ запазен admin create/override)~~
 5. ~~Billing documents: upload/store **invoices** + **license docs** (**Platform Admin only**); tenant Owner **view/download** след потвърдено плащане; send channel (email към `billing_email` / Owner от admin)~~
 6. ~~Stripe Checkout (month/year) + webhooks → activate/renew/cancel status~~
-7. OIDC SSO (Entra / generic) — org settings + login path (Enterprise Must; Standard optional flag OK)
+7. ~~OIDC SSO (Entra / generic) — org settings + login path (Enterprise Must; Standard optional flag OK)~~
 8. i18n BG+EN + feature tests (limits, bank activate, Stripe fake, SSO fake)
 9. Audit log за plan change / payment activate / doc send / SSO connect
 
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.7    | 2026-07-28 | Must 7 Done — OIDC SSO (Entra/generic), org settings, login redirect/callback, domain policy, Standard flag, tests     |
 | 0.6    | 2026-07-28 | Must 6 Done — Stripe Checkout (month/year), webhook activate/past_due/cancel/renew, tenant CTA, tests                  |
 | 0.5.1  | 2026-07-28 | Billing docs RBAC: Platform Admin upload/send/delete; tenant Owner view/download only след active billing              |
 | 0.5    | 2026-07-28 | Must 5 Done — invoice/license docs store, download, email send (`billing_email`/Owner), admin+tenant UI, audit, tests  |
