@@ -53,6 +53,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { edit as editEvidence } from '@/routes/products/evidence';
 import {
@@ -147,6 +148,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -219,6 +221,13 @@ const ensureAiDraftState = (sectionKey: string): AiSectionDraftState => {
 };
 
 const requestAiDraft = async (index: number): Promise<void> => {
+    let allowed = false;
+    guardAi(() => {
+        allowed = true;
+    });
+    if (!allowed) {
+        return;
+    }
     const section = form.sections[index];
     if (!section || !canEdit.value || !props.aiEnabled) {
         return;

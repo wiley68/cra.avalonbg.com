@@ -3,6 +3,7 @@ import { Sparkles } from '@lucide/vue';
 import { reactive } from 'vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import { Button } from '@/components/ui/button';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { useTranslations } from '@/composables/useTranslations';
 import { aiNarrative } from '@/routes/products/versions/merged-prs';
 
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 const draft = reactive({
     loading: false,
@@ -26,7 +28,7 @@ const xsrfToken = (): string => {
     return match ? decodeURIComponent(match[1]) : '';
 };
 
-const requestNarrative = async (): Promise<void> => {
+const runNarrativeRequest = async (): Promise<void> => {
     draft.loading = true;
     draft.error = '';
     draft.summary_markdown = '';
@@ -84,6 +86,12 @@ const requestNarrative = async (): Promise<void> => {
     } finally {
         draft.loading = false;
     }
+};
+
+const requestNarrative = (): void => {
+    guardAi(() => {
+        void runNarrativeRequest();
+    });
 };
 
 const discard = (): void => {

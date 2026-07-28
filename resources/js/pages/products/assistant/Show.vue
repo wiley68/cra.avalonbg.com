@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Bot, FileSearch, Send } from '@lucide/vue';
+import { ArrowLeft, Bot, CreditCard, FileSearch, Send } from '@lucide/vue';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { useProductModuleBack } from '@/composables/useProductModuleBack';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
@@ -13,6 +14,7 @@ import {
 } from '@/routes/products/assistant';
 import { store as storeAssistantMessage } from '@/routes/products/assistant/messages';
 import { edit as editProductVulnerability } from '@/routes/products/vulnerabilities';
+import { edit as editBilling } from '@/routes/settings/billing';
 
 type OrganizationSummary = { id: number; name: string; slug: string };
 type ProductSummary = { id: number; name: string; slug: string };
@@ -121,7 +123,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { canUseAi, canManageBilling } = useAiPlanGate();
 const { backHref } = useProductModuleBack(props.product.id);
+
+const aiAvailable = computed(() => props.ai_enabled && canUseAi.value);
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -279,12 +284,15 @@ const draftTypeLabel = (value: string | undefined): string => {
 
 const canSend = computed(
     () =>
-        props.ai_enabled && form.content.trim().length > 0 && !form.processing,
+        props.ai_enabled &&
+        canUseAi.value &&
+        form.content.trim().length > 0 &&
+        !form.processing,
 );
 
 const canAnalyse = computed(
     () =>
-        props.ai_enabled &&
+        aiAvailable.value &&
         analyseForm.file !== null &&
         !analyseForm.processing &&
         !form.processing,
@@ -402,6 +410,23 @@ function submitAnalyse(): void {
         </div>
 
         <div
+            v-else-if="!canUseAi"
+            class="space-y-3 rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground"
+        >
+            <p class="font-medium text-foreground">
+                {{ t('assistant.plan_locked_title') }}
+            </p>
+            <p>{{ t('assistant.plan_locked') }}</p>
+            <p>{{ t('assistant.plan_locked_help') }}</p>
+            <Button v-if="canManageBilling" as-child size="sm">
+                <Link :href="editBilling()">
+                    <CreditCard class="h-4 w-4" />
+                    {{ t('assistant.open_billing') }}
+                </Link>
+            </Button>
+        </div>
+
+        <div
             v-else-if="props.provider === 'stub'"
             class="rounded-lg border px-4 py-2 text-sm text-muted-foreground"
         >
@@ -437,7 +462,7 @@ function submitAnalyse(): void {
                         type="file"
                         class="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-sm file:font-medium"
                         accept=".txt,.md,.markdown,.csv,.json,.xml,.html,.htm,.log,text/plain,text/markdown,text/csv,application/json"
-                        :disabled="!props.ai_enabled || analyseForm.processing"
+                        :disabled="!aiAvailable || analyseForm.processing"
                         @change="onFileChange"
                     />
                     <p class="text-xs text-muted-foreground">
@@ -466,7 +491,7 @@ function submitAnalyse(): void {
                     :placeholder="
                         t('products.assistant.analyse.note_placeholder')
                     "
-                    :disabled="!props.ai_enabled || analyseForm.processing"
+                    :disabled="!aiAvailable || analyseForm.processing"
                 />
             </div>
 
@@ -818,7 +843,7 @@ function submitAnalyse(): void {
                         rows="3"
                         class="flex min-h-20 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                         :placeholder="t('products.assistant.input_placeholder')"
-                        :disabled="!props.ai_enabled || form.processing"
+                        :disabled="!aiAvailable || form.processing"
                         @keydown.enter.exact.prevent="submit"
                     />
                     <Button type="submit" :disabled="!canSend">

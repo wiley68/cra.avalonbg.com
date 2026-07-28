@@ -34,6 +34,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import { draft as generateAssistantDraft } from '@/routes/products/assistant';
@@ -118,6 +119,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -334,11 +336,13 @@ const confirmNotify = (): void => {
 };
 
 const openDraftDialog = (): void => {
-    draftForm.campaign_id = props.campaign.id;
-    draftForm.draft_type = 'customer_notification';
-    draftForm.note = '';
-    draftForm.clearErrors();
-    showDraftDialog.value = true;
+    guardAi(() => {
+        draftForm.campaign_id = props.campaign.id;
+        draftForm.draft_type = 'customer_notification';
+        draftForm.note = '';
+        draftForm.clearErrors();
+        showDraftDialog.value = true;
+    });
 };
 
 const submitDraft = (): void => {

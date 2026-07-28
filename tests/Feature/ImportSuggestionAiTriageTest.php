@@ -45,6 +45,7 @@ function makeImportedFindingAiTriageFixture(): array
         'name' => 'Finding AI Triage Org',
         'slug' => 'finding-ai-triage-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

@@ -54,7 +54,7 @@ class AiQueuedAnalysisService
             ];
         }
 
-        $this->assistant->assertEnabled();
+        $this->assistant->assertEnabledForProduct($product);
 
         $filename = (string) $file->getClientOriginalName();
         $storedPath = $file->store('ai-uploads/' . now()->format('Y/m/d'), 'local');
@@ -128,7 +128,7 @@ class AiQueuedAnalysisService
             ];
         }
 
-        $this->assistant->assertEnabled();
+        $this->assistant->assertEnabledForProduct($product);
 
         if ($campaign->product_id !== $product->id) {
             abort(404);
@@ -198,7 +198,7 @@ class AiQueuedAnalysisService
             ];
         }
 
-        $this->assistant->assertEnabled();
+        $this->assistant->assertEnabledForProduct($product);
 
         if ($vulnerability->product_id !== $product->id) {
             abort(404);

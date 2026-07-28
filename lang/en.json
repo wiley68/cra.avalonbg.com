@@ -4693,7 +4693,11 @@
         "analyse": {
             "unsupported_type": "Unsupported file type. Upload a text document (txt, md, csv, json, xml, html, log).",
             "empty_file": "The uploaded file is empty or could not be read as text."
-        }
+        },
+        "plan_locked_title": "AI assistant requires a paid plan",
+        "plan_locked": "AI assistant features are not included on the Free plan. Upgrade to Small, Standard, or Enterprise to use AI.",
+        "plan_locked_help": "Menus and buttons stay visible so you can see what is available after upgrading.",
+        "open_billing": "Open billing"
     },
     "sso": {
         "title": "Single sign-on",

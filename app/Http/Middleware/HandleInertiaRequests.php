@@ -122,6 +122,9 @@ class HandleInertiaRequests extends Middleware
             ? $user->canViewAudit($organization)
             : false;
         $canManageOrganizations = $user?->canManageOrganizations() ?? false;
+        $canManageBilling = $user !== null && $organization !== null
+            ? $user->canManageBilling($organization)
+            : false;
 
         return [
             ...parent::share($request),
@@ -173,6 +176,7 @@ class HandleInertiaRequests extends Middleware
                     'can_approve_tasks' => $canApproveTasks,
                     'can_view_audit' => $canViewAudit,
                     'can_manage_organizations' => $canManageOrganizations,
+                    'can_manage_billing' => $canManageBilling,
                 ] : null,
             ],
             'organization' => $organization === null
@@ -181,6 +185,7 @@ class HandleInertiaRequests extends Middleware
                     ...$organization->only(['id', 'name', 'slug', 'locale']),
                     'subscription_plan' => $organization->resolvedSubscriptionPlan()->value,
                     'can_use_sso' => $organization->canUseSso(),
+                    'can_use_ai' => $organization->canUseAi(),
                 ],
             'billing_notice' => $organization?->billingNoticePayload(),
             'trial_notice' => $organization?->trialNoticePayload(),

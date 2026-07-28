@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useVulnerabilityEditBack } from '@/composables/useVulnerabilityEditBack';
 import { triage as triageVulnerability } from '@/routes/products/assistant';
@@ -102,6 +103,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 const { backHref } = useVulnerabilityEditBack(
     props.product.id,
     props.vulnerability.id,
@@ -220,10 +222,12 @@ const confirmDelete = () => {
 };
 
 const openTriageDialog = (): void => {
-    triageForm.vulnerability_id = props.vulnerability.id;
-    triageForm.note = '';
-    triageForm.clearErrors();
-    showTriageDialog.value = true;
+    guardAi(() => {
+        triageForm.vulnerability_id = props.vulnerability.id;
+        triageForm.note = '';
+        triageForm.clearErrors();
+        showTriageDialog.value = true;
+    });
 };
 
 const submitTriage = (): void => {

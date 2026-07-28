@@ -40,6 +40,7 @@ function makeMergedPrAiNarrativeFixture(?string $releaseDate = '2026-07-15'): ar
         'name' => 'Merged PR AI Org',
         'slug' => 'merged-pr-ai-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

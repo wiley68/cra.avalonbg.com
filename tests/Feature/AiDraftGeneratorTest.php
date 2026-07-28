@@ -38,6 +38,7 @@ function makeDraftGeneratorFixture(): array
         'name' => 'AI Draft Org',
         'slug' => 'ai-draft-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

@@ -48,6 +48,7 @@ function makeQueuedAnalysisFixture(): array
         'name' => 'AI Queue Org',
         'slug' => 'ai-queue-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

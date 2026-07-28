@@ -39,6 +39,7 @@ function makeAiRbacFixture(): array
         'name' => 'AI RBAC Org',
         'slug' => 'ai-rbac-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

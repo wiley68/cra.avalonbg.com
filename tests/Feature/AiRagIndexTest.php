@@ -44,6 +44,7 @@ function makeRagFixture(): array
         'name' => 'AI RAG Org',
         'slug' => 'ai-rag-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

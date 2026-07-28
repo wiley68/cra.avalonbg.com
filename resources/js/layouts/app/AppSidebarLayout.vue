@@ -5,6 +5,7 @@ import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import BillingNoticeBanner from '@/components/BillingNoticeBanner.vue';
 import TrialNoticeBanner from '@/components/TrialNoticeBanner.vue';
+import AiPlanLockedDialog from '@/components/AiPlanLockedDialog.vue';
 import { Toaster } from '@/components/ui/sonner';
 import type { BreadcrumbItem } from '@/types';
 
@@ -28,6 +29,7 @@ withDefaults(defineProps<Props>(), {
                 <slot />
             </div>
         </AppContent>
+        <AiPlanLockedDialog />
         <Toaster />
     </AppShell>
 </template>

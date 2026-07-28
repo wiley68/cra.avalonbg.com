@@ -275,6 +275,14 @@ class Organization extends Model
     }
 
     /**
+     * Paid plans include AI assistant features. Free is UI-visible but gated.
+     */
+    public function canUseAi(): bool
+    {
+        return $this->resolvedSubscriptionPlan() !== SubscriptionPlan::Free;
+    }
+
+    /**
      * Standard and Enterprise include OIDC SSO.
      */
     public function canUseSso(): bool

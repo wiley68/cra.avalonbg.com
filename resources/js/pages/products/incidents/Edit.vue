@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import {
     close as closeProductIncident,
@@ -172,6 +173,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 usePageBreadcrumbs(() => [
     { titleKey: 'nav.products', href: productsIndex() },
@@ -292,6 +294,13 @@ const xsrfToken = (): string => {
 };
 
 const requestAiSummaryDraft = async (): Promise<void> => {
+    let allowed = false;
+    guardAi(() => {
+        allowed = true;
+    });
+    if (!allowed) {
+        return;
+    }
     if (!props.canManage || !props.aiEnabled) {
         return;
     }

@@ -39,6 +39,7 @@ function makeUsiAiDraftFixture(): array
         'name' => 'USI AI Draft Org',
         'slug' => 'usi-ai-draft-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

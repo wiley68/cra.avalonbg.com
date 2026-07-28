@@ -48,6 +48,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { edit as editProduct, index as productsIndex } from '@/routes/products';
 import {
     edit as editEvidence,
@@ -238,6 +239,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 const page = usePage();
 
 const showRequestErrors = (errors: Record<string, string>) => {
@@ -344,6 +346,13 @@ const ensureAiDraftState = (sectionKey: string): AiSectionDraftState => {
 };
 
 const requestAiDraft = async (index: number): Promise<void> => {
+    let allowed = false;
+    guardAi(() => {
+        allowed = true;
+    });
+    if (!allowed) {
+        return;
+    }
     const section = form.sections[index];
     if (
         !section ||

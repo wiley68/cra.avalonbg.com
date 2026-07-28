@@ -36,6 +36,7 @@ export type User = {
     can_approve_tasks?: boolean;
     can_view_audit?: boolean;
     can_manage_organizations?: boolean;
+    can_manage_billing?: boolean;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;

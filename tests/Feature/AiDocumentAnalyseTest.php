@@ -33,6 +33,7 @@ function makeDocumentAnalyseFixture(): array
         'name' => 'AI Analyse Org',
         'slug' => 'ai-analyse-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

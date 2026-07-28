@@ -40,6 +40,7 @@ function makeTechDocAiDraftFixture(): array
         'name' => 'Tech Doc AI Draft Org',
         'slug' => 'tech-doc-ai-draft-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

@@ -30,6 +30,7 @@ function makeAiPersistenceFixture(): array
         'name' => 'AI Persist Org',
         'slug' => 'ai-persist-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

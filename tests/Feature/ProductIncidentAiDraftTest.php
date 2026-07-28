@@ -37,6 +37,7 @@ function makeIncidentAiDraftFixture(): array
         'name' => 'Incident AI Draft Org',
         'slug' => 'incident-ai-draft-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

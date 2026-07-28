@@ -3,6 +3,7 @@ import { Sparkles } from '@lucide/vue';
 import { reactive } from 'vue';
 import MarkdownPreview from '@/components/MarkdownPreview.vue';
 import { Button } from '@/components/ui/button';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { useTranslations } from '@/composables/useTranslations';
 import { aiTriage as importAiTriage } from '@/routes/products/import-suggestions';
 import { aiTriage as vcsAiTriage } from '@/routes/products/vcs-suggestions';
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 const draft = reactive({
     loading: false,
@@ -29,7 +31,7 @@ const xsrfToken = (): string => {
     return match ? decodeURIComponent(match[1]) : '';
 };
 
-const requestTriage = async (): Promise<void> => {
+const runTriageRequest = async (): Promise<void> => {
     draft.loading = true;
     draft.error = '';
     draft.summary_markdown = '';
@@ -96,6 +98,12 @@ const requestTriage = async (): Promise<void> => {
     } finally {
         draft.loading = false;
     }
+};
+
+const requestTriage = (): void => {
+    guardAi(() => {
+        void runTriageRequest();
+    });
 };
 
 const discardTriage = (): void => {

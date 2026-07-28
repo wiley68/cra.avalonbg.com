@@ -40,6 +40,7 @@ function makeAiContextFixture(): array
         'name' => 'AI Context Org',
         'slug' => 'ai-context-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

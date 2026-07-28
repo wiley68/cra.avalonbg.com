@@ -17,6 +17,7 @@ use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\PatchCampaign;
 use App\Models\ImportSuggestion;
+use App\Models\Organization;
 use App\Models\Product;
 use App\Models\ProductIncident;
 use App\Models\ProductRequirement;
@@ -128,7 +129,7 @@ class AiAssistantService
         User $user,
         AiConversationContextType $contextType = AiConversationContextType::Chat,
     ): AiConversation {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         return AiConversation::query()->create([
             'organization_id' => $product->organization_id,
@@ -154,7 +155,8 @@ class AiAssistantService
         string $content,
         array $options = [],
     ): array {
-        $this->assertEnabled();
+        $organization = Organization::query()->find($conversation->organization_id);
+        $this->assertEnabled($organization);
         $this->assertConversationOwner($conversation, $user);
 
         $trimmed = trim($content);
@@ -246,7 +248,7 @@ class AiAssistantService
         ?string $note = null,
         ?AiConversation $existingConversation = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($existingConversation !== null) {
             $this->assertConversationOwner($existingConversation, $user);
@@ -379,7 +381,7 @@ class AiAssistantService
         ?string $note = null,
         ?AiConversation $existingConversation = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($campaign->product_id !== $product->id) {
             abort(404);
@@ -508,7 +510,7 @@ class AiAssistantService
         ?string $currentBody = null,
         ?string $note = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($instruction->product_id !== $product->id) {
             abort(404);
@@ -588,7 +590,7 @@ class AiAssistantService
         ?string $currentBody = null,
         ?string $note = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($package->product_id !== $product->id) {
             abort(404);
@@ -673,7 +675,7 @@ class AiAssistantService
         ?string $note = null,
         ?string $locale = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($incident->product_id !== $product->id) {
             abort(404);
@@ -750,7 +752,7 @@ class AiAssistantService
         ?string $note = null,
         ?string $locale = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($version->product_id !== $product->id) {
             abort(404);
@@ -846,7 +848,7 @@ class AiAssistantService
         ?string $note = null,
         ?string $locale = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($suggestion->product_id !== $product->id) {
             abort(404);
@@ -930,7 +932,7 @@ class AiAssistantService
         ?string $note = null,
         ?string $locale = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($run->product_id !== $product->id) {
             abort(404);
@@ -1007,7 +1009,7 @@ class AiAssistantService
         ?string $note = null,
         ?AiConversation $existingConversation = null,
     ): array {
-        $this->assertEnabled();
+        $this->assertEnabledForProduct($product);
 
         if ($vulnerability->product_id !== $product->id) {
             abort(404);
@@ -1243,13 +1245,33 @@ class AiAssistantService
         ];
     }
 
-    public function assertEnabled(): void
+    public function assertEnabled(?Organization $organization = null): void
     {
         if (!$this->isEnabled()) {
             throw ValidationException::withMessages([
                 'assistant' => Translations::get('assistant.disabled'),
             ]);
         }
+
+        if ($organization !== null && !$organization->canUseAi()) {
+            throw ValidationException::withMessages([
+                'assistant' => Translations::get('assistant.plan_locked'),
+            ]);
+        }
+    }
+
+    public function assertEnabledForProduct(Product $product): void
+    {
+        $this->assertEnabled($this->organizationFromProduct($product));
+    }
+
+    private function organizationFromProduct(Product $product): ?Organization
+    {
+        if ($product->relationLoaded('organization')) {
+            return $product->organization;
+        }
+
+        return Organization::query()->find($product->organization_id);
     }
 
     private function assertConversationOwner(AiConversation $conversation, User $user): void

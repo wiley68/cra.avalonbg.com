@@ -30,6 +30,7 @@ function makeAiAuditFixture(): array
         'name' => 'AI Audit Org',
         'slug' => 'ai-audit-org',
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

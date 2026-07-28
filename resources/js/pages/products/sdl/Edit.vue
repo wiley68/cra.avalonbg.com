@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { useAiPlanGate } from '@/composables/useAiPlanGate';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useSdlEditBack } from '@/composables/useSdlEditBack';
 import {
@@ -192,6 +193,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslations();
+const { guardAi } = useAiPlanGate();
 
 const { backHref } = useSdlEditBack(props.product.id, props.run.id);
 
@@ -309,6 +311,14 @@ const xsrfToken = (): string => {
 };
 
 const requestAiStageDraft = async (stage: string): Promise<void> => {
+    let allowed = false;
+    guardAi(() => {
+        allowed = true;
+    });
+    if (!allowed) {
+        return;
+    }
+
     if (!canEditStage(stage) || !props.aiEnabled) {
         return;
     }

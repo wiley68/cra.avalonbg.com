@@ -38,6 +38,7 @@ function makeSdlAiDraftFixture(): array
         'name' => 'SDL AI Draft Org',
         'slug' => 'sdl-ai-draft-org-' . uniqid(),
         'is_active' => true,
+        'subscription_plan' => 'small',
         'locale' => 'en',
     ]);
 

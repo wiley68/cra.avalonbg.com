@@ -28,6 +28,7 @@ declare module '@inertiajs/core' {
                 locale?: string;
                 subscription_plan?: string;
                 can_use_sso?: boolean;
+                can_use_ai?: boolean;
             } | null;
             sidebarOpen: boolean;
             [key: string]: unknown;

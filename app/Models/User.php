@@ -402,6 +402,17 @@ class User extends Authenticatable implements MustVerifyEmail
             || $this->hasPermission(PermissionSlug::PlatformAdmin->value);
     }
 
+    public function canManageBilling(?Organization $organization = null): bool
+    {
+        $organization ??= $this->currentOrganization();
+
+        if ($organization === null) {
+            return false;
+        }
+
+        return $this->can('update', $organization);
+    }
+
     public function isPlatformAdmin(): bool
     {
         return (bool) $this->is_platform_admin;
