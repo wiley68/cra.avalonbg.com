@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.11  
+**Версия:** 0.12  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should 10–11 Done; Should 12–14 / Could open  
+**Статус:** Active — Must complete (2–9 Done); Should 10–12 Done; Should 13–14 / Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -154,7 +154,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 
 10. ~~Post-signup onboarding checklist (етап 0 pointers → users/settings/controls/policies)~~ **Done** (2026-07-28) — Dashboard checklist + org dismiss
 11. ~~Customer billing portal UI (текущ план, interval, docs, „смени плана“, Stripe manage)~~ **Done** (2026-07-28) — Settings → Billing
-12. Annual pricing UX ясно на signup/upgrade (20% messaging)
+12. ~~Annual pricing UX ясно на signup/upgrade (20% messaging)~~ **Done** (2026-07-28) — Register + Billing change plan
 13. SSO за **Standard** (не само Enterprise)
 14. Dunning / past_due UX (grace + read-only hint; без агресивно delete)
 
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.12   | 2026-07-28 | Should 12 Done — annual pricing UX (20% messaging) on signup + Billing change plan                                     |
 | 0.11   | 2026-07-28 | Should 11 Done — customer billing portal (plan/interval/docs, change plan, Stripe Customer Portal)                     |
 | 0.10   | 2026-07-28 | Should 10 Done — post-signup Dashboard onboarding checklist (етап 0 pointers + org dismiss)                            |
 | 0.9    | 2026-07-28 | Must 9 Done — audit: plan change, payment activate, doc send, SSO connect (+ secrets never logged); Must wave complete |

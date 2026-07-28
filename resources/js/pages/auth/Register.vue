@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    annualSavingsEur,
+    formatEur,
+    monthlyYearTotalEur,
+    type PlanPriceOption,
+} from '@/lib/billingPricing';
 import { store } from '@/routes/register';
 import { login } from '@/routes';
 
@@ -19,11 +25,8 @@ defineOptions({
     },
 });
 
-type SubscriptionPlanOption = {
-    value: string;
+type SubscriptionPlanOption = PlanPriceOption & {
     max_products: number | null;
-    monthly_price_eur: number;
-    yearly_price_eur: number | null;
 };
 
 const props = defineProps<{
@@ -38,20 +41,57 @@ const selectedPlan = ref('free');
 const billingInterval = ref('month');
 
 const isPaidPlan = computed(() => selectedPlan.value !== 'free');
+const isYearly = computed(() => billingInterval.value === 'year');
 
 const planPriceLabel = (plan: SubscriptionPlanOption): string => {
     if (plan.value === 'free') {
         return t('auth.register.price_free');
     }
 
-    if (billingInterval.value === 'year' && plan.yearly_price_eur !== null) {
+    if (isYearly.value && plan.yearly_price_eur !== null) {
         return t('auth.register.price_year', {
-            price: String(plan.yearly_price_eur),
+            price: formatEur(plan.yearly_price_eur),
         });
     }
 
     return t('auth.register.price_month', {
-        price: String(plan.monthly_price_eur),
+        price: formatEur(plan.monthly_price_eur),
+    });
+};
+
+const planSecondaryPrice = (plan: SubscriptionPlanOption): string | null => {
+    if (plan.value === 'free' || plan.yearly_price_eur === null) {
+        return null;
+    }
+
+    if (isYearly.value) {
+        const monthlyYear = monthlyYearTotalEur(plan);
+        if (monthlyYear === null) {
+            return null;
+        }
+
+        return t('billing.annual.vs_monthly_year', {
+            price: formatEur(monthlyYear),
+        });
+    }
+
+    return t('billing.annual.or_yearly', {
+        price: formatEur(plan.yearly_price_eur),
+    });
+};
+
+const planSavingsLabel = (plan: SubscriptionPlanOption): string | null => {
+    if (!isYearly.value || plan.value === 'free') {
+        return null;
+    }
+
+    const savings = annualSavingsEur(plan);
+    if (savings === null) {
+        return null;
+    }
+
+    return t('billing.annual.save_amount', {
+        amount: formatEur(savings),
     });
 };
 
@@ -177,10 +217,23 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
                             <span class="font-medium">{{
                                 t(`billing.plans.${plan.value}`)
                             }}</span>
-                            <span class="text-muted-foreground">{{
+                            <span class="font-medium text-foreground">{{
                                 planPriceLabel(plan)
                             }}</span>
                         </div>
+                        <p
+                            v-if="planSecondaryPrice(plan)"
+                            class="mt-0.5 text-xs text-muted-foreground"
+                            :class="isYearly ? 'line-through' : ''"
+                        >
+                            {{ planSecondaryPrice(plan) }}
+                        </p>
+                        <p
+                            v-if="planSavingsLabel(plan)"
+                            class="mt-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                        >
+                            {{ planSavingsLabel(plan) }}
+                        </p>
                         <p class="mt-0.5 text-xs text-muted-foreground">
                             {{ productLimitLabel(plan) }}
                         </p>
@@ -213,6 +266,12 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
                         {{ t('auth.register.interval_year') }}
                     </Button>
                 </div>
+                <p
+                    v-if="isYearly"
+                    class="text-xs font-medium text-emerald-700 dark:text-emerald-400"
+                >
+                    {{ t('auth.register.annual_callout') }}
+                </p>
                 <p class="text-xs text-muted-foreground">
                     {{ t('auth.register.paid_pending_note') }}
                 </p>

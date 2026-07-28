@@ -119,6 +119,7 @@
             "price_year": "€:price / year",
             "products_max": "Up to :max products",
             "products_unlimited": "Unlimited products",
+            "annual_callout": "Yearly billing saves about 20% compared with paying monthly for a full year.",
             "paid_pending_note": "Paid plans stay pending until payment is confirmed. You can finish email verification and 2FA setup meanwhile.",
             "submit": "Create account",
             "have_account": "Already have an account?",
@@ -252,8 +253,15 @@
         "billing_email": "Billing email",
         "interval": {
             "month": "Monthly",
-            "year": "Yearly",
+            "year": "Yearly (−20%)",
             "none": "—"
+        },
+        "annual": {
+            "badge": "−20%",
+            "callout": "Yearly billing saves about 20% compared with paying monthly for a full year.",
+            "save_amount": "Save €:amount (~20%)",
+            "vs_monthly_year": "12× monthly: €:price",
+            "or_yearly": "or €:price / year (−20%)"
         },
         "payment_method": {
             "bank": "Bank transfer",
@@ -266,7 +274,7 @@
             "help": "Choose a plan and billing interval. Paid plans require payment before they become active.",
             "submit": "Save plan",
             "updated": "Plan updated.",
-            "annual_hint": "Yearly billing includes about 20% off compared with 12 monthly payments.",
+            "annual_hint": "Yearly billing saves about 20% compared with paying monthly for a full year.",
             "price_free": "Free",
             "price_month": "€:price / month",
             "price_year": "€:price / year",
