@@ -40,20 +40,8 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Legacy aliases → canonical plan key
+    | Default when subscription_plan is missing / invalid
     |--------------------------------------------------------------------------
     */
-    'aliases' => [
-        'solo' => 'small',
-        'small_team' => 'standard',
-        'small-team' => 'standard',
-        'company' => 'enterprise',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | When subscription_plan is null / unknown (pre–2_F admin orgs)
-    |--------------------------------------------------------------------------
-    */
-    'null_plan_fallback' => 'enterprise',
+    'default_plan' => 'free',
 ];

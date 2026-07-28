@@ -199,7 +199,8 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 ## 10. История
 
-| Версия | Дата       | Промяна                                                                                                      |
-| ------ | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| 0.2    | 2026-07-28 | Must 2 Done — billing catalog, SubscriptionPlan, product quota enforcement, admin Select, tests              |
-| 0.1    | 2026-07-28 | Skeleton Active — kickoff C+A; tiers Free/Small/Standard/Enterprise; bank+Stripe; invoice/license docs; OIDC |
+| Версия | Дата       | Промяна                                                                                                                |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.2.1  | 2026-07-28 | Schema cleanup: alter миграции обединени в create; legacy plan aliases/null→enterprise премахнати; default plan = free |
+| 0.2    | 2026-07-28 | Must 2 Done — billing catalog, SubscriptionPlan, product quota enforcement, admin Select, tests                        |
+| 0.1    | 2026-07-28 | Skeleton Active — kickoff C+A; tiers Free/Small/Standard/Enterprise; bank+Stripe; invoice/license docs; OIDC           |

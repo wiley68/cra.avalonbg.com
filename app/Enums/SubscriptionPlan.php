@@ -9,39 +9,25 @@ enum SubscriptionPlan: string
     case Standard = 'standard';
     case Enterprise = 'enterprise';
 
-    /**
-     * Resolve a stored / alias / legacy value to a canonical plan.
-     */
     public static function tryFromStored(?string $value): ?self
     {
         if ($value === null || $value === '') {
             return null;
         }
 
-        $normalized = strtolower(trim($value));
-
-        $fromEnum = self::tryFrom($normalized);
-        if ($fromEnum !== null) {
-            return $fromEnum;
-        }
-
-        /** @var array<string, string> $aliases */
-        $aliases = config('billing.aliases', []);
-        $canonical = $aliases[$normalized] ?? null;
-
-        return is_string($canonical) ? self::tryFrom($canonical) : null;
+        return self::tryFrom(strtolower(trim($value)));
     }
 
-    public static function fromStoredOrFallback(?string $value): self
+    public static function fromStoredOrDefault(?string $value): self
     {
         $resolved = self::tryFromStored($value);
         if ($resolved !== null) {
             return $resolved;
         }
 
-        $fallback = (string) config('billing.null_plan_fallback', self::Enterprise->value);
+        $default = (string) config('billing.default_plan', self::Free->value);
 
-        return self::tryFrom($fallback) ?? self::Enterprise;
+        return self::tryFrom($default) ?? self::Free;
     }
 
     /**

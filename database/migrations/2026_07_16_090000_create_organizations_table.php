@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('slug')->unique();
             $table->boolean('is_active')->default(true);
-            $table->string('subscription_plan')->nullable();
+            $table->string('subscription_plan')->default('free');
             $table->timestamp('trial_ends_at')->nullable();
             $table->string('billing_email')->nullable();
             $table->string('locale', 5)->default('en');

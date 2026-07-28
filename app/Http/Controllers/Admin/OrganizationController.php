@@ -103,7 +103,7 @@ class OrganizationController extends Controller
                 'slug' => $organization->slug,
                 'billing_email' => $organization->billing_email,
                 'subscription_plan' => $organization->subscription_plan
-                    ?? $organization->resolvedSubscriptionPlan()->value,
+                    ?: $organization->resolvedSubscriptionPlan()->value,
                 'is_active' => (bool) $organization->is_active,
                 'locale' => $organization->resolvedLocale(),
                 'users_count' => $organization->users()->count(),

@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->text('notes')->nullable();
             $table->foreignId('user_security_instruction_id')->nullable();
             $table->foreignId('sdl_run_id')->nullable();
+            $table->foreignId('evidence_id')->nullable()->constrained('evidence')->nullOnDelete();
             $table->timestamps();
 
             $table->foreign('user_security_instruction_id', 'td_packages_usi_fk')

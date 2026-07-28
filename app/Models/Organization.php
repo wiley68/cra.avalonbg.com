@@ -42,7 +42,7 @@ class Organization extends Model
 
     public function resolvedSubscriptionPlan(): SubscriptionPlan
     {
-        return SubscriptionPlan::fromStoredOrFallback($this->subscription_plan);
+        return SubscriptionPlan::fromStoredOrDefault($this->subscription_plan);
     }
 
     /**

@@ -232,7 +232,7 @@
             "slug_help": "Leave empty to generate from the name.",
             "billing_email": "Billing email",
             "subscription_plan": "Subscription plan",
-            "subscription_plan_help": "Limits how many products the organization may create. Leave empty to treat as Enterprise (unlimited) until set.",
+            "subscription_plan_help": "Limits how many products the organization may create.",
             "plans": {
                 "free": "Free",
                 "small": "Small",

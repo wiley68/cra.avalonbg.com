@@ -39,7 +39,7 @@ class StoreOrganizationRequest extends FormRequest
             'is_active' => $this->boolean('is_active', true),
             'locale' => $this->input('locale', Organization::DEFAULT_LOCALE),
             'subscription_plan' => ($plan === null || $plan === '')
-                ? null
+                ? SubscriptionPlan::Free->value
                 : $plan,
         ]);
     }
@@ -53,7 +53,7 @@ class StoreOrganizationRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('organizations', 'slug')],
             'billing_email' => ['nullable', 'email', 'max:255'],
-            'subscription_plan' => ['nullable', Rule::enum(SubscriptionPlan::class)],
+            'subscription_plan' => ['required', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
             'create_owner' => ['boolean'],
             'seed_starter_controls' => ['boolean'],

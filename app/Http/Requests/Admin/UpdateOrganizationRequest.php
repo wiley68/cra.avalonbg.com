@@ -32,7 +32,7 @@ class UpdateOrganizationRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
             'subscription_plan' => ($plan === null || $plan === '')
-                ? null
+                ? SubscriptionPlan::Free->value
                 : $plan,
         ]);
     }
@@ -54,7 +54,7 @@ class UpdateOrganizationRequest extends FormRequest
                 Rule::unique('organizations', 'slug')->ignore($organizationId),
             ],
             'billing_email' => ['nullable', 'email', 'max:255'],
-            'subscription_plan' => ['nullable', Rule::enum(SubscriptionPlan::class)],
+            'subscription_plan' => ['required', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
         ];

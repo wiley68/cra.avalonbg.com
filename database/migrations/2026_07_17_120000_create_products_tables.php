@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
@@ -36,6 +35,7 @@ return new class extends Migration
             $table->timestamp('classification_reviewed_at')->nullable();
             $table->foreignId('classification_reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('classification_next_review_at')->nullable();
+            $table->json('wizard_dismissed_optional')->nullable();
             $table->timestamps();
 
             $table->unique(['organization_id', 'slug']);

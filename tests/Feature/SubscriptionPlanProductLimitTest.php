@@ -85,17 +85,16 @@ test('subscription plan catalog matches freeze limits', function () {
         ->and(SubscriptionPlan::Enterprise->maxProducts())->toBeNull();
 });
 
-test('null subscription plan falls back to enterprise unlimited', function () {
+test('missing subscription plan defaults to free', function () {
     $organization = new Organization(['subscription_plan' => null]);
 
-    expect($organization->resolvedSubscriptionPlan())->toBe(SubscriptionPlan::Enterprise)
-        ->and($organization->maxProducts())->toBeNull()
-        ->and($organization->canAddProduct())->toBeTrue();
+    expect($organization->resolvedSubscriptionPlan())->toBe(SubscriptionPlan::Free)
+        ->and($organization->maxProducts())->toBe(1);
 });
 
-test('legacy solo alias resolves to small', function () {
-    expect(SubscriptionPlan::tryFromStored('solo'))->toBe(SubscriptionPlan::Small)
-        ->and(SubscriptionPlan::tryFromStored('Company'))->toBe(SubscriptionPlan::Enterprise);
+test('unknown subscription plan defaults to free', function () {
+    expect(SubscriptionPlan::tryFromStored('solo'))->toBeNull()
+        ->and(SubscriptionPlan::fromStoredOrDefault('solo'))->toBe(SubscriptionPlan::Free);
 });
 
 test('free plan blocks creating a second product', function () {

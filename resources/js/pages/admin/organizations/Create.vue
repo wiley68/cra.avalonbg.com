@@ -49,7 +49,7 @@ const form = useForm({
     name: '',
     slug: '',
     billing_email: '',
-    subscription_plan: 'enterprise',
+    subscription_plan: 'free',
     is_active: true,
     locale: 'en',
     create_owner: true,

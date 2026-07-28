@@ -66,7 +66,7 @@ const form = useForm({
     name: props.organization.name,
     slug: props.organization.slug,
     billing_email: props.organization.billing_email ?? '',
-    subscription_plan: props.organization.subscription_plan ?? 'enterprise',
+    subscription_plan: props.organization.subscription_plan ?? 'free',
     is_active: Boolean(props.organization.is_active),
     locale: props.organization.locale || 'en',
 });
