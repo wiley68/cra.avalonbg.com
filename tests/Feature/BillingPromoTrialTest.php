@@ -151,9 +151,11 @@ test('trial notice is shared while trial is active', function () {
         status: BillingStatus::Active->value,
     );
 
+    $promoCode = 'TRIAL14';
+
     $organization->forceFill([
         'trial_ends_at' => now()->addDays(10),
-        'promo_code' => 'TRIAL14',
+        'promo_code' => $promoCode,
         'billing_activated_at' => null,
         'payment_method' => null,
     ])->save();
@@ -162,7 +164,7 @@ test('trial notice is shared while trial is active', function () {
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn(Assert $page) => $page
-            ->where('trial_notice.promo_code', 'TRIAL14')
+            ->where('trial_notice.promo_code', $promoCode)
             ->where('billing_notice', null)
             ->has('trial_notice.days_remaining'));
 });
