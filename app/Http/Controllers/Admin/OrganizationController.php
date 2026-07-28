@@ -17,6 +17,7 @@ use App\Services\BillingDocumentService;
 use App\Services\ControlService;
 use App\Services\OrganizationMembershipService;
 use App\Services\OrganizationService;
+use App\Support\AuditLogger;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -155,17 +156,27 @@ class OrganizationController extends Controller
     public function update(UpdateOrganizationRequest $request, Organization $organization): RedirectResponse
     {
         $previousLocale = $organization->resolvedLocale();
+        $previousPlan = $organization->resolvedSubscriptionPlan()->value;
         $locale = $request->string('locale')->toString();
+        $nextPlan = (string) $request->input('subscription_plan');
 
         $organization->update([
             'name' => $request->string('name'),
             'slug' => $request->string('slug'),
             'billing_email' => $request->input('billing_email'),
-            'subscription_plan' => $request->input('subscription_plan'),
+            'subscription_plan' => $nextPlan,
             'is_active' => $request->boolean('is_active'),
             'sso_enabled' => $request->boolean('sso_enabled'),
             'locale' => $locale,
         ]);
+
+        AuditLogger::logSubscriptionPlanChanged(
+            $organization->fresh() ?? $organization,
+            $previousPlan,
+            $nextPlan,
+            $request->user(),
+            'admin',
+        );
 
         if ($previousLocale !== $locale) {
             $this->controls->seedStarterCatalogue($organization->fresh(), refreshExisting: true);

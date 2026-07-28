@@ -4280,7 +4280,8 @@
             "sso_connection_created": "SSO connection created",
             "sso_connection_updated": "SSO connection updated",
             "sso_connection_deleted": "SSO connection deleted",
-            "sso_login_success": "SSO login success"
+            "sso_login_success": "SSO login success",
+            "subscription_plan_changed": "Subscription plan changed"
         },
         "event_sources": {
             "workspace": "Workspace",

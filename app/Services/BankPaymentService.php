@@ -104,6 +104,8 @@ class BankPaymentService
         $request ??= $this->pendingRequest($organization);
 
         return DB::transaction(function () use ($organization, $actor, $request, $paymentMethod): Organization {
+            $previousPlan = $organization->resolvedSubscriptionPlan()->value;
+
             if ($request !== null) {
                 if ($request->organization_id !== $organization->id) {
                     abort(404);
@@ -132,6 +134,13 @@ class BankPaymentService
             ])->save();
 
             $fresh = $organization->fresh();
+            AuditLogger::logSubscriptionPlanChanged(
+                $fresh,
+                $previousPlan,
+                $fresh->resolvedSubscriptionPlan()->value,
+                $actor,
+                'bank_activate',
+            );
             AuditLogger::logBillingActivated($fresh, $actor, $request);
 
             return $fresh;

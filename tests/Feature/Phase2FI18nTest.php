@@ -98,6 +98,7 @@ test('phase 2_F billing and sso audit event labels resolve in both locales', fun
         AuditEventType::StripeCheckoutStarted,
         AuditEventType::StripeSubscriptionUpdated,
         AuditEventType::StripeSubscriptionRenewed,
+        AuditEventType::SubscriptionPlanChanged,
         AuditEventType::SsoConnectionCreated,
         AuditEventType::SsoConnectionUpdated,
         AuditEventType::SsoConnectionDeleted,

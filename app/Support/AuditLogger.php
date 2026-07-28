@@ -219,6 +219,37 @@ class AuditLogger
         );
     }
 
+    public static function logSubscriptionPlanChanged(
+        Organization $organization,
+        string $from,
+        string $to,
+        ?User $actor = null,
+        ?string $via = null,
+    ): void {
+        if ($from === $to) {
+            return;
+        }
+
+        $details = [
+            ['field' => 'subscription_plan', 'initial_value' => $from, 'final_value' => $to],
+        ];
+
+        if (filled($via)) {
+            $details[] = ['field' => 'via', 'value' => $via];
+        }
+
+        self::persist(
+            type: AuditEventType::SubscriptionPlanChanged,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            email: $actor === null ? 'stripe-webhook' : null,
+            name: $actor === null ? 'Stripe' : null,
+            organizationId: $organization->id,
+            details: $details,
+        );
+    }
+
     public static function logStripeCheckoutStarted(
         Organization $organization,
         User $actor,

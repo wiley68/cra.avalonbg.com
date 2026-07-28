@@ -9,6 +9,8 @@ use App\Enums\PaymentMethod;
 use App\Enums\ProductType;
 use App\Enums\ScopeStatus;
 use App\Enums\SubscriptionPlan;
+use App\Enums\AuditEventType;
+use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\OrganizationBankPaymentRequest;
 use App\Models\Product;
@@ -143,6 +145,11 @@ test('admin activates billing on payment and unlocks products', function () {
         ->and($request)->not->toBeNull()
         ->and($request->status)->toBe(BankPaymentRequestStatus::Paid)
         ->and($request->activated_by)->toBe($admin->id);
+
+    expect(AuditLog::query()
+        ->where('event_type', AuditEventType::BillingActivated->value)
+        ->where('organization_id', $organization->id)
+        ->exists())->toBeTrue();
 
     $this->actingAs($owner)
         ->post(route('products.store'), [

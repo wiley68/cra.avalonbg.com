@@ -4280,7 +4280,8 @@
             "sso_connection_created": "Създадена SSO връзка",
             "sso_connection_updated": "Обновена SSO връзка",
             "sso_connection_deleted": "Изтрита SSO връзка",
-            "sso_login_success": "Успешен SSO вход"
+            "sso_login_success": "Успешен SSO вход",
+            "subscription_plan_changed": "Променен абонаментен план"
         },
         "event_sources": {
             "workspace": "Workspace",

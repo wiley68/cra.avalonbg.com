@@ -328,6 +328,8 @@ class StripeBillingService
         ?string $subscriptionId,
         BillingStatus $status,
     ): void {
+        $previousPlan = $organization->resolvedSubscriptionPlan()->value;
+
         DB::transaction(function () use ($organization, $plan, $interval, $customerId, $subscriptionId, $status): void {
             $pending = $organization->bankPaymentRequests()
                 ->where('status', BankPaymentRequestStatus::Pending->value)
@@ -352,6 +354,13 @@ class StripeBillingService
         });
 
         $fresh = $organization->fresh();
+        AuditLogger::logSubscriptionPlanChanged(
+            $fresh,
+            $previousPlan,
+            $plan->value,
+            null,
+            'stripe',
+        );
         AuditLogger::logBillingActivated($fresh, null, null);
         AuditLogger::logStripeSubscriptionUpdated($fresh, $status);
     }
@@ -364,6 +373,8 @@ class StripeBillingService
         ?string $customerId,
         ?string $subscriptionId,
     ): void {
+        $previousPlan = $organization->resolvedSubscriptionPlan()->value;
+
         $organization->forceFill([
             'subscription_plan' => $plan->value,
             'billing_interval' => $interval->value,
@@ -376,7 +387,15 @@ class StripeBillingService
             'stripe_subscription_id' => $subscriptionId ?? $organization->stripe_subscription_id,
         ])->save();
 
-        AuditLogger::logStripeSubscriptionUpdated($organization->fresh(), $status);
+        $fresh = $organization->fresh();
+        AuditLogger::logSubscriptionPlanChanged(
+            $fresh,
+            $previousPlan,
+            $plan->value,
+            null,
+            'stripe',
+        );
+        AuditLogger::logStripeSubscriptionUpdated($fresh, $status);
     }
 
     /**

@@ -168,6 +168,8 @@ test('admin can upload and send billing documents for an organization', function
     expect($document->fresh()->sent_to_email)->toBe('billing@docs.test');
     expect(AuditLog::query()->where('event_type', AuditEventType::BillingDocumentUploaded->value)->exists())
         ->toBeTrue();
+    expect(AuditLog::query()->where('event_type', AuditEventType::BillingDocumentSent->value)->exists())
+        ->toBeTrue();
 });
 
 test('admin send falls back to owner email when billing_email is empty', function () {
