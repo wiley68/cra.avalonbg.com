@@ -140,6 +140,9 @@ enum AuditEventType: string
     case IntegrationHealthExported = 'integration_health_exported';
     case BankPaymentRequested = 'bank_payment_requested';
     case BillingActivated = 'billing_activated';
+    case BillingDocumentUploaded = 'billing_document_uploaded';
+    case BillingDocumentSent = 'billing_document_sent';
+    case BillingDocumentDeleted = 'billing_document_deleted';
 
     public function label(): string
     {

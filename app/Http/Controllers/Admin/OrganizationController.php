@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BillingDocumentType;
 use App\Enums\BillingStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\RoleSlug;
@@ -12,6 +13,7 @@ use App\Http\Requests\Admin\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Services\BankPaymentService;
+use App\Services\BillingDocumentService;
 use App\Services\ControlService;
 use App\Services\OrganizationMembershipService;
 use App\Services\OrganizationService;
@@ -29,6 +31,7 @@ class OrganizationController extends Controller
         private readonly ControlService $controls,
         private readonly OrganizationService $organizations,
         private readonly BankPaymentService $bankPayments,
+        private readonly BillingDocumentService $billingDocuments,
     ) {
     }
 
@@ -126,6 +129,9 @@ class OrganizationController extends Controller
             'pendingBankPayment' => $this->bankPayments->requestPayload($pending),
             'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
             'canActivateBilling' => !$organization->isBillingActive(),
+            'billingDocuments' => $this->billingDocuments->listPayload($organization),
+            'documentRecipientEmail' => $this->billingDocuments->resolveRecipientEmail($organization),
+            'documentTypes' => BillingDocumentType::values(),
         ]);
     }
 

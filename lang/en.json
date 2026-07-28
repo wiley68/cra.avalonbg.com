@@ -224,7 +224,7 @@
             "cancelled": "Cancelled"
         },
         "title": "Billing",
-        "description": "Plan status, bank transfer instructions, and payment requests.",
+        "description": "Plan status, bank transfer instructions, payment requests, and billing documents.",
         "organization": "Organization",
         "current_plan": "Current plan",
         "current_status": "Billing status",
@@ -242,6 +242,32 @@
         "request_bank_payment": "Request bank payment",
         "request_created": "Bank payment request created.",
         "active_help": "Billing is active for this organization.",
+        "documents": {
+            "title": "Invoices & license documents",
+            "description": "Store invoices and license documents issued outside the app. Send them to the billing email.",
+            "recipient": "Send to",
+            "no_recipient_hint": "Set a billing email (or ensure an organization owner exists) before sending.",
+            "type": "Document type",
+            "doc_title": "Title",
+            "doc_title_placeholder": "Optional title",
+            "file": "File",
+            "upload": "Upload document",
+            "empty": "No billing documents yet.",
+            "download": "Download",
+            "send": "Send email",
+            "sent_to": "Sent to",
+            "uploaded": "Billing document uploaded.",
+            "sent": "Billing document sent.",
+            "deleted": "Billing document deleted.",
+            "types": {
+                "invoice": "Invoice",
+                "license": "License"
+            },
+            "errors": {
+                "file_empty": "The uploaded file is empty or unreadable.",
+                "no_recipient": "No billing email or organization owner email is available."
+            }
+        },
         "errors": {
             "free_no_payment": "Free plans do not require bank payment.",
             "already_active": "Billing is already active for this organization.",
@@ -4208,6 +4234,9 @@
             "integration_health_exported": "Integration health exported",
             "bank_payment_requested": "Bank payment requested",
             "billing_activated": "Billing activated",
+            "billing_document_uploaded": "Billing document uploaded",
+            "billing_document_sent": "Billing document sent",
+            "billing_document_deleted": "Billing document deleted",
             "sdl_exception_recorded": "SDL exception recorded",
             "sdl_exception_cleared": "SDL exception cleared",
             "technical_documentation_created": "Technical documentation created",

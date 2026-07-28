@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
+use App\Http\Controllers\Admin\OrganizationBillingDocumentController as AdminOrganizationBillingDocumentController;
 use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
 use App\Http\Controllers\Admin\OrganizationUserController as AdminOrganizationUserController;
 use App\Http\Controllers\Admin\RequirementController as AdminRequirementController;
@@ -608,6 +609,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'organizations/{organization}/activate-billing',
                 [AdminOrganizationController::class, 'activateBilling'],
             )->name('organizations.activate-billing');
+            Route::post(
+                'organizations/{organization}/billing-documents',
+                [AdminOrganizationBillingDocumentController::class, 'store'],
+            )->name('organizations.billing-documents.store');
+            Route::get(
+                'organizations/{organization}/billing-documents/{document}',
+                [AdminOrganizationBillingDocumentController::class, 'download'],
+            )->name('organizations.billing-documents.download');
+            Route::post(
+                'organizations/{organization}/billing-documents/{document}/send',
+                [AdminOrganizationBillingDocumentController::class, 'send'],
+            )->name('organizations.billing-documents.send');
+            Route::delete(
+                'organizations/{organization}/billing-documents/{document}',
+                [AdminOrganizationBillingDocumentController::class, 'destroy'],
+            )->name('organizations.billing-documents.destroy');
 
             Route::resource('organizations.users', AdminOrganizationUserController::class)
                 ->except(['show'])

@@ -134,6 +134,12 @@ class Organization extends Model
         return $this->hasMany(OrganizationBankPaymentRequest::class);
     }
 
+    /** @return HasMany<OrganizationBillingDocument, $this> */
+    public function billingDocuments(): HasMany
+    {
+        return $this->hasMany(OrganizationBillingDocument::class);
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

@@ -11,6 +11,7 @@ class OrganizationService
 {
     public function __construct(
         private readonly ProductStorageCleanup $productStorage,
+        private readonly BillingDocumentService $billingDocuments,
     ) {
     }
 
@@ -35,6 +36,8 @@ class OrganizationService
                 ->where('organization_id', $organization->id)
                 ->orderBy('id')
                 ->each(fn(Product $product) => $this->productStorage->purge($product));
+
+            $this->billingDocuments->deleteStorageForOrganization($organization);
 
             $organization->delete();
 

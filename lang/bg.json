@@ -224,7 +224,7 @@
             "cancelled": "Отменен"
         },
         "title": "Фактуриране",
-        "description": "Статус на плана, банкови инструкции и заявки за плащане.",
+        "description": "Статус на плана, банкови инструкции, заявки за плащане и billing документи.",
         "organization": "Организация",
         "current_plan": "Текущ план",
         "current_status": "Статус на плащане",
@@ -242,6 +242,32 @@
         "request_bank_payment": "Заяви банков превод",
         "request_created": "Заявката за банков превод е създадена.",
         "active_help": "Фактурирането за тази организация е активно.",
+        "documents": {
+            "title": "Фактури и лицензни документи",
+            "description": "Съхранявайте фактури и лицензни документи, издадени извън приложението. Изпращайте ги към billing имейла.",
+            "recipient": "Изпращане към",
+            "no_recipient_hint": "Задайте billing имейл (или осигурете Owner), преди да изпращате.",
+            "type": "Тип документ",
+            "doc_title": "Заглавие",
+            "doc_title_placeholder": "Опционално заглавие",
+            "file": "Файл",
+            "upload": "Качи документ",
+            "empty": "Все още няма billing документи.",
+            "download": "Изтегли",
+            "send": "Изпрати имейл",
+            "sent_to": "Изпратен към",
+            "uploaded": "Billing документът е качен.",
+            "sent": "Billing документът е изпратен.",
+            "deleted": "Billing документът е изтрит.",
+            "types": {
+                "invoice": "Фактура",
+                "license": "Лиценз"
+            },
+            "errors": {
+                "file_empty": "Каченият файл е празен или нечетим.",
+                "no_recipient": "Няма billing имейл или имейл на Owner."
+            }
+        },
         "errors": {
             "free_no_payment": "Безплатните планове не изискват банков превод.",
             "already_active": "Фактурирането вече е активно за тази организация.",
@@ -4208,6 +4234,9 @@
             "integration_health_exported": "Експортирано здраве на интеграциите",
             "bank_payment_requested": "Заявен банков превод",
             "billing_activated": "Активирано фактуриране",
+            "billing_document_uploaded": "Качен billing документ",
+            "billing_document_sent": "Изпратен billing документ",
+            "billing_document_deleted": "Изтрит billing документ",
             "sdl_exception_recorded": "Записано SDL изключение",
             "sdl_exception_cleared": "Премахнато SDL изключение",
             "technical_documentation_created": "Техническа документация създадена",

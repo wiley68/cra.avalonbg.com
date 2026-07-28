@@ -2,12 +2,19 @@
 import { Head, router } from '@inertiajs/vue3';
 import { Banknote } from '@lucide/vue';
 import { computed } from 'vue';
+import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editBilling } from '@/routes/settings/billing';
 import { store as storeBankPayment } from '@/routes/settings/billing/bank-payment';
+import {
+    destroy as destroyDocument,
+    download as downloadDocument,
+    send as sendDocument,
+    store as storeDocument,
+} from '@/routes/settings/billing/documents';
 
 type OrganizationBilling = {
     id: number;
@@ -39,11 +46,27 @@ type BankInstructions = {
     reference_prefix: string;
 };
 
+type BillingDocumentItem = {
+    id: number;
+    type: string;
+    title: string;
+    source_filename: string;
+    size_bytes: number;
+    mime_type: string | null;
+    sent_at: string | null;
+    sent_to_email: string | null;
+    notes: string | null;
+    created_at: string | null;
+};
+
 const props = defineProps<{
     organization: OrganizationBilling;
     pendingRequest: PendingRequest;
     bankInstructions: BankInstructions;
     canRequestBankPayment: boolean;
+    documents: BillingDocumentItem[];
+    documentRecipientEmail: string | null;
+    documentTypes: string[];
 }>();
 
 const { t } = useTranslations();
@@ -167,5 +190,15 @@ const requestPayment = () => {
         >
             {{ t('billing.active_help') }}
         </p>
+
+        <BillingDocumentsPanel
+            :documents="documents"
+            :document-types="documentTypes"
+            :recipient-email="documentRecipientEmail"
+            :store-url="storeDocument().url"
+            :download-url="(id) => downloadDocument(id).url"
+            :send-url="(id) => sendDocument(id).url"
+            :destroy-url="(id) => destroyDocument(id).url"
+        />
     </div>
 </template>

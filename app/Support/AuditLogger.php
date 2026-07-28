@@ -18,6 +18,7 @@ use App\Models\IncidentTimelineEvent;
 use App\Models\IntegrationSyncRun;
 use App\Models\Organization;
 use App\Models\OrganizationBankPaymentRequest;
+use App\Models\OrganizationBillingDocument;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
@@ -212,6 +213,66 @@ class AuditLogger
             actor: $actor,
             organizationId: $organization->id,
             details: $details,
+        );
+    }
+
+    public static function logBillingDocumentUploaded(
+        OrganizationBillingDocument $document,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::BillingDocumentUploaded,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $document->organization_id,
+            details: [
+                ['field' => 'document_id', 'value' => (string) $document->id],
+                ['field' => 'type', 'value' => $document->typeValue()],
+                ['field' => 'title', 'value' => $document->title],
+                ['field' => 'source_filename', 'value' => $document->source_filename],
+            ],
+        );
+    }
+
+    public static function logBillingDocumentSent(
+        OrganizationBillingDocument $document,
+        User $actor,
+        string $recipientEmail,
+    ): void {
+        self::persist(
+            type: AuditEventType::BillingDocumentSent,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $document->organization_id,
+            details: [
+                ['field' => 'document_id', 'value' => (string) $document->id],
+                ['field' => 'type', 'value' => $document->typeValue()],
+                ['field' => 'title', 'value' => $document->title],
+                ['field' => 'sent_to_email', 'value' => $recipientEmail],
+            ],
+        );
+    }
+
+    public static function logBillingDocumentDeleted(
+        Organization $organization,
+        User $actor,
+        int $documentId,
+        string $type,
+        string $title,
+    ): void {
+        self::persist(
+            type: AuditEventType::BillingDocumentDeleted,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organization->id,
+            details: [
+                ['field' => 'document_id', 'value' => (string) $documentId],
+                ['field' => 'type', 'value' => $type],
+                ['field' => 'title', 'value' => $title],
+            ],
         );
     }
 

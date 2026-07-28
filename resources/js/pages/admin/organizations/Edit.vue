@@ -3,6 +3,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, BadgeCheck, Save, Trash2, Users } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
+import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import PageFormHeader from '@/components/PageFormHeader.vue';
@@ -26,6 +27,12 @@ import {
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
+import {
+    destroy as destroyBillingDocument,
+    download as downloadBillingDocument,
+    send as sendBillingDocument,
+    store as storeBillingDocument,
+} from '@/routes/admin/organizations/billing-documents';
 import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 type OrganizationPayload = {
@@ -61,11 +68,27 @@ type PendingBankPayment = {
     created_at: string | null;
 } | null;
 
+type BillingDocumentItem = {
+    id: number;
+    type: string;
+    title: string;
+    source_filename: string;
+    size_bytes: number;
+    mime_type: string | null;
+    sent_at: string | null;
+    sent_to_email: string | null;
+    notes: string | null;
+    created_at: string | null;
+};
+
 const props = defineProps<{
     organization: OrganizationPayload;
     subscriptionPlans: SubscriptionPlanOption[];
     pendingBankPayment: PendingBankPayment;
     canActivateBilling: boolean;
+    billingDocuments: BillingDocumentItem[];
+    documentRecipientEmail: string | null;
+    documentTypes: string[];
 }>();
 
 const { t } = useTranslations();
@@ -314,6 +337,34 @@ const confirmDelete = () => {
                 {{ t('common.save') }}
             </Button>
         </form>
+
+        <BillingDocumentsPanel
+            :documents="billingDocuments"
+            :document-types="documentTypes"
+            :recipient-email="documentRecipientEmail"
+            :store-url="storeBillingDocument(organization.id).url"
+            :download-url="
+                (id) =>
+                    downloadBillingDocument({
+                        organization: organization.id,
+                        document: id,
+                    }).url
+            "
+            :send-url="
+                (id) =>
+                    sendBillingDocument({
+                        organization: organization.id,
+                        document: id,
+                    }).url
+            "
+            :destroy-url="
+                (id) =>
+                    destroyBillingDocument({
+                        organization: organization.id,
+                        document: id,
+                    }).url
+            "
+        />
 
         <section class="space-y-3 rounded-lg border border-destructive/40 p-6">
             <h2 class="text-sm font-semibold text-destructive">
