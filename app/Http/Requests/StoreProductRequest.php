@@ -10,10 +10,12 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Support\ClassificationAssessmentValidation;
 use App\Support\ScopeAssessmentValidation;
+use App\Support\Translations;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreProductRequest extends FormRequest
 {
@@ -81,13 +83,35 @@ class StoreProductRequest extends FormRequest
         ];
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $organization = $this->user()?->currentOrganization();
+
+            if ($organization === null || $organization->canAddProduct()) {
+                return;
+            }
+
+            $max = $organization->maxProducts() ?? 0;
+            $plan = $organization->resolvedSubscriptionPlan()->value;
+
+            $validator->errors()->add(
+                'name',
+                Translations::get('products.plan_product_limit', [
+                    'plan' => Translations::get('billing.plans.' . $plan),
+                    'max' => (string) $max,
+                ]),
+            );
+        });
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     protected function productRules(?Organization $organization, ?Product $product = null): array
     {
         $memberRule = Rule::exists('organization_user', 'user_id')
-            ->where(fn ($query) => $query->where('organization_id', $organization?->id));
+            ->where(fn($query) => $query->where('organization_id', $organization?->id));
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -97,7 +121,7 @@ class StoreProductRequest extends FormRequest
                 'max:255',
                 'alpha_dash',
                 Rule::unique('products', 'slug')
-                    ->where(fn ($query) => $query->where('organization_id', $organization?->id))
+                    ->where(fn($query) => $query->where('organization_id', $organization?->id))
                     ->ignore($product?->id),
             ],
             'product_line' => ['nullable', 'string', 'max:255'],

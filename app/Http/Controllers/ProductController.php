@@ -48,18 +48,34 @@ class ProductController extends Controller
         return Inertia::render('products/Index', [
             'organization' => $this->organizationPayload($organization),
             'canManage' => request()->user()->canManageProducts($organization),
+            'productQuota' => $organization->productQuotaPayload(),
         ]);
     }
 
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
         $organization = $this->currentOrganization();
         $this->authorize('create', [Product::class, $organization]);
+
+        if (!$organization->canAddProduct()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => Translations::get('products.plan_product_limit', [
+                    'plan' => Translations::get(
+                        'billing.plans.' . $organization->resolvedSubscriptionPlan()->value,
+                    ),
+                    'max' => (string) ($organization->maxProducts() ?? 0),
+                ]),
+            ]);
+
+            return redirect()->route('products.index');
+        }
 
         return Inertia::render('products/Create', [
             'organization' => $this->organizationPayload($organization),
             'members' => $this->memberOptions($organization),
             'options' => $this->enumOptions(),
+            'productQuota' => $organization->productQuotaPayload(),
         ]);
     }
 

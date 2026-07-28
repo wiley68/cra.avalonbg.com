@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.1  
+**Версия:** 0.2  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — skeleton (kickoff Q&A Done)  
+**Статус:** Active — Must 2 Done (plan catalog + product limits)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -140,8 +140,8 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 
 ### Must
 
-1. Docs pointers (Nachalen §14/§15, 2_E → този файл) + freeze таблица
-2. Plan catalog + migrate `subscription_plan` към Free/Small/Standard/Enterprise + **product limit enforcement**
+1. ~~Docs pointers (Nachalen §14/§15, 2_E → този файл) + freeze таблица~~
+2. ~~Plan catalog + migrate `subscription_plan` към Free/Small/Standard/Enterprise + **product limit enforcement**~~
 3. Public registration + org create + plan select (Free active веднага; платени → pending до плащане/activate)
 4. Bank payment request flow + admin **activate on payment** (+ запазен admin create/override)
 5. Billing documents: upload/store **invoices** + **license docs**; send channel (email към `billing_email` / Owner)
@@ -201,4 +201,5 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                      |
 | ------ | ---------- | ------------------------------------------------------------------------------------------------------------ |
+| 0.2    | 2026-07-28 | Must 2 Done — billing catalog, SubscriptionPlan, product quota enforcement, admin Select, tests              |
 | 0.1    | 2026-07-28 | Skeleton Active — kickoff C+A; tiers Free/Small/Standard/Enterprise; bank+Stripe; invoice/license docs; OIDC |

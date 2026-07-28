@@ -8,6 +8,13 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
@@ -16,6 +23,17 @@ import {
     store,
 } from '@/routes/admin/organizations';
 import { create as organizationsCreate } from '@/routes/admin/organizations';
+
+type SubscriptionPlanOption = {
+    value: string;
+    max_products: number | null;
+    monthly_price_eur: number;
+    yearly_price_eur: number | null;
+};
+
+const props = defineProps<{
+    subscriptionPlans: SubscriptionPlanOption[];
+}>();
 
 const { t } = useTranslations();
 
@@ -31,7 +49,7 @@ const form = useForm({
     name: '',
     slug: '',
     billing_email: '',
-    subscription_plan: '',
+    subscription_plan: 'enterprise',
     is_active: true,
     locale: 'en',
     create_owner: true,
@@ -45,6 +63,9 @@ const form = useForm({
 const submit = () => {
     form.post(store().url);
 };
+
+const planLabel = (value: string): string =>
+    t(`admin.organizations.plans.${value}`);
 </script>
 
 <template>
@@ -98,10 +119,43 @@ const submit = () => {
                 <Label for="subscription_plan">{{
                     t('admin.organizations.subscription_plan')
                 }}</Label>
-                <Input
-                    id="subscription_plan"
-                    v-model="form.subscription_plan"
-                />
+                <Select
+                    :model-value="form.subscription_plan || undefined"
+                    @update:model-value="
+                        (value) => {
+                            if (typeof value === 'string') {
+                                form.subscription_plan = value;
+                            }
+                        }
+                    "
+                >
+                    <SelectTrigger id="subscription_plan" class="w-full">
+                        <SelectValue
+                            :placeholder="
+                                t('admin.organizations.subscription_plan')
+                            "
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="plan in props.subscriptionPlans"
+                            :key="plan.value"
+                            :value="plan.value"
+                        >
+                            {{ planLabel(plan.value) }}
+                            <span class="text-muted-foreground">
+                                ({{
+                                    plan.max_products === null
+                                        ? '∞'
+                                        : plan.max_products
+                                }})
+                            </span>
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.subscription_plan_help') }}
+                </p>
                 <InputError :message="form.errors.subscription_plan" />
             </div>
 

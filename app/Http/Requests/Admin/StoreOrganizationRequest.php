@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Concerns\PasswordValidationRules;
+use App\Enums\SubscriptionPlan;
 use App\Models\Organization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -30,11 +31,16 @@ class StoreOrganizationRequest extends FormRequest
             ]);
         }
 
+        $plan = $this->input('subscription_plan');
+
         $this->merge([
             'create_owner' => $this->boolean('create_owner'),
             'seed_starter_controls' => $this->boolean('seed_starter_controls', true),
             'is_active' => $this->boolean('is_active', true),
             'locale' => $this->input('locale', Organization::DEFAULT_LOCALE),
+            'subscription_plan' => ($plan === null || $plan === '')
+                ? null
+                : $plan,
         ]);
     }
 
@@ -47,7 +53,7 @@ class StoreOrganizationRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('organizations', 'slug')],
             'billing_email' => ['nullable', 'email', 'max:255'],
-            'subscription_plan' => ['nullable', 'string', 'max:100'],
+            'subscription_plan' => ['nullable', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
             'create_owner' => ['boolean'],
             'seed_starter_controls' => ['boolean'],

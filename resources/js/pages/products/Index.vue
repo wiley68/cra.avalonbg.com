@@ -22,12 +22,41 @@ type OrganizationSummary = {
     slug: string;
 };
 
+type ProductQuota = {
+    plan: string;
+    max_products: number | null;
+    used: number;
+    can_create: boolean;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
     canManage: boolean;
+    productQuota: ProductQuota;
 }>();
 
 const { t } = useTranslations();
+
+const quotaLabel = computed(() => {
+    const planName = t(`billing.plans.${props.productQuota.plan}`);
+
+    if (props.productQuota.max_products === null) {
+        return t('products.plan_quota_unlimited', {
+            used: String(props.productQuota.used),
+            plan: planName,
+        });
+    }
+
+    return t('products.plan_quota', {
+        used: String(props.productQuota.used),
+        max: String(props.productQuota.max_products),
+        plan: planName,
+    });
+});
+
+const canCreateProduct = computed(
+    () => props.canManage && props.productQuota.can_create,
+);
 
 const moduleColorHelpItems = computed(() => [
     {
@@ -125,6 +154,9 @@ onMounted(() => {
                     {{ t('products.subtitle') }} —
                     {{ props.organization.name }}
                 </p>
+                <p class="text-xs text-muted-foreground">
+                    {{ quotaLabel }}
+                </p>
             </div>
 
             <div
@@ -136,7 +168,7 @@ onMounted(() => {
                     :placeholder="t('products.search_placeholder')"
                     class="w-full sm:w-72"
                 />
-                <Button v-if="canManage" as-child class="shrink-0">
+                <Button v-if="canCreateProduct" as-child class="shrink-0">
                     <Link
                         :href="create()"
                         class="inline-flex items-center gap-2"
@@ -144,6 +176,15 @@ onMounted(() => {
                         <Plus class="h-4 w-4" />
                         {{ t('products.create') }}
                     </Link>
+                </Button>
+                <Button
+                    v-else-if="canManage"
+                    class="shrink-0"
+                    disabled
+                    :title="t('products.create_disabled_limit')"
+                >
+                    <Plus class="h-4 w-4" />
+                    {{ t('products.create') }}
                 </Button>
             </div>
         </div>

@@ -186,6 +186,14 @@
             "regenerate_action": "Генерирай нови кодове"
         }
     },
+    "billing": {
+        "plans": {
+            "free": "Free",
+            "small": "Small",
+            "standard": "Standard",
+            "enterprise": "Enterprise"
+        }
+    },
     "admin": {
         "users": {
             "index_title": "Админ потребители",
@@ -224,6 +232,13 @@
             "slug_help": "Оставете празно, за да се генерира от името.",
             "billing_email": "Имейл за фактуриране",
             "subscription_plan": "Абонаментен план",
+            "subscription_plan_help": "Ограничава броя продукти, които организацията може да създаде. Празно = Enterprise (без лимит), докато не се зададе.",
+            "plans": {
+                "free": "Free",
+                "small": "Small",
+                "standard": "Standard",
+                "enterprise": "Enterprise"
+            },
             "status": "Статус",
             "active": "Активна",
             "inactive": "Неактивна",
@@ -888,6 +903,10 @@
         "create": "Създай продукт",
         "create_title": "Създай продукт",
         "edit_title": "Редакция на продукт",
+        "plan_product_limit": "Планът :plan позволява до :max продукта. Надградете плана или премахнете продукт, за да добавите нов.",
+        "plan_quota": ":used / :max продукта (:plan)",
+        "plan_quota_unlimited": ":used продукта · :plan (без лимит)",
+        "create_disabled_limit": "Достигнат е лимитът на продукти за този план",
         "modules_menu": "Модули",
         "created": "Продуктът е създаден.",
         "updated": "Продуктът е обновен.",

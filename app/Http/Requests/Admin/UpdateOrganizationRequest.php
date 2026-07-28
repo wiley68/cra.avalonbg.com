@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\SubscriptionPlan;
 use App\Models\Organization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,8 +27,13 @@ class UpdateOrganizationRequest extends FormRequest
             ]);
         }
 
+        $plan = $this->input('subscription_plan');
+
         $this->merge([
             'is_active' => $this->boolean('is_active'),
+            'subscription_plan' => ($plan === null || $plan === '')
+                ? null
+                : $plan,
         ]);
     }
 
@@ -48,7 +54,7 @@ class UpdateOrganizationRequest extends FormRequest
                 Rule::unique('organizations', 'slug')->ignore($organizationId),
             ],
             'billing_email' => ['nullable', 'email', 'max:255'],
-            'subscription_plan' => ['nullable', 'string', 'max:100'],
+            'subscription_plan' => ['nullable', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
         ];

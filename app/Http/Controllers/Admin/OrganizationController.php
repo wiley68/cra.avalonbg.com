@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\RoleSlug;
+use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreOrganizationRequest;
 use App\Http\Requests\Admin\UpdateOrganizationRequest;
@@ -37,7 +38,9 @@ class OrganizationController extends Controller
     {
         $this->authorize('create', Organization::class);
 
-        return Inertia::render('admin/organizations/Create');
+        return Inertia::render('admin/organizations/Create', [
+            'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
+        ]);
     }
 
     public function store(StoreOrganizationRequest $request): RedirectResponse
@@ -99,11 +102,13 @@ class OrganizationController extends Controller
                 'name' => $organization->name,
                 'slug' => $organization->slug,
                 'billing_email' => $organization->billing_email,
-                'subscription_plan' => $organization->subscription_plan,
+                'subscription_plan' => $organization->subscription_plan
+                    ?? $organization->resolvedSubscriptionPlan()->value,
                 'is_active' => (bool) $organization->is_active,
                 'locale' => $organization->resolvedLocale(),
                 'users_count' => $organization->users()->count(),
             ],
+            'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
         ]);
     }
 

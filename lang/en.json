@@ -186,6 +186,14 @@
             "regenerate_action": "Regenerate codes"
         }
     },
+    "billing": {
+        "plans": {
+            "free": "Free",
+            "small": "Small",
+            "standard": "Standard",
+            "enterprise": "Enterprise"
+        }
+    },
     "admin": {
         "users": {
             "index_title": "Admin users",
@@ -224,6 +232,13 @@
             "slug_help": "Leave empty to generate from the name.",
             "billing_email": "Billing email",
             "subscription_plan": "Subscription plan",
+            "subscription_plan_help": "Limits how many products the organization may create. Leave empty to treat as Enterprise (unlimited) until set.",
+            "plans": {
+                "free": "Free",
+                "small": "Small",
+                "standard": "Standard",
+                "enterprise": "Enterprise"
+            },
             "status": "Status",
             "active": "Active",
             "inactive": "Inactive",
@@ -888,6 +903,10 @@
         "create": "Create product",
         "create_title": "Create product",
         "edit_title": "Edit product",
+        "plan_product_limit": "Your :plan plan allows up to :max products. Upgrade the plan or remove a product to add another.",
+        "plan_quota": ":used / :max products (:plan)",
+        "plan_quota_unlimited": ":used products · :plan (unlimited)",
+        "create_disabled_limit": "Product limit reached for this plan",
         "modules_menu": "Modules",
         "created": "Product created.",
         "updated": "Product updated.",

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -37,6 +38,57 @@ class Organization extends Model
         return in_array($locale, self::LOCALES, true)
             ? $locale
             : self::DEFAULT_LOCALE;
+    }
+
+    public function resolvedSubscriptionPlan(): SubscriptionPlan
+    {
+        return SubscriptionPlan::fromStoredOrFallback($this->subscription_plan);
+    }
+
+    /**
+     * Maximum products for the resolved plan; null = unlimited.
+     */
+    public function maxProducts(): ?int
+    {
+        return $this->resolvedSubscriptionPlan()->maxProducts();
+    }
+
+    public function productsCount(): int
+    {
+        if ($this->relationLoaded('products')) {
+            return $this->products->count();
+        }
+
+        return $this->products()->count();
+    }
+
+    public function canAddProduct(): bool
+    {
+        $max = $this->maxProducts();
+
+        if ($max === null) {
+            return true;
+        }
+
+        return $this->productsCount() < $max;
+    }
+
+    /**
+     * @return array{
+     *     plan: string,
+     *     max_products: int|null,
+     *     used: int,
+     *     can_create: bool
+     * }
+     */
+    public function productQuotaPayload(): array
+    {
+        return [
+            'plan' => $this->resolvedSubscriptionPlan()->value,
+            'max_products' => $this->maxProducts(),
+            'used' => $this->productsCount(),
+            'can_create' => $this->canAddProduct(),
+        ];
     }
 
     public function users(): BelongsToMany

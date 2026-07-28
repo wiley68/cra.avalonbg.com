@@ -9,6 +9,13 @@ import PageFormHeader from '@/components/PageFormHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
@@ -31,8 +38,16 @@ type OrganizationPayload = {
     users_count: number;
 };
 
+type SubscriptionPlanOption = {
+    value: string;
+    max_products: number | null;
+    monthly_price_eur: number;
+    yearly_price_eur: number | null;
+};
+
 const props = defineProps<{
     organization: OrganizationPayload;
+    subscriptionPlans: SubscriptionPlanOption[];
 }>();
 
 const { t } = useTranslations();
@@ -51,7 +66,7 @@ const form = useForm({
     name: props.organization.name,
     slug: props.organization.slug,
     billing_email: props.organization.billing_email ?? '',
-    subscription_plan: props.organization.subscription_plan ?? '',
+    subscription_plan: props.organization.subscription_plan ?? 'enterprise',
     is_active: Boolean(props.organization.is_active),
     locale: props.organization.locale || 'en',
 });
@@ -59,6 +74,9 @@ const form = useForm({
 const submit = () => {
     form.put(update(props.organization.id).url);
 };
+
+const planLabel = (value: string): string =>
+    t(`admin.organizations.plans.${value}`);
 
 const confirmDelete = () => {
     deleting.value = true;
@@ -126,10 +144,43 @@ const confirmDelete = () => {
                 <Label for="subscription_plan">{{
                     t('admin.organizations.subscription_plan')
                 }}</Label>
-                <Input
-                    id="subscription_plan"
-                    v-model="form.subscription_plan"
-                />
+                <Select
+                    :model-value="form.subscription_plan || undefined"
+                    @update:model-value="
+                        (value) => {
+                            if (typeof value === 'string') {
+                                form.subscription_plan = value;
+                            }
+                        }
+                    "
+                >
+                    <SelectTrigger id="subscription_plan" class="w-full">
+                        <SelectValue
+                            :placeholder="
+                                t('admin.organizations.subscription_plan')
+                            "
+                        />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem
+                            v-for="plan in props.subscriptionPlans"
+                            :key="plan.value"
+                            :value="plan.value"
+                        >
+                            {{ planLabel(plan.value) }}
+                            <span class="text-muted-foreground">
+                                ({{
+                                    plan.max_products === null
+                                        ? '∞'
+                                        : plan.max_products
+                                }})
+                            </span>
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                <p class="text-xs text-muted-foreground">
+                    {{ t('admin.organizations.subscription_plan_help') }}
+                </p>
                 <InputError :message="form.errors.subscription_plan" />
             </div>
 

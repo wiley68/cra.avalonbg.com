@@ -80,6 +80,9 @@ class User extends Authenticatable implements MustVerifyEmail
                 'organizations.slug',
                 'organizations.is_active',
                 'organizations.locale',
+                'organizations.subscription_plan',
+                'organizations.billing_email',
+                'organizations.trial_ends_at',
             )
             ->first();
     }
