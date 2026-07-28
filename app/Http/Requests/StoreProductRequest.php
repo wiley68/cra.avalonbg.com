@@ -10,7 +10,6 @@ use App\Models\Organization;
 use App\Models\Product;
 use App\Support\ClassificationAssessmentValidation;
 use App\Support\ScopeAssessmentValidation;
-use App\Support\Translations;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -92,15 +91,9 @@ class StoreProductRequest extends FormRequest
                 return;
             }
 
-            $max = $organization->maxProducts() ?? 0;
-            $plan = $organization->resolvedSubscriptionPlan()->value;
-
             $validator->errors()->add(
                 'name',
-                Translations::get('products.plan_product_limit', [
-                    'plan' => Translations::get('billing.plans.' . $plan),
-                    'max' => (string) $max,
-                ]),
+                $organization->productCreationBlockedMessage(),
             );
         });
     }

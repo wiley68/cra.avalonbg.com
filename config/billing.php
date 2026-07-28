@@ -87,4 +87,17 @@ return [
             ],
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dunning / past_due
+    |--------------------------------------------------------------------------
+    |
+    | Soft grace after Stripe marks the subscription past_due. Existing data
+    | is never auto-deleted; new product creation stays locked until active.
+    |
+    */
+    'dunning' => [
+        'grace_days' => (int) env('BILLING_DUNNING_GRACE_DAYS', 14),
+    ],
 ];

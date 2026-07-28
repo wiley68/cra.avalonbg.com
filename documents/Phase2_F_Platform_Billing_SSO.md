@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.13  
+**Версия:** 0.14  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should 10–13 Done; Should 14 / Could open  
+**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -156,7 +156,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 11. ~~Customer billing portal UI (текущ план, interval, docs, „смени плана“, Stripe manage)~~ **Done** (2026-07-28) — Settings → Billing
 12. ~~Annual pricing UX ясно на signup/upgrade (20% messaging)~~ **Done** (2026-07-28) — Register + Billing change plan
 13. ~~SSO за **Standard** (не само Enterprise)~~ **Done** (2026-07-28) — Standard includes OIDC like Enterprise
-14. Dunning / past_due UX (grace + read-only hint; без агресивно delete)
+14. ~~Dunning / past_due UX (grace + read-only hint; без агресивно delete)~~ **Done** (2026-07-28) — shared banner + Billing/Products messaging
 
 ### Could
 
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.14   | 2026-07-28 | Should 14 Done — dunning/past_due UX (grace banner, read-only hint, no auto-delete; Billing + Products messaging)      |
 | 0.13   | 2026-07-28 | Should 13 Done — SSO for Standard (no optional sso_enabled gate; same as Enterprise)                                   |
 | 0.12   | 2026-07-28 | Should 12 Done — annual pricing UX (20% messaging) on signup + Billing change plan                                     |
 | 0.11   | 2026-07-28 | Should 11 Done — customer billing portal (plan/interval/docs, change plan, Stripe Customer Portal)                     |

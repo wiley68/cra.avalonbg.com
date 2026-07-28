@@ -6,6 +6,7 @@ use App\Enums\BillingInterval;
 use App\Enums\BillingStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\SubscriptionPlan;
+use App\Support\Translations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'sso_enabled',
     'locale',
     'onboarding_checklist_dismissed_at',
+    'billing_past_due_at',
 ])]
 class Organization extends Model
 {
@@ -43,6 +45,7 @@ class Organization extends Model
             'trial_ends_at' => 'datetime',
             'billing_activated_at' => 'datetime',
             'onboarding_checklist_dismissed_at' => 'datetime',
+            'billing_past_due_at' => 'datetime',
             'billing_status' => BillingStatus::class,
             'billing_interval' => BillingInterval::class,
             'payment_method' => PaymentMethod::class,
@@ -75,6 +78,79 @@ class Organization extends Model
     public function isBillingActive(): bool
     {
         return $this->resolvedBillingStatus() === BillingStatus::Active;
+    }
+
+    public function isPastDue(): bool
+    {
+        return $this->resolvedBillingStatus() === BillingStatus::PastDue;
+    }
+
+    public function isBillingCancelled(): bool
+    {
+        return $this->resolvedBillingStatus() === BillingStatus::Cancelled;
+    }
+
+    public function isInBillingGrace(): bool
+    {
+        if (!$this->isPastDue()) {
+            return false;
+        }
+
+        $graceDays = max(0, (int) config('billing.dunning.grace_days', 14));
+        $since = $this->billing_past_due_at ?? $this->updated_at;
+
+        if ($since === null) {
+            return true;
+        }
+
+        return $since->copy()->addDays($graceDays)->isFuture();
+    }
+
+    /**
+     * Soft dunning notice for shared Inertia layout (no data deletion).
+     *
+     * @return array{
+     *     status: string,
+     *     in_grace: bool,
+     *     grace_ends_at: string|null,
+     *     read_only_hint: bool,
+     *     billing_href: string,
+     *     can_manage_stripe: bool
+     * }|null
+     */
+    public function billingNoticePayload(): ?array
+    {
+        $status = $this->resolvedBillingStatus();
+
+        if ($status !== BillingStatus::PastDue && $status !== BillingStatus::Cancelled) {
+            return null;
+        }
+
+        $graceEndsAt = null;
+        $inGrace = false;
+        $readOnlyHint = true;
+
+        if ($status === BillingStatus::PastDue) {
+            $graceDays = max(0, (int) config('billing.dunning.grace_days', 14));
+            $since = $this->billing_past_due_at ?? $this->updated_at;
+            $inGrace = $this->isInBillingGrace();
+            $readOnlyHint = !$inGrace;
+
+            if ($since !== null) {
+                $graceEndsAt = $since->copy()->addDays($graceDays)->toIso8601String();
+            }
+        }
+
+        return [
+            'status' => $status->value,
+            'in_grace' => $inGrace,
+            'grace_ends_at' => $graceEndsAt,
+            'read_only_hint' => $readOnlyHint,
+            'billing_href' => route('settings.billing.edit'),
+            'can_manage_stripe' => filled($this->stripe_customer_id)
+                && $this->payment_method === PaymentMethod::Stripe
+                && filled(config('billing.stripe.secret')),
+        ];
     }
 
     /**
@@ -138,6 +214,35 @@ class Organization extends Model
             'used' => $this->productsCount(),
             'can_create' => $this->canAddProduct(),
         ];
+    }
+
+    /**
+     * Message when product create is blocked (quota or billing status).
+     */
+    public function productCreationBlockedMessage(): string
+    {
+        if ($this->isPastDue()) {
+            return Translations::get(
+                $this->isInBillingGrace()
+                ? 'products.plan_past_due_grace'
+                : 'products.plan_past_due_readonly',
+            );
+        }
+
+        if ($this->isBillingCancelled()) {
+            return Translations::get('products.plan_cancelled');
+        }
+
+        if ($this->resolvedBillingStatus() === BillingStatus::PendingPayment) {
+            return Translations::get('products.plan_pending_payment');
+        }
+
+        return Translations::get('products.plan_product_limit', [
+            'plan' => Translations::get(
+                'billing.plans.' . $this->resolvedSubscriptionPlan()->value,
+            ),
+            'max' => (string) ($this->maxProducts() ?? 0),
+        ]);
     }
 
     public function users(): BelongsToMany

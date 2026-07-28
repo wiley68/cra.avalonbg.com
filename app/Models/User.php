@@ -89,6 +89,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'organizations.stripe_customer_id',
                 'organizations.stripe_subscription_id',
                 'organizations.onboarding_checklist_dismissed_at',
+                'organizations.billing_past_due_at',
+                'organizations.updated_at',
             )
             ->first();
     }

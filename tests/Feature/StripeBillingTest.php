@@ -212,6 +212,7 @@ test('invoice payment failed webhook marks organization past due', function () {
     )->assertOk();
 
     expect($organization->fresh()->billing_status)->toBe(BillingStatus::PastDue)
+        ->and($organization->fresh()->billing_past_due_at)->not->toBeNull()
         ->and($organization->fresh()->canAddProduct())->toBeFalse();
 });
 
@@ -290,5 +291,6 @@ test('stripe billing service maps subscription updated to past due', function ()
     $organization->refresh();
 
     expect($organization->billing_status)->toBe(BillingStatus::PastDue)
-        ->and($organization->billing_interval)->toBe(BillingInterval::Year);
+        ->and($organization->billing_interval)->toBe(BillingInterval::Year)
+        ->and($organization->billing_past_due_at)->not->toBeNull();
 });

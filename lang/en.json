@@ -340,6 +340,18 @@
             "already_active": "Billing is already active for this organization.",
             "pending_exists": "A pending bank payment request already exists.",
             "request_not_pending": "This bank payment request is not pending."
+        },
+        "dunning": {
+            "past_due_grace_title": "Payment past due — grace period",
+            "past_due_grace_body": "Update your payment method soon. Your existing work stays available; new products stay locked until billing is active again.",
+            "past_due_readonly_title": "Payment past due — read-only hint",
+            "past_due_readonly_body": "The grace period has ended. Treat the workspace as read-only for new work until payment is restored. Existing data is kept.",
+            "past_due_detail_title": "Subscription payment is past due",
+            "past_due_detail_body": "Please update your payment method. Product creation stays locked until billing is active again. Existing products and data are retained.",
+            "cancelled_title": "Subscription cancelled",
+            "cancelled_body": "Your subscription is cancelled. Existing data is retained; renew or choose a plan to restore full access.",
+            "no_delete_note": "We do not automatically delete your organization or compliance data for unpaid invoices.",
+            "open_billing": "Open billing"
         }
     },
     "admin": {
@@ -4139,7 +4151,13 @@
                 "summary": ":done of :total required steps (:percent%)",
                 "optional_summary": "Optional: :done complete, :dismissed skipped"
             }
-        }
+        },
+        "plan_past_due": "Payment past due — product creation is locked until billing is active again.",
+        "plan_past_due_grace": "Payment is past due (grace period). You can keep working on existing products, but new products stay locked until payment is restored.",
+        "plan_past_due_readonly": "Payment is past due and the grace period has ended. New products stay locked; existing data is retained until you update billing.",
+        "plan_cancelled": "Subscription cancelled — product creation is locked. Existing data is retained.",
+        "create_disabled_past_due": "Billing past due — update payment to add products",
+        "create_disabled_cancelled": "Subscription cancelled — renew to add products"
     },
     "audit_logs": {
         "title": "Audit",

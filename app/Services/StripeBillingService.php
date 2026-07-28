@@ -407,6 +407,7 @@ class StripeBillingService
                 'billing_status' => $status->value,
                 'payment_method' => PaymentMethod::Stripe->value,
                 'billing_activated_at' => $organization->billing_activated_at ?? now(),
+                'billing_past_due_at' => null,
                 'stripe_customer_id' => $customerId ?? $organization->stripe_customer_id,
                 'stripe_subscription_id' => $subscriptionId ?? $organization->stripe_subscription_id,
             ])->save();
@@ -442,6 +443,11 @@ class StripeBillingService
             'billing_activated_at' => $status === BillingStatus::Active
                 ? ($organization->billing_activated_at ?? now())
                 : $organization->billing_activated_at,
+            'billing_past_due_at' => match ($status) {
+                BillingStatus::PastDue => $organization->billing_past_due_at ?? now(),
+                BillingStatus::Active => null,
+                default => $organization->billing_past_due_at,
+            },
             'stripe_customer_id' => $customerId ?? $organization->stripe_customer_id,
             'stripe_subscription_id' => $subscriptionId ?? $organization->stripe_subscription_id,
         ])->save();

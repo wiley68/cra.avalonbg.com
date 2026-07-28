@@ -39,13 +39,28 @@ const props = defineProps<{
 
 const { t } = useTranslations();
 
+const billingStatus = computed(() => props.productQuota.billing_status);
+
 const isPendingPayment = computed(
-    () => props.productQuota.billing_status === 'pending_payment',
+    () => billingStatus.value === 'pending_payment',
+);
+const isPastDue = computed(() => billingStatus.value === 'past_due');
+const isCancelled = computed(() => billingStatus.value === 'cancelled');
+const showBillingLink = computed(
+    () => isPendingPayment.value || isPastDue.value || isCancelled.value,
 );
 
 const quotaLabel = computed(() => {
     if (isPendingPayment.value) {
         return t('products.plan_pending_payment');
+    }
+
+    if (isPastDue.value) {
+        return t('products.plan_past_due');
+    }
+
+    if (isCancelled.value) {
+        return t('products.plan_cancelled');
     }
 
     const planName = t(`billing.plans.${props.productQuota.plan}`);
@@ -68,11 +83,21 @@ const canCreateProduct = computed(
     () => props.canManage && props.productQuota.can_create,
 );
 
-const createDisabledTitle = computed(() =>
-    isPendingPayment.value
-        ? t('products.create_disabled_pending')
-        : t('products.create_disabled_limit'),
-);
+const createDisabledTitle = computed(() => {
+    if (isPendingPayment.value) {
+        return t('products.create_disabled_pending');
+    }
+
+    if (isPastDue.value) {
+        return t('products.create_disabled_past_due');
+    }
+
+    if (isCancelled.value) {
+        return t('products.create_disabled_cancelled');
+    }
+
+    return t('products.create_disabled_limit');
+});
 
 const moduleColorHelpItems = computed(() => [
     {
@@ -172,7 +197,7 @@ onMounted(() => {
                 </p>
                 <p class="text-xs text-muted-foreground">
                     {{ quotaLabel }}
-                    <template v-if="isPendingPayment">
+                    <template v-if="showBillingLink">
                         —
                         <Link
                             :href="editBilling()"

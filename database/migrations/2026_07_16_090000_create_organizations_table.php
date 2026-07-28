@@ -27,6 +27,7 @@ return new class extends Migration {
             $table->boolean('sso_enabled')->default(false);
             $table->string('locale', 5)->default('en');
             $table->timestamp('onboarding_checklist_dismissed_at')->nullable();
+            $table->timestamp('billing_past_due_at')->nullable();
             $table->timestamps();
         });
     }

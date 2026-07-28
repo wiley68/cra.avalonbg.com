@@ -273,6 +273,32 @@ const submitChangePlan = () => {
                 </p>
                 <p class="font-medium">{{ organization.billing_email }}</p>
             </div>
+
+            <div
+                v-if="
+                    organization.billing_status === 'past_due' ||
+                    organization.billing_status === 'cancelled'
+                "
+                class="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-3 text-sm text-amber-950 dark:text-amber-50"
+            >
+                <p class="font-medium">
+                    {{
+                        organization.billing_status === 'cancelled'
+                            ? t('billing.dunning.cancelled_title')
+                            : t('billing.dunning.past_due_detail_title')
+                    }}
+                </p>
+                <p class="mt-1 text-xs opacity-90">
+                    {{
+                        organization.billing_status === 'cancelled'
+                            ? t('billing.dunning.cancelled_body')
+                            : t('billing.dunning.past_due_detail_body')
+                    }}
+                </p>
+                <p class="mt-1 text-xs opacity-80">
+                    {{ t('billing.dunning.no_delete_note') }}
+                </p>
+            </div>
         </div>
 
         <div v-if="canManageStripe" class="space-y-3 rounded-lg border p-5">

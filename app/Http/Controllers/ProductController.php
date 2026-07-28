@@ -60,12 +60,7 @@ class ProductController extends Controller
         if (!$organization->canAddProduct()) {
             Inertia::flash('toast', [
                 'type' => 'error',
-                'message' => Translations::get('products.plan_product_limit', [
-                    'plan' => Translations::get(
-                        'billing.plans.' . $organization->resolvedSubscriptionPlan()->value,
-                    ),
-                    'max' => (string) ($organization->maxProducts() ?? 0),
-                ]),
+                'message' => $organization->productCreationBlockedMessage(),
             ]);
 
             return redirect()->route('products.index');
