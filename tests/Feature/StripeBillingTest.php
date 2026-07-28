@@ -262,7 +262,9 @@ test('billing settings exposes stripe checkout flag when configured', function (
         ->assertInertia(fn($page) => $page
             ->component('settings/Billing')
             ->where('canCheckoutStripe', true)
-            ->where('stripeConfigured', true));
+            ->where('stripeConfigured', true)
+            ->where('canChangePlan', true)
+            ->where('canManageStripe', false));
 });
 
 test('stripe billing service maps subscription updated to past due', function () {

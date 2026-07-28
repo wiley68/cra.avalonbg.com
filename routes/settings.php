@@ -36,10 +36,14 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
 
     Route::get('settings/billing', [BillingController::class, 'edit'])
         ->name('settings.billing.edit');
+    Route::post('settings/billing/change-plan', [BillingController::class, 'changePlan'])
+        ->name('settings.billing.change-plan');
     Route::post('settings/billing/bank-payment', [BillingController::class, 'requestBankPayment'])
         ->name('settings.billing.bank-payment.store');
     Route::post('settings/billing/stripe/checkout', [BillingController::class, 'checkoutStripe'])
         ->name('settings.billing.stripe.checkout');
+    Route::post('settings/billing/stripe/portal', [BillingController::class, 'manageStripe'])
+        ->name('settings.billing.stripe.portal');
     Route::get('settings/billing/stripe/success', [BillingController::class, 'stripeSuccess'])
         ->name('settings.billing.stripe.success');
     Route::get('settings/billing/stripe/cancel', [BillingController::class, 'stripeCancel'])

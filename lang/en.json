@@ -247,11 +247,44 @@
         "request_bank_payment": "Request bank payment",
         "request_created": "Bank payment request created.",
         "active_help": "Billing is active for this organization.",
+        "current_interval": "Billing interval",
+        "current_payment_method": "Payment method",
+        "billing_email": "Billing email",
+        "interval": {
+            "month": "Monthly",
+            "year": "Yearly",
+            "none": "—"
+        },
+        "payment_method": {
+            "bank": "Bank transfer",
+            "stripe": "Stripe",
+            "admin_comp": "Admin complementary",
+            "none": "—"
+        },
+        "change_plan": {
+            "title": "Change plan",
+            "help": "Choose a plan and billing interval. Paid plans require payment before they become active.",
+            "submit": "Save plan",
+            "updated": "Plan updated.",
+            "annual_hint": "Yearly billing includes about 20% off compared with 12 monthly payments.",
+            "price_free": "Free",
+            "price_month": "€:price / month",
+            "price_year": "€:price / year",
+            "products_max": "Up to :max products",
+            "products_unlimited": "Unlimited products",
+            "errors": {
+                "use_stripe_portal": "This subscription is managed in Stripe. Use Manage subscription instead.",
+                "interval_required": "Choose a billing interval for paid plans."
+            }
+        },
         "stripe": {
             "title": "Pay with card (Stripe)",
             "help": "Pay securely by card. Your plan activates automatically after successful payment.",
             "checkout": "Pay with Stripe",
             "alt_help": "Prefer card instead of bank transfer?",
+            "manage_title": "Manage Stripe subscription",
+            "manage_help": "Update plan, interval, payment method, or cancel in the Stripe customer portal.",
+            "manage": "Manage subscription",
             "success": "Stripe payment received. Billing will activate once the webhook confirms the subscription.",
             "cancelled": "Stripe checkout was cancelled. You can try again anytime.",
             "not_configured_hint": "Card payments are not configured yet.",
@@ -259,7 +292,10 @@
                 "not_configured": "Stripe is not configured.",
                 "free_no_checkout": "Free plans do not use Stripe Checkout.",
                 "already_active_other": "Billing is already active with another payment method.",
-                "session_failed": "Could not start Stripe Checkout."
+                "session_failed": "Could not start Stripe Checkout.",
+                "no_customer": "No Stripe customer is linked to this organization yet.",
+                "portal_not_available": "Stripe customer portal is only available for Stripe-billed organizations.",
+                "portal_failed": "Could not open the Stripe customer portal."
             }
         },
         "documents": {

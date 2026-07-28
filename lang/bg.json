@@ -247,11 +247,44 @@
         "request_bank_payment": "Заяви банков превод",
         "request_created": "Заявката за банков превод е създадена.",
         "active_help": "Фактурирането за тази организация е активно.",
+        "current_interval": "Период на плащане",
+        "current_payment_method": "Метод на плащане",
+        "billing_email": "Billing имейл",
+        "interval": {
+            "month": "Месечно",
+            "year": "Годишно",
+            "none": "—"
+        },
+        "payment_method": {
+            "bank": "Банков превод",
+            "stripe": "Stripe",
+            "admin_comp": "Админ компенсация",
+            "none": "—"
+        },
+        "change_plan": {
+            "title": "Смяна на план",
+            "help": "Изберете план и период. Платените планове изискват плащане, преди да станат активни.",
+            "submit": "Запази плана",
+            "updated": "Планът е обновен.",
+            "annual_hint": "Годишното плащане е с около 20% отстъпка спрямо 12 месечни вноски.",
+            "price_free": "Безплатно",
+            "price_month": "€:price / месец",
+            "price_year": "€:price / година",
+            "products_max": "До :max продукта",
+            "products_unlimited": "Неограничени продукти",
+            "errors": {
+                "use_stripe_portal": "Този абонамент се управлява в Stripe. Използвайте „Управлявай абонамента“.",
+                "interval_required": "Изберете период на плащане за платените планове."
+            }
+        },
         "stripe": {
             "title": "Плащане с карта (Stripe)",
             "help": "Платете сигурно с карта. Планът се активира автоматично след успешно плащане.",
             "checkout": "Плати със Stripe",
             "alt_help": "Предпочитате карта вместо банков превод?",
+            "manage_title": "Управление на Stripe абонамент",
+            "manage_help": "Сменете план, период, метод на плащане или прекратете в Stripe customer portal.",
+            "manage": "Управлявай абонамента",
             "success": "Stripe плащането е получено. Фактурирането ще се активира след webhook потвърждение.",
             "cancelled": "Stripe Checkout е отказан. Можете да опитате отново.",
             "not_configured_hint": "Плащанията с карта още не са конфигурирани.",
@@ -259,7 +292,10 @@
                 "not_configured": "Stripe не е конфигуриран.",
                 "free_no_checkout": "Безплатните планове не използват Stripe Checkout.",
                 "already_active_other": "Фактурирането вече е активно с друг метод на плащане.",
-                "session_failed": "Неуспешно стартиране на Stripe Checkout."
+                "session_failed": "Неуспешно стартиране на Stripe Checkout.",
+                "no_customer": "Към тази организация все още няма свързан Stripe клиент.",
+                "portal_not_available": "Stripe customer portal е наличен само за организации с Stripe плащане.",
+                "portal_failed": "Неуспешно отваряне на Stripe customer portal."
             }
         },
         "documents": {

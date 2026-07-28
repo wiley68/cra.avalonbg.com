@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\BillingInterval;
+use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationBillingDocument;
 use App\Services\BankPaymentService;
 use App\Services\BillingDocumentService;
 use App\Services\StripeBillingService;
+use App\Services\TenantBillingService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -21,6 +25,7 @@ class BillingController extends Controller
         private readonly BankPaymentService $bankPayments,
         private readonly BillingDocumentService $documents,
         private readonly StripeBillingService $stripeBilling,
+        private readonly TenantBillingService $tenantBilling,
     ) {
     }
 
@@ -32,6 +37,7 @@ class BillingController extends Controller
         $pending = $this->bankPayments->pendingRequest($organization);
         $billingActive = $organization->isBillingActive();
         $paidPlan = $organization->resolvedSubscriptionPlan()->value !== 'free';
+        $canManageStripe = $this->tenantBilling->canManageStripe($organization);
 
         return Inertia::render('settings/Billing', [
             'organization' => [
@@ -44,6 +50,7 @@ class BillingController extends Controller
                 'payment_method' => $organization->payment_method?->value,
                 'billing_activated_at' => $organization->billing_activated_at?->toIso8601String(),
             ],
+            'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
             'pendingRequest' => $this->bankPayments->requestPayload($pending),
             'bankInstructions' => $this->bankPayments->bankInstructions(),
             'canRequestBankPayment' => !$billingActive
@@ -52,12 +59,48 @@ class BillingController extends Controller
             'canCheckoutStripe' => $this->stripeBilling->isConfigured()
                 && $paidPlan
                 && !$billingActive,
+            'canManageStripe' => $canManageStripe,
+            'canChangePlan' => $this->tenantBilling->canChangePlanInApp($organization),
             'stripeConfigured' => $this->stripeBilling->isConfigured(),
             'documents' => $billingActive
                 ? $this->documents->listPayload($organization)
                 : [],
             'canManageDocuments' => false,
         ]);
+    }
+
+    public function changePlan(Request $request): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('update', $organization);
+
+        $validated = $request->validate([
+            'subscription_plan' => ['required', Rule::enum(SubscriptionPlan::class)],
+            'billing_interval' => [
+                'nullable',
+                Rule::enum(BillingInterval::class),
+                Rule::requiredIf(fn() => $request->input('subscription_plan') !== SubscriptionPlan::Free->value),
+            ],
+        ]);
+
+        $plan = SubscriptionPlan::from($validated['subscription_plan']);
+        $interval = isset($validated['billing_interval'])
+            ? BillingInterval::from($validated['billing_interval'])
+            : null;
+
+        $this->tenantBilling->changePlan(
+            $organization,
+            $request->user(),
+            $plan,
+            $interval,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('billing.change_plan.updated'),
+        ]);
+
+        return redirect()->route('settings.billing.edit');
     }
 
     public function requestBankPayment(Request $request): RedirectResponse
@@ -90,6 +133,16 @@ class BillingController extends Controller
         );
 
         return redirect()->away($checkout['url']);
+    }
+
+    public function manageStripe(Request $request): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('update', $organization);
+
+        $portal = $this->stripeBilling->createCustomerPortalSession($organization);
+
+        return redirect()->away($portal['url']);
     }
 
     public function stripeSuccess(Request $request): RedirectResponse

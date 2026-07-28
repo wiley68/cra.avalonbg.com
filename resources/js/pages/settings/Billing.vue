@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { Banknote, CreditCard } from '@lucide/vue';
-import { computed } from 'vue';
+import { Banknote, CreditCard, Save } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
-import { edit as editBilling } from '@/routes/settings/billing';
+import { changePlan, edit as editBilling } from '@/routes/settings/billing';
 import { store as storeBankPayment } from '@/routes/settings/billing/bank-payment';
 import { download as downloadDocument } from '@/routes/settings/billing/documents';
-import { checkout as stripeCheckout } from '@/routes/settings/billing/stripe';
+import {
+    checkout as stripeCheckout,
+    portal as stripePortal,
+} from '@/routes/settings/billing/stripe';
 
 type OrganizationBilling = {
     id: number;
@@ -21,6 +24,13 @@ type OrganizationBilling = {
     billing_email: string | null;
     payment_method: string | null;
     billing_activated_at: string | null;
+};
+
+type SubscriptionPlanOption = {
+    value: string;
+    max_products: number | null;
+    monthly_price_eur: number;
+    yearly_price_eur: number | null;
 };
 
 type PendingRequest = {
@@ -57,10 +67,13 @@ type BillingDocumentItem = {
 
 const props = defineProps<{
     organization: OrganizationBilling;
+    subscriptionPlans: SubscriptionPlanOption[];
     pendingRequest: PendingRequest;
     bankInstructions: BankInstructions;
     canRequestBankPayment: boolean;
     canCheckoutStripe: boolean;
+    canManageStripe: boolean;
+    canChangePlan: boolean;
     stripeConfigured: boolean;
     documents: BillingDocumentItem[];
     canManageDocuments: boolean;
@@ -72,6 +85,19 @@ usePageBreadcrumbs(() => [
     { titleKey: 'settings.nav.billing', href: editBilling() },
 ]);
 
+const selectedPlan = ref(props.organization.subscription_plan);
+const billingInterval = ref(props.organization.billing_interval ?? 'month');
+
+watch(
+    () => props.organization,
+    (organization) => {
+        selectedPlan.value = organization.subscription_plan;
+        billingInterval.value = organization.billing_interval ?? 'month';
+    },
+);
+
+const isPaidPlan = computed(() => selectedPlan.value !== 'free');
+
 const planLabel = computed(() =>
     t(`billing.plans.${props.organization.subscription_plan}`),
 );
@@ -80,12 +106,80 @@ const statusLabel = computed(() =>
     t(`billing.status.${props.organization.billing_status}`),
 );
 
+const intervalLabel = computed(() => {
+    if (!props.organization.billing_interval) {
+        return t('billing.interval.none');
+    }
+
+    return t(`billing.interval.${props.organization.billing_interval}`);
+});
+
+const paymentMethodLabel = computed(() => {
+    if (!props.organization.payment_method) {
+        return t('billing.payment_method.none');
+    }
+
+    return t(`billing.payment_method.${props.organization.payment_method}`);
+});
+
+const planDirty = computed(() => {
+    const planChanged =
+        selectedPlan.value !== props.organization.subscription_plan;
+    const intervalChanged =
+        isPaidPlan.value &&
+        billingInterval.value !==
+            (props.organization.billing_interval ?? 'month');
+
+    return planChanged || intervalChanged;
+});
+
+const planPriceLabel = (plan: SubscriptionPlanOption): string => {
+    if (plan.value === 'free') {
+        return t('billing.change_plan.price_free');
+    }
+
+    if (billingInterval.value === 'year' && plan.yearly_price_eur !== null) {
+        return t('billing.change_plan.price_year', {
+            price: String(plan.yearly_price_eur),
+        });
+    }
+
+    return t('billing.change_plan.price_month', {
+        price: String(plan.monthly_price_eur),
+    });
+};
+
+const productLimitLabel = (plan: SubscriptionPlanOption): string => {
+    if (plan.max_products === null) {
+        return t('billing.change_plan.products_unlimited');
+    }
+
+    return t('billing.change_plan.products_max', {
+        max: String(plan.max_products),
+    });
+};
+
 const requestPayment = () => {
     router.post(storeBankPayment().url, {}, { preserveScroll: true });
 };
 
 const startStripeCheckout = () => {
     router.post(stripeCheckout().url);
+};
+
+const openStripePortal = () => {
+    router.post(stripePortal().url);
+};
+
+const submitChangePlan = () => {
+    router.post(
+        changePlan().url,
+        {
+            subscription_plan: selectedPlan.value,
+            billing_interval: isPaidPlan.value ? billingInterval.value : null,
+        },
+        { preserveScroll: true },
+    );
 };
 </script>
 
@@ -106,7 +200,7 @@ const startStripeCheckout = () => {
                 <p class="font-medium">{{ organization.name }}</p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <p class="text-sm text-muted-foreground">
                         {{ t('billing.current_plan') }}
@@ -119,7 +213,110 @@ const startStripeCheckout = () => {
                     </p>
                     <p class="font-medium">{{ statusLabel }}</p>
                 </div>
+                <div>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('billing.current_interval') }}
+                    </p>
+                    <p class="font-medium">{{ intervalLabel }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('billing.current_payment_method') }}
+                    </p>
+                    <p class="font-medium">{{ paymentMethodLabel }}</p>
+                </div>
             </div>
+
+            <div v-if="organization.billing_email" class="grid gap-1 text-sm">
+                <p class="text-muted-foreground">
+                    {{ t('billing.billing_email') }}
+                </p>
+                <p class="font-medium">{{ organization.billing_email }}</p>
+            </div>
+        </div>
+
+        <div v-if="canManageStripe" class="space-y-3 rounded-lg border p-5">
+            <h2 class="font-medium">{{ t('billing.stripe.manage_title') }}</h2>
+            <p class="text-sm text-muted-foreground">
+                {{ t('billing.stripe.manage_help') }}
+            </p>
+            <Button type="button" @click="openStripePortal">
+                <CreditCard class="h-4 w-4" />
+                {{ t('billing.stripe.manage') }}
+            </Button>
+        </div>
+
+        <div v-else-if="canChangePlan" class="space-y-4 rounded-lg border p-5">
+            <div class="space-y-1">
+                <h2 class="font-medium">
+                    {{ t('billing.change_plan.title') }}
+                </h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.change_plan.help') }}
+                </p>
+            </div>
+
+            <div class="grid gap-2">
+                <button
+                    v-for="plan in subscriptionPlans"
+                    :key="plan.value"
+                    type="button"
+                    class="rounded-md border px-3 py-2 text-left text-sm transition-colors"
+                    :class="
+                        selectedPlan === plan.value
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:bg-muted/50'
+                    "
+                    @click="selectedPlan = plan.value"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-medium">{{
+                            t(`billing.plans.${plan.value}`)
+                        }}</span>
+                        <span class="text-muted-foreground">{{
+                            planPriceLabel(plan)
+                        }}</span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-muted-foreground">
+                        {{ productLimitLabel(plan) }}
+                    </p>
+                </button>
+            </div>
+
+            <div v-if="isPaidPlan" class="flex flex-wrap gap-2">
+                <Button
+                    type="button"
+                    size="sm"
+                    :variant="
+                        billingInterval === 'month' ? 'default' : 'outline'
+                    "
+                    @click="billingInterval = 'month'"
+                >
+                    {{ t('billing.interval.month') }}
+                </Button>
+                <Button
+                    type="button"
+                    size="sm"
+                    :variant="
+                        billingInterval === 'year' ? 'default' : 'outline'
+                    "
+                    @click="billingInterval = 'year'"
+                >
+                    {{ t('billing.interval.year') }}
+                </Button>
+                <p class="w-full text-xs text-muted-foreground">
+                    {{ t('billing.change_plan.annual_hint') }}
+                </p>
+            </div>
+
+            <Button
+                type="button"
+                :disabled="!planDirty"
+                @click="submitChangePlan"
+            >
+                <Save class="h-4 w-4" />
+                {{ t('billing.change_plan.submit') }}
+            </Button>
         </div>
 
         <div
@@ -223,13 +420,12 @@ const startStripeCheckout = () => {
         </div>
 
         <p
-            v-else-if="organization.billing_status === 'active'"
+            v-else-if="
+                organization.billing_status === 'active' && !canManageStripe
+            "
             class="text-sm text-muted-foreground"
         >
             {{ t('billing.active_help') }}
-            <span v-if="organization.payment_method === 'stripe'">
-                (Stripe)
-            </span>
         </p>
 
         <p

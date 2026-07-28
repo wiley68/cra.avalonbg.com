@@ -13,7 +13,20 @@ class StripeCheckoutGateway
      */
     public function createSession(array $params): array
     {
-        $session = $this->createRawSession($params);
+        $session = $this->createRawCheckoutSession($params);
+
+        return [
+            'id' => (string) ($session['id'] ?? ''),
+            'url' => (string) ($session['url'] ?? ''),
+        ];
+    }
+
+    /**
+     * @return array{id: string, url: string}
+     */
+    public function createBillingPortalSession(string $customerId, string $returnUrl): array
+    {
+        $session = $this->createRawBillingPortalSession($customerId, $returnUrl);
 
         return [
             'id' => (string) ($session['id'] ?? ''),
@@ -25,13 +38,36 @@ class StripeCheckoutGateway
      * @param  array<string, mixed>  $params
      * @return array<string, mixed>
      */
-    private function createRawSession(array $params): array
+    private function createRawCheckoutSession(array $params): array
     {
         // String class name avoids pulling StripeClient into the caller's type graph.
         $class = 'Stripe\\StripeClient';
         $client = new $class((string) config('billing.stripe.secret'));
         $created = call_user_func([$client->checkout->sessions, 'create'], $params);
 
+        return $this->normalizeStripeObject($created);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function createRawBillingPortalSession(string $customerId, string $returnUrl): array
+    {
+        $class = 'Stripe\\StripeClient';
+        $client = new $class((string) config('billing.stripe.secret'));
+        $created = call_user_func([$client->billingPortal->sessions, 'create'], [
+            'customer' => $customerId,
+            'return_url' => $returnUrl,
+        ]);
+
+        return $this->normalizeStripeObject($created);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeStripeObject(mixed $created): array
+    {
         if (is_array($created)) {
             return $created;
         }

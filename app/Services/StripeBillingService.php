@@ -140,6 +140,46 @@ class StripeBillingService
     }
 
     /**
+     * @return array{url: string, session_id: string}
+     */
+    public function createCustomerPortalSession(Organization $organization): array
+    {
+        if (!$this->isConfigured()) {
+            throw ValidationException::withMessages([
+                'stripe' => Translations::get('billing.stripe.errors.not_configured'),
+            ]);
+        }
+
+        if (!filled($organization->stripe_customer_id)) {
+            throw ValidationException::withMessages([
+                'stripe' => Translations::get('billing.stripe.errors.no_customer'),
+            ]);
+        }
+
+        if ($organization->payment_method !== PaymentMethod::Stripe) {
+            throw ValidationException::withMessages([
+                'stripe' => Translations::get('billing.stripe.errors.portal_not_available'),
+            ]);
+        }
+
+        $session = app(StripeCheckoutGateway::class)->createBillingPortalSession(
+            (string) $organization->stripe_customer_id,
+            route('settings.billing.edit', absolute: true),
+        );
+
+        if ($session['url'] === '') {
+            throw ValidationException::withMessages([
+                'stripe' => Translations::get('billing.stripe.errors.portal_failed'),
+            ]);
+        }
+
+        return [
+            'url' => $session['url'],
+            'session_id' => $session['id'],
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $event
      */
     public function handleEvent(array $event): void
