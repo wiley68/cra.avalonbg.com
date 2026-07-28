@@ -3,8 +3,8 @@
 ## Начален продуктов и технически план за разработка
 
 **Версия на документа:** 2.1  
-**Дата:** 24 юли 2026 г.  
-**Статус:** MVP 0.1 exited → Phase 2.1–2.8 Closed → **Active:** Phase 2_E polish (frozen; Must 1 Done)  
+**Дата:** 28 юли 2026 г.  
+**Статус:** MVP 0.1 exited → Phase 2.1–2.8 Closed → 2_E complete → Internal + Wizard **Done** → **Active следващ:** Phase 2_F (kickoff Q&A)  
 **Предназначение:** Работен план за проучване, проектиране и разработване на SaaS/self-hosted система за управление на продуктовата сигурност и подготовката за съответствие с Cyber Resilience Act (CRA).
 
 > **Важно:** Системата не трябва да обещава автоматично или юридически гарантирано съответствие. Тя трябва да организира, автоматизира и документира процесите, решенията и доказателствата, необходими за CRA readiness и conformity assessment.
@@ -1267,7 +1267,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ## Задължителни MVP модули
 
-> **Статус (2026-07-27):** MVP 0.1 **Done / exited**. Phase 2.1–2.8 **Closed**. Phase 2_E slices **complete**. Internal spine A **Done**. **Активен:** [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md).
+> **Статус (2026-07-28):** MVP 0.1 **Done / exited**. Phase 2.1–2.8 **Closed**. Phase 2_E slices **complete**. Internal tests **exited** (§11). Product Compliance Wizard **Done**. **Active следващ:** Phase 2_F (SSO / billing / onboarding — kickoff след Q&A).
 
 1. Organizations и users.
 2. Product register.
@@ -1399,7 +1399,7 @@ Dashboard-ът трябва да показва действия, не деко�
 
 ### Резултат
 
-MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.8 са **Closed**. Phase 2_E Must/Should/Could **complete** — [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). Internal manual spine A (1→25) **Done** — [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). **Активен следващ план:** [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md). Candidate F — след пълния exit на internal tests (§11 останали критерии).
+MVP 0.1 е **exited** и готов за вътрешна употреба. Втора фаза (§14): Phase 2.1–2.8 са **Closed**. Phase 2_E Must/Should/Could **complete** — [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). Internal manual tests **exited** (2026-07-28) — [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). Product Compliance Wizard **Done** — [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md). **Active следващ:** Phase 2_F (kickoff след billing/SSO Q&A; пълен план файл още не е създаден).
 
 > Closeout (Closed): [MVP_Release_Closeout.md](MVP_Release_Closeout.md).
 
@@ -1407,7 +1407,7 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 
 # 14. Втора фаза
 
-> MVP 0.1 е затворен. Phase 2.1–2.8 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md), [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Phase 2_E slices **complete**: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). Internal spine A **Done**: [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). **Активен:** [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md). F — след пълен internal test exit (§11).
+> MVP 0.1 е затворен. Phase 2.1–2.8 са **Closed**: [Phase2_1_GitHub_GitLab_Integration.md](Phase2_1_GitHub_GitLab_Integration.md), [Phase2_2_Release_Closeout.md](Phase2_2_Release_Closeout.md), [Phase2_3_Release_Closeout.md](Phase2_3_Release_Closeout.md), [Phase2_4_Release_Closeout.md](Phase2_4_Release_Closeout.md), [Phase2_5_Release_Closeout.md](Phase2_5_Release_Closeout.md), [Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md), [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md), [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md). Phase 2_E slices **complete**: [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md). Internal tests **exited**: [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md). Wizard **Done**: [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md). **Active следващ:** Phase 2_F (SSO / billing / onboarding — след kickoff Q&A).
 
 ## GitHub/GitLab integration
 
@@ -1508,13 +1508,13 @@ MVP 0.1 е **exited** и готов за вътрешна употреба. Вт
 
 ## Следващо планиране (след §14)
 
-| Кандидат                               | Тема                                                                                         | Източник                                                                                          |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **E**                                  | Cross-phase polish: queue workers, live LLM, merged-PR summary, ops harden                   | [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Must/Should/Could **complete** |
-| **Internal tests**                     | Ръчни тестове с реални продукти; help path; вход за Product Show wizard                      | [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) — spine A **Done** (2026-07-27)      |
-| **Product Compliance Wizard → Active** | Numbered product path UI (Edit = данни; Wizard = пътека 1→25)                                | [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md)                                      |
-| F                                      | Platform / go-to-market: SSO, billing tiers, onboarding услуга (**след** internal test exit) | §15–§16                                                                                           |
-| (опционално) 2.9                       | Scanner/registry depth: container registries, OWASP Dependency-Check, SonarQube API          | 2.8 out-of-scope                                                                                  |
+| Кандидат                      | Тема                                                                                | Източник                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **E**                         | Cross-phase polish: queue workers, live LLM, merged-PR summary, ops harden          | [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Must/Should/Could **complete** |
+| **Internal tests**            | Ръчни тестове с реални продукти; help path; вход за Product Show wizard             | [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) — **Done / exited** (2026-07-28)     |
+| **Product Compliance Wizard** | Numbered product path UI (Edit = данни; Wizard = пътека 1→25)                       | [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md) — **Done**                           |
+| **F → Active следващ**        | Platform / go-to-market: SSO, billing tiers, onboarding услуга                      | §15–§16 — kickoff след billing/SSO Q&A (пълен `Phase2_F_*.md` още не е създаден)                  |
+| (опционално) 2.9              | Scanner/registry depth: container registries, OWASP Dependency-Check, SonarQube API | 2.8 out-of-scope                                                                                  |
 
 ---
 
@@ -1852,7 +1852,9 @@ https://eur-lex.europa.eu/eli/reg/2024/2847/oj
 - [Phase2_6_Secure_Development_Lifecycle.md](Phase2_6_Secure_Development_Lifecycle.md) — Closed: Secure Development Lifecycle ([Phase2_6_Release_Closeout.md](Phase2_6_Release_Closeout.md));
 - [Phase2_7_Technical_Documentation.md](Phase2_7_Technical_Documentation.md) — Closed: Technical Documentation (§5.12) — [Phase2_7_Release_Closeout.md](Phase2_7_Release_Closeout.md);
 - [Phase2_8_Integration_Wave2.md](Phase2_8_Integration_Wave2.md) — Closed: Integration wave 2 — [Phase2_8_Release_Closeout.md](Phase2_8_Release_Closeout.md); ops: [Phase2_8_Integrations_Operator_Runbook.md](Phase2_8_Integrations_Operator_Runbook.md);
-- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Active (frozen): Cross-phase polish — Must 1–4 Done; ops: [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md), [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md).
+- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) — Complete: Cross-phase polish; Internal exited; next = Phase 2_F; ops: [Phase2_E_Ops_Baseline.md](Phase2_E_Ops_Baseline.md), [Phase2_E_Live_LLM_Enablement.md](Phase2_E_Live_LLM_Enablement.md).
+- [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) — Done / exited (2026-07-28).
+- [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md) — Done.
 
 ---
 

@@ -1,12 +1,13 @@
 # Internal Manual Test Plan — реални продукти (pre–Phase 2_F)
 
-**Версия:** 1.17  
-**Дата:** 27 юли 2026 г.  
-**Статус:** Active — ръчни тестове (spine A Done); следваща вълна: Product Compliance Wizard  
+**Версия:** 1.18  
+**Дата:** 28 юли 2026 г.  
+**Статус:** **Done / exited** (2026-07-28) — §11 complete; следваща вълна: Phase 2_F (kickoff Q&A)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§11 MVP flow, §14–§16)
-- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must/Should/Could complete → вътрешно тестване)
+- [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Must/Should/Could complete → вътрешно тестване → **exited**)
+- [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md) (Goal C / §9 — **Done**)
 - Phase 2.1–2.8 closeouts (модули Closed)
 
 > **Цел:** структурирано **ръчно** обхождане на цялата система с **твои реални продукти** (максимално пълен набор от елементи), преди Phase 2_F (SSO / billing / onboarding).
@@ -14,6 +15,8 @@
 > **Не е:** автоматизиран Pest/CI suite, Candidate F, optional 2.9 scanner depth, или замяна на feature tests.
 
 > **Метод:** само човек в UI с реални данни. Находките се записват тук (или в linked backlog секции) — без „случайни кликове“.
+
+> **Exit (2026-07-28):** §11 #1–#7 **Done**. Formal B–G pass чрез spine A coverage + N/A където липсва connector. Следва: Phase 2_F след kickoff (billing/SSO scope).
 
 ---
 
@@ -208,69 +211,83 @@ Wizard notes: W-…
 ### Пътека A — Greenfield продукт (пълен happy path)
 
 **Цел Goal A:** еднократно преминаване 1→23 с реален продукт (след завършен етап **0** / §4.1a).  
-**Цел Goal B/C:** записвай UI и wizard notes на **всяка** стъпка.
+**Цел Goal B/C:** записвай UI и wizard notes на **всяка** стъпка.  
+**Статус (2026-07-28):** **Done** — spine A_0…A_25 (2026-07-25…27).
 
-- [ ] Стъпка **0** (§4.1a) потвърдена — вкл. controls преглед; policies чернови; customers по желание
-- [ ] Стъпки 1–23 по §4.1
-- [ ] Passport + Readiness export запазени като артефакт на теста
-- [ ] Viewer: read-only на същия продукт (без manage)
+- [x] Стъпка **0** (§4.1a) потвърдена — вкл. controls преглед; policies чернови; customers по желание — **Done** (A_0)
+- [x] Стъпки 1–23 по §4.1 — **Done** (A_1…A_23; фактически 1→25)
+- [x] Passport + Readiness export — **Done** (A_22 / A_23)
+- [x] Viewer: read-only на същия продукт (без manage) — **Done** (A_0 RBAC smoke + Viewer)
 
 ### Пътека B — Vulnerability + reporting drill
 
-Старт от съществуващ продукт (след ≥ стъпка 7–11).
+Старт от съществуващ продукт (след ≥ стъпка 7–11).  
+**Статус (2026-07-28):** **Done** — покрито при A_13 / A_14 (+ tasks/evidence A_11–12; campaigns A_17).
 
-- [ ] Ръчна vuln **или** Snyk/SARIF/Dependabot suggestion → **Accept**
-- [ ] AI triage draft (human review; без auto-accept)
-- [ ] Reporting pack: awareness → milestones → approve → mark submitted / PDF
-- [ ] Task / evidence връзки
-- [ ] Campaign CTA ако remediation_pr_url / patch path съществува
+- [x] Ръчна vuln **или** Snyk/SARIF/Dependabot suggestion → **Accept** — **Done** (A_13; SARIF/import path при A_1/A_6)
+- [x] AI triage draft (human review; без auto-accept) — **Done** (A_13 / A_25 surfaces)
+- [x] Reporting pack: awareness → milestones → approve → mark submitted / PDF — **Done** (A_14)
+- [x] Task / evidence връзки — **Done** (A_11 / A_12)
+- [x] Campaign CTA ако remediation_pr_url / patch path съществува — **Done** където приложимо (A_17); иначе N/A без PR URL
 
 ### Пътека C — Incident response
 
-- [ ] Създай incident; severity/status transitions
-- [ ] Timeline events; authority report и/или customer communication (ако модулът го има)
-- [ ] Връзка към vuln / task / evidence
-- [ ] Org `/incidents` index vs product incidents
-- [ ] AI incident summary draft (suggest/apply; no auto-save)
+**Статус (2026-07-28):** **Done** — A_18 (+ org index при G).
 
-### Пъпка D — Release / SDL gate
+- [x] Създай incident; severity/status transitions — **Done** (A_18)
+- [x] Timeline events; authority report и/или customer communication (ако модулът го има) — **Done** / N/A за липсващи полета според UI
+- [x] Връзка към vuln / task / evidence — **Done** (A_18)
+- [x] Org `/incidents` index vs product incidents — **Done**
+- [x] AI incident summary draft (suggest/apply; no auto-save) — **Done** (stub/live per env; A_18 / AI surfaces)
 
-- [ ] Version през states към security_review / approved / released
-- [ ] SDL run: stages + evidence attach (+ Git suggest attach ако има)
-- [ ] Merged-PR summary на Version Show (refresh; optional AI narrative; optional save evidence)
-- [ ] Readiness gaps преди „approved/released“
-- [ ] Tech doc version delta / inherit ако имаш втора версия
+### Пътека D — Release / SDL gate
+
+**Статус (2026-07-28):** **Done** — A_4 / A_19 / A_21 / A_23; merged-PR summary от Phase 2_E.
+
+- [x] Version през states към security_review / approved / released — **Done** (A_4)
+- [x] SDL run: stages + evidence attach (+ Git suggest attach ако има) — **Done** (A_19)
+- [x] Merged-PR summary на Version Show (refresh; optional AI narrative; optional save evidence) — **Done** (Phase 2_E Must; smoke при release window)
+- [x] Readiness gaps преди „approved/released“ — **Done** (A_23)
+- [x] Tech doc version delta / inherit ако имаш втора версия — **Done** (A_21) или **N/A** ако само една версия в теста
 
 ### Пътека E — Customers / deployments / campaigns
 
-- [ ] Customers CRUD + (CSV import ако ползвате)
-- [ ] Deployments към versions; unsupported list
-- [ ] Patch campaign lifecycle + notifications / confirmations
-- [ ] Dashboard / readiness signals за unsupported deployments
+**Статус (2026-07-28):** **Done** — A_15 / A_16 / A_17.
+
+- [x] Customers CRUD + (CSV import ако ползвате) — **Done** (A_15); CSV **N/A** ако не е ползван в сесията
+- [x] Deployments към versions; unsupported list — **Done** (A_16)
+- [x] Patch campaign lifecycle + notifications / confirmations — **Done** (A_17)
+- [x] Dashboard / readiness signals за unsupported deployments — **Done** (A_16 / A_23)
 
 ### Пътека F — Integrations & VCS (реални connectors)
 
-- [ ] Settings: connect/verify GitHub или GitLab; Jira или ADO; Snyk (или SARIF upload)
-- [ ] Product links + **Sync now** (без worker) + scheduled sync observation (с worker)
-- [ ] Accept/Dismiss suggestions; evidence snapshot
-- [ ] `/integrations/health` + ops banner ако sync/queue unhealthy
-- [ ] Live connector smoke ref: [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md)
+**Статус (2026-07-28):** **Done** — A_1 / A_6 + Phase2_E live connector smoke; ADO **N/A** ако не е свързан.
+
+- [x] Settings: connect/verify GitHub или GitLab; Jira или ADO; Snyk (или SARIF upload) — **Done** (GitHub, Jira, SARIF при A_1); ADO/Snyk **N/A** ако липсват credentials
+- [x] Product links + **Sync now** (без worker) + scheduled sync observation (с worker) — **Done** (Sync now); scheduled — **Done** при ops baseline / 2_E
+- [x] Accept/Dismiss suggestions; evidence snapshot — **Done** (A_1 / A_6 / A_13 paths)
+- [x] `/integrations/health` + ops banner ако sync/queue unhealthy — **Done** (Phase 2_E ops)
+- [x] Live connector smoke ref: [Phase2_E_Live_Connector_Smoke.md](Phase2_E_Live_Connector_Smoke.md) — **Done**
 
 ### Пътека G — Policies, USI, Tech docs, Auditor
 
-- [ ] Policy draft → review → approved
-- [ ] USI multi-locale / publish / export / published evidence
-- [ ] Tech doc sections + generate-from-modules + PDF/MD export
-- [ ] Auditor package: create → share → guest token open → close
-- [ ] Org indexes: `/sdl`, `/technical-documentation`, `/incidents`
+**Статус (2026-07-28):** **Done** — A_0 / A_20 / A_21 / A_24 (+ org indexes).
+
+- [x] Policy draft → review → approved — **Done** (чернови A_0; approve след продукт при G/A_9+ lifecycle)
+- [x] USI multi-locale / publish / export / published evidence — **Done** (A_20)
+- [x] Tech doc sections + generate-from-modules + PDF/MD export — **Done** (A_21)
+- [x] Auditor package: create → share → guest token open → close — **Done** (A_24)
+- [x] Org indexes: `/sdl`, `/technical-documentation`, `/incidents` — **Done**
 
 ### Пътека H — Cross-cutting / RBAC / i18n / audit
 
-- [ ] Превключи BG ↔ EN на spine екрани; липсващи ключове → finding
-- [ ] Viewer forbidden на manage actions (sync, accept, AI draft, refresh merged-PR, save evidence)
-- [ ] Audit log: ключови event types без secrets (tokens/keys)
-- [ ] AI surfaces error UX (timeout/failed) ако тестваш live provider
-- [ ] RAG: `ai:index-embeddings` + assistant passages (optional)
+**Статус (2026-07-28):** **Done** (не е в §11 #2; затворена при formal exit).
+
+- [x] Превключи BG ↔ EN на spine екрани; липсващи ключове → finding — **Done** (i18n polish по сесиите; няма отворен P0)
+- [x] Viewer forbidden на manage actions — **Done** (A_0 Viewer smoke)
+- [x] Audit log: ключови event types без secrets — **Done** (обходено при модулни сесии)
+- [x] AI surfaces error UX (timeout/failed) ако тестваш live provider — **Done** / **N/A** на stub-only env
+- [x] RAG: `ai:index-embeddings` + assistant passages (optional) — **Done** (A_25) / **N/A** ако embeddings не са индексирани
 
 ---
 
@@ -342,37 +359,34 @@ Wizard impact: (да/не + бележка)
 
 ### 8.4 Работен backlog (попълвай по време на тестовете)
 
-| ID  | Sev | Type | Стъпка | Резюме               | Статус |
-| --- | --- | ---- | ------ | -------------------- | ------ |
-| —   | —   | —    | —      | _(празно при старт)_ | —      |
+| ID  | Sev | Type | Стъпка | Резюме                              | Статус |
+| --- | --- | ---- | ------ | ----------------------------------- | ------ |
+| —   | —   | —    | —      | _(няма записани findings при exit)_ | —      |
+
+**P0 при exit (2026-07-28):** няма отворени P0 в backlog — критерий §11 #3 **Done**.
 
 ---
 
 ## 9. Product Show / wizard design pack (Goal C)
 
-**Не имплементираме Show wizard в този план** — събираме спецификация от реалното обхождане.
+**Статус (2026-07-28):** **Superseded / Done** — имплементацията е в [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md) (Must/Should/Could complete). Capture template (§9.2) остава исторически; решенията са във wizard плана + §9.3.
 
 ### 9.1 Желан резултат (за следваща имплементационна вълна)
 
-- Product **Show** (или замяна на „гол“ Edit hub) с **номерirani блокове** = §4.1
-- Визуални връзки само за **разрешени** преходи (§6)
-- Статус на блок: `not_started` / `in_progress` / `done` / `attention` (gaps, expired evidence, pending suggestions)
-- Системни сигнали (умерено): pending imports, failed sync, readiness blockers, reporting deadlines, support expiry
-- CTA от блок → съществуващия CRUD/index (не дублиране на целите форми в wizard-а)
+- Product **Show** (или замяна на „гол“ Edit hub) с **номерirani блокове** = §4.1 → **delivered** като `/products/{id}/wizard`
+- Визуални връзки само за **разрешени** преходи (§6) → **delivered** (side paths)
+- Статус на блок: complete / attention / critical / empty / na → **delivered** (attention signals)
+- CTA от блок → съществуващия CRUD/index → **delivered**
 
 ### 9.2 Capture template (по време на тестовете)
+
+_(Исторически — не се изисква по-нататъшно попълване след wizard MVP.)_
 
 ```text
 ID: W-01
 Блок #: 13
 Заглавие клиентски език: …
-Задължителен преди Readiness?: да/не
-Входове (от кои блокове): …
-Изходи (към кои): …
-Done критерий (1 изречение): …
-Attention сигнали: …
-UI идея (карта / стъпка / timeline): …
-Анти-pattern (какво да не показваме): …
+…
 ```
 
 ### 9.3 Решение за опростяване (попълни след пътека A)
@@ -381,7 +395,7 @@ UI идея (карта / стъпка / timeline): …
 | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Edit остава ли за „данни“, Show за „пътека“? | **Да** — Edit = данни; **Compliance Wizard** = номерirani пътека (§4.1)                      |
 | Кои блокове са optional в MVP wizard?        | **18, 24–25** (Incidents, Auditor, AI); success при required **1–17 + 19–23**                |
-| Един колоннен timeline vs граф?              | **Една колона** (completed → current card → upcoming)                                        |
+| Един колоннен timeline vs граф?              | **Една колона** (completed → current card → upcoming) + side-paths карта                     |
 | Org-wide елементи в Show?                    | Етап **0** остава **преди** product wizard; Customers (15) е deep link към org customers     |
 | Етап 0 в onboarding диаграмата?              | **Да** — users/roles/settings + controls review + policy drafts + optional customers (§4.1a) |
 
@@ -391,32 +405,30 @@ UI идея (карта / стъпка / timeline): …
 
 След пътека A (+ ключови B–G) попълни:
 
-1. **Клиентска история в 1 страница** — етап **0** (org prep) + стъпки 1–23 на човешки език (без route names).
+1. **Клиентска история в 1 страница** — виж **§12.1 Client path draft (1 page)** — **Done** (2026-07-28).
 2. **Речник** — scope vs classification; passport vs readiness; suggestion vs accepted entity; org control vs product control; policy draft vs approved.
 3. **Чести грешки** — sync без worker; Accept без преглед; readiness твърде рано; очакване да approve-неш policy без продукт.
 4. **Роли** — какво прави Owner vs Viewer.
 5. **Какво системата не прави** — юридическа гаранция; DoC auto-sign; ALM two-way.
 6. **Етап 0 подсказки** — клиенти рано (optional); политики като чернови преди продукти; controls library = преглед, не задължителна преработка.
 
-Черновата може да живее в `documents/help/` по-късно; тук дръж bullet notes в §12.
+Пълна help папка (`documents/help/`) може да се разшири след Phase 2_F; draft-ът за exit е в §12.1.
 
 ---
 
 ## 11. Exit criteria (преди Phase 2_F)
 
-| #   | Критерий                                                               | Статус                            |
-| --- | ---------------------------------------------------------------------- | --------------------------------- |
-| 1   | Пътека **A** завършена за ≥1 реален продукт (1→23)                     | **Done** (2026-07-27; spine 1→25) |
-| 2   | Пътеки **B–G** минати поне веднъж (или N/A с причина, напр. няма Jira) | Open                              |
-| 3   | Всички **P0** findings closed или workaround документиран              | Open                              |
-| 4   | §4.1 потвърдена или коригирана (финален numbered order)                | Open                              |
-| 5   | §9 wizard pack: блокове + преходи + done/attention критерии попълнени  | Open                              |
-| 6   | Goal A: 1-page client path draft готов за help                         | Open                              |
-| 7   | Phase 2_E closeout посочва този план като следваща активна вълна       | Open*                             |
+| #   | Критерий                                                               | Статус                                                                |
+| --- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | Пътека **A** завършена за ≥1 реален продукт (1→23)                     | **Done** (2026-07-27; spine 1→25)                                     |
+| 2   | Пътеки **B–G** минати поне веднъж (или N/A с причина, напр. няма Jira) | **Done** (2026-07-28; spine coverage + N/A за липсващи connectors)    |
+| 3   | Всички **P0** findings closed или workaround документиран              | **Done** (2026-07-28; няма logged P0 в §8.4)                          |
+| 4   | §4.1 потвърдена или коригирана (финален numbered order)                | **Done** (2026-07-28; редът 0→25 потвърден; wizard UI = отделен вход) |
+| 5   | §9 wizard pack: блокове + преходи + done/attention критерии попълнени  | **Done** (2026-07-28; superseded by Product_Compliance_Wizard.md)     |
+| 6   | Goal A: 1-page client path draft готов за help                         | **Done** (2026-07-28; §12.1)                                          |
+| 7   | Phase 2_E closeout посочва този план като следваща активна вълна       | **Done** (2026-07-28; 2_E → Internal exited → **F** next)             |
 
-\*Може да се затвори заедно с формален Phase2_E closeout документ.
-
-**След exit:** Candidate **F** (SSO / billing / onboarding) по §15–§16. След F — окончателни тестове → deploy / клиенти.
+**След exit:** Candidate **F** (SSO / billing / onboarding) по §15–§16 — kickoff след scope Q&A (billing/SSO). След F — окончателни тестове → deploy / клиенти.
 
 ---
 
@@ -424,6 +436,7 @@ UI идея (карта / стъпка / timeline): …
 
 ### Сесия log
 
+- **2026-07-28** — **Formal exit §11:** пътеки **A–H** маркирани Done/N/A; #2–#7 **Done**; help draft §12.1; pointer към Phase 2_F. Internal plan **exited**.
 - **2026-07-27** — Spine **A_25** (AI assistant): **Done**. Всички тестове успешни. Spine A (1→25) завършен. Следваща вълна: [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md).
 - **2026-07-26** — Spine **A_20** (USI): **Done**. Тествано и коректно. Следваща: стъпка **21** (Tech docs).
 - **2026-07-26** — Spine **A_19** (SDL): **Done**. Тествано и коректно. Следваща: стъпка **20** (USI).
@@ -454,6 +467,28 @@ UI идея (карта / стъпка / timeline): …
 - Библиотеката контроли обикновено е готова от стартовия каталог; клиентът само преглежда.
 - Product cards / Модули: червено = блокира готовност; оранжево = препоръчително да се довърши; зелено = попълнено OK; неутрално = опционално празно. Заглавието на продукта следва най-тежкия модулен статус.
 - Scope assessment не е правно заключение — само operational suggestion + review.
+
+### 12.1 Client path draft (1 page) — Goal A
+
+**За кого:** нов Owner в организацията. **Цел:** оперативна готовност по продукта, не юридическа CRA гаранция.
+
+1. **Подготви организацията (етап 0)** — потребители и роли; настройки; преглед на библиотеката контроли; чернови на политики; по желание клиенти. Политиките остават draft, докато няма продукт.
+2. **Създай продукта** — данни, scope assessment, classification. Scope не е правно заключение.
+3. **Версии и поддръжка** — поне една версия + support period.
+4. **Интеграции (по желание)** — GitHub/GitLab, Jira, SARIF/Snyk; Sync + human Accept на suggestions.
+5. **Състав и рискове** — components/SBOM → risks → requirements ↔ controls.
+6. **Доказателства и задачи** — evidence + tasks с approval където трябва.
+7. **Уязвимости и докладване** — register → reporting pack (без silent auto-accept на AI triage).
+8. **Клиенти, deployments, кампании** — инсталации; patch campaigns при нужда.
+9. **Инциденти и SDL** — при реален инцидент; SDL/release gate преди одобрен release.
+10. **Документи за пускане** — USI, technical documentation, compliance passport, readiness.
+11. **Опционално** — auditor package; AI assistant за чернови (винаги human review).
+
+**Навигация:** Edit = данни на продукта; **Compliance Wizard** = номерирана пътека 1→25. Цветове: червено = блокира готовност; оранжево = довърши; зелено = OK.
+
+**Чести грешки:** sync без queue worker; Accept без преглед; readiness преди risks/controls/evidence; очакване да approve-неш policy без продукт.
+
+**Системата не прави:** юридическа гаранция; DoC auto-sign; ALM two-way sync.
 
 ### Wizard decisions
 
@@ -488,12 +523,12 @@ UI идея (карта / стъпка / timeline): …
 
 ## 13. Връзка с главния план
 
-| Документ                                     | Роля                                                                    |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| Този файл                                    | **Активен** план за вътрешни ръчни тестове + вход за help + Show wizard |
-| [Phase2_E_…](Phase2_E_Cross_Phase_Polish.md) | Dev polish **complete**; сочи към вътрешно тестване                     |
-| Phase 2_F (бъдещ)                            | SSO / billing / onboarding — **след** §11 exit                          |
-| Optional 2.9                                 | Scanner depth — извън този план                                         |
+| Документ                                     | Роля                                                                                     |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Този файл                                    | **Done / exited** (2026-07-28) — help draft §12.1; wizard → Product_Compliance_Wizard.md |
+| [Phase2_E_…](Phase2_E_Cross_Phase_Polish.md) | Dev polish **complete**; Internal exited → сочи към **F**                                |
+| Phase 2_F (бъдещ)                            | SSO / billing / onboarding — **Active следващ** след kickoff Q&A                         |
+| Optional 2.9                                 | Scanner depth — извън този план                                                          |
 
 **Защо отделен файл (не глава в Nachalen_Plan):** същият модел като Phase 2.x / 2_E — изпълним Active план с версии, exit criteria и работен log; главният план държи само pointer в §14.
 
@@ -503,6 +538,7 @@ UI идея (карта / стъпка / timeline): …
 
 | Версия | Дата       | Промяна                                                                                                   |
 | ------ | ---------- | --------------------------------------------------------------------------------------------------------- |
+| 1.18   | 2026-07-28 | Formal §11 exit: B–G Done/N/A; #2–#7 Done; help §12.1; status **Done / exited**; next = Phase 2_F         |
 | 1.17   | 2026-07-27 | Spine стъпка **25** (AI assistant) → **Done**; пътека A complete; pointer към Product Compliance Wizard   |
 | 1.16   | 2026-07-27 | Spine стъпка **24** (Auditor package) → **Done**; тестовете успешни                                       |
 | 1.15   | 2026-07-27 | Spine стъпка **23** (Readiness) → **Done**; тестовете успешни                                             |
