@@ -340,6 +340,7 @@ const confirmDelete = () => {
 
         <BillingDocumentsPanel
             :documents="billingDocuments"
+            :can-manage="true"
             :document-types="documentTypes"
             :recipient-email="documentRecipientEmail"
             :store-url="storeBillingDocument(organization.id).url"

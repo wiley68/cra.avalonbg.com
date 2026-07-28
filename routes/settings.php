@@ -37,14 +37,8 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
         ->name('settings.billing.edit');
     Route::post('settings/billing/bank-payment', [BillingController::class, 'requestBankPayment'])
         ->name('settings.billing.bank-payment.store');
-    Route::post('settings/billing/documents', [BillingController::class, 'storeDocument'])
-        ->name('settings.billing.documents.store');
     Route::get('settings/billing/documents/{document}', [BillingController::class, 'downloadDocument'])
         ->name('settings.billing.documents.download');
-    Route::post('settings/billing/documents/{document}/send', [BillingController::class, 'sendDocument'])
-        ->name('settings.billing.documents.send');
-    Route::delete('settings/billing/documents/{document}', [BillingController::class, 'destroyDocument'])
-        ->name('settings.billing.documents.destroy');
 
     Route::get('settings/integrations', [IntegrationController::class, 'edit'])
         ->name('settings.integrations.edit');

@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.5  
+**Версия:** 0.5.1  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must 2–5 Done (plans + registration + bank + billing documents)  
+**Статус:** Active — Must 2–5 Done (billing docs: admin attach / tenant view-download)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -71,19 +71,19 @@ Platform admin запазва възможност да създава/кори�
 
 ## 4. Scope (in)
 
-| Възможност                 | Описание                                                                 |
-| -------------------------- | ------------------------------------------------------------------------ |
-| Plan catalog + enforcement | Config/DB канон; hard limit при Product create                           |
-| Public registration        | User + Organization bootstrap; избор на план                             |
-| Billing status             | `pending_payment` / `active` / `past_due` / `cancelled` (или еквивалент) |
-| Bank payment flow          | Заявка; инструкции; чакане; admin activate                               |
-| Invoice documents          | Upload/attach издадени фактури; списък; изпращане към billing email      |
-| License documents          | Генериране/upload + съхранение + доставка след purchase/activate         |
-| Stripe                     | Checkout (month/year); customer portal или manage; webhooks              |
-| SSO OIDC                   | Org IdP settings; login via OIDC; map към org users                      |
-| Admin billing ops          | Преглед заявки; activate; override plan; upload docs от името на клиента |
-| RBAC / audit               | Кой може да сменя plan, качва фактури, управлява SSO                     |
-| i18n + tests               | BG+EN; feature tests със Stripe fake / OIDC fake                         |
+| Възможност                 | Описание                                                                                            |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| Plan catalog + enforcement | Config/DB канон; hard limit при Product create                                                      |
+| Public registration        | User + Organization bootstrap; избор на план                                                        |
+| Billing status             | `pending_payment` / `active` / `past_due` / `cancelled` (или еквивалент)                            |
+| Bank payment flow          | Заявка; инструкции; чакане; admin activate                                                          |
+| Invoice documents          | **Platform Admin** upload/attach; tenant list+download след active; send към billing email от admin |
+| License documents          | Същото — admin качва/изпраща; tenant вижда/сваля след потвърдено плащане                            |
+| Stripe                     | Checkout (month/year); customer portal или manage; webhooks                                         |
+| SSO OIDC                   | Org IdP settings; login via OIDC; map към org users                                                 |
+| Admin billing ops          | Преглед заявки; activate; override plan; upload docs от името на клиента                            |
+| RBAC / audit               | Кой може да сменя plan, качва фактури, управлява SSO                                                |
+| i18n + tests               | BG+EN; feature tests със Stripe fake / OIDC fake                                                    |
 
 ---
 
@@ -144,7 +144,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 2. ~~Plan catalog + migrate `subscription_plan` към Free/Small/Standard/Enterprise + **product limit enforcement**~~
 3. ~~Public registration + org create + plan select (Free active веднага; платени → pending до плащане/activate)~~
 4. ~~Bank payment request flow + admin **activate on payment** (+ запазен admin create/override)~~
-5. ~~Billing documents: upload/store **invoices** + **license docs**; send channel (email към `billing_email` / Owner)~~
+5. ~~Billing documents: upload/store **invoices** + **license docs** (**Platform Admin only**); tenant Owner **view/download** след потвърдено плащане; send channel (email към `billing_email` / Owner от admin)~~
 6. Stripe Checkout (month/year) + webhooks → activate/renew/cancel status
 7. OIDC SSO (Entra / generic) — org settings + login path (Enterprise Must; Standard optional flag OK)
 8. i18n BG+EN + feature tests (limits, bank activate, Stripe fake, SSO fake)
@@ -170,16 +170,16 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 
 ## 8. Acceptance (high level)
 
-| #   | Критерий                                                                                           |
-| --- | -------------------------------------------------------------------------------------------------- |
-| A1  | Free org: max 1 product; create на 2-ри → блокирано                                                |
-| A2  | Small/Standard/Enterprise limits 3 / 10 / unlimited                                                |
-| A3  | Signup създава user+org; Free usable без плащане                                                   |
-| A4  | Bank path: pending → admin activate → plan active; invoice+license видими и send-able              |
-| A5  | Stripe test mode: checkout → webhook → active; cancel/past_due отразени                            |
-| A6  | OIDC login за свързана Enterprise org (happy path + reject unknown email domain policy documented) |
-| A7  | Admin все още може да създаде org без self-serve                                                   |
-| A8  | Няма секрети в audit; Stripe/OIDC secrets encrypted at rest                                        |
+| #   | Критерий                                                                                                                |
+| --- | ----------------------------------------------------------------------------------------------------------------------- |
+| A1  | Free org: max 1 product; create на 2-ри → блокирано                                                                     |
+| A2  | Small/Standard/Enterprise limits 3 / 10 / unlimited                                                                     |
+| A3  | Signup създава user+org; Free usable без плащане                                                                        |
+| A4  | Bank path: pending → admin activate → plan active; invoice+license: admin attach/send, tenant view/download след active |
+| A5  | Stripe test mode: checkout → webhook → active; cancel/past_due отразени                                                 |
+| A6  | OIDC login за свързана Enterprise org (happy path + reject unknown email domain policy documented)                      |
+| A7  | Admin все още може да създаде org без self-serve                                                                        |
+| A8  | Няма секрети в audit; Stripe/OIDC secrets encrypted at rest                                                             |
 
 ---
 
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.5.1  | 2026-07-28 | Billing docs RBAC: Platform Admin upload/send/delete; tenant Owner view/download only след active billing              |
 | 0.5    | 2026-07-28 | Must 5 Done — invoice/license docs store, download, email send (`billing_email`/Owner), admin+tenant UI, audit, tests  |
 | 0.4    | 2026-07-28 | Must 4 Done — bank payment requests, Settings → Billing, admin activate-on-payment, audit, tests                       |
 | 0.3    | 2026-07-28 | Must 3 Done — Fortify registration, org bootstrap, Free=active / paid=pending_payment, Register UI, tests              |

@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\OrganizationBillingDocument;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\BillingDocumentService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -21,7 +22,7 @@ uses(RefreshDatabase::class);
 /**
  * @return array{0: Organization, 1: User}
  */
-function makeOrgWithBillingEmail(): array
+function makeOrgWithBillingEmail(?string $billingStatus = null): array
 {
     test()->seed([RolePermissionSeeder::class]);
 
@@ -30,7 +31,7 @@ function makeOrgWithBillingEmail(): array
         'slug' => 'docs-org-' . uniqid(),
         'is_active' => true,
         'subscription_plan' => SubscriptionPlan::Small->value,
-        'billing_status' => BillingStatus::Active->value,
+        'billing_status' => $billingStatus ?? BillingStatus::Active->value,
         'billing_email' => 'billing@docs.test',
     ]);
 
@@ -69,114 +70,77 @@ function billingPdf(string $name, string $body = '%PDF-1.4 billing-doc'): Upload
     return UploadedFile::fake()->createWithContent($name, $body);
 }
 
-test('tenant can upload invoice and license documents', function () {
+function seedBillingDocument(
+    Organization $organization,
+    User $uploader,
+    BillingDocumentType $type = BillingDocumentType::Invoice,
+    string $title = 'Seeded invoice',
+): OrganizationBillingDocument {
+    return app(BillingDocumentService::class)->upload(
+        $organization,
+        $uploader,
+        billingPdf('seeded.pdf'),
+        $type,
+        $title,
+    );
+}
+
+test('tenant cannot upload billing documents via settings', function () {
     Storage::fake('local');
     [$organization, $owner] = makeOrgWithBillingEmail();
 
     $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
+        ->post('/settings/billing/documents', [
             'type' => BillingDocumentType::Invoice->value,
             'title' => 'July invoice',
             'file' => billingPdf('invoice-july.pdf'),
         ])
-        ->assertRedirect(route('settings.billing.edit'));
+        ->assertNotFound();
 
-    $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::License->value,
-            'file' => billingPdf('license.pdf', '%PDF-1.4 license'),
-        ])
-        ->assertRedirect();
-
-    $documents = OrganizationBillingDocument::query()
+    expect(OrganizationBillingDocument::query()
         ->where('organization_id', $organization->id)
-        ->orderBy('id')
-        ->get();
-
-    expect($documents)->toHaveCount(2)
-        ->and($documents[0]->type)->toBe(BillingDocumentType::Invoice)
-        ->and($documents[0]->title)->toBe('July invoice')
-        ->and($documents[1]->type)->toBe(BillingDocumentType::License);
-
-    expect(Storage::disk('local')->exists($documents[0]->storage_path))->toBeTrue()
-        ->and(Storage::disk('local')->exists($documents[1]->storage_path))->toBeTrue();
-
-    expect(AuditLog::query()->where('event_type', AuditEventType::BillingDocumentUploaded->value)->count())
-        ->toBe(2);
+        ->count())->toBe(0);
 });
 
-test('tenant can download a billing document', function () {
+test('tenant can download a billing document after payment is active', function () {
     Storage::fake('local');
     [$organization, $owner] = makeOrgWithBillingEmail();
-
-    $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::Invoice->value,
-            'file' => billingPdf('invoice.pdf'),
-        ]);
-
-    /** @var OrganizationBillingDocument $document */
-    $document = $organization->billingDocuments()->firstOrFail();
+    $admin = makeBillingPlatformAdmin();
+    $document = seedBillingDocument($organization, $admin);
 
     $this->actingAs($owner)
         ->get(route('settings.billing.documents.download', $document))
         ->assertOk();
 });
 
-test('tenant can send billing document to billing email', function () {
+test('tenant cannot download billing documents before payment is confirmed', function () {
     Storage::fake('local');
-    Mail::fake();
-    [$organization, $owner] = makeOrgWithBillingEmail();
+    [$organization, $owner] = makeOrgWithBillingEmail(BillingStatus::PendingPayment->value);
+    $admin = makeBillingPlatformAdmin();
+    $document = seedBillingDocument($organization, $admin);
 
     $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::License->value,
-            'title' => 'License pack',
-            'file' => billingPdf('license.pdf'),
-        ]);
-
-    /** @var OrganizationBillingDocument $document */
-    $document = $organization->billingDocuments()->firstOrFail();
-
-    $this->actingAs($owner)
-        ->post(route('settings.billing.documents.send', $document))
-        ->assertRedirect(route('settings.billing.edit'));
-
-    Mail::assertSent(BillingDocumentMail::class, function (BillingDocumentMail $mail) use ($organization) {
-        return $mail->hasTo('billing@docs.test')
-            && $mail->organization->is($organization)
-            && $mail->document->type === BillingDocumentType::License;
-    });
-
-    $document->refresh();
-    expect($document->sent_at)->not->toBeNull()
-        ->and($document->sent_to_email)->toBe('billing@docs.test')
-        ->and($document->sent_by)->toBe($owner->id);
-
-    expect(AuditLog::query()->where('event_type', AuditEventType::BillingDocumentSent->value)->exists())
-        ->toBeTrue();
+        ->get(route('settings.billing.documents.download', $document))
+        ->assertForbidden();
 });
 
-test('send falls back to owner email when billing_email is empty', function () {
+test('tenant cannot send or delete billing documents', function () {
     Storage::fake('local');
     Mail::fake();
     [$organization, $owner] = makeOrgWithBillingEmail();
-    $organization->update(['billing_email' => null]);
+    $admin = makeBillingPlatformAdmin();
+    $document = seedBillingDocument($organization, $admin, BillingDocumentType::License, 'License pack');
 
     $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::Invoice->value,
-            'file' => billingPdf('invoice.pdf'),
-        ]);
-
-    /** @var OrganizationBillingDocument $document */
-    $document = $organization->billingDocuments()->firstOrFail();
+        ->post("/settings/billing/documents/{$document->id}/send")
+        ->assertNotFound();
 
     $this->actingAs($owner)
-        ->post(route('settings.billing.documents.send', $document))
-        ->assertRedirect();
+        ->delete("/settings/billing/documents/{$document->id}")
+        ->assertMethodNotAllowed();
 
-    Mail::assertSent(BillingDocumentMail::class, fn(BillingDocumentMail $mail) => $mail->hasTo($owner->email));
+    expect($document->fresh())->not->toBeNull();
+    Mail::assertNothingSent();
 });
 
 test('admin can upload and send billing documents for an organization', function () {
@@ -202,24 +166,34 @@ test('admin can upload and send billing documents for an organization', function
 
     Mail::assertSent(BillingDocumentMail::class);
     expect($document->fresh()->sent_to_email)->toBe('billing@docs.test');
+    expect(AuditLog::query()->where('event_type', AuditEventType::BillingDocumentUploaded->value)->exists())
+        ->toBeTrue();
 });
 
-test('tenant can delete a billing document', function () {
+test('admin send falls back to owner email when billing_email is empty', function () {
     Storage::fake('local');
+    Mail::fake();
     [$organization, $owner] = makeOrgWithBillingEmail();
+    $organization->update(['billing_email' => null]);
+    $admin = makeBillingPlatformAdmin();
+    $document = seedBillingDocument($organization, $admin);
 
-    $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::Invoice->value,
-            'file' => billingPdf('invoice.pdf'),
-        ]);
+    $this->actingAs($admin)
+        ->post(route('admin.organizations.billing-documents.send', [$organization, $document]))
+        ->assertRedirect();
 
-    /** @var OrganizationBillingDocument $document */
-    $document = $organization->billingDocuments()->firstOrFail();
+    Mail::assertSent(BillingDocumentMail::class, fn(BillingDocumentMail $mail) => $mail->hasTo($owner->email));
+});
+
+test('admin can delete a billing document', function () {
+    Storage::fake('local');
+    [$organization] = makeOrgWithBillingEmail();
+    $admin = makeBillingPlatformAdmin();
+    $document = seedBillingDocument($organization, $admin);
     $path = $document->storage_path;
 
-    $this->actingAs($owner)
-        ->delete(route('settings.billing.documents.destroy', $document))
+    $this->actingAs($admin)
+        ->delete(route('admin.organizations.billing-documents.destroy', [$organization, $document]))
         ->assertRedirect();
 
     expect(OrganizationBillingDocument::query()->find($document->id))->toBeNull();
@@ -228,16 +202,11 @@ test('tenant can delete a billing document', function () {
         ->toBeTrue();
 });
 
-test('billing settings page includes documents payload', function () {
+test('billing settings shows documents only when billing is active', function () {
     Storage::fake('local');
     [$organization, $owner] = makeOrgWithBillingEmail();
-
-    $this->actingAs($owner)
-        ->post(route('settings.billing.documents.store'), [
-            'type' => BillingDocumentType::Invoice->value,
-            'title' => 'Visible invoice',
-            'file' => billingPdf('invoice.pdf'),
-        ]);
+    $admin = makeBillingPlatformAdmin();
+    seedBillingDocument($organization, $admin, BillingDocumentType::Invoice, 'Visible invoice');
 
     $this->actingAs($owner)
         ->get(route('settings.billing.edit'))
@@ -246,6 +215,15 @@ test('billing settings page includes documents payload', function () {
             ->component('settings/Billing')
             ->has('documents', 1)
             ->where('documents.0.title', 'Visible invoice')
-            ->where('documentRecipientEmail', 'billing@docs.test')
-            ->has('documentTypes', 2));
+            ->where('canManageDocuments', false));
+
+    $organization->update(['billing_status' => BillingStatus::PendingPayment->value]);
+
+    $this->actingAs($owner)
+        ->get(route('settings.billing.edit'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('settings/Billing')
+            ->has('documents', 0)
+            ->where('canManageDocuments', false));
 });

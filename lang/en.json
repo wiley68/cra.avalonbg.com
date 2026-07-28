@@ -245,6 +245,8 @@
         "documents": {
             "title": "Invoices & license documents",
             "description": "Store invoices and license documents issued outside the app. Send them to the billing email.",
+            "description_admin": "Attach invoices and license documents for this organization. Only platform admins can upload or send them.",
+            "description_tenant": "View and download invoices and license documents issued by the platform after payment is confirmed.",
             "recipient": "Send to",
             "no_recipient_hint": "Set a billing email (or ensure an organization owner exists) before sending.",
             "type": "Document type",
@@ -253,6 +255,7 @@
             "file": "File",
             "upload": "Upload document",
             "empty": "No billing documents yet.",
+            "empty_tenant": "No documents available yet. They appear here after payment is confirmed and the platform attaches them.",
             "download": "Download",
             "send": "Send email",
             "sent_to": "Sent to",

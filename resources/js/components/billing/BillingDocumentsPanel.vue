@@ -27,15 +27,26 @@ export type BillingDocumentItem = {
     created_at: string | null;
 };
 
-const props = defineProps<{
-    documents: BillingDocumentItem[];
-    documentTypes: string[];
-    recipientEmail: string | null;
-    storeUrl: string;
-    downloadUrl: (documentId: number) => string;
-    sendUrl: (documentId: number) => string;
-    destroyUrl: (documentId: number) => string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        documents: BillingDocumentItem[];
+        downloadUrl: (documentId: number) => string;
+        canManage?: boolean;
+        documentTypes?: string[];
+        recipientEmail?: string | null;
+        storeUrl?: string | null;
+        sendUrl?: ((documentId: number) => string) | null;
+        destroyUrl?: ((documentId: number) => string) | null;
+    }>(),
+    {
+        canManage: false,
+        documentTypes: () => [],
+        recipientEmail: null,
+        storeUrl: null,
+        sendUrl: null,
+        destroyUrl: null,
+    },
+);
 
 const { t } = useTranslations();
 
@@ -52,6 +63,10 @@ const onFileChange = (event: Event) => {
 };
 
 const submit = () => {
+    if (!props.canManage || !props.storeUrl) {
+        return;
+    }
+
     form.post(props.storeUrl, {
         forceFormData: true,
         preserveScroll: true,
@@ -63,10 +78,18 @@ const submit = () => {
 };
 
 const sendDocument = (documentId: number) => {
+    if (!props.canManage || !props.sendUrl) {
+        return;
+    }
+
     router.post(props.sendUrl(documentId), {}, { preserveScroll: true });
 };
 
 const deleteDocument = (documentId: number) => {
+    if (!props.canManage || !props.destroyUrl) {
+        return;
+    }
+
     router.delete(props.destroyUrl(documentId), { preserveScroll: true });
 };
 
@@ -79,20 +102,34 @@ const typeLabel = (type: string): string =>
         <div>
             <h2 class="font-medium">{{ t('billing.documents.title') }}</h2>
             <p class="text-sm text-muted-foreground">
-                {{ t('billing.documents.description') }}
+                {{
+                    canManage
+                        ? t('billing.documents.description_admin')
+                        : t('billing.documents.description_tenant')
+                }}
             </p>
-            <p v-if="recipientEmail" class="mt-1 text-xs text-muted-foreground">
+            <p
+                v-if="canManage && recipientEmail"
+                class="mt-1 text-xs text-muted-foreground"
+            >
                 {{ t('billing.documents.recipient') }}:
                 <span class="font-medium text-foreground">{{
                     recipientEmail
                 }}</span>
             </p>
-            <p v-else class="mt-1 text-xs text-amber-700 dark:text-amber-400">
+            <p
+                v-else-if="canManage"
+                class="mt-1 text-xs text-amber-700 dark:text-amber-400"
+            >
                 {{ t('billing.documents.no_recipient_hint') }}
             </p>
         </div>
 
-        <form class="grid gap-3 sm:grid-cols-2" @submit.prevent="submit">
+        <form
+            v-if="canManage"
+            class="grid gap-3 sm:grid-cols-2"
+            @submit.prevent="submit"
+        >
             <div class="grid gap-2">
                 <Label for="billing-doc-type">{{
                     t('billing.documents.type')
@@ -155,7 +192,11 @@ const typeLabel = (type: string): string =>
             v-if="documents.length === 0"
             class="text-sm text-muted-foreground"
         >
-            {{ t('billing.documents.empty') }}
+            {{
+                canManage
+                    ? t('billing.documents.empty')
+                    : t('billing.documents.empty_tenant')
+            }}
         </div>
 
         <ul v-else class="divide-y rounded-md border">
@@ -175,7 +216,7 @@ const typeLabel = (type: string): string =>
                         {{ document.source_filename }}
                     </p>
                     <p
-                        v-if="document.sent_at"
+                        v-if="canManage && document.sent_at"
                         class="text-xs text-muted-foreground"
                     >
                         {{ t('billing.documents.sent_to') }}:
@@ -191,6 +232,7 @@ const typeLabel = (type: string): string =>
                         </a>
                     </Button>
                     <Button
+                        v-if="canManage"
                         type="button"
                         variant="outline"
                         size="sm"
@@ -201,6 +243,7 @@ const typeLabel = (type: string): string =>
                         {{ t('billing.documents.send') }}
                     </Button>
                     <Button
+                        v-if="canManage"
                         type="button"
                         variant="outline"
                         size="sm"

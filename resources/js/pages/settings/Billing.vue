@@ -9,12 +9,7 @@ import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit as editBilling } from '@/routes/settings/billing';
 import { store as storeBankPayment } from '@/routes/settings/billing/bank-payment';
-import {
-    destroy as destroyDocument,
-    download as downloadDocument,
-    send as sendDocument,
-    store as storeDocument,
-} from '@/routes/settings/billing/documents';
+import { download as downloadDocument } from '@/routes/settings/billing/documents';
 
 type OrganizationBilling = {
     id: number;
@@ -65,8 +60,7 @@ const props = defineProps<{
     bankInstructions: BankInstructions;
     canRequestBankPayment: boolean;
     documents: BillingDocumentItem[];
-    documentRecipientEmail: string | null;
-    documentTypes: string[];
+    canManageDocuments: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -193,12 +187,8 @@ const requestPayment = () => {
 
         <BillingDocumentsPanel
             :documents="documents"
-            :document-types="documentTypes"
-            :recipient-email="documentRecipientEmail"
-            :store-url="storeDocument().url"
+            :can-manage="canManageDocuments"
             :download-url="(id) => downloadDocument(id).url"
-            :send-url="(id) => sendDocument(id).url"
-            :destroy-url="(id) => destroyDocument(id).url"
         />
     </div>
 </template>
