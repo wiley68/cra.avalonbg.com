@@ -4337,6 +4337,20 @@
             "sdl_pending_monitoring": "Одобрени SDL записи с чакащ post-release мониторинг",
             "pending_import_suggestions": "Чакащи Jira/Snyk предложения за импорт",
             "failed_integration_syncs": "Неуспешни ALM/scanner sync-ове"
+        },
+        "onboarding": {
+            "heading": "Подгответе организацията (стъпка 0)",
+            "intro": "Организационна подготовка преди продукти: настройки, потребители, библиотека контроли и политики. Клиентите са по желание.",
+            "dismiss": "Скрий",
+            "dismissed": "Списъкът за подготовка е скрит.",
+            "optional_suffix": "незадължително",
+            "items": {
+                "settings": "Настройки",
+                "users": "Потребители и роли",
+                "controls": "Библиотека контроли",
+                "policies": "Политики",
+                "customers": "Клиенти"
+            }
         }
     },
     "settings": {

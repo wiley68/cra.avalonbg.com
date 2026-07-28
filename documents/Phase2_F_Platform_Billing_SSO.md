@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.9  
+**Версия:** 0.10  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should/Could open  
+**Статус:** Active — Must complete (2–9 Done); Should 10 Done; Should 11–14 / Could open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -152,7 +152,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 
 ### Should
 
-10. Post-signup onboarding checklist (етап 0 pointers → users/settings/controls/policies)
+10. ~~Post-signup onboarding checklist (етап 0 pointers → users/settings/controls/policies)~~ **Done** (2026-07-28) — Dashboard checklist + org dismiss
 11. Customer billing portal UI (текущ план, interval, docs, „смени плана“, Stripe manage)
 12. Annual pricing UX ясно на signup/upgrade (20% messaging)
 13. SSO за **Standard** (не само Enterprise)
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.10   | 2026-07-28 | Should 10 Done — post-signup Dashboard onboarding checklist (етап 0 pointers + org dismiss)                            |
 | 0.9    | 2026-07-28 | Must 9 Done — audit: plan change, payment activate, doc send, SSO connect (+ secrets never logged); Must wave complete |
 | 0.8    | 2026-07-28 | Must 8 Done — EN/BG i18n guardrails (billing/SSO/signup) + verified feature suite (limits, bank, Stripe, SSO)          |
 | 0.7    | 2026-07-28 | Must 7 Done — OIDC SSO (Entra/generic), org settings, login redirect/callback, domain policy, Standard flag, tests     |

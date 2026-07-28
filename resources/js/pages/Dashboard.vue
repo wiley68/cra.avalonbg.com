@@ -1,6 +1,18 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { AlertTriangle, CheckCircle2, Info, Package } from '@lucide/vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    AlertTriangle,
+    CheckCircle2,
+    Circle,
+    Info,
+    Package,
+    ScrollText,
+    Settings,
+    Shield,
+    Users,
+    X,
+} from '@lucide/vue';
+import { computed, type Component } from 'vue';
 import { Button } from '@/components/ui/button';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
@@ -9,6 +21,7 @@ import {
     type ProductModuleStatus,
 } from '@/pages/products/columns';
 import { dashboard as dashboardRoute } from '@/routes';
+import { dismiss as dismissOnboarding } from '@/routes/dashboard/onboarding';
 import { index as organizationsIndex } from '@/routes/admin/organizations';
 import { index as productsIndex } from '@/routes/products';
 
@@ -58,9 +71,25 @@ type RecentSdlRun = {
     href: string;
 };
 
+type OnboardingItem = {
+    key: string;
+    label_key: string;
+    href: string;
+    done: boolean;
+    optional: boolean;
+};
+
+type OnboardingChecklist = {
+    visible: boolean;
+    can_dismiss: boolean;
+    dismiss_href: string | null;
+    items: OnboardingItem[];
+};
+
 type DashboardPayload = {
     mode: 'platform' | 'organization' | 'empty';
     organization: { id: number; name: string; slug: string } | null;
+    onboarding?: OnboardingChecklist | null;
     counts: Record<string, number>;
     recent_products?: RecentProduct[];
     recent_open_tasks?: RecentOpenTask[];
@@ -71,7 +100,7 @@ type DashboardPayload = {
     actions: DashboardAction[];
 };
 
-defineProps<{
+const props = defineProps<{
     dashboard: DashboardPayload;
 }>();
 
@@ -80,6 +109,37 @@ const { t } = useTranslations();
 usePageBreadcrumbs(() => [
     { titleKey: 'common.dashboard', href: dashboardRoute() },
 ]);
+
+const onboardingItemIcons: Record<string, Component> = {
+    settings: Settings,
+    users: Users,
+    controls: Shield,
+    policies: ScrollText,
+    customers: Users,
+};
+
+const onboarding = computed(() => {
+    const payload = props.dashboard.onboarding;
+
+    if (
+        props.dashboard.mode !== 'organization' ||
+        payload == null ||
+        !payload.visible ||
+        payload.items.length === 0
+    ) {
+        return null;
+    }
+
+    return payload;
+});
+
+const dismissOnboardingChecklist = (): void => {
+    if (!onboarding.value?.can_dismiss || !onboarding.value.dismiss_href) {
+        return;
+    }
+
+    router.post(dismissOnboarding().url, {}, { preserveScroll: true });
+};
 
 const severityClass = (severity: string): string => {
     if (severity === 'fail') {
@@ -113,6 +173,63 @@ const severityClass = (severity: string): string => {
                 </template>
             </p>
         </div>
+
+        <section
+            v-if="onboarding"
+            class="space-y-3 rounded-lg border border-dashed p-4"
+        >
+            <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                    <h2 class="text-sm font-medium">
+                        {{ t('dashboard.onboarding.heading') }}
+                    </h2>
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('dashboard.onboarding.intro') }}
+                    </p>
+                </div>
+                <Button
+                    v-if="onboarding.can_dismiss"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    class="shrink-0"
+                    @click="dismissOnboardingChecklist"
+                >
+                    <X class="h-4 w-4" />
+                    {{ t('dashboard.onboarding.dismiss') }}
+                </Button>
+            </div>
+            <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <li v-for="item in onboarding.items" :key="item.key">
+                    <Link
+                        :href="item.href"
+                        class="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/50"
+                    >
+                        <CheckCircle2
+                            v-if="item.done"
+                            class="h-4 w-4 shrink-0 text-emerald-600"
+                        />
+                        <Circle
+                            v-else
+                            class="h-4 w-4 shrink-0 text-muted-foreground"
+                        />
+                        <component
+                            :is="onboardingItemIcons[item.key] ?? Settings"
+                            class="h-4 w-4 shrink-0 text-muted-foreground"
+                        />
+                        <span class="min-w-0 flex-1 truncate font-medium">
+                            {{ t(item.label_key) }}
+                        </span>
+                        <span
+                            v-if="item.optional"
+                            class="shrink-0 text-xs font-normal text-muted-foreground"
+                        >
+                            {{ t('dashboard.onboarding.optional_suffix') }}
+                        </span>
+                    </Link>
+                </li>
+            </ul>
+        </section>
 
         <div
             v-if="dashboard.mode === 'organization'"

@@ -26,6 +26,7 @@ return new class extends Migration {
             $table->string('stripe_subscription_id')->nullable()->index();
             $table->boolean('sso_enabled')->default(false);
             $table->string('locale', 5)->default('en');
+            $table->timestamp('onboarding_checklist_dismissed_at')->nullable();
             $table->timestamps();
         });
     }

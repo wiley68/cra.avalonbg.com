@@ -86,6 +86,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 'organizations.payment_method',
                 'organizations.billing_email',
                 'organizations.trial_ends_at',
+                'organizations.onboarding_checklist_dismissed_at',
             )
             ->first();
     }

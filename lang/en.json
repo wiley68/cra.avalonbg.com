@@ -4337,6 +4337,20 @@
             "sdl_pending_monitoring": "Approved SDL runs with pending post-release monitoring",
             "pending_import_suggestions": "Pending Jira/Snyk import suggestions",
             "failed_integration_syncs": "Failed ALM/scanner syncs"
+        },
+        "onboarding": {
+            "heading": "Get your organization ready (step 0)",
+            "intro": "Org-wide prep before products: settings, users, controls library, and policies. Customers are optional.",
+            "dismiss": "Dismiss",
+            "dismissed": "Onboarding checklist dismissed.",
+            "optional_suffix": "optional",
+            "items": {
+                "settings": "Settings",
+                "users": "Users & roles",
+                "controls": "Controls library",
+                "policies": "Policies",
+                "customers": "Customers"
+            }
         }
     },
     "settings": {

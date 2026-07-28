@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'stripe_subscription_id',
     'sso_enabled',
     'locale',
+    'onboarding_checklist_dismissed_at',
 ])]
 class Organization extends Model
 {
@@ -41,6 +42,7 @@ class Organization extends Model
             'sso_enabled' => 'boolean',
             'trial_ends_at' => 'datetime',
             'billing_activated_at' => 'datetime',
+            'onboarding_checklist_dismissed_at' => 'datetime',
             'billing_status' => BillingStatus::class,
             'billing_interval' => BillingInterval::class,
             'payment_method' => PaymentMethod::class,

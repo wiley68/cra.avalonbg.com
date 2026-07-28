@@ -44,6 +44,7 @@ class DashboardService
 
     public function __construct(
         private readonly ProductReadinessService $readiness,
+        private readonly OrgOnboardingChecklistService $onboardingChecklist,
     ) {
     }
 
@@ -75,6 +76,7 @@ class DashboardService
         return [
             'mode' => 'platform',
             'organization' => null,
+            'onboarding' => null,
             'counts' => [
                 'organizations' => $organizationCount,
                 'products' => Product::query()->count(),
@@ -105,6 +107,7 @@ class DashboardService
         return [
             'mode' => 'empty',
             'organization' => null,
+            'onboarding' => null,
             'counts' => [],
             'recent_products' => [],
             'recent_open_tasks' => [],
@@ -229,6 +232,7 @@ class DashboardService
                 'name' => $organization->name,
                 'slug' => $organization->slug,
             ],
+            'onboarding' => $this->onboardingChecklist->build($organization, $user),
             'counts' => [
                 'products' => $productIds->count(),
                 'open_tasks' => (int) ($openTasksAction['count'] ?? 0),

@@ -45,6 +45,7 @@ use App\Http\Controllers\Auth\TwoFactorSetupController;
 use App\Http\Controllers\ControlController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OnboardingChecklistController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\IntegrationHealthController;
@@ -114,6 +115,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['password.changed', 'two-factor.enabled'])->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::post('dashboard/onboarding-checklist/dismiss', [OnboardingChecklistController::class, 'dismiss'])
+            ->name('dashboard.onboarding.dismiss');
 
         Route::get('integrations/health', [IntegrationHealthController::class, 'index'])
             ->name('integrations.health.index');
