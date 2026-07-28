@@ -119,6 +119,8 @@
             "price_year": "€:price / year",
             "products_max": "Up to :max products",
             "products_unlimited": "Unlimited products",
+            "seats_max": "Up to :max seats",
+            "seats_unlimited": "Unlimited seats",
             "annual_callout": "Yearly billing saves about 20% compared with paying monthly for a full year.",
             "paid_pending_note": "Paid plans stay pending until payment is confirmed. You can finish email verification and 2FA setup meanwhile.",
             "submit": "Create account",
@@ -283,10 +285,21 @@
             "price_year": "€:price / year",
             "products_max": "Up to :max products",
             "products_unlimited": "Unlimited products",
+            "seats_max": "Up to :max seats",
+            "seats_unlimited": "Unlimited seats",
             "errors": {
                 "use_stripe_portal": "This subscription is managed in Stripe. Use Manage subscription instead.",
                 "interval_required": "Choose a billing interval for paid plans."
             }
+        },
+        "usage": {
+            "title": "Plan usage",
+            "help": "Current consumption against your plan limits. Upgrade to raise product or seat caps.",
+            "products": "Products",
+            "seats": "Seats (users)",
+            "unlimited": "Unlimited",
+            "of_max": ":used / :max",
+            "upgrade": "Change plan"
         },
         "stripe": {
             "title": "Pay with card (Stripe)",
@@ -610,7 +623,19 @@
             "last_owner_role": "Cannot change the role of the last organization owner.",
             "last_owner_delete": "Cannot delete the last organization owner.",
             "cannot_delete_self": "You cannot delete your own account."
-        }
+        },
+        "plan_seat_limit": "Your :plan plan allows up to :max seats. Upgrade the plan or remove a user to add another.",
+        "plan_quota": ":used / :max seats (:plan)",
+        "plan_quota_unlimited": ":used seats · :plan (unlimited)",
+        "plan_pending_payment": "Waiting for payment confirmation before adding users.",
+        "plan_past_due": "Billing is past due — update payment to add users.",
+        "plan_past_due_grace": "Billing is past due (grace period) — update payment to add users.",
+        "plan_past_due_readonly": "Billing is past due — update payment to add users.",
+        "plan_cancelled": "Subscription cancelled — renew to add users.",
+        "create_disabled_limit": "Seat limit reached for this plan",
+        "create_disabled_pending": "Waiting for payment confirmation",
+        "create_disabled_past_due": "Billing past due — update payment to add users",
+        "create_disabled_cancelled": "Subscription cancelled — renew to add users"
     },
     "integrations": {
         "health": {

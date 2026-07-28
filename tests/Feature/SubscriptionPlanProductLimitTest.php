@@ -82,7 +82,11 @@ test('subscription plan catalog matches freeze limits', function () {
     expect(SubscriptionPlan::Free->maxProducts())->toBe(1)
         ->and(SubscriptionPlan::Small->maxProducts())->toBe(3)
         ->and(SubscriptionPlan::Standard->maxProducts())->toBe(10)
-        ->and(SubscriptionPlan::Enterprise->maxProducts())->toBeNull();
+        ->and(SubscriptionPlan::Enterprise->maxProducts())->toBeNull()
+        ->and(SubscriptionPlan::Free->maxSeats())->toBe(2)
+        ->and(SubscriptionPlan::Small->maxSeats())->toBe(5)
+        ->and(SubscriptionPlan::Standard->maxSeats())->toBe(15)
+        ->and(SubscriptionPlan::Enterprise->maxSeats())->toBeNull();
 });
 
 test('missing subscription plan defaults to free', function () {

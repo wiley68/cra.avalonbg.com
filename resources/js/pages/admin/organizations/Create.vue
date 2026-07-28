@@ -27,6 +27,7 @@ import { create as organizationsCreate } from '@/routes/admin/organizations';
 type SubscriptionPlanOption = {
     value: string;
     max_products: number | null;
+    max_seats: number | null;
     monthly_price_eur: number;
     yearly_price_eur: number | null;
 };
@@ -148,6 +149,12 @@ const planLabel = (value: string): string =>
                                     plan.max_products === null
                                         ? '∞'
                                         : plan.max_products
+                                }}
+                                /
+                                {{
+                                    plan.max_seats === null
+                                        ? '∞'
+                                        : plan.max_seats
                                 }})
                             </span>
                         </SelectItem>

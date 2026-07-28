@@ -250,6 +250,14 @@ class Organization extends Model
         return $this->resolvedSubscriptionPlan()->maxProducts();
     }
 
+    /**
+     * Maximum seats (users) for the resolved plan; null = unlimited.
+     */
+    public function maxSeats(): ?int
+    {
+        return $this->resolvedSubscriptionPlan()->maxSeats();
+    }
+
     public function productsCount(): int
     {
         if ($this->relationLoaded('products')) {
@@ -257,6 +265,15 @@ class Organization extends Model
         }
 
         return $this->products()->count();
+    }
+
+    public function seatsCount(): int
+    {
+        if ($this->relationLoaded('users')) {
+            return $this->users->count();
+        }
+
+        return $this->users()->count();
     }
 
     public function canAddProduct(): bool
@@ -272,6 +289,22 @@ class Organization extends Model
         }
 
         return $this->productsCount() < $max;
+    }
+
+    public function canAddUser(): bool
+    {
+        $max = $this->maxSeats();
+
+        if ($max !== null && $this->seatsCount() >= $max) {
+            return false;
+        }
+
+        // First seat is always allowed (signup / admin bootstrap).
+        if ($this->seatsCount() === 0) {
+            return true;
+        }
+
+        return $this->isBillingActive();
     }
 
     /**
@@ -314,6 +347,57 @@ class Organization extends Model
     }
 
     /**
+     * @return array{
+     *     plan: string,
+     *     billing_status: string,
+     *     max_seats: int|null,
+     *     used: int,
+     *     can_create: bool
+     * }
+     */
+    public function seatQuotaPayload(): array
+    {
+        return [
+            'plan' => $this->resolvedSubscriptionPlan()->value,
+            'billing_status' => $this->resolvedBillingStatus()->value,
+            'max_seats' => $this->maxSeats(),
+            'used' => $this->seatsCount(),
+            'can_create' => $this->canAddUser(),
+        ];
+    }
+
+    /**
+     * Combined usage snapshot for Billing / dashboard surfaces.
+     *
+     * @return array{
+     *     plan: string,
+     *     billing_status: string,
+     *     products: array{max: int|null, used: int, can_create: bool},
+     *     seats: array{max: int|null, used: int, can_create: bool}
+     * }
+     */
+    public function usageDashboardPayload(): array
+    {
+        $products = $this->productQuotaPayload();
+        $seats = $this->seatQuotaPayload();
+
+        return [
+            'plan' => $products['plan'],
+            'billing_status' => $products['billing_status'],
+            'products' => [
+                'max' => $products['max_products'],
+                'used' => $products['used'],
+                'can_create' => $products['can_create'],
+            ],
+            'seats' => [
+                'max' => $seats['max_seats'],
+                'used' => $seats['used'],
+                'can_create' => $seats['can_create'],
+            ],
+        ];
+    }
+
+    /**
      * Message when product create is blocked (quota or billing status).
      */
     public function productCreationBlockedMessage(): string
@@ -339,6 +423,35 @@ class Organization extends Model
                 'billing.plans.' . $this->resolvedSubscriptionPlan()->value,
             ),
             'max' => (string) ($this->maxProducts() ?? 0),
+        ]);
+    }
+
+    /**
+     * Message when user create is blocked (seat quota or billing status).
+     */
+    public function userCreationBlockedMessage(): string
+    {
+        if ($this->isPastDue()) {
+            return Translations::get(
+                $this->isInBillingGrace()
+                ? 'users.plan_past_due_grace'
+                : 'users.plan_past_due_readonly',
+            );
+        }
+
+        if ($this->isBillingCancelled()) {
+            return Translations::get('users.plan_cancelled');
+        }
+
+        if ($this->resolvedBillingStatus() === BillingStatus::PendingPayment) {
+            return Translations::get('users.plan_pending_payment');
+        }
+
+        return Translations::get('users.plan_seat_limit', [
+            'plan' => Translations::get(
+                'billing.plans.' . $this->resolvedSubscriptionPlan()->value,
+            ),
+            'max' => (string) ($this->maxSeats() ?? 0),
         ]);
     }
 

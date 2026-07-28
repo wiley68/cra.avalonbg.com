@@ -107,6 +107,7 @@ class OrganizationMembershipService
         User $invitedBy,
     ): User {
         $this->assertOrganizationRole($roleId);
+        $this->assertCanAddUser($organization);
 
         $user = User::query()->create([
             'name' => $attributes['name'],
@@ -119,7 +120,7 @@ class OrganizationMembershipService
         // email_verified_at is not mass-assignable; mark invited users as verified.
         $user->forceFill(['email_verified_at' => now()])->save();
 
-        $this->attach($organization, $user, $roleId, $invitedBy);
+        $this->attach($organization, $user, $roleId, $invitedBy, assertSeat: false);
 
         return $user;
     }
@@ -129,8 +130,13 @@ class OrganizationMembershipService
         User $user,
         int $roleId,
         ?User $invitedBy = null,
+        bool $assertSeat = true,
     ): void {
         $this->assertOrganizationRole($roleId);
+
+        if ($assertSeat) {
+            $this->assertCanAddUser($organization);
+        }
 
         $organization->users()->attach($user->id, [
             'role_id' => $roleId,
@@ -138,6 +144,17 @@ class OrganizationMembershipService
             'joined_at' => Carbon::now(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
+        ]);
+    }
+
+    public function assertCanAddUser(Organization $organization): void
+    {
+        if ($organization->canAddUser()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'email' => $organization->userCreationBlockedMessage(),
         ]);
     }
 

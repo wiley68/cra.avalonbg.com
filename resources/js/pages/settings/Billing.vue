@@ -44,6 +44,7 @@ type OrganizationBilling = {
 
 type SubscriptionPlanOption = PlanPriceOption & {
     max_products: number | null;
+    max_seats: number | null;
 };
 
 type PendingRequest = {
@@ -78,6 +79,13 @@ type BillingDocumentItem = {
     created_at: string | null;
 };
 
+type UsageDashboard = {
+    plan: string;
+    billing_status: string;
+    products: { max: number | null; used: number; can_create: boolean };
+    seats: { max: number | null; used: number; can_create: boolean };
+};
+
 const props = defineProps<{
     organization: OrganizationBilling;
     subscriptionPlans: SubscriptionPlanOption[];
@@ -91,6 +99,7 @@ const props = defineProps<{
     stripeConfigured: boolean;
     documents: BillingDocumentItem[];
     canManageDocuments: boolean;
+    usage: UsageDashboard;
 }>();
 
 const { t } = useTranslations();
@@ -213,6 +222,27 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
 
     return t('billing.change_plan.products_max', {
         max: String(plan.max_products),
+    });
+};
+
+const seatLimitLabel = (plan: SubscriptionPlanOption): string => {
+    if (plan.max_seats === null) {
+        return t('billing.change_plan.seats_unlimited');
+    }
+
+    return t('billing.change_plan.seats_max', {
+        max: String(plan.max_seats),
+    });
+};
+
+const usageAmountLabel = (used: number, max: number | null): string => {
+    if (max === null) {
+        return `${used} · ${t('billing.usage.unlimited')}`;
+    }
+
+    return t('billing.usage.of_max', {
+        used: String(used),
+        max: String(max),
     });
 };
 
@@ -351,6 +381,41 @@ const applyPromo = () => {
             </div>
         </div>
 
+        <div class="space-y-4 rounded-lg border p-5">
+            <div>
+                <h2 class="font-medium">{{ t('billing.usage.title') }}</h2>
+                <p class="text-sm text-muted-foreground">
+                    {{ t('billing.usage.help') }}
+                </p>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div class="rounded-md border bg-muted/30 p-4">
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('billing.usage.products') }}
+                    </p>
+                    <p class="mt-1 text-lg font-semibold">
+                        {{
+                            usageAmountLabel(
+                                usage.products.used,
+                                usage.products.max,
+                            )
+                        }}
+                    </p>
+                </div>
+                <div class="rounded-md border bg-muted/30 p-4">
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('billing.usage.seats') }}
+                    </p>
+                    <p class="mt-1 text-lg font-semibold">
+                        {{
+                            usageAmountLabel(usage.seats.used, usage.seats.max)
+                        }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div v-if="canManageStripe" class="space-y-3 rounded-lg border p-5">
             <h2 class="font-medium">{{ t('billing.stripe.manage_title') }}</h2>
             <p class="text-sm text-muted-foreground">
@@ -407,7 +472,8 @@ const applyPromo = () => {
                         {{ planSavingsLabel(plan) }}
                     </p>
                     <p class="mt-0.5 text-xs text-muted-foreground">
-                        {{ productLimitLabel(plan) }}
+                        {{ productLimitLabel(plan) }} ·
+                        {{ seatLimitLabel(plan) }}
                     </p>
                 </button>
             </div>

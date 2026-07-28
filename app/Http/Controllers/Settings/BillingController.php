@@ -74,6 +74,7 @@ class BillingController extends Controller
                 ? $this->documents->listPayload($organization)
                 : [],
             'canManageDocuments' => false,
+            'usage' => $organization->usageDashboardPayload(),
         ]);
     }
 

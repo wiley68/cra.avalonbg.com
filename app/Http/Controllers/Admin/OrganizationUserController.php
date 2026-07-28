@@ -33,9 +33,18 @@ class OrganizationUserController extends Controller
         ]);
     }
 
-    public function create(Organization $organization): Response
+    public function create(Organization $organization): Response|RedirectResponse
     {
         $this->authorize('create', [User::class, $organization]);
+
+        if (!$organization->canAddUser()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $organization->userCreationBlockedMessage(),
+            ]);
+
+            return redirect()->route('admin.organizations.users.index', $organization);
+        }
 
         return Inertia::render('admin/organizations/users/Create', [
             'organization' => $this->organizationPayload($organization),

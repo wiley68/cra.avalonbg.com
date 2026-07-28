@@ -11,28 +11,32 @@ return [
     | Canonical subscription plans
     |--------------------------------------------------------------------------
     |
-    | max_products: null = unlimited (Enterprise).
+    | max_products / max_seats: null = unlimited (Enterprise).
     | yearly_price_eur: ~20% off 12× monthly (null when free).
     |
     */
     'plans' => [
         'free' => [
             'max_products' => 1,
+            'max_seats' => 2,
             'monthly_price_eur' => 0,
             'yearly_price_eur' => null,
         ],
         'small' => [
             'max_products' => 3,
+            'max_seats' => 5,
             'monthly_price_eur' => 29,
             'yearly_price_eur' => 278.40,
         ],
         'standard' => [
             'max_products' => 10,
+            'max_seats' => 15,
             'monthly_price_eur' => 39,
             'yearly_price_eur' => 374.40,
         ],
         'enterprise' => [
             'max_products' => null,
+            'max_seats' => null,
             'monthly_price_eur' => 59,
             'yearly_price_eur' => 566.40,
         ],

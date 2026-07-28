@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.18  
+**Версия:** 0.19  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could 15–18 Done; Could 19 open  
+**Статус:** Complete — Must 2–9 Done; Should 10–14 Done; Could 15–19 Done  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -40,8 +40,9 @@ Platform admin запазва възможност да създава/кори�
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | Kickoff billing         | **C** + уточнение: банково **и** Stripe в F                                                                     | Само admin / само Stripe                     |
 | Kickoff SSO             | **A** — OIDC Must                                                                                               | SAML; SSO само за Enterprise Could polish    |
-| Планове                 | **Free / Small / Standard / Enterprise** (не Solo/Small Team/Company от стар §15)                               | Seat limits (out of Must)                    |
+| Планове                 | **Free / Small / Standard / Enterprise** (не Solo/Small Team/Company от стар §15)                               | —                                            |
 | Product limits          | Free **1**; Small **3**; Standard **10**; Enterprise **неограничен**                                            | Soft warn vs hard block — **hard block** MVP |
+| Seat limits             | Free **2**; Small **5**; Standard **15**; Enterprise **неограничен** (Could 19)                                 | —                                            |
 | Функционалност          | Free = **пълна** друга функционалност; платени-only модули **след** 2_F                                         | Feature flags per plan (Could / post-F)      |
 | Цени (EUR, provisional) | Small **29**/мес; Standard **39**/мес; Enterprise **59**/мес; Free **0**                                        | Промо кодове (Could)                         |
 | Годишно                 | **~20%** отстъпка от 12× месечна (Small ≈ **278.40**; Standard ≈ **374.40**; Enterprise ≈ **566.40** EUR/год)   | Custom quote Enterprise (Could)              |
@@ -58,12 +59,12 @@ Platform admin запазва възможност да създава/кори�
 
 ## 3. Планове (канон)
 
-| Plan key     | Продукти (max) | Месечно (EUR) | Годишно (~20% off) |
-| ------------ | -------------- | ------------- | ------------------ |
-| `free`       | 1              | 0             | —                  |
-| `small`      | 3              | 29            | 278.40             |
-| `standard`   | 10             | 39            | 374.40             |
-| `enterprise` | unlimited      | 59            | 566.40             |
+| Plan key     | Продукти (max) | Места (max) | Месечно (EUR) | Годишно (~20% off) |
+| ------------ | -------------- | ----------- | ------------- | ------------------ |
+| `free`       | 1              | 2           | 0             | —                  |
+| `small`      | 3              | 5           | 29            | 278.40             |
+| `standard`   | 10             | 15          | 39            | 374.40             |
+| `enterprise` | unlimited      | unlimited   | 59            | 566.40             |
 
 `organizations.subscription_plan` (вече съществува) → enum/string на горните keys. Допълнителни полета (нови): billing interval, payment method, subscription status, Stripe ids, activated_at, и т.н. (виж §5).
 
@@ -73,7 +74,7 @@ Platform admin запазва възможност да създава/кори�
 
 | Възможност                 | Описание                                                                                            |
 | -------------------------- | --------------------------------------------------------------------------------------------------- |
-| Plan catalog + enforcement | Config/DB канон; hard limit при Product create                                                      |
+| Plan catalog + enforcement | Config/DB канон; hard limit при Product create + seat create                                        |
 | Public registration        | User + Organization bootstrap; избор на план                                                        |
 | Billing status             | `pending_payment` / `active` / `past_due` / `cancelled` (или еквивалент)                            |
 | Bank payment flow          | Заявка; инструкции; чакане; admin activate                                                          |
@@ -90,7 +91,7 @@ Platform admin запазва възможност да създава/кори�
 ## 5. Scope (out) — изрично
 
 - Пълна счетоводна система / генериране на данъчни фактури в app (само store + deliver на външно издадени)
-- Seat/user лимити по план (само products в Must)
+- Seat/user лимити по план (Could 19 — Done)
 - Платени-only feature gates извън product limit (отложено след 2_F)
 - SAML SSO; SCIM provisioning
 - Multi-currency; данъчни jurisdiction engines
@@ -164,7 +165,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 16. ~~Paid-only feature flags (първи конкретни разлики Free vs paid)~~ **Done** (2026-07-28) — Free: AI gated (UI visible + upgrade dialog/Billing CTA)
 17. ~~SAML 2.0~~ **Done** (2026-07-28) — SP-initiated SAML + ACS/metadata; same domain/plan policy as OIDC
 18. ~~Auto-generate simple license PDF template~~ **Done** (2026-07-28) — admin generate → DomPDF license stored as billing document
-19. Seat limits / usage dashboard
+19. ~~Seat limits / usage dashboard~~ **Done** (2026-07-28) — Free 2 / Small 5 / Standard 15 / Enterprise ∞; Billing usage + Users quota enforcement
 
 ---
 
@@ -201,6 +202,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.19   | 2026-07-28 | Could 19 Done — seat limits (2/5/15/∞) + Billing usage dashboard; Users create enforcement; Phase 2_F Could complete   |
 | 0.18   | 2026-07-28 | Could 18 Done — auto-generate simple license PDF (admin DomPDF template → license billing document)                    |
 | 0.17   | 2026-07-28 | Could 17 Done — SAML 2.0 SP-initiated SSO (ACS + metadata; Standard/Enterprise; domain policy like OIDC)               |
 | 0.16   | 2026-07-28 | Could 16 Done — Free plan AI gate (buttons visible; click → upgrade dialog + Billing CTA; backend assert)              |

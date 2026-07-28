@@ -34,13 +34,24 @@ class UserController extends Controller
 
         return Inertia::render('users/Index', [
             'organization' => $this->organizationPayload($organization),
+            'seatQuota' => $organization->seatQuotaPayload(),
+            'canManage' => request()->user()?->can('create', [User::class, $organization]) ?? false,
         ]);
     }
 
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
         $organization = $this->currentOrganization();
         $this->authorize('create', [User::class, $organization]);
+
+        if (!$organization->canAddUser()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => $organization->userCreationBlockedMessage(),
+            ]);
+
+            return redirect()->route('users.index');
+        }
 
         return Inertia::render('users/Create', [
             'organization' => $this->organizationPayload($organization),

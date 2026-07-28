@@ -27,6 +27,7 @@ defineOptions({
 
 type SubscriptionPlanOption = PlanPriceOption & {
     max_products: number | null;
+    max_seats: number | null;
 };
 
 const props = defineProps<{
@@ -102,6 +103,16 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
 
     return t('auth.register.products_max', {
         max: String(plan.max_products),
+    });
+};
+
+const seatLimitLabel = (plan: SubscriptionPlanOption): string => {
+    if (plan.max_seats === null) {
+        return t('auth.register.seats_unlimited');
+    }
+
+    return t('auth.register.seats_max', {
+        max: String(plan.max_seats),
     });
 };
 </script>
@@ -235,7 +246,8 @@ const productLimitLabel = (plan: SubscriptionPlanOption): string => {
                             {{ planSavingsLabel(plan) }}
                         </p>
                         <p class="mt-0.5 text-xs text-muted-foreground">
-                            {{ productLimitLabel(plan) }}
+                            {{ productLimitLabel(plan) }} ·
+                            {{ seatLimitLabel(plan) }}
                         </p>
                     </button>
                 </div>

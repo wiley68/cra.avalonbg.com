@@ -101,7 +101,7 @@ class OrganizationRegistrationService
                 abort(500, 'Organization owner role is missing.');
             }
 
-            $this->memberships->attach($organization, $user, (int) $ownerRoleId);
+            $this->memberships->attach($organization, $user, (int) $ownerRoleId, assertSeat: false);
             $this->controls->seedStarterCatalogue($organization, refreshExisting: false);
 
             if ($billingStatus === BillingStatus::PendingPayment) {

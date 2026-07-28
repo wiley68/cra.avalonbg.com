@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreOrganizationUserRequest extends FormRequest
 {
@@ -33,5 +34,22 @@ class StoreOrganizationUserRequest extends FormRequest
             'role_id' => ['required', 'exists:roles,id'],
             'must_change_password' => ['nullable', 'boolean'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            /** @var Organization $organization */
+            $organization = $this->route('organization');
+
+            if ($organization->canAddUser()) {
+                return;
+            }
+
+            $validator->errors()->add(
+                'email',
+                $organization->userCreationBlockedMessage(),
+            );
+        });
     }
 }

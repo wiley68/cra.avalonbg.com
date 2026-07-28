@@ -18,6 +18,7 @@ import { create, destroy, exportMethod } from '@/routes/users';
 import { createUserColumnTitleMap, createUserColumns } from './columns';
 import type { UserListItem } from './columns';
 import { index as usersIndex } from '@/routes/users';
+import { edit as editBilling } from '@/routes/settings/billing';
 
 const organizationRoleSlugs = [
     'organization_owner',
@@ -37,11 +38,81 @@ type OrganizationSummary = {
     slug: string;
 };
 
+type SeatQuota = {
+    plan: string;
+    billing_status: string;
+    max_seats: number | null;
+    used: number;
+    can_create: boolean;
+};
+
 const props = defineProps<{
     organization: OrganizationSummary;
+    seatQuota: SeatQuota;
+    canManage: boolean;
 }>();
 
 const { t } = useTranslations();
+
+const billingStatus = computed(() => props.seatQuota.billing_status);
+
+const isPendingPayment = computed(
+    () => billingStatus.value === 'pending_payment',
+);
+const isPastDue = computed(() => billingStatus.value === 'past_due');
+const isCancelled = computed(() => billingStatus.value === 'cancelled');
+const showBillingLink = computed(
+    () => isPendingPayment.value || isPastDue.value || isCancelled.value,
+);
+
+const quotaLabel = computed(() => {
+    if (isPendingPayment.value) {
+        return t('users.plan_pending_payment');
+    }
+
+    if (isPastDue.value) {
+        return t('users.plan_past_due');
+    }
+
+    if (isCancelled.value) {
+        return t('users.plan_cancelled');
+    }
+
+    const planName = t(`billing.plans.${props.seatQuota.plan}`);
+
+    if (props.seatQuota.max_seats === null) {
+        return t('users.plan_quota_unlimited', {
+            used: String(props.seatQuota.used),
+            plan: planName,
+        });
+    }
+
+    return t('users.plan_quota', {
+        used: String(props.seatQuota.used),
+        max: String(props.seatQuota.max_seats),
+        plan: planName,
+    });
+});
+
+const canCreateUser = computed(
+    () => props.canManage && props.seatQuota.can_create,
+);
+
+const createDisabledTitle = computed(() => {
+    if (isPendingPayment.value) {
+        return t('users.create_disabled_pending');
+    }
+
+    if (isPastDue.value) {
+        return t('users.create_disabled_past_due');
+    }
+
+    if (isCancelled.value) {
+        return t('users.create_disabled_cancelled');
+    }
+
+    return t('users.create_disabled_limit');
+});
 
 const roleHelpItems = computed(() =>
     organizationRoleSlugs.map((slug) => ({
@@ -200,6 +271,18 @@ onMounted(() => {
                 <p class="text-sm text-muted-foreground">
                     {{ t('users.subtitle') }} — {{ props.organization.name }}
                 </p>
+                <p class="mt-1 text-xs text-muted-foreground">
+                    {{ quotaLabel }}
+                    <template v-if="showBillingLink">
+                        —
+                        <Link
+                            :href="editBilling()"
+                            class="underline underline-offset-2 hover:text-foreground"
+                        >
+                            {{ t('billing.usage.upgrade') }}
+                        </Link>
+                    </template>
+                </p>
             </div>
 
             <div class="flex items-center gap-2">
@@ -216,7 +299,7 @@ onMounted(() => {
                             : t('users.export.button')
                     }}
                 </Button>
-                <Button as-child>
+                <Button v-if="canCreateUser" as-child>
                     <Link
                         :href="create()"
                         class="inline-flex items-center gap-2"
@@ -224,6 +307,14 @@ onMounted(() => {
                         <Plus class="h-4 w-4" />
                         {{ t('users.create') }}
                     </Link>
+                </Button>
+                <Button
+                    v-else-if="canManage"
+                    disabled
+                    :title="createDisabledTitle"
+                >
+                    <Plus class="h-4 w-4" />
+                    {{ t('users.create') }}
                 </Button>
             </div>
         </div>
