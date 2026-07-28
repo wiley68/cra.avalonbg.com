@@ -15,6 +15,7 @@ import type { ProductListItem } from '@/pages/products/columns';
 import { index as productsApiIndex } from '@/routes/internal/products';
 import { create, destroy } from '@/routes/products';
 import { index as productsIndex } from '@/routes/products';
+import { edit as editBilling } from '@/routes/settings/billing';
 
 type OrganizationSummary = {
     id: number;
@@ -171,6 +172,15 @@ onMounted(() => {
                 </p>
                 <p class="text-xs text-muted-foreground">
                     {{ quotaLabel }}
+                    <template v-if="isPendingPayment">
+                        —
+                        <Link
+                            :href="editBilling()"
+                            class="underline underline-offset-2 hover:text-foreground"
+                        >
+                            {{ t('products.view_billing') }}
+                        </Link>
+                    </template>
                 </p>
             </div>
 

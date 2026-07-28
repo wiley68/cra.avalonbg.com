@@ -17,6 +17,7 @@ class OrganizationRegistrationService
     public function __construct(
         private readonly OrganizationMembershipService $memberships,
         private readonly ControlService $controls,
+        private readonly BankPaymentService $bankPayments,
     ) {
     }
 
@@ -88,6 +89,10 @@ class OrganizationRegistrationService
 
             $this->memberships->attach($organization, $user, (int) $ownerRoleId);
             $this->controls->seedStarterCatalogue($organization, refreshExisting: false);
+
+            if ($billingStatus === BillingStatus::PendingPayment) {
+                $this->bankPayments->createRequest($organization, $user);
+            }
 
             return $user;
         });

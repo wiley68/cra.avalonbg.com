@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, Trash2, Users } from '@lucide/vue';
+import { ArrowLeft, BadgeCheck, Save, Trash2, Users } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
@@ -20,11 +20,12 @@ import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    activateBilling as activateBillingRoute,
     destroy,
+    edit as organizationsEdit,
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
-import { edit as organizationsEdit } from '@/routes/admin/organizations';
 import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 type OrganizationPayload = {
@@ -33,6 +34,10 @@ type OrganizationPayload = {
     slug: string;
     billing_email: string | null;
     subscription_plan: string | null;
+    billing_status: string;
+    billing_interval: string | null;
+    payment_method: string | null;
+    billing_activated_at: string | null;
     is_active: boolean;
     locale: string;
     users_count: number;
@@ -45,9 +50,22 @@ type SubscriptionPlanOption = {
     yearly_price_eur: number | null;
 };
 
+type PendingBankPayment = {
+    id: number;
+    subscription_plan: string;
+    billing_interval: string;
+    amount_eur: number;
+    currency: string;
+    payment_reference: string;
+    status: string;
+    created_at: string | null;
+} | null;
+
 const props = defineProps<{
     organization: OrganizationPayload;
     subscriptionPlans: SubscriptionPlanOption[];
+    pendingBankPayment: PendingBankPayment;
+    canActivateBilling: boolean;
 }>();
 
 const { t } = useTranslations();
@@ -61,6 +79,7 @@ usePageBreadcrumbs(() => [
 ]);
 const showDeleteDialog = ref(false);
 const deleting = ref(false);
+const activating = ref(false);
 
 const form = useForm({
     name: props.organization.name,
@@ -77,6 +96,20 @@ const submit = () => {
 
 const planLabel = (value: string): string =>
     t(`admin.organizations.plans.${value}`);
+
+const activateBilling = () => {
+    activating.value = true;
+    router.post(
+        activateBillingRoute(props.organization.id).url,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                activating.value = false;
+            },
+        },
+    );
+};
 
 const confirmDelete = () => {
     deleting.value = true;
@@ -182,6 +215,54 @@ const confirmDelete = () => {
                     {{ t('admin.organizations.subscription_plan_help') }}
                 </p>
                 <InputError :message="form.errors.subscription_plan" />
+            </div>
+
+            <div class="space-y-3 rounded-md border bg-muted/30 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-medium">
+                            {{ t('admin.organizations.billing_section') }}
+                        </p>
+                        <p class="text-sm text-muted-foreground">
+                            {{
+                                t(
+                                    'billing.status.' +
+                                        organization.billing_status,
+                                )
+                            }}
+                            <span v-if="organization.billing_interval">
+                                · {{ organization.billing_interval }}
+                            </span>
+                        </p>
+                    </div>
+                    <Button
+                        v-if="canActivateBilling"
+                        type="button"
+                        variant="outline"
+                        :disabled="activating"
+                        @click="activateBilling"
+                    >
+                        <BadgeCheck class="h-4 w-4" />
+                        {{ t('admin.organizations.activate_billing') }}
+                    </Button>
+                </div>
+
+                <div
+                    v-if="pendingBankPayment"
+                    class="space-y-1 text-sm text-muted-foreground"
+                >
+                    <p>
+                        {{ t('billing.payment_reference') }}:
+                        <span class="font-mono text-foreground">{{
+                            pendingBankPayment.payment_reference
+                        }}</span>
+                    </p>
+                    <p>
+                        {{ t('billing.amount') }}: €{{
+                            pendingBankPayment.amount_eur
+                        }}
+                    </p>
+                </div>
             </div>
 
             <div class="grid gap-2">

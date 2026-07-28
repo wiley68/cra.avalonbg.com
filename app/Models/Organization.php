@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BillingInterval;
 use App\Enums\BillingStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'subscription_plan',
     'billing_status',
     'billing_interval',
+    'payment_method',
+    'billing_activated_at',
     'trial_ends_at',
     'billing_email',
     'locale',
@@ -32,8 +35,10 @@ class Organization extends Model
         return [
             'is_active' => 'boolean',
             'trial_ends_at' => 'datetime',
+            'billing_activated_at' => 'datetime',
             'billing_status' => BillingStatus::class,
             'billing_interval' => BillingInterval::class,
+            'payment_method' => PaymentMethod::class,
         ];
     }
 
@@ -122,6 +127,11 @@ class Organization extends Model
         return $this->belongsToMany(User::class)
             ->withPivot(['role_id', 'invited_by', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function bankPaymentRequests(): HasMany
+    {
+        return $this->hasMany(OrganizationBankPaymentRequest::class);
     }
 
     public function products(): HasMany

@@ -44,4 +44,17 @@ return [
     |--------------------------------------------------------------------------
     */
     'default_plan' => 'free',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bank transfer instructions (invoicing remains outside the app)
+    |--------------------------------------------------------------------------
+    */
+    'bank' => [
+        'beneficiary' => env('BILLING_BANK_BENEFICIARY', 'Avalon BG EOOD'),
+        'iban' => env('BILLING_BANK_IBAN', ''),
+        'bic' => env('BILLING_BANK_BIC', ''),
+        'bank_name' => env('BILLING_BANK_NAME', ''),
+        'reference_prefix' => env('BILLING_BANK_REFERENCE_PREFIX', 'CRA'),
+    ],
 ];

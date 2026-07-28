@@ -216,6 +216,37 @@
             "small": "Small",
             "standard": "Standard",
             "enterprise": "Enterprise"
+        },
+        "status": {
+            "active": "Активен",
+            "pending_payment": "Изчаква плащане",
+            "past_due": "Просрочен",
+            "cancelled": "Отменен"
+        },
+        "title": "Фактуриране",
+        "description": "Статус на плана, банкови инструкции и заявки за плащане.",
+        "organization": "Организация",
+        "current_plan": "Текущ план",
+        "current_status": "Статус на плащане",
+        "pending_title": "Изчаква се банков превод",
+        "pending_help": "Преведете сумата с посочения референт. Администратор ще активира акаунта след потвърждаване на плащането. Фактурите се издават извън системата.",
+        "amount": "Сума",
+        "payment_reference": "Референт за плащане",
+        "bank_details": "Банкови данни",
+        "beneficiary": "Получател",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "bank_name": "Банка",
+        "invoice_outside_note": "Официалните фактури се създават извън приложението и могат да се прикачат по-късно.",
+        "request_help": "Създайте заявка за банков превод, за да получите инструкции и уникален референт.",
+        "request_bank_payment": "Заяви банков превод",
+        "request_created": "Заявката за банков превод е създадена.",
+        "active_help": "Фактурирането за тази организация е активно.",
+        "errors": {
+            "free_no_payment": "Безплатните планове не изискват банков превод.",
+            "already_active": "Фактурирането вече е активно за тази организация.",
+            "pending_exists": "Вече има чакаща заявка за банков превод.",
+            "request_not_pending": "Тази заявка за банков превод не е в статус „чакаща“."
         }
     },
     "admin": {
@@ -257,6 +288,9 @@
             "billing_email": "Имейл за фактуриране",
             "subscription_plan": "Абонаментен план",
             "subscription_plan_help": "Ограничава броя продукти, които организацията може да създаде.",
+            "billing_section": "Фактуриране",
+            "activate_billing": "Активирай при плащане",
+            "billing_activated": "Фактурирането е активирано.",
             "plans": {
                 "free": "Free",
                 "small": "Small",
@@ -931,6 +965,7 @@
         "plan_quota": ":used / :max продукта (:plan)",
         "plan_quota_unlimited": ":used продукта · :plan (без лимит)",
         "plan_pending_payment": "Плащането е в очакване — създаването на продукти е заключено до потвърждение.",
+        "view_billing": "Виж фактуриране / банкови инструкции",
         "create_disabled_limit": "Достигнат е лимитът на продукти за този план",
         "create_disabled_pending": "Изчаква се потвърждение на плащането",
         "modules_menu": "Модули",
@@ -4171,6 +4206,8 @@
             "sdl_run_approval_revoked": "Отменено одобрение на SDL запис",
             "sdl_run_exported": "Експортиран SDL запис",
             "integration_health_exported": "Експортирано здраве на интеграциите",
+            "bank_payment_requested": "Заявен банков превод",
+            "billing_activated": "Активирано фактуриране",
             "sdl_exception_recorded": "Записано SDL изключение",
             "sdl_exception_cleared": "Премахнато SDL изключение",
             "technical_documentation_created": "Техническа документация създадена",
@@ -4296,7 +4333,8 @@
             "security": "Сигурност",
             "appearance": "Изглед",
             "integrations": "Интеграции",
-            "integration_health": "Здраве на интеграциите"
+            "integration_health": "Здраве на интеграциите",
+            "billing": "Фактуриране"
         },
         "integrations": {
             "title": "Интеграции",

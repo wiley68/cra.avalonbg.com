@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\BillingStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\RoleSlug;
 use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
@@ -10,11 +11,13 @@ use App\Http\Requests\Admin\StoreOrganizationRequest;
 use App\Http\Requests\Admin\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\Role;
+use App\Services\BankPaymentService;
 use App\Services\ControlService;
 use App\Services\OrganizationMembershipService;
 use App\Services\OrganizationService;
 use App\Support\Translations;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +28,7 @@ class OrganizationController extends Controller
         private readonly OrganizationMembershipService $memberships,
         private readonly ControlService $controls,
         private readonly OrganizationService $organizations,
+        private readonly BankPaymentService $bankPayments,
     ) {
     }
 
@@ -54,6 +58,8 @@ class OrganizationController extends Controller
                 'subscription_plan' => $request->input('subscription_plan') ?: SubscriptionPlan::Free->value,
                 'billing_status' => BillingStatus::Active->value,
                 'billing_interval' => null,
+                'payment_method' => PaymentMethod::AdminComp->value,
+                'billing_activated_at' => now(),
                 'is_active' => $request->boolean('is_active', true),
                 'locale' => $request->string('locale')->toString(),
             ]);
@@ -99,6 +105,8 @@ class OrganizationController extends Controller
     {
         $this->authorize('update', $organization);
 
+        $pending = $this->bankPayments->pendingRequest($organization);
+
         return Inertia::render('admin/organizations/Edit', [
             'organization' => [
                 'id' => $organization->id,
@@ -107,11 +115,17 @@ class OrganizationController extends Controller
                 'billing_email' => $organization->billing_email,
                 'subscription_plan' => $organization->subscription_plan
                     ?: $organization->resolvedSubscriptionPlan()->value,
+                'billing_status' => $organization->resolvedBillingStatus()->value,
+                'billing_interval' => $organization->billing_interval?->value,
+                'payment_method' => $organization->payment_method?->value,
+                'billing_activated_at' => $organization->billing_activated_at?->toIso8601String(),
                 'is_active' => (bool) $organization->is_active,
                 'locale' => $organization->resolvedLocale(),
                 'users_count' => $organization->users()->count(),
             ],
+            'pendingBankPayment' => $this->bankPayments->requestPayload($pending),
             'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
+            'canActivateBilling' => !$organization->isBillingActive(),
         ]);
     }
 
@@ -136,6 +150,25 @@ class OrganizationController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => Translations::get('admin.organizations.updated'),
+        ]);
+
+        return redirect()->route('admin.organizations.edit', $organization);
+    }
+
+    public function activateBilling(Request $request, Organization $organization): RedirectResponse
+    {
+        $this->authorize('update', $organization);
+
+        $this->bankPayments->activate(
+            $organization,
+            $request->user(),
+            $this->bankPayments->pendingRequest($organization),
+            PaymentMethod::Bank,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('admin.organizations.billing_activated'),
         ]);
 
         return redirect()->route('admin.organizations.edit', $organization);

@@ -11,6 +11,7 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { index as integrationHealthIndex } from '@/routes/integrations/health';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
+import { edit as editBilling } from '@/routes/settings/billing';
 import { edit as editIntegrations } from '@/routes/settings/integrations';
 import type { NavItem } from '@/types';
 
@@ -33,6 +34,13 @@ const sidebarNavItems = computed<NavItem[]>(() => {
             href: editAppearance(),
         },
     ];
+
+    if (!user?.is_platform_admin) {
+        items.push({
+            title: t('settings.nav.billing'),
+            href: editBilling(),
+        });
+    }
 
     const canAccessIntegrations =
         Boolean(user?.can_view_products || user?.can_manage_products) &&

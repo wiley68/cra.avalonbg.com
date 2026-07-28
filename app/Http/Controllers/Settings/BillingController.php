@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Http\Controllers\Settings;
+
+use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Services\BankPaymentService;
+use App\Support\Translations;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class BillingController extends Controller
+{
+    public function __construct(
+        private readonly BankPaymentService $bankPayments,
+    ) {
+    }
+
+    public function edit(Request $request): Response
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('update', $organization);
+
+        $pending = $this->bankPayments->pendingRequest($organization);
+
+        return Inertia::render('settings/Billing', [
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'subscription_plan' => $organization->resolvedSubscriptionPlan()->value,
+                'billing_status' => $organization->resolvedBillingStatus()->value,
+                'billing_interval' => $organization->billing_interval?->value,
+                'billing_email' => $organization->billing_email,
+                'payment_method' => $organization->payment_method?->value,
+                'billing_activated_at' => $organization->billing_activated_at?->toIso8601String(),
+            ],
+            'pendingRequest' => $this->bankPayments->requestPayload($pending),
+            'bankInstructions' => $this->bankPayments->bankInstructions(),
+            'canRequestBankPayment' => !$organization->isBillingActive()
+                && $organization->resolvedSubscriptionPlan()->value !== 'free'
+                && $pending === null,
+        ]);
+    }
+
+    public function requestBankPayment(Request $request): RedirectResponse
+    {
+        $organization = $this->currentOrganization();
+        $this->authorize('update', $organization);
+
+        $this->bankPayments->createRequest(
+            $organization,
+            $request->user(),
+            $request->input('notes'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('billing.request_created'),
+        ]);
+
+        return redirect()->route('settings.billing.edit');
+    }
+
+    private function currentOrganization(): Organization
+    {
+        $organization = request()->user()?->currentOrganization();
+
+        if ($organization === null) {
+            abort(403, 'No organization membership.');
+        }
+
+        return $organization;
+    }
+}

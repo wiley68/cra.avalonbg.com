@@ -216,6 +216,37 @@
             "small": "Small",
             "standard": "Standard",
             "enterprise": "Enterprise"
+        },
+        "status": {
+            "active": "Active",
+            "pending_payment": "Pending payment",
+            "past_due": "Past due",
+            "cancelled": "Cancelled"
+        },
+        "title": "Billing",
+        "description": "Plan status, bank transfer instructions, and payment requests.",
+        "organization": "Organization",
+        "current_plan": "Current plan",
+        "current_status": "Billing status",
+        "pending_title": "Awaiting bank payment",
+        "pending_help": "Transfer the amount using the reference below. An administrator will activate the account after payment is confirmed. Invoices are issued outside this system.",
+        "amount": "Amount",
+        "payment_reference": "Payment reference",
+        "bank_details": "Bank details",
+        "beneficiary": "Beneficiary",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "bank_name": "Bank",
+        "invoice_outside_note": "Official invoices are created outside the app and can be attached later.",
+        "request_help": "Create a bank payment request to receive transfer instructions and a unique payment reference.",
+        "request_bank_payment": "Request bank payment",
+        "request_created": "Bank payment request created.",
+        "active_help": "Billing is active for this organization.",
+        "errors": {
+            "free_no_payment": "Free plans do not require bank payment.",
+            "already_active": "Billing is already active for this organization.",
+            "pending_exists": "A pending bank payment request already exists.",
+            "request_not_pending": "This bank payment request is not pending."
         }
     },
     "admin": {
@@ -257,6 +288,9 @@
             "billing_email": "Billing email",
             "subscription_plan": "Subscription plan",
             "subscription_plan_help": "Limits how many products the organization may create.",
+            "billing_section": "Billing",
+            "activate_billing": "Activate on payment",
+            "billing_activated": "Billing activated.",
             "plans": {
                 "free": "Free",
                 "small": "Small",
@@ -931,6 +965,7 @@
         "plan_quota": ":used / :max products (:plan)",
         "plan_quota_unlimited": ":used products · :plan (unlimited)",
         "plan_pending_payment": "Billing pending — product creation is locked until payment is confirmed.",
+        "view_billing": "View billing / bank instructions",
         "create_disabled_limit": "Product limit reached for this plan",
         "create_disabled_pending": "Waiting for payment confirmation",
         "modules_menu": "Modules",
@@ -4171,6 +4206,8 @@
             "sdl_run_approval_revoked": "SDL run approval revoked",
             "sdl_run_exported": "SDL run exported",
             "integration_health_exported": "Integration health exported",
+            "bank_payment_requested": "Bank payment requested",
+            "billing_activated": "Billing activated",
             "sdl_exception_recorded": "SDL exception recorded",
             "sdl_exception_cleared": "SDL exception cleared",
             "technical_documentation_created": "Technical documentation created",
@@ -4296,7 +4333,8 @@
             "security": "Security",
             "appearance": "Appearance",
             "integrations": "Integrations",
-            "integration_health": "Integration health"
+            "integration_health": "Integration health",
+            "billing": "Billing"
         },
         "integrations": {
             "title": "Integrations",

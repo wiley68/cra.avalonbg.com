@@ -604,6 +604,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('admin')->name('admin.')->middleware('can:platform.admin')->group(function () {
             Route::resource('organizations', AdminOrganizationController::class)
                 ->except(['show']);
+            Route::post(
+                'organizations/{organization}/activate-billing',
+                [AdminOrganizationController::class, 'activateBilling'],
+            )->name('organizations.activate-billing');
 
             Route::resource('organizations.users', AdminOrganizationUserController::class)
                 ->except(['show'])
@@ -636,4 +640,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

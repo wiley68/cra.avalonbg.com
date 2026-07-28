@@ -17,6 +17,7 @@ use App\Models\IncidentReport;
 use App\Models\IncidentTimelineEvent;
 use App\Models\IntegrationSyncRun;
 use App\Models\Organization;
+use App\Models\OrganizationBankPaymentRequest;
 use App\Models\OrganizationIntegration;
 use App\Models\OrganizationVcsConnection;
 use App\Models\OrgPolicy;
@@ -155,6 +156,62 @@ class AuditLogger
                 ['field' => 'target_user_id', 'value' => (string) $target->id],
                 ['field' => 'target_email', 'value' => $target->email],
             ],
+        );
+    }
+
+    public static function logBankPaymentRequested(
+        OrganizationBankPaymentRequest $request,
+        User $actor,
+    ): void {
+        self::persist(
+            type: AuditEventType::BankPaymentRequested,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $request->organization_id,
+            details: [
+                ['field' => 'request_id', 'value' => (string) $request->id],
+                ['field' => 'subscription_plan', 'value' => $request->subscription_plan],
+                [
+                    'field' => 'billing_interval',
+                    'value' => $request->billing_interval instanceof \App\Enums\BillingInterval
+                        ? $request->billing_interval->value
+                        : (string) $request->billing_interval
+                ],
+                ['field' => 'amount_eur', 'value' => (string) $request->amount_eur],
+                ['field' => 'payment_reference', 'value' => $request->payment_reference],
+            ],
+        );
+    }
+
+    public static function logBillingActivated(
+        Organization $organization,
+        User $actor,
+        ?OrganizationBankPaymentRequest $request = null,
+    ): void {
+        $details = [
+            ['field' => 'subscription_plan', 'value' => (string) $organization->subscription_plan],
+            ['field' => 'billing_status', 'value' => $organization->resolvedBillingStatus()->value],
+            [
+                'field' => 'payment_method',
+                'value' => $organization->payment_method instanceof \App\Enums\PaymentMethod
+                    ? $organization->payment_method->value
+                    : (string) ($organization->payment_method ?? '')
+            ],
+        ];
+
+        if ($request !== null) {
+            $details[] = ['field' => 'request_id', 'value' => (string) $request->id];
+            $details[] = ['field' => 'payment_reference', 'value' => $request->payment_reference];
+        }
+
+        self::persist(
+            type: AuditEventType::BillingActivated,
+            success: true,
+            source: self::resolveSource(),
+            actor: $actor,
+            organizationId: $organization->id,
+            details: $details,
         );
     }
 

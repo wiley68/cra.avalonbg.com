@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AppearanceController;
+use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\Settings\IntegrationController;
 use App\Http\Controllers\Settings\OrganizationController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -31,6 +32,11 @@ Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
 
     Route::get('settings/appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
     Route::patch('settings/appearance', [AppearanceController::class, 'update'])->name('appearance.update');
+
+    Route::get('settings/billing', [BillingController::class, 'edit'])
+        ->name('settings.billing.edit');
+    Route::post('settings/billing/bank-payment', [BillingController::class, 'requestBankPayment'])
+        ->name('settings.billing.bank-payment.store');
 
     Route::get('settings/integrations', [IntegrationController::class, 'edit'])
         ->name('settings.integrations.edit');

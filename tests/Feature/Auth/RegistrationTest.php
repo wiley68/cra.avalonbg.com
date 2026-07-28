@@ -83,6 +83,12 @@ test('paid plan registration creates pending payment organization', function () 
         ->and($organization->billing_status)->toBe(BillingStatus::PendingPayment)
         ->and($organization->billing_interval)->toBe(BillingInterval::Year)
         ->and($organization->canAddProduct())->toBeFalse();
+
+    $bankRequest = $organization->bankPaymentRequests()->first();
+    expect($bankRequest)->not->toBeNull()
+        ->and($bankRequest->status->value)->toBe('pending')
+        ->and((float) $bankRequest->amount_eur)->toBe(278.40)
+        ->and($bankRequest->billing_interval)->toBe(BillingInterval::Year);
 });
 
 test('registration requires organization name and plan', function () {

@@ -138,6 +138,8 @@ enum AuditEventType: string
     case AiVulnerabilityTriageSuggested = 'ai_vulnerability_triage_suggested';
     case AiImportedFindingTriageSuggested = 'ai_imported_finding_triage_suggested';
     case IntegrationHealthExported = 'integration_health_exported';
+    case BankPaymentRequested = 'bank_payment_requested';
+    case BillingActivated = 'billing_activated';
 
     public function label(): string
     {

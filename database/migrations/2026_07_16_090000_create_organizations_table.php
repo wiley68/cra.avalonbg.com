@@ -18,6 +18,8 @@ return new class extends Migration {
             $table->string('subscription_plan')->default('free');
             $table->string('billing_status')->default('active');
             $table->string('billing_interval')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->timestamp('billing_activated_at')->nullable();
             $table->timestamp('trial_ends_at')->nullable();
             $table->string('billing_email')->nullable();
             $table->string('locale', 5)->default('en');
