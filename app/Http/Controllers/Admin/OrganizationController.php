@@ -118,7 +118,6 @@ class OrganizationController extends Controller
                 'subscription_plan' => $organization->subscription_plan
                     ?: $organization->resolvedSubscriptionPlan()->value,
                 'is_active' => (bool) $organization->is_active,
-                'sso_enabled' => (bool) $organization->sso_enabled,
                 'locale' => $organization->resolvedLocale(),
                 'users_count' => $organization->users()->count(),
             ],
@@ -166,7 +165,6 @@ class OrganizationController extends Controller
             'billing_email' => $request->input('billing_email'),
             'subscription_plan' => $nextPlan,
             'is_active' => $request->boolean('is_active'),
-            'sso_enabled' => $request->boolean('sso_enabled'),
             'locale' => $locale,
         ]);
 

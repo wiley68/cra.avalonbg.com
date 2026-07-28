@@ -110,17 +110,14 @@ class Organization extends Model
     }
 
     /**
-     * Enterprise always; Standard only when sso_enabled flag is on.
+     * Standard and Enterprise include OIDC SSO.
      */
     public function canUseSso(): bool
     {
         $plan = $this->resolvedSubscriptionPlan();
 
-        if ($plan === SubscriptionPlan::Enterprise) {
-            return true;
-        }
-
-        return $plan === SubscriptionPlan::Standard && (bool) $this->sso_enabled;
+        return $plan === SubscriptionPlan::Enterprise
+            || $plan === SubscriptionPlan::Standard;
     }
 
     /**

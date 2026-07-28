@@ -22,7 +22,6 @@ class UpsertOrganizationSsoRequest extends FormRequest
     {
         $this->merge([
             'is_enabled' => $this->boolean('is_enabled'),
-            'sso_enabled' => $this->boolean('sso_enabled'),
         ]);
     }
 
@@ -38,7 +37,6 @@ class UpsertOrganizationSsoRequest extends FormRequest
             'client_secret' => ['nullable', 'string', 'max:2000'],
             'allowed_email_domains' => ['required', 'string', 'max:2000'],
             'is_enabled' => ['boolean'],
-            'sso_enabled' => ['boolean'],
         ];
     }
 }

@@ -131,8 +131,16 @@ test('small plan cannot configure sso', function () {
         ->assertSessionHasErrors('sso');
 });
 
-test('standard plan can configure sso when flag enabled', function () {
+test('standard plan can configure sso without optional flag', function () {
     ['organization' => $organization, 'owner' => $owner] = makeSsoOrg('standard', false);
+
+    $this->actingAs($owner)
+        ->get(route('settings.sso.edit'))
+        ->assertOk()
+        ->assertInertia(fn($page) => $page
+            ->component('settings/Sso')
+            ->where('organization.can_use_sso', true)
+            ->missing('organization.can_toggle_sso_flag'));
 
     $this->actingAs($owner)
         ->put(route('settings.sso.update'), [
@@ -142,12 +150,43 @@ test('standard plan can configure sso when flag enabled', function () {
             'client_secret' => 'secret',
             'allowed_email_domains' => 'company.com',
             'is_enabled' => true,
-            'sso_enabled' => true,
         ])
         ->assertRedirect(route('settings.sso.edit'));
 
-    expect($organization->fresh()->sso_enabled)->toBeTrue()
+    expect($organization->fresh()->canUseSso())->toBeTrue()
         ->and($organization->fresh()->ssoConnection)->not->toBeNull();
+});
+
+test('standard plan sso login works like enterprise', function () {
+    ['organization' => $organization, 'owner' => $owner] = makeSsoOrg('standard', false);
+    fakeOidcDiscovery();
+
+    OrganizationSsoConnection::query()->create([
+        'organization_id' => $organization->id,
+        'provider' => SsoProvider::Generic->value,
+        'issuer' => 'https://idp.example.com',
+        'client_id' => 'client-123',
+        'client_secret' => 'secret',
+        'allowed_email_domains' => ['company.com'],
+        'is_enabled' => true,
+    ]);
+
+    $this->post(route('auth.sso.redirect'), [
+        'email_or_slug' => 'anyone@company.com',
+    ])->assertRedirect();
+
+    $this->withSession([
+        'sso' => [
+            'state' => 'test-state',
+            'nonce' => 'test-nonce',
+            'organization_id' => $organization->id,
+        ],
+    ])->get(route('auth.sso.callback', [
+                    'state' => 'test-state',
+                    'code' => 'auth-code',
+                ]))->assertRedirect('/dashboard');
+
+    $this->assertAuthenticatedAs($owner);
 });
 
 test('sso redirect starts oidc authorize for matching domain', function () {

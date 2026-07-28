@@ -417,7 +417,8 @@
             "confirm_delete_title": "Delete organization permanently?",
             "confirm_delete": "This permanently deletes the organization, all its products, controls, evidence and related data, and removes member accounts that belong only to this organization. This cannot be undone.",
             "sso_enabled": "SSO enabled (Standard)",
-            "sso_enabled_help": "Allows Standard plans to configure OIDC SSO. Enterprise always includes SSO."
+            "sso_enabled_help": "Deprecated — Standard and Enterprise always include SSO.",
+            "sso_included_help": "Standard and Enterprise plans include OIDC SSO configuration under Settings → SSO."
         },
         "requirements": {
             "index_title": "Requirements catalogue",
@@ -4651,7 +4652,7 @@
         "title": "Single sign-on",
         "description": "Connect an OpenID Connect identity provider (Microsoft Entra ID or generic OIDC).",
         "current_plan": "Current plan",
-        "plan_locked": "SSO is available on Enterprise (and optionally Standard when enabled by an admin).",
+        "plan_locked": "SSO is available on Standard and Enterprise plans.",
         "enable_for_standard": "Enable SSO for this Standard organization",
         "provider": "Provider",
         "providers": {

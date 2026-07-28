@@ -31,7 +31,6 @@ class UpdateOrganizationRequest extends FormRequest
 
         $this->merge([
             'is_active' => $this->boolean('is_active'),
-            'sso_enabled' => $this->boolean('sso_enabled'),
             'subscription_plan' => ($plan === null || $plan === '')
                 ? SubscriptionPlan::Free->value
                 : $plan,
@@ -57,7 +56,6 @@ class UpdateOrganizationRequest extends FormRequest
             'billing_email' => ['nullable', 'email', 'max:255'],
             'subscription_plan' => ['required', Rule::enum(SubscriptionPlan::class)],
             'is_active' => ['boolean'],
-            'sso_enabled' => ['boolean'],
             'locale' => ['required', 'string', Rule::in(Organization::LOCALES)],
         ];
     }

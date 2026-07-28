@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\SsoProvider;
-use App\Enums\SubscriptionPlan;
 use App\Models\Organization;
 use App\Models\OrganizationSsoConnection;
 use App\Models\User;
@@ -46,22 +45,11 @@ class OrganizationSsoService
      *     client_id: string,
      *     client_secret?: string|null,
      *     allowed_email_domains?: list<string>|string|null,
-     *     is_enabled?: bool,
-     *     sso_enabled?: bool
+     *     is_enabled?: bool
      * }  $input
      */
     public function upsert(Organization $organization, User $actor, array $input): OrganizationSsoConnection
     {
-        if (
-            array_key_exists('sso_enabled', $input)
-            && $organization->resolvedSubscriptionPlan() === SubscriptionPlan::Standard
-        ) {
-            $organization->forceFill([
-                'sso_enabled' => (bool) $input['sso_enabled'],
-            ])->save();
-            $organization = $organization->fresh() ?? $organization;
-        }
-
         if (!$organization->canUseSso()) {
             throw ValidationException::withMessages([
                 'sso' => Translations::get('sso.errors.plan_not_allowed'),

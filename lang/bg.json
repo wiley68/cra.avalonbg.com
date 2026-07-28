@@ -417,7 +417,8 @@
             "confirm_delete_title": "Да се изтрие ли организацията завинаги?",
             "confirm_delete": "Това окончателно изтрива организацията, всички нейни продукти, контроли, доказателства и свързани данни, както и потребителските акаунти, които принадлежат само на тази организация. Действието е необратимо.",
             "sso_enabled": "SSO включено (Standard)",
-            "sso_enabled_help": "Позволява на Standard план да конфигурира OIDC SSO. Enterprise винаги включва SSO."
+            "sso_enabled_help": "Остаряло — Standard и Enterprise винаги включват SSO.",
+            "sso_included_help": "Плановете Standard и Enterprise включват OIDC SSO конфигурация в Настройки → SSO."
         },
         "requirements": {
             "index_title": "Каталог изисквания",
@@ -4651,7 +4652,7 @@
         "title": "Единен вход (SSO)",
         "description": "Свържете OpenID Connect доставчик (Microsoft Entra ID или generic OIDC).",
         "current_plan": "Текущ план",
-        "plan_locked": "SSO е наличен за Enterprise (и по желание за Standard, когато е включен от админ).",
+        "plan_locked": "SSO е наличен за плановете Standard и Enterprise.",
         "enable_for_standard": "Включи SSO за тази Standard организация",
         "provider": "Доставчик",
         "providers": {

@@ -35,7 +35,6 @@ type OrganizationPayload = {
     billing_email: string | null;
     subscription_plan: string | null;
     is_active: boolean;
-    sso_enabled: boolean;
     locale: string;
     users_count: number;
 };
@@ -70,7 +69,6 @@ const form = useForm({
     billing_email: props.organization.billing_email ?? '',
     subscription_plan: props.organization.subscription_plan ?? 'free',
     is_active: Boolean(props.organization.is_active),
-    sso_enabled: Boolean(props.organization.sso_enabled),
     locale: props.organization.locale || 'en',
 });
 
@@ -232,28 +230,14 @@ const confirmDelete = () => {
             </div>
             <InputError :message="form.errors.is_active" />
 
-            <div
-                v-if="form.subscription_plan === 'standard'"
-                class="flex items-center gap-3"
-            >
-                <Switch
-                    id="sso_enabled"
-                    v-model="form.sso_enabled"
-                    class="cursor-pointer"
-                />
-                <Label for="sso_enabled" class="cursor-pointer">
-                    {{ t('admin.organizations.sso_enabled') }}
-                </Label>
-            </div>
-            <InputError
-                v-if="form.subscription_plan === 'standard'"
-                :message="form.errors.sso_enabled"
-            />
             <p
-                v-if="form.subscription_plan === 'standard'"
+                v-if="
+                    form.subscription_plan === 'standard' ||
+                    form.subscription_plan === 'enterprise'
+                "
                 class="text-xs text-muted-foreground"
             >
-                {{ t('admin.organizations.sso_enabled_help') }}
+                {{ t('admin.organizations.sso_included_help') }}
             </p>
 
             <p class="text-sm text-muted-foreground">

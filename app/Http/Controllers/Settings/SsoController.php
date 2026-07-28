@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpsertOrganizationSsoRequest;
 use App\Models\Organization;
@@ -33,9 +32,7 @@ class SsoController extends Controller
                 'name' => $organization->name,
                 'slug' => $organization->slug,
                 'subscription_plan' => $plan->value,
-                'sso_enabled' => (bool) $organization->sso_enabled,
                 'can_use_sso' => $organization->canUseSso(),
-                'can_toggle_sso_flag' => $plan === SubscriptionPlan::Standard,
             ],
             'connection' => $this->sso->connectionPayload($organization->ssoConnection),
             'providers' => [

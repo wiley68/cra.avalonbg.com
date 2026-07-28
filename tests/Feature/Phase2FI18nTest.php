@@ -74,7 +74,7 @@ test('phase 2_F critical ui keys resolve in english and bulgarian', function () 
         'products.plan_pending_payment',
         'products.create_disabled_limit',
         'products.create_disabled_pending',
-        'admin.organizations.sso_enabled',
+        'admin.organizations.sso_included_help',
         'admin.organizations.billing_activated',
         'billing.plans.free',
         'billing.plans.small',
