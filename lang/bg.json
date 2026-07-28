@@ -318,6 +318,7 @@
             "subscription_plan": "Абонаментен план",
             "subscription_plan_help": "Ограничава броя продукти, които организацията може да създаде.",
             "billing_section": "Фактуриране",
+            "billing_page_title": "Фактуриране",
             "activate_billing": "Активирай при плащане",
             "billing_activated": "Фактурирането е активирано.",
             "plans": {

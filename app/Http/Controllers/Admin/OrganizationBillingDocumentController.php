@@ -41,7 +41,7 @@ class OrganizationBillingDocumentController extends Controller
             'message' => Translations::get('billing.documents.uploaded'),
         ]);
 
-        return redirect()->route('admin.organizations.edit', $organization);
+        return redirect()->route('admin.organizations.billing', $organization);
     }
 
     public function download(
@@ -69,7 +69,7 @@ class OrganizationBillingDocumentController extends Controller
             'message' => Translations::get('billing.documents.sent'),
         ]);
 
-        return redirect()->route('admin.organizations.edit', $organization);
+        return redirect()->route('admin.organizations.billing', $organization);
     }
 
     public function destroy(
@@ -87,7 +87,7 @@ class OrganizationBillingDocumentController extends Controller
             'message' => Translations::get('billing.documents.deleted'),
         ]);
 
-        return redirect()->route('admin.organizations.edit', $organization);
+        return redirect()->route('admin.organizations.billing', $organization);
     }
 
     private function assertDocumentBelongs(

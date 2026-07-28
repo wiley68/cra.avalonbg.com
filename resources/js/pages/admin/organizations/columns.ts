@@ -1,10 +1,10 @@
 import { router } from '@inertiajs/vue3';
-import { ArrowUpDown, Pencil, Trash2, Users } from '@lucide/vue';
+import { ArrowUpDown, Banknote, Pencil, Trash2, Users } from '@lucide/vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { h } from 'vue';
 import TableRowActionsMenu from '@/components/table/TableRowActionsMenu.vue';
 import { Button } from '@/components/ui/button';
-import { edit } from '@/routes/admin/organizations';
+import { billing, edit } from '@/routes/admin/organizations';
 import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 export type OrganizationListItem = {
@@ -145,6 +145,13 @@ export const createOrganizationColumns = (
                             router.visit(
                                 organizationUsersIndex(row.original.id).url,
                             );
+                        },
+                    },
+                    {
+                        label: t('admin.organizations.billing_page_title'),
+                        icon: Banknote,
+                        onSelect: () => {
+                            router.visit(billing(row.original.id).url);
                         },
                     },
                     {

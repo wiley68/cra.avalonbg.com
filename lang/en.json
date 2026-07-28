@@ -318,6 +318,7 @@
             "subscription_plan": "Subscription plan",
             "subscription_plan_help": "Limits how many products the organization may create.",
             "billing_section": "Billing",
+            "billing_page_title": "Billing",
             "activate_billing": "Activate on payment",
             "billing_activated": "Billing activated.",
             "plans": {

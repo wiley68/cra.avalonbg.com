@@ -155,7 +155,7 @@ test('admin can upload and send billing documents for an organization', function
             'title' => 'Admin invoice',
             'file' => billingPdf('admin-invoice.pdf'),
         ])
-        ->assertRedirect(route('admin.organizations.edit', $organization));
+        ->assertRedirect(route('admin.organizations.billing', $organization));
 
     /** @var OrganizationBillingDocument $document */
     $document = $organization->billingDocuments()->firstOrFail();

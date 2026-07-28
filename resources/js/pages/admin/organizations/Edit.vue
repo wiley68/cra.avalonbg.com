@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, BadgeCheck, Save, Trash2, Users } from '@lucide/vue';
+import { ArrowLeft, Banknote, Save, Trash2, Users } from '@lucide/vue';
 import { ref } from 'vue';
 import AppAlertDialog from '@/components/AppAlertDialog.vue';
-import BillingDocumentsPanel from '@/components/billing/BillingDocumentsPanel.vue';
 import HeaderActionButton from '@/components/HeaderActionButton.vue';
 import InputError from '@/components/InputError.vue';
 import PageFormHeader from '@/components/PageFormHeader.vue';
@@ -21,18 +20,12 @@ import { Switch } from '@/components/ui/switch';
 import { usePageBreadcrumbs } from '@/composables/usePageBreadcrumbs';
 import { useTranslations } from '@/composables/useTranslations';
 import {
-    activateBilling as activateBillingRoute,
+    billing as organizationsBilling,
     destroy,
     edit as organizationsEdit,
     index as organizationsIndex,
     update,
 } from '@/routes/admin/organizations';
-import {
-    destroy as destroyBillingDocument,
-    download as downloadBillingDocument,
-    send as sendBillingDocument,
-    store as storeBillingDocument,
-} from '@/routes/admin/organizations/billing-documents';
 import { index as organizationUsersIndex } from '@/routes/admin/organizations/users';
 
 type OrganizationPayload = {
@@ -41,10 +34,6 @@ type OrganizationPayload = {
     slug: string;
     billing_email: string | null;
     subscription_plan: string | null;
-    billing_status: string;
-    billing_interval: string | null;
-    payment_method: string | null;
-    billing_activated_at: string | null;
     is_active: boolean;
     locale: string;
     users_count: number;
@@ -57,38 +46,9 @@ type SubscriptionPlanOption = {
     yearly_price_eur: number | null;
 };
 
-type PendingBankPayment = {
-    id: number;
-    subscription_plan: string;
-    billing_interval: string;
-    amount_eur: number;
-    currency: string;
-    payment_reference: string;
-    status: string;
-    created_at: string | null;
-} | null;
-
-type BillingDocumentItem = {
-    id: number;
-    type: string;
-    title: string;
-    source_filename: string;
-    size_bytes: number;
-    mime_type: string | null;
-    sent_at: string | null;
-    sent_to_email: string | null;
-    notes: string | null;
-    created_at: string | null;
-};
-
 const props = defineProps<{
     organization: OrganizationPayload;
     subscriptionPlans: SubscriptionPlanOption[];
-    pendingBankPayment: PendingBankPayment;
-    canActivateBilling: boolean;
-    billingDocuments: BillingDocumentItem[];
-    documentRecipientEmail: string | null;
-    documentTypes: string[];
 }>();
 
 const { t } = useTranslations();
@@ -102,7 +62,6 @@ usePageBreadcrumbs(() => [
 ]);
 const showDeleteDialog = ref(false);
 const deleting = ref(false);
-const activating = ref(false);
 
 const form = useForm({
     name: props.organization.name,
@@ -119,20 +78,6 @@ const submit = () => {
 
 const planLabel = (value: string): string =>
     t(`admin.organizations.plans.${value}`);
-
-const activateBilling = () => {
-    activating.value = true;
-    router.post(
-        activateBillingRoute(props.organization.id).url,
-        {},
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                activating.value = false;
-            },
-        },
-    );
-};
 
 const confirmDelete = () => {
     deleting.value = true;
@@ -161,6 +106,12 @@ const confirmDelete = () => {
                     :href="organizationsIndex()"
                 >
                     <ArrowLeft class="h-4 w-4" />
+                </HeaderActionButton>
+                <HeaderActionButton
+                    :label="t('admin.organizations.billing_page_title')"
+                    :href="organizationsBilling(props.organization.id)"
+                >
+                    <Banknote class="h-4 w-4" />
                 </HeaderActionButton>
                 <HeaderActionButton
                     :label="t('nav.users')"
@@ -240,54 +191,6 @@ const confirmDelete = () => {
                 <InputError :message="form.errors.subscription_plan" />
             </div>
 
-            <div class="space-y-3 rounded-md border bg-muted/30 p-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="text-sm font-medium">
-                            {{ t('admin.organizations.billing_section') }}
-                        </p>
-                        <p class="text-sm text-muted-foreground">
-                            {{
-                                t(
-                                    'billing.status.' +
-                                        organization.billing_status,
-                                )
-                            }}
-                            <span v-if="organization.billing_interval">
-                                · {{ organization.billing_interval }}
-                            </span>
-                        </p>
-                    </div>
-                    <Button
-                        v-if="canActivateBilling"
-                        type="button"
-                        variant="outline"
-                        :disabled="activating"
-                        @click="activateBilling"
-                    >
-                        <BadgeCheck class="h-4 w-4" />
-                        {{ t('admin.organizations.activate_billing') }}
-                    </Button>
-                </div>
-
-                <div
-                    v-if="pendingBankPayment"
-                    class="space-y-1 text-sm text-muted-foreground"
-                >
-                    <p>
-                        {{ t('billing.payment_reference') }}:
-                        <span class="font-mono text-foreground">{{
-                            pendingBankPayment.payment_reference
-                        }}</span>
-                    </p>
-                    <p>
-                        {{ t('billing.amount') }}: €{{
-                            pendingBankPayment.amount_eur
-                        }}
-                    </p>
-                </div>
-            </div>
-
             <div class="grid gap-2">
                 <Label for="locale">{{
                     t('admin.organizations.locale')
@@ -337,35 +240,6 @@ const confirmDelete = () => {
                 {{ t('common.save') }}
             </Button>
         </form>
-
-        <BillingDocumentsPanel
-            :documents="billingDocuments"
-            :can-manage="true"
-            :document-types="documentTypes"
-            :recipient-email="documentRecipientEmail"
-            :store-url="storeBillingDocument(organization.id).url"
-            :download-url="
-                (id) =>
-                    downloadBillingDocument({
-                        organization: organization.id,
-                        document: id,
-                    }).url
-            "
-            :send-url="
-                (id) =>
-                    sendBillingDocument({
-                        organization: organization.id,
-                        document: id,
-                    }).url
-            "
-            :destroy-url="
-                (id) =>
-                    destroyBillingDocument({
-                        organization: organization.id,
-                        document: id,
-                    }).url
-            "
-        />
 
         <section class="space-y-3 rounded-lg border border-destructive/40 p-6">
             <h2 class="text-sm font-semibold text-destructive">

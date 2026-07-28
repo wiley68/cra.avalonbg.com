@@ -131,7 +131,7 @@ test('admin activates billing on payment and unlocks products', function () {
 
     $this->actingAs($admin)
         ->post(route('admin.organizations.activate-billing', $organization))
-        ->assertRedirect(route('admin.organizations.edit', $organization));
+        ->assertRedirect(route('admin.organizations.billing', $organization));
 
     $organization->refresh();
     $request = $organization->bankPaymentRequests()->latest('id')->first();

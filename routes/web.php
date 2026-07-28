@@ -609,6 +609,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'organizations/{organization}/activate-billing',
                 [AdminOrganizationController::class, 'activateBilling'],
             )->name('organizations.activate-billing');
+            Route::get(
+                'organizations/{organization}/billing',
+                [AdminOrganizationController::class, 'billing'],
+            )->name('organizations.billing');
             Route::post(
                 'organizations/{organization}/billing-documents',
                 [AdminOrganizationBillingDocumentController::class, 'store'],

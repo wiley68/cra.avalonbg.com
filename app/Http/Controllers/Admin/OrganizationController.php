@@ -108,9 +108,29 @@ class OrganizationController extends Controller
     {
         $this->authorize('update', $organization);
 
+        return Inertia::render('admin/organizations/Edit', [
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'slug' => $organization->slug,
+                'billing_email' => $organization->billing_email,
+                'subscription_plan' => $organization->subscription_plan
+                    ?: $organization->resolvedSubscriptionPlan()->value,
+                'is_active' => (bool) $organization->is_active,
+                'locale' => $organization->resolvedLocale(),
+                'users_count' => $organization->users()->count(),
+            ],
+            'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
+        ]);
+    }
+
+    public function billing(Organization $organization): Response
+    {
+        $this->authorize('update', $organization);
+
         $pending = $this->bankPayments->pendingRequest($organization);
 
-        return Inertia::render('admin/organizations/Edit', [
+        return Inertia::render('admin/organizations/Billing', [
             'organization' => [
                 'id' => $organization->id,
                 'name' => $organization->name,
@@ -122,12 +142,8 @@ class OrganizationController extends Controller
                 'billing_interval' => $organization->billing_interval?->value,
                 'payment_method' => $organization->payment_method?->value,
                 'billing_activated_at' => $organization->billing_activated_at?->toIso8601String(),
-                'is_active' => (bool) $organization->is_active,
-                'locale' => $organization->resolvedLocale(),
-                'users_count' => $organization->users()->count(),
             ],
             'pendingBankPayment' => $this->bankPayments->requestPayload($pending),
-            'subscriptionPlans' => SubscriptionPlan::catalogPayload(),
             'canActivateBilling' => !$organization->isBillingActive(),
             'billingDocuments' => $this->billingDocuments->listPayload($organization),
             'documentRecipientEmail' => $this->billingDocuments->resolveRecipientEmail($organization),
@@ -177,7 +193,7 @@ class OrganizationController extends Controller
             'message' => Translations::get('admin.organizations.billing_activated'),
         ]);
 
-        return redirect()->route('admin.organizations.edit', $organization);
+        return redirect()->route('admin.organizations.billing', $organization);
     }
 
     public function destroy(Organization $organization): RedirectResponse
