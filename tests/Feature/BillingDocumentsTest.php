@@ -143,6 +143,54 @@ test('tenant cannot send or delete billing documents', function () {
     Mail::assertNothingSent();
 });
 
+test('admin can generate a simple license PDF document', function () {
+    Storage::fake('local');
+    [$organization] = makeOrgWithBillingEmail();
+    $organization->update([
+        'billing_interval' => 'year',
+        'payment_method' => 'bank',
+        'billing_activated_at' => now(),
+    ]);
+    $admin = makeBillingPlatformAdmin();
+
+    $this->actingAs($admin)
+        ->post(route('admin.organizations.billing-documents.generate-license', $organization))
+        ->assertRedirect(route('admin.organizations.billing', $organization));
+
+    /** @var OrganizationBillingDocument $document */
+    $document = $organization->billingDocuments()->firstOrFail();
+
+    expect($document->typeValue())->toBe(BillingDocumentType::License->value)
+        ->and($document->mime_type)->toBe('application/pdf')
+        ->and($document->source_filename)->toContain('license-')
+        ->and(Storage::disk('local')->get($document->storage_path))->toStartWith('%PDF');
+
+    $this->actingAs($admin)
+        ->get(route('admin.organizations.billing-documents.download', [$organization, $document]))
+        ->assertOk();
+
+    $audit = AuditLog::query()
+        ->where('event_type', AuditEventType::BillingDocumentUploaded->value)
+        ->latest('id')
+        ->first();
+
+    expect($audit)->not->toBeNull();
+    $decoded = json_decode((string) $audit->description, true);
+    expect(collect($decoded)->firstWhere('field', 'source')['value'] ?? null)
+        ->toBe('generated');
+});
+
+test('tenant cannot generate license PDF', function () {
+    Storage::fake('local');
+    [$organization, $owner] = makeOrgWithBillingEmail();
+
+    $this->actingAs($owner)
+        ->post(route('admin.organizations.billing-documents.generate-license', $organization))
+        ->assertForbidden();
+
+    expect($organization->billingDocuments()->count())->toBe(0);
+});
+
 test('admin can upload and send billing documents for an organization', function () {
     Storage::fake('local');
     Mail::fake();

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3';
-import { Download, Mail, Plus, Trash2 } from '@lucide/vue';
+import { Download, FileText, Mail, Plus, Trash2 } from '@lucide/vue';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ const props = withDefaults(
         documentTypes?: string[];
         recipientEmail?: string | null;
         storeUrl?: string | null;
+        generateLicenseUrl?: string | null;
         sendUrl?: ((documentId: number) => string) | null;
         destroyUrl?: ((documentId: number) => string) | null;
     }>(),
@@ -43,12 +45,14 @@ const props = withDefaults(
         documentTypes: () => [],
         recipientEmail: null,
         storeUrl: null,
+        generateLicenseUrl: null,
         sendUrl: null,
         destroyUrl: null,
     },
 );
 
 const { t } = useTranslations();
+const generatingLicense = ref(false);
 
 const form = useForm({
     type: props.documentTypes[0] ?? 'invoice',
@@ -75,6 +79,24 @@ const submit = () => {
             form.type = props.documentTypes[0] ?? 'invoice';
         },
     });
+};
+
+const generateLicense = () => {
+    if (!props.canManage || !props.generateLicenseUrl) {
+        return;
+    }
+
+    generatingLicense.value = true;
+    router.post(
+        props.generateLicenseUrl,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                generatingLicense.value = false;
+            },
+        },
+    );
 };
 
 const sendDocument = (documentId: number) => {
@@ -176,7 +198,7 @@ const typeLabel = (type: string): string =>
                 <InputError :message="form.errors.file" />
             </div>
 
-            <div class="sm:col-span-2">
+            <div class="flex flex-wrap gap-2 sm:col-span-2">
                 <Button
                     type="submit"
                     variant="outline"
@@ -185,7 +207,23 @@ const typeLabel = (type: string): string =>
                     <Plus class="h-4 w-4" />
                     {{ t('billing.documents.upload') }}
                 </Button>
+                <Button
+                    v-if="generateLicenseUrl"
+                    type="button"
+                    variant="outline"
+                    :disabled="generatingLicense"
+                    @click="generateLicense"
+                >
+                    <FileText class="h-4 w-4" />
+                    {{ t('billing.documents.generate_license') }}
+                </Button>
             </div>
+            <p
+                v-if="generateLicenseUrl"
+                class="text-xs text-muted-foreground sm:col-span-2"
+            >
+                {{ t('billing.documents.generate_license_help') }}
+            </p>
         </form>
 
         <div

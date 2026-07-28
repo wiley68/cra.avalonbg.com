@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.17  
+**Версия:** 0.18  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could 15–17 Done; Could 18–19 open  
+**Статус:** Active — Must complete (2–9 Done); Should 10–14 Done; Could 15–18 Done; Could 19 open  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -163,7 +163,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 15. ~~Promo codes / trial_ends_at wired към реален trial~~ **Done** (2026-07-28) — config promos, signup/Billing apply, expire → pending
 16. ~~Paid-only feature flags (първи конкретни разлики Free vs paid)~~ **Done** (2026-07-28) — Free: AI gated (UI visible + upgrade dialog/Billing CTA)
 17. ~~SAML 2.0~~ **Done** (2026-07-28) — SP-initiated SAML + ACS/metadata; same domain/plan policy as OIDC
-18. Auto-generate simple license PDF template
+18. ~~Auto-generate simple license PDF template~~ **Done** (2026-07-28) — admin generate → DomPDF license stored as billing document
 19. Seat limits / usage dashboard
 
 ---
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.18   | 2026-07-28 | Could 18 Done — auto-generate simple license PDF (admin DomPDF template → license billing document)                    |
 | 0.17   | 2026-07-28 | Could 17 Done — SAML 2.0 SP-initiated SSO (ACS + metadata; Standard/Enterprise; domain policy like OIDC)               |
 | 0.16   | 2026-07-28 | Could 16 Done — Free plan AI gate (buttons visible; click → upgrade dialog + Billing CTA; backend assert)              |
 | 0.15   | 2026-07-28 | Could 15 Done — promo codes + real trial_ends_at (signup/Billing, expire→pending, no auto-delete)                      |

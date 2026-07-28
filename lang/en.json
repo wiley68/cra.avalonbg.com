@@ -321,21 +321,41 @@
             "doc_title_placeholder": "Optional title",
             "file": "File",
             "upload": "Upload document",
+            "generate_license": "Generate license PDF",
+            "generate_license_help": "Creates a simple subscription license PDF from the current plan and stores it as a license document.",
             "empty": "No billing documents yet.",
             "empty_tenant": "No documents available yet. They appear here after payment is confirmed and the platform attaches them.",
             "download": "Download",
             "send": "Send email",
             "sent_to": "Sent to",
             "uploaded": "Billing document uploaded.",
+            "license_generated": "License PDF generated and stored.",
             "sent": "Billing document sent.",
             "deleted": "Billing document deleted.",
             "types": {
                 "invoice": "Invoice",
                 "license": "License"
             },
+            "license_pdf": {
+                "title": "Subscription license",
+                "default_title": "License — :organization",
+                "default_notes": "Auto-generated license PDF template.",
+                "licensee": "Licensee",
+                "org_slug": "Organization slug",
+                "reference": "License reference",
+                "plan": "Plan",
+                "interval": "Billing interval",
+                "payment_method": "Payment method",
+                "billing_status": "Billing status",
+                "activated_at": "Activated at",
+                "issued_at": "Issued at",
+                "statement": "This document confirms that :organization is licensed to use :product under the :plan plan, subject to the applicable terms of service and payment status.",
+                "disclaimer": "This is a platform license confirmation, not a tax invoice. Invoices are issued outside the application and may be attached separately."
+            },
             "errors": {
                 "file_empty": "The uploaded file is empty or unreadable.",
-                "no_recipient": "No billing email or organization owner email is available."
+                "no_recipient": "No billing email or organization owner email is available.",
+                "generate_failed": "Could not generate the license PDF."
             }
         },
         "errors": {

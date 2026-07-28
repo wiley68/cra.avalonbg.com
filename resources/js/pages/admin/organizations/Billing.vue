@@ -17,6 +17,7 @@ import {
 import {
     destroy as destroyBillingDocument,
     download as downloadBillingDocument,
+    generateLicense as generateLicenseBillingDocument,
     send as sendBillingDocument,
     store as storeBillingDocument,
 } from '@/routes/admin/organizations/billing-documents';
@@ -211,6 +212,9 @@ const activateBilling = () => {
             :document-types="documentTypes"
             :recipient-email="documentRecipientEmail"
             :store-url="storeBillingDocument(organization.id).url"
+            :generate-license-url="
+                generateLicenseBillingDocument(organization.id).url
+            "
             :download-url="
                 (id) =>
                     downloadBillingDocument({

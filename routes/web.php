@@ -634,6 +634,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'organizations/{organization}/billing-documents',
                 [AdminOrganizationBillingDocumentController::class, 'store'],
             )->name('organizations.billing-documents.store');
+            Route::post(
+                'organizations/{organization}/billing-documents/generate-license',
+                [AdminOrganizationBillingDocumentController::class, 'generateLicense'],
+            )->name('organizations.billing-documents.generate-license');
             Route::get(
                 'organizations/{organization}/billing-documents/{document}',
                 [AdminOrganizationBillingDocumentController::class, 'download'],

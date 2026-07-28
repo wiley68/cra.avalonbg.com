@@ -314,6 +314,7 @@ class AuditLogger
     public static function logBillingDocumentUploaded(
         OrganizationBillingDocument $document,
         User $actor,
+        string $source = 'upload',
     ): void {
         self::persist(
             type: AuditEventType::BillingDocumentUploaded,
@@ -326,6 +327,7 @@ class AuditLogger
                 ['field' => 'type', 'value' => $document->typeValue()],
                 ['field' => 'title', 'value' => $document->title],
                 ['field' => 'source_filename', 'value' => $document->source_filename],
+                ['field' => 'source', 'value' => $source],
             ],
         );
     }

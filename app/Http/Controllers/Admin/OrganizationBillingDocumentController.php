@@ -44,6 +44,27 @@ class OrganizationBillingDocumentController extends Controller
         return redirect()->route('admin.organizations.billing', $organization);
     }
 
+    public function generateLicense(
+        Request $request,
+        Organization $organization,
+    ): RedirectResponse {
+        $this->authorize('update', $organization);
+
+        $this->documents->generateLicense(
+            $organization,
+            $request->user(),
+            $request->input('title'),
+            $request->input('notes'),
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => Translations::get('billing.documents.license_generated'),
+        ]);
+
+        return redirect()->route('admin.organizations.billing', $organization);
+    }
+
     public function download(
         Organization $organization,
         OrganizationBillingDocument $document,

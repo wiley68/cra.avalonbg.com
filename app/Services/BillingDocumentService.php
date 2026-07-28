@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\BillingDocumentType;
+use App\Enums\BillingInterval;
+use App\Enums\PaymentMethod;
 use App\Enums\RoleSlug;
 use App\Mail\BillingDocumentMail;
 use App\Models\Organization;
@@ -11,10 +13,12 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Translations;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -102,6 +106,121 @@ class BillingDocumentService
         AuditLogger::logBillingDocumentUploaded($document, $actor);
 
         return $document;
+    }
+
+    /**
+     * Generate a simple subscription license PDF and store it as a license document.
+     */
+    public function generateLicense(
+        Organization $organization,
+        User $actor,
+        ?string $title = null,
+        ?string $notes = null,
+    ): OrganizationBillingDocument {
+        $payload = $this->licenseViewPayload($organization);
+        $pdfBinary = Pdf::loadView('pdf.billing-license', $payload)
+            ->setPaper('a4', 'portrait')
+            ->output();
+
+        if ($pdfBinary === '' || !is_string($pdfBinary)) {
+            throw ValidationException::withMessages([
+                'license' => Translations::get('billing.documents.errors.generate_failed'),
+            ]);
+        }
+
+        $filename = sprintf(
+            'license-%s-%s.pdf',
+            Str::slug($organization->slug !== '' ? $organization->slug : (string) $organization->id),
+            now()->format('Ymd'),
+        );
+        $resolvedTitle = filled($title)
+            ? trim((string) $title)
+            : Translations::get('billing.documents.license_pdf.default_title', [
+                'organization' => $organization->name,
+            ]);
+        $resolvedNotes = filled($notes)
+            ? trim((string) $notes)
+            : Translations::get('billing.documents.license_pdf.default_notes');
+
+        $storagePath = sprintf(
+            'billing/%d/%s_%s',
+            $organization->id,
+            uniqid('bd_', true),
+            $filename,
+        );
+
+        Storage::disk('local')->put($storagePath, $pdfBinary);
+
+        $document = OrganizationBillingDocument::query()->create([
+            'organization_id' => $organization->id,
+            'type' => BillingDocumentType::License->value,
+            'title' => $resolvedTitle,
+            'storage_path' => $storagePath,
+            'source_filename' => $filename,
+            'checksum_sha256' => hash('sha256', $pdfBinary),
+            'size_bytes' => strlen($pdfBinary),
+            'mime_type' => 'application/pdf',
+            'uploaded_by' => $actor->id,
+            'notes' => $resolvedNotes,
+        ]);
+
+        AuditLogger::logBillingDocumentUploaded($document, $actor, source: 'generated');
+
+        return $document;
+    }
+
+    /**
+     * @return array{
+     *     issuer: string,
+     *     license: array{
+     *         organization_name: string,
+     *         organization_slug: string,
+     *         reference: string,
+     *         plan_label: string,
+     *         interval_label: string,
+     *         payment_method_label: string,
+     *         billing_status_label: string,
+     *         activated_at: string|null,
+     *         issued_at: string
+     *     }
+     * }
+     */
+    public function licenseViewPayload(Organization $organization): array
+    {
+        $plan = $organization->resolvedSubscriptionPlan();
+        $interval = $organization->billing_interval instanceof BillingInterval
+            ? $organization->billing_interval
+            : BillingInterval::tryFrom((string) ($organization->billing_interval ?? ''));
+        $paymentMethod = $organization->payment_method instanceof PaymentMethod
+            ? $organization->payment_method
+            : PaymentMethod::tryFrom((string) ($organization->payment_method ?? ''));
+        $status = $organization->resolvedBillingStatus();
+
+        $reference = sprintf(
+            'LIC-%d-%s-%s',
+            $organization->id,
+            now()->format('Ymd'),
+            Str::upper(Str::random(6)),
+        );
+
+        return [
+            'issuer' => (string) (config('billing.bank.beneficiary') ?: config('app.name')),
+            'license' => [
+                'organization_name' => $organization->name,
+                'organization_slug' => $organization->slug,
+                'reference' => $reference,
+                'plan_label' => Translations::get('admin.organizations.plans.' . $plan->value),
+                'interval_label' => $interval !== null
+                    ? Translations::get('billing.interval.' . $interval->value)
+                    : Translations::get('billing.interval.none'),
+                'payment_method_label' => $paymentMethod !== null
+                    ? Translations::get('billing.payment_method.' . $paymentMethod->value)
+                    : Translations::get('billing.payment_method.none'),
+                'billing_status_label' => Translations::get('billing.status.' . $status->value),
+                'activated_at' => $organization->billing_activated_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+                'issued_at' => now()->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            ],
+        ];
     }
 
     public function download(OrganizationBillingDocument $document): StreamedResponse
