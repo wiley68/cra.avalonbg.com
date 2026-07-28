@@ -1,8 +1,8 @@
 # Phase 2_F — Platform: Registration, Billing, SSO
 
-**Версия:** 0.7  
+**Версия:** 0.8  
 **Дата:** 28 юли 2026 г.  
-**Статус:** Active — Must 2–6 Done (plans + registration + bank + docs + Stripe)  
+**Статус:** Active — Must 2–8 Done (plans + registration + bank + docs + Stripe + SSO + i18n/tests)  
 **Родителски документи:**
 
 - [CRA_Compliance_Workspace_Nachalen_Plan.md](CRA_Compliance_Workspace_Nachalen_Plan.md) (§14–§16; бизнес модел)
@@ -147,7 +147,7 @@ Enforcement: при `ProductController@store` (и clone) — ако `products()-
 5. ~~Billing documents: upload/store **invoices** + **license docs** (**Platform Admin only**); tenant Owner **view/download** след потвърдено плащане; send channel (email към `billing_email` / Owner от admin)~~
 6. ~~Stripe Checkout (month/year) + webhooks → activate/renew/cancel status~~
 7. ~~OIDC SSO (Entra / generic) — org settings + login path (Enterprise Must; Standard optional flag OK)~~
-8. i18n BG+EN + feature tests (limits, bank activate, Stripe fake, SSO fake)
+8. ~~i18n BG+EN + feature tests (limits, bank activate, Stripe fake, SSO fake)~~
 9. Audit log за plan change / payment activate / doc send / SSO connect
 
 ### Should
@@ -201,6 +201,7 @@ Phase 2_F exit → final tests → deploy / клиенти
 
 | Версия | Дата       | Промяна                                                                                                                |
 | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 0.8    | 2026-07-28 | Must 8 Done — EN/BG i18n guardrails (billing/SSO/signup) + verified feature suite (limits, bank, Stripe, SSO)          |
 | 0.7    | 2026-07-28 | Must 7 Done — OIDC SSO (Entra/generic), org settings, login redirect/callback, domain policy, Standard flag, tests     |
 | 0.6    | 2026-07-28 | Must 6 Done — Stripe Checkout (month/year), webhook activate/past_due/cancel/renew, tenant CTA, tests                  |
 | 0.5.1  | 2026-07-28 | Billing docs RBAC: Platform Admin upload/send/delete; tenant Owner view/download only след active billing              |
