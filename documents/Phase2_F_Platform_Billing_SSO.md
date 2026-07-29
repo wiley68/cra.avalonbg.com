@@ -9,6 +9,7 @@
 - [Phase2_E_Cross_Phase_Polish.md](Phase2_E_Cross_Phase_Polish.md) (Complete — сочи към F)
 - [Internal_Manual_Test_Plan.md](Internal_Manual_Test_Plan.md) (Done / exited 2026-07-28)
 - [Product_Compliance_Wizard.md](Product_Compliance_Wizard.md) (Done)
+- [Next_Stack_Rewrite.md](Next_Stack_Rewrite.md) — експериментален порт към Next.js / Neon / Prisma / shadcn ([пакет](Next_Rewrite/00_README.md))
 
 > **Цел на вълната:** go-to-market платформа — **публична регистрация / създаване на акаунт**, **планове + лимити**, **два начина на плащане** (банков превод + Stripe), **съхранение/доставка на фактури и лицензни документи**, **OIDC SSO** — без нова CRA domain вълна.
 
