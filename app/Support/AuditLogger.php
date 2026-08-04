@@ -145,19 +145,26 @@ class AuditLogger
     public static function logTwoFactorReset(
         User $target,
         User $actor,
-        int $organizationId,
+        ?int $organizationId = null,
         ?AuditEventSource $source = null,
+        ?string $via = null,
     ): void {
+        $details = [
+            ['field' => 'target_user_id', 'value' => (string) $target->id],
+            ['field' => 'target_email', 'value' => $target->email],
+        ];
+
+        if (filled($via)) {
+            $details[] = ['field' => 'via', 'value' => $via];
+        }
+
         self::persist(
             type: AuditEventType::TwoFactorReset,
             success: true,
             source: $source ?? self::resolveSource(),
             actor: $actor,
             organizationId: $organizationId,
-            details: [
-                ['field' => 'target_user_id', 'value' => (string) $target->id],
-                ['field' => 'target_email', 'value' => $target->email],
-            ],
+            details: $details,
         );
     }
 

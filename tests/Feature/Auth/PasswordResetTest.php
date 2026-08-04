@@ -66,6 +66,41 @@ test('password can be reset with valid token', function () {
     });
 });
 
+test('password reset clears two factor authentication', function () {
+    Notification::fake();
+
+    $user = User::factory()->withTwoFactor()->create();
+
+    expect($user->hasEnabledTwoFactorAuthentication())->toBeTrue();
+
+    $this->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $this->post(route('password.update'), [
+            'token' => $notification->token,
+            'email' => $user->email,
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('login'));
+
+        $user->refresh();
+
+        expect($user->hasEnabledTwoFactorAuthentication())->toBeFalse()
+            ->and($user->two_factor_secret)->toBeNull()
+            ->and($user->two_factor_recovery_codes)->toBeNull()
+            ->and($user->two_factor_confirmed_at)->toBeNull();
+
+        expect(\App\Models\AuditLog::query()
+            ->where('event_type', \App\Enums\AuditEventType::TwoFactorReset->value)
+            ->where('user_id', $user->id)
+            ->exists())->toBeTrue();
+
+        return true;
+    });
+});
+
 test('password cannot be reset with invalid token', function () {
     $user = User::factory()->create();
 
